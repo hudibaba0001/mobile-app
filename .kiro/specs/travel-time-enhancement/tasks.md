@@ -176,7 +176,8 @@
   - Add batch operations for multiple entries
   - _Requirements: 3.1, 3.2, 3.3, 8.1, 8.2, 8.3_
 
-- [ ] 8.3 Enhance Locations Management screen
+- [-] 8.3 Enhance Locations Management screen
+
   - Update existing locations screen with new functionality
   - Add search and filter capabilities for locations
   - Implement usage statistics and favorite locations
