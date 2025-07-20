@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'models/travel_time_entry.dart';
 import 'models/location.dart';
 import 'services/migration_service.dart';
 import 'utils/constants.dart';
-import 'utils/validators.dart';
-import 'locations_screen.dart';
+import 'config/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,13 +31,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Travel Time Logger',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: TravelTimeLoggerPage(),
+      routerConfig: AppRouter.router,
     );
   }
 }
@@ -47,194 +46,4 @@ class MyApp extends StatelessWidget {
 
 
 
-class TravelTimeLoggerPage extends StatefulWidget {
-  const TravelTimeLoggerPage({super.key});
 
-  @override
-  _TravelTimeLoggerPageState createState() => _TravelTimeLoggerPageState();
-}
-
-class _TravelTimeLoggerPageState extends State<TravelTimeLoggerPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _departureController = TextEditingController();
-  final TextEditingController _arrivalController = TextEditingController();
-  final TextEditingController _infoController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
-
-  late Box<TravelTimeEntry> _travelEntriesBox;
-
-  @override
-  void initState() {
-    super.initState();
-    _travelEntriesBox = Hive.box<TravelTimeEntry>(AppConstants.travelEntriesBox);
-  }
-
-  @override
-  void dispose() {
-    _dateController.dispose();
-    _departureController.dispose();
-    _arrivalController.dispose();
-    _infoController.dispose();
-    _timeController.dispose();
-    _travelEntriesBox.close();
-    super.dispose();
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null) {
-      setState(() {
-        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
-      });
-    }
-  }
-
-  void _logTravelTime() {
-    if (_formKey.currentState!.validate()) {
-      final entry = TravelTimeEntry(
-        date: DateTime.parse(_dateController.text),
-        departure: _departureController.text,
-        arrival: _arrivalController.text,
-        info: _infoController.text.isEmpty ? null : _infoController.text,
-        minutes: int.parse(_timeController.text),
-      );
-
-      _travelEntriesBox.add(entry);
-
-      // Clear the form
-      _formKey.currentState!.reset();
-      _dateController.clear();
-      _departureController.clear();
-      _arrivalController.clear();
-      _infoController.clear();
-      _timeController.clear();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Travel time logged!')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Travel Time Logger'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.location_on),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LocationsScreen()),
-              );
-            },
-            tooltip: 'Manage Locations',
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-                  TextFormField(
-                    controller: _dateController,
-                    readOnly: true,
-                    onTap: () => _selectDate(context),
-                    decoration: const InputDecoration(
-                      labelText: 'Date',
-                      hintText: 'Select Date',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a date';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: _departureController,
-                    decoration: const InputDecoration(
-                      labelText: 'From (address/city)',
-                      hintText: 'e.g., HEMFRID, FABRIKSGATAN 13, 412 50 GÖTEBORG',
-                    ),
-                    validator: (value) => Validators.validateRequired(value, 'Departure location'),
-                  ),
-                  TextFormField(
-                    controller: _arrivalController,
-                    decoration: const InputDecoration(
-                      labelText: 'To (address/city)',
-                      hintText: 'e.g., TRANSISTORGATAN 36, 42135, VÄSTRA FRÖLUNDA',
-                    ),
-                    validator: (value) => Validators.validateRequired(value, 'Arrival location'),
-                  ),
-                   TextFormField(
-                    controller: _infoController,
-                    decoration: const InputDecoration(
-                      labelText: 'Other Information (ex. förseringar som bidragit)',
-                      hintText: 'Optional information',
-                    ),
-                    validator: Validators.validateInfo,
-                  ),
-                  TextFormField(
-                    controller: _timeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Minutes Spent',
-                      hintText: 'e.g., 51',
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: Validators.validateMinutes,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _logTravelTime,
-                    child: const Text('Log Travel Time'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ValueListenableBuilder(
-                valueListenable: _travelEntriesBox.listenable(),
-                builder: (context, Box<TravelTimeEntry> box, _) {
-                  if (box.values.isEmpty) {
-                    return Center(child: Text('No travel entries yet.'));
-                  }
-                  return ListView.builder(
-                    itemCount: box.values.length,
-                    itemBuilder: (context, index) {
-                      final entry = box.getAt(index)!; // Get entry from box
-                      return ListTile(
-                        title: Text('Date: ${DateFormat('yyyy-MM-dd').format(entry.date)}'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('From: ${entry.departure}'),
-                            Text('To: ${entry.arrival}'),
-                            if (entry.info != null && entry.info!.isNotEmpty) Text('Info: ${entry.info}'),
-                            Text('Minutes: ${entry.minutes}'),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
