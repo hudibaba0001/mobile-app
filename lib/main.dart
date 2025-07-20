@@ -6,6 +6,8 @@ import 'models/travel_time_entry.dart';
 import 'models/location.dart';
 import 'services/migration_service.dart';
 import 'utils/constants.dart';
+import 'utils/validators.dart';
+import 'locations_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,71 +44,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-@HiveType(typeId: 0)
-class TravelTimeEntry {
-  @HiveField(0)
-  final DateTime date;
-  @HiveField(1)
-  final String departure;
-  @HiveField(2)
-  final String arrival;
-  @HiveField(3)
-  final String? info;
-  @HiveField(4)
-  final int minutes;
 
-  TravelTimeEntry({
-    required this.date,
-    required this.departure,
-    required this.arrival,
-    this.info,
-    required this.minutes,
-  });
-}
-
-class TravelTimeEntryAdapter extends TypeAdapter<TravelTimeEntry> {
-  @override
-  final int typeId = 0;
-
-  @override
-  TravelTimeEntry read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return TravelTimeEntry(
-      date: fields[0] as DateTime,
-      departure: fields[1] as String,
-      arrival: fields[2] as String,
-      info: fields[3] as String?,
-      minutes: fields[4] as int,
-    );
-  }
-
-  @override
-  void write(BinaryWriter writer, TravelTimeEntry obj) {
-    writer
-      ..writeByte(5)
-      ..writeByte(0)
-      ..write(obj.date)
-      ..writeByte(1)
-      ..write(obj.departure)
-      ..writeByte(2)
-      ..write(obj.arrival)
-      ..writeByte(3)
-      ..write(obj.info)
-      ..writeByte(4)
-      ..write(obj.minutes);
-  }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TravelTimeEntryAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
-}
 
 
 class TravelTimeLoggerPage extends StatefulWidget {
@@ -129,7 +67,7 @@ class _TravelTimeLoggerPageState extends State<TravelTimeLoggerPage> {
   @override
   void initState() {
     super.initState();
-    _travelEntriesBox = Hive.box<TravelTimeEntry>('travelEntriesBox');
+    _travelEntriesBox = Hive.box<TravelTimeEntry>(AppConstants.travelEntriesBox);
   }
 
   @override
@@ -188,6 +126,18 @@ class _TravelTimeLoggerPageState extends State<TravelTimeLoggerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Travel Time Logger'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.location_on),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LocationsScreen()),
+              );
+            },
+            tooltip: 'Manage Locations',
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -218,12 +168,7 @@ class _TravelTimeLoggerPageState extends State<TravelTimeLoggerPage> {
                       labelText: 'From (address/city)',
                       hintText: 'e.g., HEMFRID, FABRIKSGATAN 13, 412 50 GÖTEBORG',
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter departure location';
-                      }
-                      return null;
-                    },
+                    validator: (value) => Validators.validateRequired(value, 'Departure location'),
                   ),
                   TextFormField(
                     controller: _arrivalController,
@@ -231,12 +176,7 @@ class _TravelTimeLoggerPageState extends State<TravelTimeLoggerPage> {
                       labelText: 'To (address/city)',
                       hintText: 'e.g., TRANSISTORGATAN 36, 42135, VÄSTRA FRÖLUNDA',
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter arrival location';
-                      }
-                      return null;
-                    },
+                    validator: (value) => Validators.validateRequired(value, 'Arrival location'),
                   ),
                    TextFormField(
                     controller: _infoController,
@@ -244,6 +184,7 @@ class _TravelTimeLoggerPageState extends State<TravelTimeLoggerPage> {
                       labelText: 'Other Information (ex. förseringar som bidragit)',
                       hintText: 'Optional information',
                     ),
+                    validator: Validators.validateInfo,
                   ),
                   TextFormField(
                     controller: _timeController,
@@ -252,15 +193,7 @@ class _TravelTimeLoggerPageState extends State<TravelTimeLoggerPage> {
                       hintText: 'e.g., 51',
                     ),
                     keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter time spent';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Please enter a valid number';
-                      }
-                      return null;
-                    },
+                    validator: Validators.validateMinutes,
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(

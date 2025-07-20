@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'location.dart'; // Import the Location model
+import 'models/location.dart';
+import 'utils/constants.dart';
 
 class LocationsScreen extends StatefulWidget {
   const LocationsScreen({super.key});
@@ -19,7 +20,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
   @override
   void initState() {
     super.initState();
-    _locationsBox = Hive.box<Location>('locationsBox');
+    _locationsBox = Hive.box<Location>(AppConstants.locationsBox);
   }
 
   @override
