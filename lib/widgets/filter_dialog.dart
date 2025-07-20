@@ -1,315 +1,313 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/location.dart';
 import '../providers/filter_provider.dart';
+import '../providers/location_provider.dart';
 import '../utils/constants.dart';
 import 'date_range_picker_widget.dart';
 
 class FilterDialog extends StatefulWidget {
-  final Function(Map<String, dynamic> filters)? onFiltersApplied;
-
-  const FilterDialog({
-    Key? key,
-    this.onFiltersApplied,
-  }) : super(key: key);
+  const FilterDialog({Key? key}) : super(key: key);
 
   @override
   State<FilterDialog> createState() => _FilterDialogState();
 }
 
 class _FilterDialogState extends State<FilterDialog> {
-  late FilterProvider _tempFilterProvider;
+  late FilterProvider _filterProvider;
+  late LocationProvider _locationProvider;
+  
+  // Local state for dialog
+  DateTime? _startDate;
+  DateTime? _endDate;
+  int? _minDuration;
+  int? _maxDuration;
+  List<Location> _selectedLocations = [];
+  
+  final TextEditingController _minDurationController = TextEditingController();
+  final TextEditingController _maxDurationController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Create a temporary filter provider to hold changes until applied
-    final currentProvider = context.read<FilterProvider>();
-    _tempFilterProvider = FilterProvider()
-      ..copyFrom(currentProvider);
+    _filterProvider = Provider.of<FilterProvider>(context, listen: false);
+    _locationProvider = Provider.of<LocationProvider>(context, listen: false);
+    
+    // Initialize with current filter values
+    _startDate = _filterProvider.startDate;
+    _endDate = _filterProvider.endDate;
+    _minDuration = _filterProvider.minDuration;
+    _maxDuration = _filterProvider.maxDuration;
+    _selectedLocations = List.from(_filterProvider.selectedLocations);
+    
+    if (_minDuration != null) {
+      _minDurationController.text = _minDuration.toString();
+    }
+    if (_maxDuration != null) {
+      _maxDurationController.text = _maxDuration.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _minDurationController.dispose();
+    _maxDurationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _tempFilterProvider,
-      child: Dialog(
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          height: MediaQuery.of(context).size.height * 0.8,
-          padding: const EdgeInsets.all(AppConstants.defaultPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
+    return Dialog(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(AppConstants.defaultPadding),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+              ),
+              child: Row(
                 children: [
+                  Icon(
+                    Icons.filter_list,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                  const SizedBox(width: 8),
                   Text(
-                    'Filter Options',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    'Filter Travel Entries',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
+                    icon: Icon(
+                      Icons.close,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
                   ),
                 ],
               ),
-              const Divider(),
-
-              // Filter content
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Date Range Section
-                      _buildSection(
-                        'Date Range',
-                        _buildDateRangeFilter(),
+            ),
+            
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Date Range Section
+                    _buildSectionHeader('Date Range'),
+                    DateRangePickerWidget(
+                      initialStartDate: _startDate,
+                      initialEndDate: _endDate,
+                      onDateRangeSelected: (start, end) {
+                        setState(() {
+                          _startDate = start;
+                          _endDate = end;
+                        });
+                      },
+                      onClear: () {
+                        setState(() {
+                          _startDate = null;
+                          _endDate = null;
+                        });
+                      },
+                    ),
+                    
+                    const SizedBox(height: AppConstants.largePadding),
+                    
+                    // Duration Range Section
+                    _buildSectionHeader('Travel Duration (minutes)'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _minDurationController,
+                            decoration: const InputDecoration(
+                              labelText: 'Min Duration',
+                              hintText: 'e.g., 15',
+                              prefixIcon: Icon(Icons.timer),
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              _minDuration = int.tryParse(value);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: AppConstants.defaultPadding),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _maxDurationController,
+                            decoration: const InputDecoration(
+                              labelText: 'Max Duration',
+                              hintText: 'e.g., 120',
+                              prefixIcon: Icon(Icons.timer_off),
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              _maxDuration = int.tryParse(value);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: AppConstants.smallPadding),
+                    
+                    // Quick duration presets
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        _buildDurationPreset('Short (< 30min)', 0, 29),
+                        _buildDurationPreset('Medium (30-60min)', 30, 60),
+                        _buildDurationPreset('Long (> 60min)', 61, null),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: AppConstants.largePadding),
+                    
+                    // Locations Section
+                    _buildSectionHeader('Locations'),
+                    _buildLocationSelector(),
+                    
+                    const SizedBox(height: AppConstants.smallPadding),
+                    
+                    // Selected locations
+                    if (_selectedLocations.isNotEmpty) ...[
+                      Text(
+                        'Selected Locations:',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-
-                      // Duration Section
-                      _buildSection(
-                        'Travel Duration',
-                        _buildDurationFilter(),
-                      ),
-
-                      // Location Section
-                      _buildSection(
-                        'Locations',
-                        _buildLocationFilter(),
-                      ),
-
-                      // Sort Section
-                      _buildSection(
-                        'Sort By',
-                        _buildSortFilter(),
+                      const SizedBox(height: AppConstants.smallPadding),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: _selectedLocations.map((location) => 
+                          Chip(
+                            label: Text(location.name),
+                            deleteIcon: const Icon(Icons.close, size: 16),
+                            onDeleted: () {
+                              setState(() {
+                                _selectedLocations.remove(location);
+                              });
+                            },
+                          ),
+                        ).toList(),
                       ),
                     ],
+                  ],
+                ),
+              ),
+            ),
+            
+            // Actions
+            Container(
+              padding: const EdgeInsets.all(AppConstants.defaultPadding),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: Theme.of(context).dividerColor,
+                    width: 1,
                   ),
                 ),
               ),
-
-              // Action buttons
-              const Divider(),
-              Row(
+              child: Row(
                 children: [
-                  Consumer<FilterProvider>(
-                    builder: (context, filterProvider, _) {
-                      return TextButton.icon(
-                        onPressed: filterProvider.hasActiveFilters
-                            ? () {
-                                _tempFilterProvider.clearAllFilters();
-                              }
-                            : null,
-                        icon: const Icon(Icons.clear_all),
-                        label: const Text('Clear All'),
-                      );
-                    },
+                  TextButton(
+                    onPressed: _clearAllFilters,
+                    child: const Text('Clear All'),
                   ),
                   const Spacer(),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text('Cancel'),
                   ),
-                  const SizedBox(width: AppConstants.smallPadding),
+                  const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: _applyFilters,
                     child: const Text('Apply Filters'),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSection(String title, Widget content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppConstants.smallPadding),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
         ),
-        const SizedBox(height: AppConstants.smallPadding),
-        content,
-        const SizedBox(height: AppConstants.largePadding),
-      ],
+      ),
     );
   }
 
-  Widget _buildDateRangeFilter() {
-    return Consumer<FilterProvider>(
-      builder: (context, filterProvider, _) {
-        return DateRangePickerWidget(
-          initialStartDate: filterProvider.startDate,
-          initialEndDate: filterProvider.endDate,
-          onDateRangeSelected: (start, end) {
-            filterProvider.setDateRange(start, end);
-          },
-          onClear: () {
-            filterProvider.clearDateRange();
-          },
-          showQuickSelects: true,
-        );
-      },
-    );
-  }
-
-  Widget _buildDurationFilter() {
-    return Consumer<FilterProvider>(
-      builder: (context, filterProvider, _) {
-        return Column(
-          children: [
-            // Predefined duration ranges
-            Wrap(
-              spacing: AppConstants.smallPadding,
-              runSpacing: AppConstants.smallPadding,
-              children: [
-                _buildDurationChip('< 30 min', 'short', 0, 30, filterProvider),
-                _buildDurationChip('30-60 min', 'medium', 30, 60, filterProvider),
-                _buildDurationChip('1-2 hours', 'long', 60, 120, filterProvider),
-                _buildDurationChip('> 2 hours', 'veryLong', 120, null, filterProvider),
-              ],
-            ),
-            
-            const SizedBox(height: AppConstants.defaultPadding),
-            
-            // Custom duration range
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Min Duration (minutes)',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      final minutes = int.tryParse(value);
-                      if (minutes != null) {
-                        filterProvider.setCustomDurationRange(
-                          minMinutes: minutes,
-                          maxMinutes: filterProvider.maxDurationMinutes,
-                        );
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: AppConstants.defaultPadding),
-                Expanded(
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Max Duration (minutes)',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      final minutes = int.tryParse(value);
-                      if (minutes != null) {
-                        filterProvider.setCustomDurationRange(
-                          minMinutes: filterProvider.minDurationMinutes,
-                          maxMinutes: minutes,
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildDurationChip(
-    String label,
-    String key,
-    int min,
-    int? max,
-    FilterProvider filterProvider,
-  ) {
-    final isSelected = filterProvider.selectedDurationRanges.contains(key);
+  Widget _buildDurationPreset(String label, int min, int? max) {
+    final isSelected = _minDuration == min && _maxDuration == max;
     
     return FilterChip(
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
         if (selected) {
-          filterProvider.addDurationRange(key, min, max);
-        } else {
-          filterProvider.removeDurationRange(key);
+          setState(() {
+            _minDuration = min;
+            _maxDuration = max;
+            _minDurationController.text = min.toString();
+            _maxDurationController.text = max?.toString() ?? '';
+          });
         }
       },
-      selectedColor: Theme.of(context).colorScheme.primaryContainer,
-      checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
     );
   }
 
-  Widget _buildLocationFilter() {
-    return Consumer<FilterProvider>(
-      builder: (context, filterProvider, _) {
-        final locations = filterProvider.availableLocations;
+  Widget _buildLocationSelector() {
+    return Consumer<LocationProvider>(
+      builder: (context, locationProvider, _) {
+        final locations = locationProvider.locations;
         
         if (locations.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: AppConstants.smallPadding),
-                const Text('No saved locations available'),
-              ],
-            ),
-          );
+          return const Text('No saved locations available');
         }
-
+        
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search locations
-            TextField(
-              decoration: const InputDecoration(
-                hintText: 'Search locations...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (query) {
-                // Filter locations based on search
-                // This would be implemented in the FilterProvider
-              },
+            Text(
+              'Select locations to filter by:',
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
-            
-            const SizedBox(height: AppConstants.defaultPadding),
-            
-            // Location list
+            const SizedBox(height: AppConstants.smallPadding),
             Container(
               height: 200,
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                ),
+                border: Border.all(color: Theme.of(context).dividerColor),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ListView.builder(
                 itemCount: locations.length,
                 itemBuilder: (context, index) {
                   final location = locations[index];
-                  final isSelected = filterProvider.selectedLocations.contains(location.id);
+                  final isSelected = _selectedLocations.contains(location);
                   
                   return CheckboxListTile(
                     title: Text(location.name),
@@ -318,20 +316,18 @@ class _FilterDialogState extends State<FilterDialog> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    secondary: location.isFavorite
-                        ? Icon(
-                            Icons.star,
-                            color: Colors.amber[600],
-                            size: 20,
-                          )
+                    secondary: location.isFavorite 
+                        ? const Icon(Icons.star, color: Colors.amber)
                         : null,
                     value: isSelected,
                     onChanged: (selected) {
-                      if (selected == true) {
-                        filterProvider.addLocation(location.id);
-                      } else {
-                        filterProvider.removeLocation(location.id);
-                      }
+                      setState(() {
+                        if (selected == true) {
+                          _selectedLocations.add(location);
+                        } else {
+                          _selectedLocations.remove(location);
+                        }
+                      });
                     },
                   );
                 },
@@ -343,82 +339,34 @@ class _FilterDialogState extends State<FilterDialog> {
     );
   }
 
-  Widget _buildSortFilter() {
-    return Consumer<FilterProvider>(
-      builder: (context, filterProvider, _) {
-        return Column(
-          children: [
-            // Sort by options
-            RadioListTile<String>(
-              title: const Text('Date (Newest First)'),
-              value: 'date_desc',
-              groupValue: filterProvider.sortBy,
-              onChanged: (value) => filterProvider.setSortBy(value!),
-            ),
-            RadioListTile<String>(
-              title: const Text('Date (Oldest First)'),
-              value: 'date_asc',
-              groupValue: filterProvider.sortBy,
-              onChanged: (value) => filterProvider.setSortBy(value!),
-            ),
-            RadioListTile<String>(
-              title: const Text('Duration (Longest First)'),
-              value: 'duration_desc',
-              groupValue: filterProvider.sortBy,
-              onChanged: (value) => filterProvider.setSortBy(value!),
-            ),
-            RadioListTile<String>(
-              title: const Text('Duration (Shortest First)'),
-              value: 'duration_asc',
-              groupValue: filterProvider.sortBy,
-              onChanged: (value) => filterProvider.setSortBy(value!),
-            ),
-            RadioListTile<String>(
-              title: const Text('Location (A-Z)'),
-              value: 'location_asc',
-              groupValue: filterProvider.sortBy,
-              onChanged: (value) => filterProvider.setSortBy(value!),
-            ),
-          ],
-        );
-      },
-    );
+  void _clearAllFilters() {
+    setState(() {
+      _startDate = null;
+      _endDate = null;
+      _minDuration = null;
+      _maxDuration = null;
+      _selectedLocations.clear();
+      _minDurationController.clear();
+      _maxDurationController.clear();
+    });
   }
 
   void _applyFilters() {
-    // Apply the temporary filters to the main provider
-    final mainProvider = context.read<FilterProvider>();
-    mainProvider.copyFrom(_tempFilterProvider);
-    
-    // Notify callback
-    if (widget.onFiltersApplied != null) {
-      widget.onFiltersApplied!(mainProvider.activeFilters);
+    // Apply filters to the provider
+    if (_startDate != null && _endDate != null) {
+      _filterProvider.setDateRange(_startDate!, _endDate!);
+    } else {
+      _filterProvider.clearDateRange();
     }
     
-    Navigator.of(context).pop();
-  }
-}
-
-// Extension to add copyFrom method to FilterProvider
-extension FilterProviderExtension on FilterProvider {
-  void copyFrom(FilterProvider other) {
-    // Copy all filter states from another provider
-    if (other.startDate != null && other.endDate != null) {
-      setDateRange(other.startDate!, other.endDate!);
+    if (_minDuration != null || _maxDuration != null) {
+      _filterProvider.setDurationRange(_minDuration, _maxDuration);
+    } else {
+      _filterProvider.clearDurationRange();
     }
     
-    for (final range in other.selectedDurationRanges) {
-      // This would need to be implemented based on the actual FilterProvider structure
-    }
+    _filterProvider.setLocationFilters(_selectedLocations);
     
-    for (final locationId in other.selectedLocations) {
-      addLocation(locationId);
-    }
-    
-    if (other.selectedTimePeriod != null) {
-      setTimePeriod(other.selectedTimePeriod!);
-    }
-    
-    setSortBy(other.sortBy);
+    Navigator.of(context).pop(true); // Return true to indicate filters were applied
   }
 }

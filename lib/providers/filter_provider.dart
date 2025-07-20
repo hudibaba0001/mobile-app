@@ -46,6 +46,17 @@ class FilterProvider extends ChangeNotifier {
   bool get hasDurationFilter => _minMinutes != null || _maxMinutes != null;
   bool get hasAnyFilter => hasDateFilter || hasLocationFilter || hasDurationFilter || 
                           _showFavoritesOnly || _showRecentOnly;
+  
+  // Additional getters for UI components
+  bool get hasActiveFilters => hasAnyFilter;
+  bool get hasDateRange => hasDateFilter;
+  bool get hasDurationRange => hasDurationFilter;
+  int? get minDuration => _minMinutes;
+  int? get maxDuration => _maxMinutes;
+  List<Location> get selectedLocations => _selectedLocationsList;
+  
+  // Internal list to store actual Location objects
+  List<Location> _selectedLocationsList = [];
 
   // Set date range filter
   void setDateRange(DateTime? start, DateTime? end) {
@@ -101,9 +112,17 @@ class FilterProvider extends ChangeNotifier {
     }
   }
 
-  // Set location filters
-  void setLocationFilters(List<String> locationIds) {
+  // Set location filters by IDs
+  void setLocationFilterIds(List<String> locationIds) {
     _selectedLocationIds = List.from(locationIds);
+    _updateActiveState();
+    notifyListeners();
+  }
+
+  // Set location filters with Location objects
+  void setLocationFilters(List<Location> locations) {
+    _selectedLocationsList = List.from(locations);
+    _selectedLocationIds = locations.map((loc) => loc.id).toList();
     _updateActiveState();
     notifyListeners();
   }
@@ -279,11 +298,34 @@ class FilterProvider extends ChangeNotifier {
     }
   }
 
+  // Clear specific filters
+  void clearDateRange() {
+    _startDate = null;
+    _endDate = null;
+    _updateActiveState();
+    notifyListeners();
+  }
+
+  void clearDurationRange() {
+    _minMinutes = null;
+    _maxMinutes = null;
+    _updateActiveState();
+    notifyListeners();
+  }
+
+  void clearLocationFilters() {
+    _selectedLocationIds.clear();
+    _selectedLocationsList.clear();
+    _updateActiveState();
+    notifyListeners();
+  }
+
   // Clear all filters
   void clearAllFilters() {
     _startDate = null;
     _endDate = null;
     _selectedLocationIds.clear();
+    _selectedLocationsList.clear();
     _minMinutes = null;
     _maxMinutes = null;
     _showFavoritesOnly = false;
@@ -292,6 +334,44 @@ class FilterProvider extends ChangeNotifier {
     _updateActiveState();
     _clearError();
     notifyListeners();
+  }
+
+  // Helper methods for UI text display
+  String getDateRangeText() {
+    if (_startDate == null && _endDate == null) return '';
+    
+    final dateFormat = 'MMM dd, yyyy';
+    if (_startDate != null && _endDate != null) {
+      // Check if same day
+      if (_startDate!.year == _endDate!.year && 
+          _startDate!.month == _endDate!.month && 
+          _startDate!.day == _endDate!.day) {
+        return _formatDate(_startDate!);
+      }
+      return '${_formatDate(_startDate!)} - ${_formatDate(_endDate!)}';
+    } else if (_startDate != null) {
+      return 'From ${_formatDate(_startDate!)}';
+    } else {
+      return 'Until ${_formatDate(_endDate!)}';
+    }
+  }
+
+  String getDurationRangeText() {
+    if (_minMinutes == null && _maxMinutes == null) return '';
+    
+    if (_minMinutes != null && _maxMinutes != null) {
+      return '${_minMinutes}min - ${_maxMinutes}min';
+    } else if (_minMinutes != null) {
+      return '${_minMinutes}min+';
+    } else {
+      return 'Up to ${_maxMinutes}min';
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   // Save current filters as preset

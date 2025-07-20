@@ -1,88 +1,372 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import 'package:hive/hive.dart';
+import '../providers/travel_provider.dart';
+import '../providers/search_provider.dart';
+import '../providers/filter_provider.dart';
+import '../widgets/search_filter_bar.dart';
+import '../widgets/travel_entry_card.dart';
+import '../widgets/quick_entry_form.dart';
 import '../models/travel_time_entry.dart';
 import '../utils/constants.dart';
-import '../config/app_router.dart';
 
 class TravelEntriesScreen extends StatefulWidget {
-  const TravelEntriesScreen({super.key});
+  const TravelEntriesScreen({Key? key}) : super(key: key);
 
   @override
   State<TravelEntriesScreen> createState() => _TravelEntriesScreenState();
 }
 
 class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
-  late Box<TravelTimeEntry> _travelEntriesBox;
-  final TextEditingController _searchController = TextEditingController();
-  List<TravelTimeEntry> _filteredEntries = [];
-  List<TravelTimeEntry> _allEntries = [];
+  final ScrollController _scrollController = ScrollController();
+  bool _showFab = true;
+  List<TravelTimeEntry> _selectedEntries = [];
+  bool _isSelectionMode = false;
 
   @override
   void initState() {
     super.initState();
-    _travelEntriesBox = Hive.box<TravelTimeEntry>(AppConstants.travelEntriesBox);
-    _loadEntries();
-  }
+    // Load entries when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TravelProvider>(context, listen: false).loadEntries();
+    });
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _loadEntries() {
-    _allEntries = _travelEntriesBox.values.toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-    _filteredEntries = List.from(_allEntries);
-  }
-
-  void _filterEntries(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _filteredEntries = List.from(_allEntries);
-      } else {
-        _filteredEntries = _allEntries.where((entry) {
-          final searchLower = query.toLowerCase();
-          return entry.departure.toLowerCase().contains(searchLower) ||
-                 entry.arrival.toLowerCase().contains(searchLower) ||
-                 (entry.info?.toLowerCase().contains(searchLower) ?? false);
-        }).toList();
+    // Hide FAB when scrolling down, show when scrolling up
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection == ScrollDirection.reverse) {
+        if (_showFab) setState(() => _showFab = false);
+      } else if (_scrollController.position.userScrollDirection == ScrollDirection.forward) {
+        if (!_showFab) setState(() => _showFab = true);
       }
     });
   }
 
-  void _deleteEntry(TravelTimeEntry entry) {
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: _isSelectionMode 
+            ? Text('${_selectedEntries.length} selected')
+            : const Text('Travel Entries'),
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _exitSelectionMode,
+              )
+            : null,
+        actions: _isSelectionMode
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.select_all),
+                  onPressed: _selectAll,
+                  tooltip: 'Select All',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: _selectedEntries.isNotEmpty ? _deleteSelectedEntries : null,
+                  tooltip: 'Delete Selected',
+                ),
+              ]
+            : [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => _showQuickEntryDialog(context),
+                  tooltip: 'Quick Add',
+                ),
+                PopupMenuButton<String>(
+                  onSelected: _handleMenuAction,
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'select_mode',
+                      child: ListTile(
+                        leading: Icon(Icons.checklist),
+                        title: Text('Select Multiple'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'export',
+                      child: ListTile(
+                        leading: Icon(Icons.download),
+                        title: Text('Export Data'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'refresh',
+                      child: ListTile(
+                        leading: Icon(Icons.refresh),
+                        title: Text('Refresh'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+      ),
+      body: Consumer3<TravelProvider, SearchProvider, FilterProvider>(
+        builder: (context, travelProvider, searchProvider, filterProvider, _) {
+          if (travelProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Apply search and filters
+          List<TravelTimeEntry> entries = travelProvider.entries;
+          
+          // Apply search
+          if (searchProvider.hasQuery) {
+            entries = entries.where((entry) {
+              final query = searchProvider.query.toLowerCase();
+              return entry.departure.toLowerCase().contains(query) ||
+                     entry.arrival.toLowerCase().contains(query) ||
+                     (entry.info?.toLowerCase().contains(query) ?? false);
+            }).toList();
+          }
+
+          // Apply filters
+          entries = filterProvider.applyToTravelEntries(entries);
+
+          return Column(
+            children: [
+              // Search and Filter Bar
+              SearchFilterBar(
+                searchHint: 'Search travel entries...',
+                onSearch: (query) {
+                  // Search is handled by the SearchProvider
+                },
+                onFiltersChanged: () {
+                  // Filters are handled by the FilterProvider
+                },
+              ),
+
+              // Results summary
+              if (searchProvider.hasQuery || filterProvider.hasActiveFilters)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppConstants.defaultPadding,
+                    vertical: AppConstants.smallPadding,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${entries.length} ${entries.length == 1 ? 'entry' : 'entries'} found',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Entries List
+              Expanded(
+                child: _buildEntriesList(entries, travelProvider),
+              ),
+            ],
+          );
+        },
+      ),
+      floatingActionButton: _showFab && !_isSelectionMode
+          ? FloatingActionButton.extended(
+              onPressed: () => _showQuickEntryDialog(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Add Entry'),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildEntriesList(List<TravelTimeEntry> entries, TravelProvider travelProvider) {
+    if (entries.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await travelProvider.loadEntries();
+      },
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        itemCount: entries.length,
+        itemBuilder: (context, index) {
+          final entry = entries[index];
+          final isSelected = _selectedEntries.contains(entry);
+
+          return GestureDetector(
+            onLongPress: () => _toggleSelectionMode(entry),
+            child: TravelEntryCard(
+              entry: entry,
+              onEdit: () => _editEntry(context, entry),
+              onDelete: () => _showDeleteConfirmation(context, entry, travelProvider),
+              onTap: _isSelectionMode 
+                  ? () => _toggleEntrySelection(entry)
+                  : () => _showEntryDetails(context, entry),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    final searchProvider = Provider.of<SearchProvider>(context);
+    final filterProvider = Provider.of<FilterProvider>(context);
+    
+    final hasActiveSearchOrFilter = searchProvider.hasQuery || filterProvider.hasActiveFilters;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.largePadding),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              hasActiveSearchOrFilter ? Icons.search_off : Icons.route,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: AppConstants.defaultPadding),
+            Text(
+              hasActiveSearchOrFilter 
+                  ? 'No entries found'
+                  : 'No travel entries yet',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: AppConstants.smallPadding),
+            Text(
+              hasActiveSearchOrFilter
+                  ? 'Try adjusting your search or filters'
+                  : 'Add your first travel entry to get started',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppConstants.largePadding),
+            if (hasActiveSearchOrFilter)
+              ElevatedButton.icon(
+                onPressed: () {
+                  searchProvider.clearQuery();
+                  filterProvider.clearAllFilters();
+                },
+                icon: const Icon(Icons.clear_all),
+                label: const Text('Clear Search & Filters'),
+              )
+            else
+              ElevatedButton.icon(
+                onPressed: () => _showQuickEntryDialog(context),
+                icon: const Icon(Icons.add),
+                label: const Text('Add First Entry'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'select_mode':
+        _enterSelectionMode();
+        break;
+      case 'export':
+        context.go('/reports');
+        break;
+      case 'refresh':
+        Provider.of<TravelProvider>(context, listen: false).loadEntries();
+        break;
+    }
+  }
+
+  void _enterSelectionMode() {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedEntries.clear();
+    });
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedEntries.clear();
+    });
+  }
+
+  void _toggleSelectionMode(TravelTimeEntry entry) {
+    if (!_isSelectionMode) {
+      _enterSelectionMode();
+      _toggleEntrySelection(entry);
+    }
+  }
+
+  void _toggleEntrySelection(TravelTimeEntry entry) {
+    setState(() {
+      if (_selectedEntries.contains(entry)) {
+        _selectedEntries.remove(entry);
+      } else {
+        _selectedEntries.add(entry);
+      }
+    });
+  }
+
+  void _selectAll() {
+    final travelProvider = Provider.of<TravelProvider>(context, listen: false);
+    setState(() {
+      _selectedEntries = List.from(travelProvider.entries);
+    });
+  }
+
+  void _deleteSelectedEntries() {
+    if (_selectedEntries.isEmpty) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Entry'),
-        content: Text('Are you sure you want to delete this travel entry?\n\n${entry.departure} → ${entry.arrival}'),
+        title: const Text('Delete Entries'),
+        content: Text(
+          'Are you sure you want to delete ${_selectedEntries.length} ${_selectedEntries.length == 1 ? 'entry' : 'entries'}?'
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              // Find and delete the entry
-              for (int i = 0; i < _travelEntriesBox.length; i++) {
-                final boxEntry = _travelEntriesBox.getAt(i);
-                if (boxEntry?.id == entry.id) {
-                  _travelEntriesBox.deleteAt(i);
-                  break;
-                }
-              }
+            onPressed: () async {
               Navigator.of(context).pop();
-              _loadEntries();
-              setState(() {});
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Entry deleted'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
+              final travelProvider = Provider.of<TravelProvider>(context, listen: false);
+              
+              int deletedCount = 0;
+              for (final entry in _selectedEntries) {
+                final success = await travelProvider.deleteEntry(entry.id);
+                if (success) deletedCount++;
+              }
+              
+              _exitSelectionMode();
+              
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$deletedCount ${deletedCount == 1 ? 'entry' : 'entries'} deleted successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -91,189 +375,133 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Travel Entries'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(AppRouter.home),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.analytics),
-            onPressed: () => context.go(AppRouter.reports),
-            tooltip: 'View Reports',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Search entries',
-                hintText: 'Search by location or info...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-              onChanged: _filterEntries,
-            ),
-          ),
-          
-          // Entries List
-          Expanded(
-            child: ValueListenableBuilder(
-              valueListenable: _travelEntriesBox.listenable(),
-              builder: (context, Box<TravelTimeEntry> box, _) {
-                _loadEntries();
-                _filterEntries(_searchController.text);
-                
-                if (_filteredEntries.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _searchController.text.isEmpty ? Icons.inbox : Icons.search_off,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchController.text.isEmpty 
-                              ? 'No travel entries yet'
-                              : 'No entries match your search',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _searchController.text.isEmpty
-                              ? 'Add your first entry from the home screen!'
-                              : 'Try a different search term',
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                        if (_searchController.text.isEmpty) ...[
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => context.go(AppRouter.home),
-                            child: const Text('Add Entry'),
-                          ),
-                        ],
-                      ],
+  void _showQuickEntryDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: const EdgeInsets.all(AppConstants.defaultPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.add_circle_outline,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Quick Entry',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                }
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppConstants.defaultPadding),
+              QuickEntryForm(
+                onSubmitted: (success) {
+                  Navigator.of(context).pop();
+                  if (success) {
+                    Provider.of<TravelProvider>(context, listen: false).loadEntries();
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
-                  itemCount: _filteredEntries.length,
-                  itemBuilder: (context, index) {
-                    final entry = _filteredEntries[index];
-                    final duration = Duration(minutes: entry.minutes);
-                    final hours = duration.inHours;
-                    final minutes = duration.inMinutes % 60;
-                    
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: AppConstants.smallPadding),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                          child: Text(
-                            entry.date.day.toString(),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        title: Text(
-                          '${entry.departure} → ${entry.arrival}',
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              DateFormat(AppConstants.displayDateFormat).format(entry.date),
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                            if (entry.info != null && entry.info!.isNotEmpty)
-                              Text(
-                                entry.info!,
-                                style: TextStyle(
-                                  color: Colors.grey[700],
-                                  fontStyle: FontStyle.italic,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                          ],
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                switch (value) {
-                                  case 'edit':
-                                    context.go('${AppRouter.editEntry}/${entry.id}');
-                                    break;
-                                  case 'delete':
-                                    _deleteEntry(entry);
-                                    break;
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                  value: 'edit',
-                                  child: ListTile(
-                                    leading: Icon(Icons.edit),
-                                    title: Text('Edit'),
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'delete',
-                                  child: ListTile(
-                                    leading: Icon(Icons.delete, color: Colors.red),
-                                    title: Text('Delete', style: TextStyle(color: Colors.red)),
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                ),
-                              ],
-                              child: const Icon(Icons.more_vert),
-                            ),
-                          ],
-                        ),
-                        isThreeLine: entry.info != null && entry.info!.isNotEmpty,
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+  void _editEntry(BuildContext context, TravelTimeEntry entry) {
+    // For now, show a placeholder dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Entry'),
+        content: const Text('Edit functionality will be implemented in a future update.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go(AppRouter.home),
-        tooltip: 'Add Entry',
-        child: const Icon(Icons.add),
+    );
+  }
+
+  void _showEntryDetails(BuildContext context, TravelTimeEntry entry) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: TravelEntryCard(
+            entry: entry,
+            isExpanded: true,
+            onEdit: () {
+              Navigator.of(context).pop();
+              _editEntry(context, entry);
+            },
+            onDelete: () {
+              Navigator.of(context).pop();
+              _showDeleteConfirmation(context, entry, Provider.of<TravelProvider>(context, listen: false));
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(
+    BuildContext context,
+    TravelTimeEntry entry,
+    TravelProvider travelProvider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Entry'),
+        content: Text('Are you sure you want to delete the trip from ${entry.departure} to ${entry.arrival}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              final success = await travelProvider.deleteEntry(entry.id);
+              if (success && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Entry deleted successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(travelProvider.lastError?.message ?? 'Failed to delete entry'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
