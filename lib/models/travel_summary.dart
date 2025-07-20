@@ -4,9 +4,15 @@ class TravelSummary {
   final DateTime startDate;
   final DateTime endDate;
   final Map<String, int> locationFrequency;
+  final Map<String, int>? departureFrequency;
+  final Map<String, int>? arrivalFrequency;
+  final Map<String, int>? dailyMinutes;
+  final Map<String, int>? weeklyMinutes;
   final double averageMinutesPerTrip;
   final String mostFrequentRoute;
   final int totalHours;
+  final int longestTripMinutes;
+  final int shortestTripMinutes;
 
   TravelSummary({
     required this.totalEntries,
@@ -14,6 +20,12 @@ class TravelSummary {
     required this.startDate,
     required this.endDate,
     required this.locationFrequency,
+    this.departureFrequency,
+    this.arrivalFrequency,
+    this.dailyMinutes,
+    this.weeklyMinutes,
+    this.longestTripMinutes = 0,
+    this.shortestTripMinutes = 0,
   }) : averageMinutesPerTrip = totalEntries > 0 ? totalMinutes / totalEntries : 0,
        mostFrequentRoute = _getMostFrequentRoute(locationFrequency),
        totalHours = (totalMinutes / 60).round();

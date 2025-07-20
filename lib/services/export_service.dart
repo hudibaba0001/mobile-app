@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/travel_time_entry.dart';
 import '../models/travel_summary.dart';
 import '../repositories/travel_repository.dart';
@@ -11,20 +12,51 @@ import '../utils/retry_helper.dart';
 import '../utils/data_validator.dart';
 
 class ExportService {
-  final TravelRepository _travelRepository;
+  final TravelRepository? _travelRepository;
 
-  ExportService({required TravelRepository travelRepository})
+  ExportService({TravelRepository? travelRepository})
       : _travelRepository = travelRepository;
 
-  /// Export travel entries to CSV format
-  Future<String> exportToCSV({
+  /// Export travel entries to CSV format with enhanced options
+  Future<String> exportToCSV(
+    List<TravelTimeEntry> entries,
+    DateTime startDate,
+    DateTime endDate, {
+    String? customFileName,
+    List<CSVColumn> columns = const [
+      CSVColumn.date,
+      CSVColumn.departure,
+      CSVColumn.arrival,
+      CSVColumn.duration,
+      CSVColumn.info,
+      CSVColumn.createdAt,
+    ],
+    Function(double progress)? onProgress,
+  }) async {
+    try {
+      return await _exportToCSVInternal(
+        entries,
+        startDate,
+        endDate,
+        customFileName,
+        columns,
+        onProgress,
+      );
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
+
+  /// Legacy method for backward compatibility
+  Future<String> exportToCSVLegacy({
     required DateTime startDate,
     required DateTime endDate,
     String? customFileName,
   }) async {
     try {
       return await RetryHelper.executeWithRetry(
-        () async => _exportToCSVInternal(startDate, endDate, customFileName),
+        () async => _exportToCSVLegacyInternal(startDate, endDate, customFileName),
         shouldRetry: (error) => false, // Don't retry file operations
       );
     } catch (error, stackTrace) {
@@ -34,9 +66,12 @@ class ExportService {
   }
 
   Future<String> _exportToCSVInternal(
+    List<TravelTimeEntry> entries,
     DateTime startDate,
     DateTime endDate,
     String? customFileName,
+    List<CSVColumn> columns,
+    Function(double progress)? onProgress,
   ) async {
     // Validate date range
     final dateValidationErrors = DataValidator.validateDateRange(startDate, endDate);
@@ -44,19 +79,44 @@ class ExportService {
       throw dateValidationErrors.first;
     }
 
-    // Get entries in date range
-    final entries = await _travelRepository.getEntriesInDateRange(startDate, endDate);
+    // Generate filename
+    final fileName = customFileName ?? _generateFileName(startDate, endDate, 'csv');
     
-    // Validate export parameters
-    final exportValidationErrors = DataValidator.validateExportParameters(
-      startDate: startDate,
-      endDate: endDate,
-      entries: entries,
-    );
-    if (exportValidationErrors.isNotEmpty) {
-      throw exportValidationErrors.first;
+    // Validate filename
+    final fileNameValidationErrors = DataValidator.validateFileName(fileName);
+    if (fileNameValidationErrors.isNotEmpty) {
+      throw fileNameValidationErrors.first;
     }
 
+    // Generate CSV content with progress tracking
+    final csvContent = await _generateAdvancedCSVContent(entries, columns, onProgress);
+
+    // Save to file
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$fileName');
+    await file.writeAsString(csvContent);
+
+    return file.path;
+  }
+
+  Future<String> _exportToCSVLegacyInternal(
+    DateTime startDate,
+    DateTime endDate,
+    String? customFileName,
+  ) async {
+    if (_travelRepository == null) {
+      throw ErrorHandler.handleValidationError('Travel repository not available');
+    }
+
+    // Validate date range
+    final dateValidationErrors = DataValidator.validateDateRange(startDate, endDate);
+    if (dateValidationErrors.isNotEmpty) {
+      throw dateValidationErrors.first;
+    }
+
+    // Get entries in date range
+    final entries = await _travelRepository!.getEntriesInDateRange(startDate, endDate);
+    
     // Generate filename
     final fileName = customFileName ?? _generateFileName(startDate, endDate, 'csv');
     
@@ -75,6 +135,37 @@ class ExportService {
     await file.writeAsString(csvContent);
 
     return file.path;
+  }
+
+  /// Generate advanced CSV content with customizable columns and progress tracking
+  Future<String> _generateAdvancedCSVContent(
+    List<TravelTimeEntry> entries,
+    List<CSVColumn> columns,
+    Function(double progress)? onProgress,
+  ) async {
+    final buffer = StringBuffer();
+    
+    // Generate header based on selected columns
+    final headers = columns.map((column) => _getColumnHeader(column)).toList();
+    buffer.writeln(headers.map(_escapeCsvField).join(','));
+    
+    // Add data rows with progress tracking
+    for (int i = 0; i < entries.length; i++) {
+      final entry = entries[i];
+      final row = columns.map((column) => _getColumnValue(entry, column)).toList();
+      buffer.writeln(row.map(_escapeCsvField).join(','));
+      
+      // Report progress
+      if (onProgress != null && i % 100 == 0) {
+        final progress = (i + 1) / entries.length;
+        onProgress(progress);
+      }
+    }
+    
+    // Final progress update
+    onProgress?.call(1.0);
+    
+    return buffer.toString();
   }
 
   String _generateCSVContent(List<TravelTimeEntry> entries) {
@@ -97,6 +188,72 @@ class ExportService {
     }
     
     return buffer.toString();
+  }
+
+  String _getColumnHeader(CSVColumn column) {
+    switch (column) {
+      case CSVColumn.date:
+        return 'Date';
+      case CSVColumn.departure:
+        return 'Departure';
+      case CSVColumn.arrival:
+        return 'Arrival';
+      case CSVColumn.duration:
+        return 'Duration (minutes)';
+      case CSVColumn.durationFormatted:
+        return 'Duration (formatted)';
+      case CSVColumn.info:
+        return 'Additional Info';
+      case CSVColumn.createdAt:
+        return 'Created At';
+      case CSVColumn.updatedAt:
+        return 'Updated At';
+      case CSVColumn.id:
+        return 'ID';
+      case CSVColumn.route:
+        return 'Route';
+      case CSVColumn.dayOfWeek:
+        return 'Day of Week';
+      case CSVColumn.month:
+        return 'Month';
+      case CSVColumn.year:
+        return 'Year';
+    }
+  }
+
+  String _getColumnValue(TravelTimeEntry entry, CSVColumn column) {
+    switch (column) {
+      case CSVColumn.date:
+        return DateFormat(AppConstants.dateFormat).format(entry.date);
+      case CSVColumn.departure:
+        return entry.departure;
+      case CSVColumn.arrival:
+        return entry.arrival;
+      case CSVColumn.duration:
+        return entry.minutes.toString();
+      case CSVColumn.durationFormatted:
+        final hours = entry.minutes ~/ 60;
+        final minutes = entry.minutes % 60;
+        return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+      case CSVColumn.info:
+        return entry.info ?? '';
+      case CSVColumn.createdAt:
+        return DateFormat(AppConstants.dateTimeFormat).format(entry.createdAt);
+      case CSVColumn.updatedAt:
+        return entry.updatedAt != null 
+            ? DateFormat(AppConstants.dateTimeFormat).format(entry.updatedAt!)
+            : '';
+      case CSVColumn.id:
+        return entry.id;
+      case CSVColumn.route:
+        return '${entry.departure} → ${entry.arrival}';
+      case CSVColumn.dayOfWeek:
+        return DateFormat('EEEE').format(entry.date);
+      case CSVColumn.month:
+        return DateFormat('MMMM').format(entry.date);
+      case CSVColumn.year:
+        return entry.date.year.toString();
+    }
   }
 
   String _escapeCsvField(String field) {
@@ -343,6 +500,108 @@ class ExportService {
     return errors;
   }
 
+  /// Export summary to CSV format
+  Future<String> exportSummaryToCSV(
+    TravelSummary summary,
+    DateTime startDate,
+    DateTime endDate, {
+    String? customFileName,
+  }) async {
+    try {
+      // Generate filename
+      final fileName = customFileName ?? _generateFileName(startDate, endDate, 'summary.csv');
+      
+      // Generate CSV content for summary
+      final csvContent = _generateSummaryCSVContent(summary);
+
+      // Save to file
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsString(csvContent);
+
+      return file.path;
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
+
+  String _generateSummaryCSVContent(TravelSummary summary) {
+    final buffer = StringBuffer();
+    
+    // Add summary header
+    buffer.writeln('Travel Summary Report');
+    buffer.writeln('Generated on,${DateFormat(AppConstants.dateTimeFormat).format(DateTime.now())}');
+    buffer.writeln('Period,${DateFormat(AppConstants.dateFormat).format(summary.startDate)} to ${DateFormat(AppConstants.dateFormat).format(summary.endDate)}');
+    buffer.writeln('');
+    
+    // Add summary statistics
+    buffer.writeln('Summary Statistics');
+    buffer.writeln('Metric,Value');
+    buffer.writeln('Total Trips,${summary.totalEntries}');
+    buffer.writeln('Total Time,${summary.formattedDuration}');
+    buffer.writeln('Average Trip Duration,${summary.averageMinutesPerTrip.toStringAsFixed(1)} minutes');
+    buffer.writeln('Most Frequent Route,${summary.mostFrequentRoute}');
+    buffer.writeln('');
+    
+    // Add route frequency data
+    if (summary.locationFrequency.isNotEmpty) {
+      buffer.writeln('Route Frequency');
+      buffer.writeln('Route,Trip Count');
+      
+      final sortedRoutes = summary.locationFrequency.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      
+      for (final entry in sortedRoutes) {
+        buffer.writeln('${_escapeCsvField(entry.key)},${entry.value}');
+      }
+    }
+    
+    return buffer.toString();
+  }
+
+  /// Share exported file using platform share functionality
+  Future<void> shareFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        await Share.shareXFiles(
+          [XFile(filePath)],
+          text: 'Travel Time Export',
+          subject: 'Travel Data Export - ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
+        );
+      } else {
+        throw ErrorHandler.handleValidationError('Export file not found');
+      }
+    } catch (error) {
+      final appError = ErrorHandler.handleStorageError(error);
+      throw appError;
+    }
+  }
+
+  /// Get available CSV columns for customization
+  List<CSVColumn> getAvailableColumns() {
+    return CSVColumn.values;
+  }
+
+  /// Get column display names for UI
+  Map<CSVColumn, String> getColumnDisplayNames() {
+    return {
+      for (final column in CSVColumn.values)
+        column: _getColumnHeader(column),
+    };
+  }
+
+  /// Estimate export file size
+  int estimateExportSize(int entryCount, List<CSVColumn> columns) {
+    // Base estimate per entry varies by number of columns
+    final baseSize = 50; // Base size per entry
+    final columnSize = columns.length * 20; // Additional size per column
+    const headerSize = 200; // Header and metadata
+    
+    return (entryCount * (baseSize + columnSize)) + headerSize;
+  }
+
   /// Clean up old export files
   Future<void> cleanupOldExports({int maxAgeInDays = 30}) async {
     try {
@@ -382,4 +641,20 @@ class ExportService {
 enum ExportFormat {
   csv,
   json,
+}
+
+enum CSVColumn {
+  date,
+  departure,
+  arrival,
+  duration,
+  durationFormatted,
+  info,
+  createdAt,
+  updatedAt,
+  id,
+  route,
+  dayOfWeek,
+  month,
+  year,
 }
