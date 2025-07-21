@@ -282,8 +282,9 @@ class AppTheme {
       borderRadius: BorderRadius.all(Radius.circular(12)),
     ),
     margin: EdgeInsets.all(4),
-  );  // Butt
-on themes
+  );
+
+  // Button themes
   static final ElevatedButtonThemeData _elevatedButtonTheme = ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       elevation: 1,
