@@ -25,7 +25,6 @@ class TravelProvider extends ChangeNotifier {
   }) : _repository = repository ?? HiveTravelRepository(),
         _service = service ?? TravelService(
           travelRepository: repository ?? HiveTravelRepository(),
-          locationRepository: null, // Will be injected properly
         ) {
     _loadEntries();
   }
