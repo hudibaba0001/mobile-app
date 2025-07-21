@@ -290,6 +290,10 @@ class FilterProvider extends ChangeNotifier {
       case SortOption.arrivalAZ:
         entries.sort((a, b) => a.arrival.compareTo(b.arrival));
         break;
+      case SortOption.nameAZ:
+        // For travel entries, sort by departure name
+        entries.sort((a, b) => a.departure.compareTo(b.departure));
+        break;
     }
   }
 
