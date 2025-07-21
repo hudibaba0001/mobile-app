@@ -28,7 +28,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
     super.initState();
     // Load entries when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TravelProvider>(context, listen: false).loadEntries();
+      Provider.of<TravelProvider>(context, listen: false).refreshEntries();
     });
 
     // Hide FAB when scrolling down, show when scrolling up
@@ -195,7 +195,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
 
     return RefreshIndicator(
       onRefresh: () async {
-        await travelProvider.loadEntries();
+        await travelProvider.refreshEntries();
       },
       child: ListView.builder(
         controller: _scrollController,
