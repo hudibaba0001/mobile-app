@@ -22,8 +22,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TravelProvider>(context, listen: false).loadEntries();
-      Provider.of<LocationProvider>(context, listen: false).loadLocations();
+      Provider.of<TravelProvider>(context, listen: false).refreshEntries();
+      Provider.of<LocationProvider>(context, listen: false).refreshLocations();
     });
   }
 
@@ -59,8 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              await travelProvider.loadEntries();
-              await locationProvider.loadLocations();
+              await travelProvider.refreshEntries();
+              await locationProvider.refreshLocations();
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -229,11 +229,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: AppConstants.defaultPadding),
               QuickEntryForm(
-                onSubmitted: (success) {
-                  if (success) {
-                    // Refresh the entries list
-                    Provider.of<TravelProvider>(context, listen: false).loadEntries();
-                  }
+                onSuccess: () {
+                  // Refresh the entries list
+                  Provider.of<TravelProvider>(context, listen: false).refreshEntries();
                 },
               ),
             ],
@@ -438,11 +436,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: AppConstants.defaultPadding),
               QuickEntryForm(
-                onSubmitted: (success) {
+                onSuccess: () {
                   Navigator.of(context).pop();
-                  if (success) {
-                    Provider.of<TravelProvider>(context, listen: false).loadEntries();
-                  }
+                  Provider.of<TravelProvider>(context, listen: false).refreshEntries();
+                },
+                onCancel: () {
+                  Navigator.of(context).pop();
                 },
               ),
             ],
@@ -486,7 +485,6 @@ class _HomeScreenState extends State<HomeScreen> {
           constraints: const BoxConstraints(maxWidth: 400),
           child: TravelEntryCard(
             entry: entry,
-            isExpanded: true,
             onEdit: () {
               Navigator.of(context).pop();
               _editEntry(context, entry);

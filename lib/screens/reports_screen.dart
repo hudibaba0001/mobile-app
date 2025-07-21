@@ -32,8 +32,8 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
     
     // Load data and generate initial summary
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TravelProvider>(context, listen: false).loadEntries();
-      Provider.of<LocationProvider>(context, listen: false).loadLocations();
+      Provider.of<TravelProvider>(context, listen: false).refreshEntries();
+      Provider.of<LocationProvider>(context, listen: false).refreshLocations();
       _generateSummary();
     });
   }
