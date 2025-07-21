@@ -264,7 +264,7 @@ class AppTheme {
   );
 
   // Card themes
-  static const CardTheme _lightCardTheme = CardTheme(
+  static const CardThemeData _lightCardTheme = CardThemeData(
     elevation: 1,
     shadowColor: Color(0x1F000000),
     surfaceTintColor: Color(0xFF1976D2),
@@ -274,7 +274,7 @@ class AppTheme {
     margin: EdgeInsets.all(4),
   );
 
-  static const CardTheme _darkCardTheme = CardTheme(
+  static const CardThemeData _darkCardTheme = CardThemeData(
     elevation: 1,
     shadowColor: Color(0x1F000000),
     surfaceTintColor: Color(0xFF90CAF9),
@@ -531,7 +531,7 @@ class AppTheme {
     ),
   );
 
-  static const DialogTheme _lightDialogTheme = DialogTheme(
+  static const DialogThemeData _lightDialogTheme = DialogThemeData(
     backgroundColor: Color(0xFFFFFFFF),
     surfaceTintColor: Color(0xFF1976D2),
     elevation: 6,
@@ -540,7 +540,7 @@ class AppTheme {
     ),
   );
 
-  static const DialogTheme _darkDialogTheme = DialogTheme(
+  static const DialogThemeData _darkDialogTheme = DialogThemeData(
     backgroundColor: Color(0xFF1E1E1E),
     surfaceTintColor: Color(0xFF90CAF9),
     elevation: 6,
@@ -684,7 +684,7 @@ class AppTheme {
   );
 
   // Tab bar themes
-  static const TabBarTheme _lightTabBarTheme = TabBarTheme(
+  static const TabBarThemeData _lightTabBarTheme = TabBarThemeData(
     labelColor: Color(0xFF1976D2),
     unselectedLabelColor: Color(0xFF757575),
     indicatorColor: Color(0xFF1976D2),
@@ -699,7 +699,7 @@ class AppTheme {
     ),
   );
 
-  static const TabBarTheme _darkTabBarTheme = TabBarTheme(
+  static const TabBarThemeData _darkTabBarTheme = TabBarThemeData(
     labelColor: Color(0xFF90CAF9),
     unselectedLabelColor: Color(0xFFBDBDBD),
     indicatorColor: Color(0xFF90CAF9),

@@ -141,7 +141,7 @@ class DataValidator {
     }
 
     // Check for potentially harmful characters (basic sanitization)
-    final dangerousChars = RegExp(r'[<>"\'&]');
+    final dangerousChars = RegExp(r'[<>"&]');
     if (dangerousChars.hasMatch(query)) {
       errors.add(ErrorHandler.handleValidationError(
         'Search query contains invalid characters'
@@ -184,12 +184,12 @@ class DataValidator {
     return input
         .trim()
         .replaceAll(RegExp(r'\s+'), ' ') // Replace multiple spaces with single space
-        .replaceAll(RegExp(r'[<>"\'&]'), ''); // Remove potentially harmful characters
+        .replaceAll(RegExp(r'[<>"&]'), ''); // Remove potentially harmful characters
   }
 
   // Check if string is safe for storage
   static bool isSafeString(String input) {
-    final dangerousChars = RegExp(r'[<>"\'&]');
+    final dangerousChars = RegExp(r'[<>"&]');
     return !dangerousChars.hasMatch(input);
   }
 

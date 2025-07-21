@@ -292,7 +292,7 @@ class ExportService {
     }
 
     // Get entries and generate summary
-    final entries = await _travelRepository.getEntriesInDateRange(startDate, endDate);
+    final entries = await _travelRepository!.getEntriesInDateRange(startDate, endDate);
     
     if (entries.isEmpty) {
       throw ErrorHandler.handleValidationError('No travel entries found for the selected date range');
@@ -384,7 +384,7 @@ class ExportService {
         String filePath;
         switch (format) {
           case ExportFormat.csv:
-            filePath = await exportToCSV(
+            filePath = await exportToCSVLegacy(
               startDate: startDate,
               endDate: endDate,
               customFileName: baseFileName != null ? '$baseFileName.csv' : null,
@@ -432,7 +432,7 @@ class ExportService {
     DateTime endDate,
     int previewRows,
   ) async {
-    final entries = await _travelRepository.getEntriesInDateRange(startDate, endDate);
+    final entries = await _travelRepository!.getEntriesInDateRange(startDate, endDate);
     
     final previewEntries = entries.take(previewRows).toList();
     final csvPreview = _generateCSVContent(previewEntries);
@@ -487,7 +487,7 @@ class ExportService {
     
     // Check if there are entries in the date range
     try {
-      final entries = await _travelRepository.getEntriesInDateRange(startDate, endDate);
+      final entries = await _travelRepository!.getEntriesInDateRange(startDate, endDate);
       if (entries.isEmpty) {
         errors.add(ErrorHandler.handleValidationError(
           'No travel entries found for the selected date range'

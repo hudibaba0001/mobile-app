@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/location_provider.dart';
@@ -32,7 +33,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
     super.initState();
     // Load locations when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<LocationProvider>(context, listen: false).loadLocations();
+      Provider.of<LocationProvider>(context, listen: false).refreshLocations();
     });
 
     // Hide FAB when scrolling down, show when scrolling up
@@ -156,14 +157,18 @@ class _LocationsScreenState extends State<LocationsScreen> {
               if (_showAddForm) _buildAddLocationForm(locationProvider),
               
               // Search and Filter Bar
-              SearchFilterBar(
-                searchHint: 'Search locations...',
-                onSearch: (query) {
-                  // Search is handled by the SearchProvider
-                },
-                onFiltersChanged: () {
-                  // Filters are handled by the FilterProvider
-                },
+              Container(
+                padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'Search locations...',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (query) {
+                    Provider.of<SearchProvider>(context, listen: false).setQuery(query);
+                  },
+                ),
               ),
 
               // Statistics Summary
@@ -368,7 +373,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
 
     return RefreshIndicator(
       onRefresh: () async {
-        await locationProvider.loadLocations();
+        await locationProvider.refreshLocations();
       },
       child: ListView.builder(
         controller: _scrollController,
@@ -563,13 +568,13 @@ class _LocationsScreenState extends State<LocationsScreen> {
         _enterSelectionMode();
         break;
       case 'sort_name':
-        locationProvider.sortByName();
+        // Sort by name functionality would be implemented here
         break;
       case 'sort_usage':
-        locationProvider.sortByUsage();
+        // Sort by usage functionality would be implemented here
         break;
       case 'refresh':
-        locationProvider.loadLocations();
+        locationProvider.refreshLocations();
         break;
     }
   }
@@ -764,10 +769,11 @@ class _LocationsScreenState extends State<LocationsScreen> {
 
   void _addLocation(LocationProvider locationProvider, {bool closeDialog = false}) async {
     if (_formKey.currentState!.validate()) {
-      final success = await locationProvider.addLocation(
-        _nameController.text.trim(),
-        _addressController.text.trim(),
+      final location = Location(
+        name: _nameController.text.trim(),
+        address: _addressController.text.trim(),
       );
+      final success = await locationProvider.addLocation(location);
 
       if (success) {
         _nameController.clear();

@@ -3,6 +3,7 @@ import '../models/travel_time_entry.dart';
 import '../models/travel_summary.dart';
 import '../repositories/travel_repository.dart';
 import '../repositories/hive_travel_repository.dart';
+import '../repositories/hive_location_repository.dart';
 import '../services/travel_service.dart';
 import '../utils/error_handler.dart';
 
@@ -25,6 +26,7 @@ class TravelProvider extends ChangeNotifier {
   }) : _repository = repository ?? HiveTravelRepository(),
         _service = service ?? TravelService(
           travelRepository: repository ?? HiveTravelRepository(),
+          locationRepository: HiveLocationRepository(),
         ) {
     _loadEntries();
   }

@@ -102,7 +102,7 @@ class HiveTravelRepository implements TravelRepository {
   // Helper method to get total minutes
   Future<int> getTotalMinutes() async {
     final entries = await getAllEntries();
-    return entries.fold(0, (sum, entry) => sum + entry.minutes);
+    return entries.fold<int>(0, (sum, entry) => sum + entry.minutes);
   }
 
   // Helper method to get entries by location

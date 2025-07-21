@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/travel_provider.dart';
@@ -288,7 +289,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
         context.go('/reports');
         break;
       case 'refresh':
-        Provider.of<TravelProvider>(context, listen: false).loadEntries();
+        Provider.of<TravelProvider>(context, listen: false).refreshEntries();
         break;
     }
   }
@@ -409,11 +410,12 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
               ),
               const SizedBox(height: AppConstants.defaultPadding),
               QuickEntryForm(
-                onSubmitted: (success) {
+                onSuccess: () {
                   Navigator.of(context).pop();
-                  if (success) {
-                    Provider.of<TravelProvider>(context, listen: false).loadEntries();
-                  }
+                  Provider.of<TravelProvider>(context, listen: false).refreshEntries();
+                },
+                onCancel: () {
+                  Navigator.of(context).pop();
                 },
               ),
             ],
@@ -449,7 +451,6 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
           constraints: const BoxConstraints(maxWidth: 400),
           child: TravelEntryCard(
             entry: entry,
-            isExpanded: true,
             onEdit: () {
               Navigator.of(context).pop();
               _editEntry(context, entry);
