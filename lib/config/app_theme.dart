@@ -397,8 +397,9 @@ class AppTheme {
       borderSide: BorderSide(color: Color(0xFFEF5350), width: 2),
     ),
     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-  );  // C
-hip themes
+  );
+
+  // Chip themes
   static const ChipThemeData _lightChipTheme = ChipThemeData(
     backgroundColor: Color(0xFFF5F5F5),
     deleteIconColor: Color(0xFF757575),
@@ -509,8 +510,9 @@ hip themes
         fontWeight: FontWeight.w500,
       ),
     ),
-  ); 
- // Dialog and sheet themes
+  );
+
+  // Dialog and sheet themes
   static const BottomSheetThemeData _lightBottomSheetTheme = BottomSheetThemeData(
     backgroundColor: Color(0xFFFFFFFF),
     surfaceTintColor: Color(0xFF1976D2),
@@ -623,8 +625,9 @@ hip themes
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
-  );  stat
-ic final RadioThemeData _lightRadioTheme = RadioThemeData(
+  );
+
+  static final RadioThemeData _lightRadioTheme = RadioThemeData(
     fillColor: MaterialStateProperty.resolveWith((states) {
       if (states.contains(MaterialState.selected)) {
         return const Color(0xFF1976D2);
