@@ -72,8 +72,9 @@ class AppTheme {
     onInverseSurface: Color(0xFF303030),
     inversePrimary: Color(0xFF1976D2),
     surfaceTint: Color(0xFF90CAF9),
-  );  // Typ
-ography
+  );
+
+  // Typography
   static const TextTheme _textTheme = TextTheme(
     displayLarge: TextStyle(
       fontSize: 57,
@@ -198,8 +199,9 @@ ography
       iconTheme: _lightIconTheme,
       primaryIconTheme: _lightPrimaryIconTheme,
     );
-  }  // Da
-rk theme
+  }
+
+  // Dark theme
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
