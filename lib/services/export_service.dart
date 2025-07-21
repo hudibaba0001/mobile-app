@@ -561,14 +561,18 @@ class ExportService {
   }
 
   /// Share exported file using platform share functionality
-  Future<void> shareFile(String filePath) async {
+  Future<void> shareFile(String filePath, {
+    String? customText,
+    String? customSubject,
+  }) async {
     try {
       final file = File(filePath);
       if (await file.exists()) {
+        final fileName = file.path.split('/').last;
         await Share.shareXFiles(
           [XFile(filePath)],
-          text: 'Travel Time Export',
-          subject: 'Travel Data Export - ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
+          text: customText ?? 'Travel Time Export - $fileName',
+          subject: customSubject ?? 'Travel Data Export - ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
         );
       } else {
         throw ErrorHandler.handleValidationError('Export file not found');
@@ -577,6 +581,170 @@ class ExportService {
       final appError = ErrorHandler.handleStorageError(error);
       throw appError;
     }
+  }
+
+  /// Share multiple files at once
+  Future<void> shareMultipleFiles(List<String> filePaths, {
+    String? customText,
+    String? customSubject,
+  }) async {
+    try {
+      final xFiles = <XFile>[];
+      for (final filePath in filePaths) {
+        final file = File(filePath);
+        if (await file.exists()) {
+          xFiles.add(XFile(filePath));
+        }
+      }
+
+      if (xFiles.isEmpty) {
+        throw ErrorHandler.handleValidationError('No valid export files found');
+      }
+
+      await Share.shareXFiles(
+        xFiles,
+        text: customText ?? 'Travel Time Exports (${xFiles.length} files)',
+        subject: customSubject ?? 'Travel Data Exports - ${DateFormat('yyyy-MM-dd').format(DateTime.now())}',
+      );
+    } catch (error) {
+      final appError = ErrorHandler.handleStorageError(error);
+      throw appError;
+    }
+  }
+
+  /// Get file info for sharing preview
+  Future<Map<String, dynamic>> getFileInfo(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        throw ErrorHandler.handleValidationError('File not found');
+      }
+
+      final stat = await file.stat();
+      final fileName = file.path.split('/').last;
+      
+      return {
+        'fileName': fileName,
+        'filePath': filePath,
+        'fileSize': stat.size,
+        'fileSizeFormatted': _formatFileSize(stat.size),
+        'lastModified': stat.modified,
+        'lastModifiedFormatted': DateFormat(AppConstants.dateTimeFormat).format(stat.modified),
+        'exists': true,
+      };
+    } catch (error) {
+      final appError = ErrorHandler.handleStorageError(error);
+      throw appError;
+    }
+  }
+
+  /// Get all export files in the documents directory
+  Future<List<Map<String, dynamic>>> getExportFiles() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final files = directory.listSync()
+          .where((entity) => entity is File && 
+                 (entity.path.contains('travel_export_') || 
+                  entity.path.contains('travel_summary_')))
+          .cast<File>()
+          .toList();
+
+      final fileInfos = <Map<String, dynamic>>[];
+      for (final file in files) {
+        try {
+          final info = await getFileInfo(file.path);
+          fileInfos.add(info);
+        } catch (error) {
+          // Skip files that can't be read
+          continue;
+        }
+      }
+
+      // Sort by last modified date (newest first)
+      fileInfos.sort((a, b) => 
+          (b['lastModified'] as DateTime).compareTo(a['lastModified'] as DateTime));
+
+      return fileInfos;
+    } catch (error) {
+      final appError = ErrorHandler.handleStorageError(error);
+      throw appError;
+    }
+  }
+
+  /// Delete export file
+  Future<bool> deleteExportFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      final appError = ErrorHandler.handleStorageError(error);
+      throw appError;
+    }
+  }
+
+  /// Delete multiple export files
+  Future<int> deleteMultipleFiles(List<String> filePaths) async {
+    int deletedCount = 0;
+    for (final filePath in filePaths) {
+      try {
+        if (await deleteExportFile(filePath)) {
+          deletedCount++;
+        }
+      } catch (error) {
+        // Continue with other files if one fails
+        continue;
+      }
+    }
+    return deletedCount;
+  }
+
+  /// Copy file to external storage (if available)
+  Future<String?> copyToExternalStorage(String filePath, {String? customName}) async {
+    try {
+      // This would require additional platform-specific implementation
+      // For now, we'll return the original path
+      return filePath;
+    } catch (error) {
+      final appError = ErrorHandler.handleStorageError(error);
+      throw appError;
+    }
+  }
+
+  /// Get storage usage information
+  Future<Map<String, dynamic>> getStorageInfo() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final files = await getExportFiles();
+      
+      int totalSize = 0;
+      int totalFiles = files.length;
+      
+      for (final fileInfo in files) {
+        totalSize += fileInfo['fileSize'] as int;
+      }
+
+      return {
+        'totalFiles': totalFiles,
+        'totalSize': totalSize,
+        'totalSizeFormatted': _formatFileSize(totalSize),
+        'directory': directory.path,
+        'files': files,
+      };
+    } catch (error) {
+      final appError = ErrorHandler.handleStorageError(error);
+      throw appError;
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
   /// Get available CSV columns for customization
