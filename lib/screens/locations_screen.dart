@@ -868,11 +868,11 @@ class _LocationsScreenState extends State<LocationsScreen> {
                         onPressed: () async {
                           if (formKey.currentState!.validate()) {
                             final locationProvider = Provider.of<LocationProvider>(context, listen: false);
-                            final success = await locationProvider.updateLocation(
-                              location.id,
-                              nameController.text.trim(),
-                              addressController.text.trim(),
+                            final updatedLocation = location.copyWith(
+                              name: nameController.text.trim(),
+                              address: addressController.text.trim(),
                             );
+                            final success = await locationProvider.updateLocation(updatedLocation);
 
                             if (success && context.mounted) {
                               Navigator.of(context).pop();

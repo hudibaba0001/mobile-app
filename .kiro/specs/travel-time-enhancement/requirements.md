@@ -100,3 +100,17 @@ This specification outlines enhancements to the existing Travel Time Logger Flut
 3. WHEN a user applies date filters THEN the system SHALL show only entries within the selected date range
 4. WHEN a user applies location filters THEN the system SHALL show only entries involving specific locations
 5. WHEN filters are active THEN the system SHALL clearly indicate the current filter state and allow easy clearing
+
+### Requirement 9: Multi-Segment Journey Entry
+
+**User Story:** As a user, I want to log complex journeys with multiple stops in one form, so that I can efficiently record trips that involve several locations without creating multiple separate entries manually.
+
+#### Acceptance Criteria
+
+1. WHEN a user accesses the quick entry form THEN the system SHALL provide an option to add multiple travel segments
+2. WHEN a user adds a travel segment THEN the system SHALL allow them to add another segment with the previous arrival location as the new departure location
+3. WHEN a user enters multiple segments THEN the system SHALL display all segments in a clear, organized manner within the same form
+4. WHEN a user submits a multi-segment journey THEN the system SHALL create separate travel entries for each segment while maintaining the connection between them
+5. WHEN a user removes a segment THEN the system SHALL update the form to maintain logical flow between remaining segments
+6. WHEN viewing multi-segment entries THEN the system SHALL provide visual indicators that entries are part of the same journey
+7. WHEN a user edits a multi-segment journey THEN the system SHALL allow editing individual segments or the entire journey as a group

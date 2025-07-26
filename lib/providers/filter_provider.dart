@@ -294,6 +294,11 @@ class FilterProvider extends ChangeNotifier {
         // For travel entries, sort by departure name
         entries.sort((a, b) => a.departure.compareTo(b.departure));
         break;
+      case SortOption.usageDesc:
+        // Sort by usage frequency (would need usage tracking implementation)
+        // For now, sort by date as fallback
+        entries.sort((a, b) => b.date.compareTo(a.date));
+        break;
     }
   }
 

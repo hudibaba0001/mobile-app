@@ -221,11 +221,31 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const Spacer(),
-                    if (widget.onCancel != null)
-                      TextButton(
+                    if (widget.onCancel != null) ...[
+                      IconButton(
                         onPressed: widget.onCancel,
-                        child: const Text('Cancel'),
+                        icon: const Icon(Icons.close),
+                        tooltip: 'Close',
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.grey.withOpacity(0.1),
+                        ),
                       ),
+                    ] else ...[
+                      // Show close button even if no onCancel callback
+                      IconButton(
+                        onPressed: () {
+                          // Try to pop the current route if in a dialog/modal
+                          if (Navigator.canPop(context)) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        icon: const Icon(Icons.close),
+                        tooltip: 'Close',
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.grey.withOpacity(0.1),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 
@@ -263,51 +283,55 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
 
               SizedBox(height: widget.isCompact ? 8 : AppConstants.defaultPadding),
 
-              // Location fields with swap button
-              Row(
+              // Location fields with swap button (vertical layout)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: LocationSelector(
-                      initialValue: _departureController.text,
+                  // From location
+                  TextFormField(
+                    controller: _departureController,
+                    decoration: const InputDecoration(
                       labelText: 'From',
                       hintText: 'Departure location',
-                      prefixIcon: Icons.my_location,
-                      onLocationSelected: (address) {
-                        _departureController.text = address;
-                      },
-                      onLocationObjectSelected: (location) {
-                        _selectedDepartureLocation = location;
-                      },
-                      validator: (value) => Validators.validateRequired(value, 'Departure location'),
+                      prefixIcon: Icon(Icons.my_location),
+                      border: OutlineInputBorder(),
                     ),
+                    validator: (value) => Validators.validateRequired(value, 'Departure location'),
                   ),
                   
+                  // Swap button (centered between fields)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: IconButton(
-                      onPressed: _swapLocations,
-                      icon: const Icon(Icons.swap_horiz),
-                      tooltip: 'Swap locations',
-                      style: IconButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      ),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: IconButton(
+                            onPressed: _swapLocations,
+                            icon: const Icon(Icons.swap_vert),
+                            tooltip: 'Swap locations',
+                            style: IconButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                              padding: const EdgeInsets.all(8),
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
                     ),
                   ),
                   
-                  Expanded(
-                    child: LocationSelector(
-                      initialValue: _arrivalController.text,
+                  // To location
+                  TextFormField(
+                    controller: _arrivalController,
+                    decoration: const InputDecoration(
                       labelText: 'To',
                       hintText: 'Arrival location',
-                      prefixIcon: Icons.location_on,
-                      onLocationSelected: (address) {
-                        _arrivalController.text = address;
-                      },
-                      onLocationObjectSelected: (location) {
-                        _selectedArrivalLocation = location;
-                      },
-                      validator: (value) => Validators.validateRequired(value, 'Arrival location'),
+                      prefixIcon: Icon(Icons.location_on),
+                      border: OutlineInputBorder(),
                     ),
+                    validator: (value) => Validators.validateRequired(value, 'Arrival location'),
                   ),
                 ],
               ),

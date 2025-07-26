@@ -211,7 +211,7 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
             backgroundColor: Colors.green,
             action: SnackBarAction(
               label: 'Share',
-              onPressed: () => exportService.shareFile(filePath),
+              onPressed: () => exportService.shareFile(filePath!),
             ),
           ),
         );
