@@ -12,12 +12,16 @@ class MultiSegmentForm extends StatefulWidget {
   final VoidCallback? onSuccess;
   final VoidCallback? onCancel;
   final DateTime? initialDate;
+  final String? editingJourneyId;
+  final List<TravelTimeEntry>? existingSegments;
 
   const MultiSegmentForm({
     super.key,
     this.onSuccess,
     this.onCancel,
     this.initialDate,
+    this.editingJourneyId,
+    this.existingSegments,
   });
 
   @override
