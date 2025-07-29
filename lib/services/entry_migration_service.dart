@@ -126,5 +126,22 @@ class EntryMigrationService {
       return false;
     }
   }
+}
 
+/// Result object containing migration statistics
+class MigrationResult {
+  final int migrationCount;
+  final Duration duration;
+  final bool success;
+
+  const MigrationResult({
+    required this.migrationCount,
+    required this.duration,
+    required this.success,
+  });
+
+  @override
+  String toString() {
+    return 'MigrationResult(count: $migrationCount, duration: ${duration.inMilliseconds}ms, success: $success)';
+  }
 }
