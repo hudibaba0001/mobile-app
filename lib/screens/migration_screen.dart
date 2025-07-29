@@ -297,7 +297,7 @@ class _MigrationScreenState extends State<MigrationScreen>
         ),
         const SizedBox(height: 4),
         Text(
-          'Version ${AppConstants.appVersion}',
+          'Version 1.0.0',
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurfaceVariant.withOpacity(0.7),
           ),
