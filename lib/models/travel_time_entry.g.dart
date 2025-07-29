@@ -22,18 +22,21 @@ class TravelTimeEntryAdapter extends TypeAdapter<TravelTimeEntry> {
       arrival: fields[2] as String,
       info: fields[3] as String?,
       minutes: fields[4] as int,
-      id: fields[5] as String? ?? const Uuid().v4(),
-      createdAt: fields[6] as DateTime? ?? DateTime.now(),
+      id: fields[5] as String?,
+      createdAt: fields[6] as DateTime?,
       updatedAt: fields[7] as DateTime?,
       departureLocationId: fields[8] as String?,
       arrivalLocationId: fields[9] as String?,
+      journeyId: fields[10] as String?,
+      segmentOrder: fields[11] as int?,
+      totalSegments: fields[12] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TravelTimeEntry obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -53,7 +56,13 @@ class TravelTimeEntryAdapter extends TypeAdapter<TravelTimeEntry> {
       ..writeByte(8)
       ..write(obj.departureLocationId)
       ..writeByte(9)
-      ..write(obj.arrivalLocationId);
+      ..write(obj.arrivalLocationId)
+      ..writeByte(10)
+      ..write(obj.journeyId)
+      ..writeByte(11)
+      ..write(obj.segmentOrder)
+      ..writeByte(12)
+      ..write(obj.totalSegments);
   }
 
   @override

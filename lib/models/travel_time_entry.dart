@@ -34,6 +34,15 @@ class TravelTimeEntry extends HiveObject {
   
   @HiveField(9)
   final String? arrivalLocationId;
+  
+  @HiveField(10)
+  final String? journeyId;
+  
+  @HiveField(11)
+  final int? segmentOrder;
+  
+  @HiveField(12)
+  final int? totalSegments;
 
   TravelTimeEntry({
     required this.date,
@@ -46,6 +55,9 @@ class TravelTimeEntry extends HiveObject {
     this.updatedAt,
     this.departureLocationId,
     this.arrivalLocationId,
+    this.journeyId,
+    this.segmentOrder,
+    this.totalSegments,
   }) : id = id ?? const Uuid().v4(),
        createdAt = createdAt ?? DateTime.now();
 
@@ -60,6 +72,9 @@ class TravelTimeEntry extends HiveObject {
     DateTime? updatedAt,
     String? departureLocationId,
     String? arrivalLocationId,
+    String? journeyId,
+    int? segmentOrder,
+    int? totalSegments,
   }) {
     return TravelTimeEntry(
       date: date ?? this.date,
@@ -72,6 +87,9 @@ class TravelTimeEntry extends HiveObject {
       updatedAt: updatedAt ?? DateTime.now(),
       departureLocationId: departureLocationId ?? this.departureLocationId,
       arrivalLocationId: arrivalLocationId ?? this.arrivalLocationId,
+      journeyId: journeyId ?? this.journeyId,
+      segmentOrder: segmentOrder ?? this.segmentOrder,
+      totalSegments: totalSegments ?? this.totalSegments,
     );
   }
 

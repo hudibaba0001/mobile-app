@@ -19,10 +19,10 @@ class LocationAdapter extends TypeAdapter<Location> {
     return Location(
       name: fields[0] as String,
       address: fields[1] as String,
-      id: fields[2] as String? ?? const Uuid().v4(),
-      createdAt: fields[3] as DateTime? ?? DateTime.now(),
-      usageCount: fields[4] as int? ?? 0,
-      isFavorite: fields[5] as bool? ?? false,
+      id: fields[2] as String?,
+      createdAt: fields[3] as DateTime?,
+      usageCount: fields[4] as int,
+      isFavorite: fields[5] as bool,
     );
   }
 

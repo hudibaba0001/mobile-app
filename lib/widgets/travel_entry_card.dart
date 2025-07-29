@@ -94,6 +94,11 @@ class _TravelEntryCardState extends State<TravelEntryCard>
   }
 
   IconData get _routeIcon {
+    // Show route icon for multi-segment journeys
+    if (widget.entry.journeyId != null) {
+      return Icons.route;
+    }
+    
     final departure = widget.entry.departure.toLowerCase();
     final arrival = widget.entry.arrival.toLowerCase();
     
@@ -452,6 +457,37 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                         color: Colors.blue[700],
                         fontSize: 13,
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          
+          // Multi-segment journey indicator
+          if (widget.entry.journeyId != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.route,
+                    size: 12,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Segment ${widget.entry.segmentOrder}/${widget.entry.totalSegments}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],

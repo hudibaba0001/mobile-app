@@ -8,6 +8,7 @@ import '../providers/location_provider.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
 import 'location_selector.dart';
+import 'multi_segment_form.dart';
 
 class QuickEntryForm extends StatefulWidget {
   final TravelTimeEntry? initialEntry;
@@ -202,6 +203,29 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     _selectedDate = DateTime.now();
   }
 
+  void _showMultiSegmentForm() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.95,
+          height: MediaQuery.of(context).size.height * 0.8,
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: MultiSegmentForm(
+            initialDate: _selectedDate,
+            onSuccess: () {
+              Navigator.of(context).pop(); // Close multi-segment dialog
+              widget.onSuccess?.call(); // Call parent success callback
+            },
+            onCancel: () {
+              Navigator.of(context).pop(); // Close multi-segment dialog
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -221,6 +245,20 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const Spacer(),
+                    
+                    // Multi-segment button (only for new entries)
+                    if (widget.initialEntry == null) ...[
+                      TextButton.icon(
+                        onPressed: _showMultiSegmentForm,
+                        icon: const Icon(Icons.route, size: 16),
+                        label: const Text('Multi-Segment'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    
                     if (widget.onCancel != null) ...[
                       IconButton(
                         onPressed: widget.onCancel,

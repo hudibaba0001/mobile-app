@@ -132,7 +132,9 @@ Main App (MaterialApp.router)
 #### 2. Key Widgets
 - **LocationSelector**: Dropdown/autocomplete widget for location selection
 - **TravelEntryCard**: Enhanced display card for travel entries
-- **QuickEntryForm**: Streamlined form for common travel logging
+- **QuickEntryForm**: Streamlined form for common travel logging with multi-segment support
+- **MultiSegmentForm**: Widget for managing multiple connected travel segments
+- **TravelSegmentCard**: Individual segment display within multi-segment journeys
 - **DateRangePicker**: Custom widget for selecting date ranges
 - **ExportDialog**: Modal for export options and progress
 - **SearchBar**: Integrated search functionality

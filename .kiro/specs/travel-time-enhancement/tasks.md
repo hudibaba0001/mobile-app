@@ -156,6 +156,25 @@
   - Implement clear and reset functionality for filters
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
+- [x] 7.5 Implement multi-segment journey entry
+
+
+
+  - Create MultiSegmentForm widget for managing multiple connected travel segments
+  - Add TravelSegmentCard widget for individual segment display
+  - Implement add/remove segment functionality with automatic chaining
+  - Add visual indicators for connected journey segments
+  - Create logic to store multiple segments as separate entries with journey grouping
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
+
+- [ ] 7.6 Implement multi-segment journey editing
+  - Add functionality to edit existing multi-segment journeys as a group
+  - Detect when editing a multi-segment entry and load all related segments
+  - Allow adding/removing segments from existing journeys
+  - Maintain journey integrity when editing segments
+  - Update all related entries when journey is modified
+  - _Requirements: 9.7_
+
 - [ ] 8. Implement main application screens
 - [x] 8.1 Create enhanced Home/Dashboard screen
 

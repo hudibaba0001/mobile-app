@@ -249,6 +249,66 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
+  // Journey-related methods
+  
+  /// Get all segments of a multi-segment journey
+  List<TravelTimeEntry> getJourneySegments(String journeyId) {
+    return _entries
+        .where((entry) => entry.journeyId == journeyId)
+        .toList()
+      ..sort((a, b) => (a.segmentOrder ?? 0).compareTo(b.segmentOrder ?? 0));
+  }
+
+  /// Check if an entry is part of a multi-segment journey
+  bool isMultiSegmentEntry(TravelTimeEntry entry) {
+    return entry.journeyId != null && (entry.totalSegments ?? 0) > 1;
+  }
+
+  /// Update an entire multi-segment journey
+  Future<bool> updateJourney(String journeyId, List<TravelTimeEntry> updatedSegments) async {
+    _setLoading(true);
+    try {
+      // First, delete all existing segments of this journey
+      final existingSegments = getJourneySegments(journeyId);
+      for (final segment in existingSegments) {
+        await _service.deleteTravelEntry(segment.id);
+      }
+
+      // Then add all updated segments
+      for (final segment in updatedSegments) {
+        await _service.saveTravelEntry(segment);
+      }
+
+      await _loadEntries();
+      _clearError();
+      return true;
+    } catch (error) {
+      _handleError(error);
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Delete an entire multi-segment journey
+  Future<bool> deleteJourney(String journeyId) async {
+    _setLoading(true);
+    try {
+      final segments = getJourneySegments(journeyId);
+      for (final segment in segments) {
+        await _service.deleteTravelEntry(segment.id);
+      }
+      await _loadEntries();
+      _clearError();
+      return true;
+    } catch (error) {
+      _handleError(error);
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   void _handleError(dynamic error) {
     if (error is AppError) {
       _lastError = error;
