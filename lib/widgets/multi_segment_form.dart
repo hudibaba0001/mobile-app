@@ -46,7 +46,12 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
   void initState() {
     super.initState();
     _selectedDate = widget.initialDate ?? DateTime.now();
-    _addInitialSegment();
+    
+    if (widget.existingSegments != null && widget.existingSegments!.isNotEmpty) {
+      _loadExistingSegments();
+    } else {
+      _addInitialSegment();
+    }
   }
 
   @override
@@ -61,6 +66,24 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
 
   void _addInitialSegment() {
     // Add an empty segment to start with
+    _clearCurrentSegmentForm();
+  }
+
+  void _loadExistingSegments() {
+    // Convert existing TravelTimeEntry segments to TravelSegment objects
+    _segments = widget.existingSegments!.map((entry) => TravelSegment(
+      id: entry.id,
+      departure: entry.departure,
+      arrival: entry.arrival,
+      minutes: entry.minutes,
+      info: entry.info,
+    )).toList();
+    
+    // Set the date from the first segment
+    if (widget.existingSegments!.isNotEmpty) {
+      _selectedDate = widget.existingSegments!.first.date;
+    }
+    
     _clearCurrentSegmentForm();
   }
 
@@ -161,7 +184,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
 
     try {
       final travelProvider = context.read<TravelProvider>();
-      final journeyId = const Uuid().v4();
+      final journeyId = widget.editingJourneyId ?? const Uuid().v4();
+      final isEditing = widget.editingJourneyId != null;
       
       // Create travel entries for each segment
       final entries = <TravelTimeEntry>[];
@@ -180,26 +204,37 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
         entries.add(entry);
       }
 
-      // Add all entries
-      bool allSuccess = true;
-      for (final entry in entries) {
-        final success = await travelProvider.addEntry(entry);
-        if (!success) {
-          allSuccess = false;
-          break;
+      bool success;
+      if (isEditing) {
+        // Update existing journey
+        success = await travelProvider.updateJourney(journeyId, entries);
+      } else {
+        // Add new journey
+        bool allSuccess = true;
+        for (final entry in entries) {
+          final entrySuccess = await travelProvider.addEntry(entry);
+          if (!entrySuccess) {
+            allSuccess = false;
+            break;
+          }
         }
+        success = allSuccess;
       }
 
-      if (allSuccess && mounted) {
+      if (success && mounted) {
         widget.onSuccess?.call();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Multi-segment journey with ${_segments.length} segments added successfully!'),
+            content: Text(isEditing 
+                ? 'Multi-segment journey updated successfully!'
+                : 'Multi-segment journey with ${_segments.length} segments added successfully!'),
             backgroundColor: Colors.green,
           ),
         );
       } else if (mounted) {
-        _showError('Failed to save some segments of the journey');
+        _showError(isEditing 
+            ? 'Failed to update the journey'
+            : 'Failed to save some segments of the journey');
       }
     } catch (error) {
       if (mounted) {
@@ -261,7 +296,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Multi-Segment Journey',
+                    widget.editingJourneyId != null ? 'Edit Multi-Segment Journey' : 'Multi-Segment Journey',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

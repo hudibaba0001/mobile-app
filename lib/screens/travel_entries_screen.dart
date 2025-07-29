@@ -8,6 +8,7 @@ import '../providers/filter_provider.dart';
 import '../widgets/search_filter_bar.dart';
 import '../widgets/travel_entry_card.dart';
 import '../widgets/quick_entry_form.dart';
+import '../widgets/multi_segment_form.dart';
 import '../models/travel_time_entry.dart';
 import '../utils/constants.dart';
 
@@ -426,20 +427,58 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
   }
 
   void _editEntry(BuildContext context, TravelTimeEntry entry) {
-    // For now, show a placeholder dialog
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Entry'),
-        content: const Text('Edit functionality will be implemented in a future update.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+    final travelProvider = Provider.of<TravelProvider>(context, listen: false);
+    
+    // Check if this is a multi-segment journey
+    if (travelProvider.isMultiSegmentEntry(entry)) {
+      // Edit as multi-segment journey
+      final journeySegments = travelProvider.getJourneySegments(entry.journeyId!);
+      
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.95,
+            height: MediaQuery.of(context).size.height * 0.8,
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: MultiSegmentForm(
+              editingJourneyId: entry.journeyId,
+              existingSegments: journeySegments,
+              initialDate: entry.date,
+              onSuccess: () {
+                Navigator.of(context).pop();
+                // Refresh the entries list
+                travelProvider.refreshEntries();
+              },
+              onCancel: () {
+                Navigator.of(context).pop();
+              },
+            ),
           ),
-        ],
-      ),
-    );
+        ),
+      );
+    } else {
+      // Edit as single entry
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: QuickEntryForm(
+              initialEntry: entry,
+              onSuccess: () {
+                Navigator.of(context).pop();
+                travelProvider.refreshEntries();
+              },
+              onCancel: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   void _showEntryDetails(BuildContext context, TravelTimeEntry entry) {
@@ -470,11 +509,16 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
     TravelTimeEntry entry,
     TravelProvider travelProvider,
   ) {
+    final isMultiSegment = travelProvider.isMultiSegmentEntry(entry);
+    final journeySegments = isMultiSegment ? travelProvider.getJourneySegments(entry.journeyId!) : <TravelTimeEntry>[];
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Entry'),
-        content: Text('Are you sure you want to delete the trip from ${entry.departure} to ${entry.arrival}?'),
+        title: Text(isMultiSegment ? 'Delete Journey' : 'Delete Entry'),
+        content: Text(isMultiSegment 
+            ? 'Are you sure you want to delete the entire multi-segment journey with ${journeySegments.length} segments?'
+            : 'Are you sure you want to delete the trip from ${entry.departure} to ${entry.arrival}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -483,11 +527,20 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              final success = await travelProvider.deleteEntry(entry.id);
+              
+              bool success;
+              if (isMultiSegment) {
+                success = await travelProvider.deleteJourney(entry.journeyId!);
+              } else {
+                success = await travelProvider.deleteEntry(entry.id);
+              }
+              
               if (success && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Entry deleted successfully'),
+                  SnackBar(
+                    content: Text(isMultiSegment 
+                        ? 'Multi-segment journey deleted successfully'
+                        : 'Entry deleted successfully'),
                     backgroundColor: Colors.green,
                   ),
                 );

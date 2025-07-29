@@ -167,7 +167,7 @@
   - Create logic to store multiple segments as separate entries with journey grouping
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
 
-- [ ] 7.6 Implement multi-segment journey editing
+- [x] 7.6 Implement multi-segment journey editing
   - Add functionality to edit existing multi-segment journeys as a group
   - Detect when editing a multi-segment entry and load all related segments
   - Allow adding/removing segments from existing journeys
