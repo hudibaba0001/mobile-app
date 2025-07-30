@@ -28,12 +28,14 @@ class AppRouter {
   static const String homePath = '/';
   static const String historyPath = '/history';
   static const String settingsPath = '/settings';
+  static const String contractSettingsPath = '/contract-settings';
   static const String editEntryPath = '/edit-entry/:entryId';
   
   // Route names for named navigation
   static const String homeName = 'home';
   static const String historyName = 'history';
   static const String settingsName = 'settings';
+  static const String contractSettingsName = 'contractSettings';
   static const String editEntryName = 'editEntry';
   
   /// Main GoRouter configuration
