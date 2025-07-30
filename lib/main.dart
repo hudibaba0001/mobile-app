@@ -98,6 +98,8 @@ Widget _buildMainApp(
       ChangeNotifierProvider(create: (_) => SettingsProvider()..init()),
       ChangeNotifierProvider(create: (_) => ContractProvider()..init()),
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      // Auth service must be available throughout the app
+      Provider<AuthService>.value(value: authService),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),
       
       // Service providers (dependency injection)
@@ -133,14 +135,16 @@ Widget _buildMainApp(
       ChangeNotifierProvider(create: (_) => FilterProvider()),
     ],
     child: Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+      builder: (context, themeProvider, _) {
         return MaterialApp.router(
-          title: AppConstants.appName,
-          theme: themeProvider.lightTheme,
-          darkTheme: themeProvider.darkTheme,
+          title: 'KvikTime',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
           routerConfig: AppRouter.router,
           debugShowCheckedModeBanner: false,
+          // Ensure back button works as expected
+          backButtonDispatcher: RootBackButtonDispatcher(),
         );
       },
     ),

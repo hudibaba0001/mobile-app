@@ -49,6 +49,19 @@ class AuthService {
     }
   }
 
+  /// Send a password reset email to the specified email address
+  /// 
+  /// [email] - The email address to send the reset link to
+  /// 
+  /// Throws [FirebaseAuthException] on authentication errors
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    }
+  }
+
   /// Sign out the current user
   /// 
   /// Clears the authentication state and returns user to signed-out state

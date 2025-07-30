@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/travel_provider.dart';
 import '../providers/location_provider.dart';
@@ -8,6 +9,7 @@ import '../widgets/quick_entry_form.dart';
 import '../widgets/travel_entry_card.dart';
 import '../models/travel_time_entry.dart';
 import '../utils/constants.dart';
+import '../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -29,28 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Travel Time Tracker'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => context.go('/travel-entries'),
-            tooltip: 'Search Entries',
-          ),
-          IconButton(
-            icon: const Icon(Icons.analytics_outlined),
-            onPressed: () => context.go('/reports'),
-            tooltip: 'Reports',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.go('/settings'),
-            tooltip: 'Settings',
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(context),
       body: Consumer3<TravelProvider, LocationProvider, AppStateProvider>(
         builder: (context, travelProvider, locationProvider, appStateProvider, _) {
           if (travelProvider.isLoading) {
@@ -91,6 +75,117 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Quick Add'),
       ),
+    );
+  }
+
+  AppBar _buildAppBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final themeProvider = Provider.of<AppStateProvider>(context);
+    final user = FirebaseAuth.instance.currentUser;
+
+    return AppBar(
+      title: const Text('Travel Time Tracker'),
+      elevation: 0,
+      actions: [
+        // User email display
+        if (user?.email != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+            child: Center(
+              child: Text(
+                user!.email!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onPrimary,
+                ),
+              ),
+            ),
+          ),
+        
+        // Theme toggle
+        IconButton(
+          icon: Icon(
+            themeProvider.themeMode == ThemeMode.dark
+                ? Icons.light_mode
+                : Icons.dark_mode,
+          ),
+          onPressed: () {
+            themeProvider.toggleTheme();
+          },
+        ),
+        
+        // Search Entries
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () => context.go('/travel-entries'),
+          tooltip: 'Search Entries',
+        ),
+        
+        // Reports
+        IconButton(
+          icon: const Icon(Icons.analytics_outlined),
+          onPressed: () => context.go('/reports'),
+          tooltip: 'Reports',
+        ),
+        
+        // More options menu (includes sign out)
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) async {
+            if (value == 'sign_out') {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: TextButton.styleFrom(
+                        foregroundColor: theme.colorScheme.error,
+                      ),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                ),
+              );
+              
+              if (confirmed == true) {
+                try {
+                  await context.read<AuthService>().signOut();
+                  if (mounted) {
+                    context.go('/');
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error signing out: $e'),
+                        backgroundColor: theme.colorScheme.error,
+                      ),
+                    );
+                  }
+                }
+              }
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'sign_out',
+              child: Row(
+                children: [
+                  Icon(Icons.logout, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Sign Out'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

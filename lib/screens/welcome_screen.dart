@@ -142,7 +142,7 @@ class WelcomeScreen extends StatelessWidget {
 
   /// Navigate to the sign in screen
   void _navigateToSignIn(BuildContext context) {
-    Navigator.pushNamed(context, '/login');
+    AppRouter.goToLogin(context);
   }
 
   /// Launch the sign up URL in external browser

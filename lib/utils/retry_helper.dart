@@ -124,7 +124,7 @@ class RetryHelper {
     while (attempt <= maxRetries) {
       try {
         return await operation();
-      } catch (error, stackTrace) {
+      } catch (error) {
         attempt++;
         
         if (shouldRetry != null && !shouldRetry(error)) {

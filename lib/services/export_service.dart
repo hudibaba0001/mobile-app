@@ -115,7 +115,7 @@ class ExportService {
     }
 
     // Get entries in date range
-    final entries = await _travelRepository!.getEntriesInDateRange(startDate, endDate);
+    final entries = await _travelRepository.getEntriesInDateRange(startDate, endDate);
     
     // Generate filename
     final fileName = customFileName ?? _generateFileName(startDate, endDate, 'csv');

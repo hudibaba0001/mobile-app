@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
+import '../utils/go_router_refresh_stream.dart';
 
 // Real implementations now available
 import '../screens/welcome_screen.dart';
@@ -9,6 +13,7 @@ import '../screens/history_screen.dart';
 import '../screens/edit_entry_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/contract_settings_screen.dart';
+import '../screens/forgot_password_screen.dart';
 
 // Fallback screens (for routes not yet implemented)
 import '../screens/home_screen.dart';
@@ -34,6 +39,7 @@ class AppRouter {
   static const String settingsPath = '/settings';
   static const String contractSettingsPath = '/contract-settings';
   static const String editEntryPath = '/edit-entry/:entryId';
+  static const String forgotPasswordPath = '/forgot-password';
   
   // Route names for named navigation
   static const String welcomeName = 'welcome';
@@ -43,11 +49,15 @@ class AppRouter {
   static const String settingsName = 'settings';
   static const String contractSettingsName = 'contractSettings';
   static const String editEntryName = 'editEntry';
+  static const String forgotPasswordName = 'forgotPassword';
   
-  /// Main GoRouter configuration
-  static final GoRouter router = GoRouter(
+  /// Main GoRouter configuration with authentication
+  static GoRouter get router => _router;
+  
+  static final _router = GoRouter(
     initialLocation: welcomePath,
     debugLogDiagnostics: true,
+    refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges().asBroadcastStream()),
     routes: [
       // Welcome screen route - entry point for new users
       GoRoute(
@@ -92,6 +102,13 @@ class AppRouter {
         name: contractSettingsName,
         builder: (context, state) => const ContractSettingsScreen(),
       ),
+
+      // Forgot Password screen route
+      GoRoute(
+        path: forgotPasswordPath,
+        name: forgotPasswordName,
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
       
       // Edit entry screen route with entry type support - now using real EditEntryScreen
       GoRoute(
@@ -108,53 +125,99 @@ class AppRouter {
     // Error handling
     errorBuilder: (context, state) => _ErrorScreen(error: state.error),
     
-    // Global redirect logic (if needed)
-    redirect: (context, state) {
-      // Add authentication or initialization checks here if needed
-      return null; // No redirect needed currently
+    // Authentication redirect logic
+    redirect: (BuildContext context, GoRouterState state) {
+      final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+      final isLoggingIn = state.uri.path == loginPath || state.uri.path == welcomePath;
+      
+      // If user is not logged in and not on login/welcome, redirect to welcome
+      if (!isLoggedIn && !isLoggingIn) {
+        return welcomePath;
+      }
+      
+      // If user is logged in and on login/welcome, redirect to home
+      if (isLoggedIn && isLoggingIn) {
+        return homePath;
+      }
+      
+      // No redirect needed
+      return null;
     },
   );
   
   // Helper navigation methods
   
-  /// Navigate to welcome screen
+  /// Navigate to the welcome screen (auth not required)
   static void goToWelcome(BuildContext context) {
     context.goNamed(welcomeName);
   }
   
-  /// Navigate to login screen
-  static void goToLogin(BuildContext context) {
-    context.goNamed(loginName);
+  /// Navigate to the login screen (auth not required)
+  static void goToLogin(BuildContext context, {String? email}) {
+    if (email != null) {
+      context.goNamed(loginName, queryParameters: {'email': email});
+    } else {
+      context.goNamed(loginName);
+    }
   }
   
-  /// Navigate to home screen
-  static void goHome(BuildContext context) {
-    context.goNamed(homeName);
+  /// Navigate to the home screen (requires auth)
+  /// If user is not authenticated, redirects to welcome screen
+  static void goToHome(BuildContext context) {
+    final auth = FirebaseAuth.instance;
+    if (auth.currentUser != null) {
+      context.goNamed(homeName);
+    } else {
+      goToWelcome(context);
+    }
   }
   
-  /// Navigate to history screen
+  /// Navigate to history screen (requires auth)
+  /// If user is not authenticated, redirects to welcome screen
   static void goToHistory(BuildContext context) {
-    context.goNamed(historyName);
+    final auth = FirebaseAuth.instance;
+    if (auth.currentUser != null) {
+      context.goNamed(historyName);
+    } else {
+      goToWelcome(context);
+    }
   }
   
-  /// Navigate to settings screen
+  /// Navigate to settings screen (requires auth)
+  /// If user is not authenticated, redirects to welcome screen
   static void goToSettings(BuildContext context) {
-    context.goNamed(settingsName);
+    final auth = FirebaseAuth.instance;
+    if (auth.currentUser != null) {
+      context.goNamed(settingsName);
+    } else {
+      goToWelcome(context);
+    }
   }
   
-  /// Navigate to contract settings screen
+  /// Navigate to contract settings screen (requires auth)
+  /// If user is not authenticated, redirects to welcome screen
   static void goToContractSettings(BuildContext context) {
-    context.goNamed(contractSettingsName);
+    final auth = FirebaseAuth.instance;
+    if (auth.currentUser != null) {
+      context.goNamed(contractSettingsName);
+    } else {
+      goToWelcome(context);
+    }
   }
   
-  /// Navigate to edit entry screen with optional entry type
-  static void goToEditEntry(BuildContext context, String entryId, {String? entryType}) {
-    final queryParams = entryType != null ? {'type': entryType} : <String, String>{};
-    context.goNamed(
-      editEntryName,
-      pathParameters: {'entryId': entryId},
-      queryParameters: queryParams,
-    );
+  /// Navigate to edit entry screen (requires auth)
+  /// If user is not authenticated, redirects to welcome screen
+  static void goToEditEntry(BuildContext context, {String? entryId}) {
+    final auth = FirebaseAuth.instance;
+    if (auth.currentUser != null) {
+      if (entryId != null) {
+        context.goNamed(editEntryName, pathParameters: {'entryId': entryId});
+      } else {
+        context.goNamed(editEntryName, pathParameters: {'entryId': 'new'});
+      }
+    } else {
+      goToWelcome(context);
+    }
   }
   
   /// Smart back navigation with fallback to home
@@ -196,6 +259,11 @@ class AppRouter {
   /// Navigate to edit entry for work type (convenience method)
   static void goToEditWorkEntry(BuildContext context, String entryId) {
     goToEditEntry(context, entryId, entryType: 'work');
+  }
+
+  /// Navigate to forgot password screen
+  static void goToForgotPassword(BuildContext context) {
+    context.goNamed(forgotPasswordName);
   }
 }
 

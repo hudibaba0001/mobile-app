@@ -288,9 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Handle sign in process
   Future<void> _handleSignIn() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -298,18 +296,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await context.read<AuthService>().signIn(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-      );
-      
+            _emailController.text.trim(),
+            _passwordController.text.trim(),
+          );
+
       if (mounted) {
-        AppRouter.goHome(context);
+        // Navigate to home screen using the router
+        AppRouter.goToHome(context);
       }
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text(e.message ?? 'An error occurred during sign in'),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
@@ -330,17 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Handle forgot password
   void _handleForgotPassword() {
-    // TODO: Implement forgot password functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Forgot password functionality coming soon!'),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
+    AppRouter.goToForgotPassword(context);
   }
 
   /// Launch the sign up URL in external browser

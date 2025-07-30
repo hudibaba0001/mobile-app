@@ -12,6 +12,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final authService = Provider.of<AuthService>(context, listen: false);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -50,6 +51,11 @@ class SettingsScreen extends StatelessWidget {
                 _buildSectionHeader(context, 'Reminders'),
                 const SizedBox(height: 8),
                 _buildRemindersSection(context, settingsProvider),
+                const SizedBox(height: 24),
+                
+                _buildSectionHeader(context, 'Account'),
+                const SizedBox(height: 8),
+                _buildAccountSection(context, authService),
                 const SizedBox(height: 24),
 
                 _buildSectionHeader(context, 'Contract Settings'),
@@ -422,6 +428,71 @@ class SettingsScreen extends StatelessWidget {
       const SnackBar(
         content: Text('App rating feature coming soon!'),
       ),
+    );
+  }
+  
+  /// Builds the account section with sign out button
+  Widget _buildAccountSection(BuildContext context, AuthService authService) {
+    return _buildSectionCard(
+      context,
+      children: [
+        ListTile(
+          leading: Icon(
+            Icons.logout,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          title: Text(
+            'Sign Out',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          onTap: () async {
+            // Show confirmation dialog
+            final shouldSignOut = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Sign Out'),
+                content: const Text('Are you sure you want to sign out?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                    child: const Text('Sign Out'),
+                  ),
+                ],
+              ),
+            );
+
+            // If user confirms, sign out
+            if (shouldSignOut == true) {
+              try {
+                await authService.signOut();
+                if (context.mounted) {
+                  // Navigate to welcome screen after sign out
+                  AppRouter.goToWelcome(context);
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error signing out: ${e.toString()}'),
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                  );
+                }
+              }
+            }
+          },
+        ),
+      ],
     );
   }
 }
