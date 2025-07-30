@@ -1,4 +1,7 @@
 class AppConstants {
+  // App info
+  static const String appName = 'Travel Time Logger';
+  
   // Hive box names
   static const String travelEntriesBox = 'travelEntriesBox';
   static const String locationsBox = 'locationsBox';

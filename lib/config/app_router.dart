@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 // Real implementations now available
+import '../screens/welcome_screen.dart';
+import '../screens/login_screen.dart';
 import '../screens/unified_home_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/edit_entry_screen.dart';
@@ -25,13 +27,17 @@ import '../screens/travel_entries_screen.dart';
 /// - Future-ready for UnifiedHomeScreen and HistoryScreen
 class AppRouter {
   // Route paths
-  static const String homePath = '/';
+  static const String welcomePath = '/';
+  static const String loginPath = '/login';
+  static const String homePath = '/home';
   static const String historyPath = '/history';
   static const String settingsPath = '/settings';
   static const String contractSettingsPath = '/contract-settings';
   static const String editEntryPath = '/edit-entry/:entryId';
   
   // Route names for named navigation
+  static const String welcomeName = 'welcome';
+  static const String loginName = 'login';
   static const String homeName = 'home';
   static const String historyName = 'history';
   static const String settingsName = 'settings';
@@ -40,9 +46,25 @@ class AppRouter {
   
   /// Main GoRouter configuration
   static final GoRouter router = GoRouter(
-    initialLocation: homePath,
+    initialLocation: welcomePath,
     debugLogDiagnostics: true,
     routes: [
+      // Welcome screen route - entry point for new users
+      GoRoute(
+        path: welcomePath,
+        name: welcomeName,
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      
+      // Login screen route - accessed via Sign In button
+      GoRoute(
+        path: loginPath,
+        name: loginName,
+        builder: (context, state) => LoginScreen(
+          initialEmail: state.uri.queryParameters['email'],
+        ),
+      ),
+      
       // Home screen route - now using UnifiedHomeScreen
       GoRoute(
         path: homePath,
@@ -94,6 +116,16 @@ class AppRouter {
   );
   
   // Helper navigation methods
+  
+  /// Navigate to welcome screen
+  static void goToWelcome(BuildContext context) {
+    context.goNamed(welcomeName);
+  }
+  
+  /// Navigate to login screen
+  static void goToLogin(BuildContext context) {
+    context.goNamed(loginName);
+  }
   
   /// Navigate to home screen
   static void goHome(BuildContext context) {
