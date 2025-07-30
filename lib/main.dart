@@ -61,6 +61,7 @@ Widget _buildMainApp() {
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),
+      // Updated to use EntryService instead of TravelService
       ChangeNotifierProvider(create: (_) => TravelProvider()),
       ChangeNotifierProvider(create: (_) => LocationProvider()),
       ChangeNotifierProvider(create: (_) => SearchProvider()),

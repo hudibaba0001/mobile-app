@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Screen Wireframe - Material 3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #fefbff;
+            color: #1d1b20;
+            overflow-x: hidden;
+        }
+        
+        .phone-container {
+            max-width: 390px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            position: relative;
+            min-height: 844px;
+        }
+        
+        /* App Bar */
+        .app-bar {
+            padding: 16px 20px 8px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .app-bar-title {
+            flex: 1;
+        }
+        
+        .greeting {
+            font-size: 16px;
+            color: #49454f;
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+        
+        .date {
+            font-size: 22px;
+            color: #1d1b20;
+            font-weight: 600;
+        }
+        
+        .notification-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .notification-btn:hover {
+            background: rgba(73, 69, 79, 0.08);
+        }
+        
+        .notification-btn .material-icons {
+            color: #49454f;
+            font-size: 24px;
+        }
+        
+        /* Main Content */
+        .content {
+            padding: 0 20px 100px;
+        }
+        
+        /* Today's Total Card */
+        .total-card {
+            background: linear-gradient(135deg, 
+                rgba(103, 80, 164, 0.08) 0%, 
+                rgba(3, 218, 198, 0.06) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 24px rgba(103, 80, 164, 0.12);
+            border: 1px solid rgba(103, 80, 164, 0.08);
+        }
+        
+        .total-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .total-header .material-icons {
+            color: #6750a4;
+            font-size: 24px;
+            margin-right: 8px;
+        }
+        
+        .total-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        .total-amount {
+            font-size: 48px;
+            font-weight: 700;
+            color: #6750a4;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        
+        .breakdown {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .breakdown .material-icons {
+            font-size: 16px;
+            margin-right: 4px;
+        }
+        
+        .work-icon { color: #03dac6; }
+        .travel-icon { color: #ff9800; }
+        
+        .breakdown-separator {
+            width: 4px;
+            height: 4px;
+            background: #49454f;
+            border-radius: 50%;
+            margin: 0 12px;
+        }
+        
+        /* Action Cards */
+        .action-cards {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .action-card {
+            flex: 1;
+            height: 140px;
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+        }
+        
+        .action-card.travel {
+            background: linear-gradient(135deg, #6750a4 0%, #5a4fcf 100%);
+        }
+        
+        .action-card.work {
+            background: linear-gradient(135deg, #03dac6 0%, #00b4a6 100%);
+        }
+        
+        .action-icon {
+            width: 52px;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .action-icon .material-icons {
+            font-size: 28px;
+            color: white;
+        }
+        
+        .action-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .action-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        /* Quick Stats */
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1d1b20;
+            margin-bottom: 16px;
+        }
+        
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-icon.primary { color: #6750a4; }
+        .stat-icon.secondary { color: #03dac6; }
+        .stat-icon.tertiary { color: #ff9800; }
+        
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1b20;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #49454f;
+        }
+        
+        /* Recent Entries */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .view-all-btn {
+            background: none;
+            border: none;
+            color: #6750a4;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+        
+        .view-all-btn:hover {
+            background: rgba(103, 80, 164, 0.08);
+        }
+        
+        .entry-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .entry-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        
+        .entry-icon.work {
+            background: rgba(3, 218, 198, 0.1);
+            color: #03dac6;
+        }
+        
+        .entry-icon.travel {
+            background: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+        }
+        
+        .entry-icon .material-icons {
+            font-size: 20px;
+        }
+        
+        .entry-details {
+            flex: 1;
+        }
+        
+        .entry-type {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1d1b20;
+            margin-bottom: 2px;
+        }
+        
+        .entry-time {
+            font-size: 12px;
+            color: #49454f;
+        }
+        
+        .entry-duration {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .entry-duration.work { color: #03dac6; }
+        .entry-duration.travel { color: #ff9800; }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 390px;
+            background: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            padding: 12px 0 8px;
+            border-radius: 0 0 24px 24px;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            margin: 0 8px;
+        }
+        
+        .nav-item.active {
+            background: rgba(103, 80, 164, 0.08);
+        }
+        
+        .nav-item .material-icons {
+            font-size: 24px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item.active .material-icons {
+            color: #6750a4;
+        }
+        
+        .nav-item:not(.active) .material-icons {
+            color: #49454f;
+        }
+        
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-item.active .nav-label {
+            color: #6750a4;
+        }
+        
+        .nav-item:not(.active) .nav-label {
+            color: #49454f;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 430px) {
+            .phone-container {
+                margin: 10px;
+                border-radius: 16px;
+                max-width: none;
+            }
+            
+            .bottom-nav {
+                width: calc(100% - 20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- App Bar -->
+        <div class="app-bar">
+            <div class="app-bar-title">
+                <div class="greeting" id="greeting">Good Evening</div>
+                <div class="date" id="currentDate">Wednesday, Jul 29</div>
+            </div>
+            <button class="notification-btn">
+                <span class="material-icons">notifications_none</span>
+            </button>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Today's Total Card -->
+            <div class="total-card">
+                <div class="total-header">
+                    <span class="material-icons">today</span>
+                    <div class="total-title">Today's Total</div>
+                </div>
+                <div class="total-amount">8h 30m</div>
+                <div class="breakdown">
+                    <span class="material-icons work-icon">work_outline</span>
+                    Work: 8h
+                    <div class="breakdown-separator"></div>
+                    <span class="material-icons travel-icon">directions_car</span>
+                    Travel: 30m
+                </div>
+            </div>
+            
+            <!-- Action Cards -->
+            <div class="action-cards">
+                <div class="action-card travel" onclick="logTravel()">
+                    <div class="action-icon">
+                        <span class="material-icons">location_on</span>
+                    </div>
+                    <div class="action-title">Log Travel</div>
+                    <div class="action-subtitle">Track your journey</div>
+                </div>
+                <div class="action-card work" onclick="logWork()">
+                    <div class="action-icon">
+                        <span class="material-icons">access_time</span>
+                    </div>
+                    <div class="action-title">Log Work</div>
+                    <div class="action-subtitle">Record work hours</div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="section-title">This Week</div>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon primary material-icons">schedule</div>
+                    <div class="stat-value">42h 15m</div>
+                    <div class="stat-label">Total Hours</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon secondary material-icons">list_alt</div>
+                    <div class="stat-value">28</div>
+                    <div class="stat-label">Entries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon tertiary material-icons">trending_up</div>
+                    <div class="stat-value">6h 2m</div>
+                    <div class="stat-label">Avg/Day</div>
+                </div>
+            </div>
+            
+            <!-- Recent Entries -->
+            <div class="section-header">
+                <div class="section-title">Recent Entries</div>
+                <button class="view-all-btn">View All</button>
+            </div>
+            
+            <div class="entry-item">
+                <div class="entry-icon work">
+                    <span class="material-icons">work_outline</span>
+                </div>
+                <div class="entry-details">
+                    <div class="entry-type">Work</div>
+                    <div class="entry-time">9:00 AM - 5:00 PM</div>
+                </div>
+                <div class="entry-duration work">8h</div>
+            </div>
+            
+            <div class="entry-item">
+                <div class="entry-icon travel">
+                    <span class="material-icons">directions_car</span>
+                </div>
+                <div class="entry-details">
+                    <div class="entry-type">Travel</div>
+                    <div class="entry-time">Home → Office</div>
+                </div>
+                <div class="entry-duration travel">30m</div>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="selectTab(0)">
+                <span class="material-icons">home</span>
+                <div class="nav-label">Home</div>
+            </div>
+            <div class="nav-item" onclick="selectTab(1)">
+                <span class="material-icons">history</span>
+                <div class="nav-label">History</div>
+            </div>
+            <div class="nav-item" onclick="selectTab(2)">
+                <span class="material-icons">settings</span>
+                <div class="nav-label">Settings</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize date and greeting
+        function updateDateTime() {
+            const now = new Date();
+            const hour = now.getHours();
+            
+            let greeting = 'Good Morning';
+            if (hour >= 12 && hour < 17) greeting = 'Good Afternoon';
+            else if (hour >= 17) greeting = 'Good Evening';
+            
+            const dateOptions = { 
+                weekday: 'long', 
+                month: 'short', 
+                day: 'numeric' 
+            };
+            const dateString = now.toLocaleDateString('en-US', dateOptions);
+            
+            document.getElementById('greeting').textContent = greeting;
+            document.getElementById('currentDate').textContent = dateString;
+        }
+        
+        // Navigation
+        function selectTab(index) {
+            document.querySelectorAll('.nav-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+        }
+        
+        // Action handlers
+        function logTravel() {
+            alert('Navigate to Travel Logging Screen');
+        }
+        
+        function logWork() {
+            alert('Navigate to Work Logging Screen');
+        }
+        
+        // Initialize
+        updateDateTime();
+        
+        // Update time every minute
+        setInterval(updateDateTime, 60000);
+    </script>
+</body>
+</html>

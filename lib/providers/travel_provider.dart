@@ -1,18 +1,19 @@
 import 'package:flutter/foundation.dart';
-import '../models/travel_time_entry.dart';
+// Updated imports to use unified Entry model instead of TravelTimeEntry
+import '../models/entry.dart';
 import '../models/travel_summary.dart';
-import '../repositories/travel_repository.dart';
-import '../repositories/hive_travel_repository.dart';
+import '../repositories/location_repository.dart';
 import '../repositories/hive_location_repository.dart';
-import '../services/travel_service.dart';
+import '../services/entry_service.dart'; // Renamed from travel_service.dart
 import '../utils/error_handler.dart';
 
 class TravelProvider extends ChangeNotifier {
-  final TravelRepository _repository;
-  final TravelService _service;
+  // Updated to use EntryService instead of TravelService and TravelRepository
+  final EntryService _service;
 
-  List<TravelTimeEntry> _entries = [];
-  List<TravelTimeEntry> _filteredEntries = [];
+  // Updated to use Entry model instead of TravelTimeEntry
+  List<Entry> _entries = [];
+  List<Entry> _filteredEntries = [];
   TravelSummary? _currentSummary;
   bool _isLoading = false;
   String _searchQuery = '';
@@ -21,19 +22,16 @@ class TravelProvider extends ChangeNotifier {
   AppError? _lastError;
 
   TravelProvider({
-    TravelRepository? repository,
-    TravelService? service,
-  }) : _repository = repository ?? HiveTravelRepository(),
-        _service = service ?? TravelService(
-          travelRepository: repository ?? HiveTravelRepository(),
+    EntryService? service,
+  }) : _service = service ?? EntryService(
           locationRepository: HiveLocationRepository(),
         ) {
     _loadEntries();
   }
 
-  // Getters
-  List<TravelTimeEntry> get entries => List.unmodifiable(_entries);
-  List<TravelTimeEntry> get filteredEntries => List.unmodifiable(_filteredEntries);
+  // Getters - Updated to use Entry model
+  List<Entry> get entries => List.unmodifiable(_entries);
+  List<Entry> get filteredEntries => List.unmodifiable(_filteredEntries);
   TravelSummary? get currentSummary => _currentSummary;
   bool get isLoading => _isLoading;
   String get searchQuery => _searchQuery;
@@ -43,9 +41,9 @@ class TravelProvider extends ChangeNotifier {
   bool get hasEntries => _entries.isNotEmpty;
   bool get hasFilteredEntries => _filteredEntries.isNotEmpty;
 
-  // Statistics getters
+  // Statistics getters - Updated to use Entry model's travelMinutes field
   int get totalEntries => _entries.length;
-  int get totalMinutes => _entries.fold(0, (sum, entry) => sum + entry.minutes);
+  int get totalMinutes => _entries.fold(0, (sum, entry) => sum + (entry.travelMinutes ?? 0));
   double get averageMinutesPerTrip => totalEntries > 0 ? totalMinutes / totalEntries : 0;
   String get formattedTotalTime {
     final hours = totalMinutes ~/ 60;
@@ -53,11 +51,12 @@ class TravelProvider extends ChangeNotifier {
     return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
   }
 
-  // Load all entries
+  // Load all entries - Updated to use EntryService.getAllTravelEntries()
   Future<void> _loadEntries() async {
     _setLoading(true);
     try {
-      _entries = await _repository.getAllEntries();
+      // Use EntryService to get only travel entries from unified entries box
+      _entries = await _service.getAllTravelEntries();
       _applyFilters();
       _clearError();
     } catch (error) {
@@ -72,11 +71,12 @@ class TravelProvider extends ChangeNotifier {
     await _loadEntries();
   }
 
-  // Add new entry
-  Future<bool> addEntry(TravelTimeEntry entry) async {
+  // Add new entry - Updated to use Entry model and EntryService.addEntry()
+  Future<bool> addEntry(Entry entry) async {
     _setLoading(true);
     try {
-      await _service.saveTravelEntry(entry);
+      // Use EntryService to add travel entry to unified entries box
+      await _service.addEntry(entry);
       await _loadEntries();
       _clearError();
       return true;
@@ -88,11 +88,12 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-  // Update existing entry
-  Future<bool> updateEntry(TravelTimeEntry entry) async {
+  // Update existing entry - Updated to use Entry model and EntryService.updateEntry()
+  Future<bool> updateEntry(Entry entry) async {
     _setLoading(true);
     try {
-      await _service.updateTravelEntry(entry);
+      // Use EntryService to update travel entry in unified entries box
+      await _service.updateEntry(entry);
       await _loadEntries();
       _clearError();
       return true;
@@ -104,11 +105,12 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-  // Delete entry
+  // Delete entry - Updated to use EntryService.deleteEntry()
   Future<bool> deleteEntry(String entryId) async {
     _setLoading(true);
     try {
-      await _service.deleteTravelEntry(entryId);
+      // Use EntryService to delete travel entry from unified entries box
+      await _service.deleteEntry(entryId);
       await _loadEntries();
       _clearError();
       return true;
@@ -144,7 +146,7 @@ class TravelProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Apply current filters
+  // Apply current filters - Updated to use Entry model fields
   void _applyFilters() {
     _filteredEntries = _entries.where((entry) {
       // Date filter
@@ -153,12 +155,12 @@ class TravelProvider extends ChangeNotifier {
       
       if (!isInDateRange) return false;
 
-      // Search filter
+      // Search filter - Updated to use Entry model fields (from, to, notes)
       if (_searchQuery.isNotEmpty) {
         final query = _searchQuery.toLowerCase();
-        return entry.departure.toLowerCase().contains(query) ||
-               entry.arrival.toLowerCase().contains(query) ||
-               (entry.info?.toLowerCase().contains(query) ?? false);
+        return (entry.from?.toLowerCase().contains(query) ?? false) ||
+               (entry.to?.toLowerCase().contains(query) ?? false) ||
+               (entry.notes?.toLowerCase().contains(query) ?? false);
       }
 
       return true;
@@ -168,10 +170,11 @@ class TravelProvider extends ChangeNotifier {
     _filteredEntries.sort((a, b) => b.date.compareTo(a.date));
   }
 
-  // Generate summary for current filter
+  // Generate summary for current filter - Uses EntryService.generateSummary()
   Future<void> generateSummary() async {
     _setLoading(true);
     try {
+      // EntryService.generateSummary() already filters for travel entries only
       _currentSummary = await _service.generateSummary(_filterStartDate, _filterEndDate);
       _clearError();
     } catch (error) {
@@ -181,15 +184,15 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-  // Get recent entries (last N entries)
-  List<TravelTimeEntry> getRecentEntries({int limit = 5}) {
-    final sortedEntries = List<TravelTimeEntry>.from(_entries)
+  // Get recent entries (last N entries) - Updated to use Entry model
+  List<Entry> getRecentEntries({int limit = 5}) {
+    final sortedEntries = List<Entry>.from(_entries)
       ..sort((a, b) => b.date.compareTo(a.date));
     return sortedEntries.take(limit).toList();
   }
 
-  // Get entries for specific date
-  List<TravelTimeEntry> getEntriesForDate(DateTime date) {
+  // Get entries for specific date - Updated to use Entry model
+  List<Entry> getEntriesForDate(DateTime date) {
     return _entries.where((entry) {
       return entry.date.year == date.year &&
              entry.date.month == date.month &&
@@ -197,8 +200,8 @@ class TravelProvider extends ChangeNotifier {
     }).toList();
   }
 
-  // Get entry by ID
-  TravelTimeEntry? getEntryById(String id) {
+  // Get entry by ID - Updated to use Entry model
+  Entry? getEntryById(String id) {
     try {
       return _entries.firstWhere((entry) => entry.id == id);
     } catch (e) {
@@ -206,9 +209,10 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-  // Get travel statistics
+  // Get travel statistics - Uses EntryService.getTravelStatistics()
   Future<Map<String, dynamic>> getTravelStatistics() async {
     try {
+      // EntryService.getTravelStatistics() already filters for travel entries only
       return await _service.getTravelStatistics();
     } catch (error) {
       _handleError(error);
@@ -216,20 +220,22 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-  // Get recent patterns
-  Future<Map<String, dynamic>> getRecentPatterns({int days = 30}) async {
+  // Get suggested routes - Uses EntryService.getSuggestedRoutes()
+  Future<List<String>> getSuggestedRoutes({int limit = 5}) async {
     try {
-      return await _service.getRecentPatterns(days: days);
+      // EntryService.getSuggestedRoutes() already filters for travel entries only
+      return await _service.getSuggestedRoutes(limit: limit);
     } catch (error) {
       _handleError(error);
-      return {};
+      return [];
     }
   }
 
-  // Export entries to CSV
+  // Export entries to CSV - Uses EntryService.exportToCSV()
   Future<String?> exportToCSV() async {
     _setLoading(true);
     try {
+      // EntryService.exportToCSV() already filters for travel entries only
       final csvContent = await _service.exportToCSV(_filteredEntries);
       _clearError();
       return csvContent;
@@ -249,36 +255,28 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-  // Journey-related methods
+  // Journey-related methods - Updated to use Entry model and EntryService
   
-  /// Get all segments of a multi-segment journey
-  List<TravelTimeEntry> getJourneySegments(String journeyId) {
+  /// Get all segments of a multi-segment journey - Updated to use Entry model
+  List<Entry> getJourneySegments(String journeyId) {
     return _entries
         .where((entry) => entry.journeyId == journeyId)
         .toList()
       ..sort((a, b) => (a.segmentOrder ?? 0).compareTo(b.segmentOrder ?? 0));
   }
 
-  /// Check if an entry is part of a multi-segment journey
-  bool isMultiSegmentEntry(TravelTimeEntry entry) {
-    return entry.journeyId != null && (entry.totalSegments ?? 0) > 1;
+  /// Check if an entry is part of a multi-segment journey - Updated to use Entry model
+  bool isMultiSegmentEntry(Entry entry) {
+    // Use EntryService method for consistency
+    return _service.isMultiSegmentEntry(entry);
   }
 
-  /// Update an entire multi-segment journey
-  Future<bool> updateJourney(String journeyId, List<TravelTimeEntry> updatedSegments) async {
+  /// Update an entire multi-segment journey - Updated to use EntryService.updateJourney()
+  Future<bool> updateJourney(String journeyId, List<Entry> updatedSegments) async {
     _setLoading(true);
     try {
-      // First, delete all existing segments of this journey
-      final existingSegments = getJourneySegments(journeyId);
-      for (final segment in existingSegments) {
-        await _service.deleteTravelEntry(segment.id);
-      }
-
-      // Then add all updated segments
-      for (final segment in updatedSegments) {
-        await _service.saveTravelEntry(segment);
-      }
-
+      // Use EntryService to update entire journey in unified entries box
+      await _service.updateJourney(journeyId, updatedSegments);
       await _loadEntries();
       _clearError();
       return true;
@@ -290,14 +288,6 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-  /// Delete an entire multi-segment journey
-  Future<bool> deleteJourney(String journeyId) async {
-    _setLoading(true);
-    try {
-      final segments = getJourneySegments(journeyId);
-      for (final segment in segments) {
-        await _service.deleteTravelEntry(segment.id);
-      }
       await _loadEntries();
       _clearError();
       return true;

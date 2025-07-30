@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History Screen Wireframe - Material 3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #fefbff;
+            color: #1d1b20;
+            overflow-x: hidden;
+        }
+        
+        .phone-container {
+            max-width: 390px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            position: relative;
+            min-height: 844px;
+        }
+        
+        /* App Bar */
+        .app-bar {
+            padding: 16px 20px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 8px;
+            transition: background 0.2s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .back-btn .material-icons {
+            color: #1d1b20;
+            font-size: 24px;
+        }
+        
+        .app-bar-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        /* Filter Controls */
+        .filter-section {
+            padding: 16px;
+            background: white;
+        }
+        
+        /* Entry Type Toggle */
+        .entry-toggle {
+            background: rgba(73, 69, 79, 0.08);
+            border-radius: 12px;
+            display: flex;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            height: 48px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+            color: #49454f;
+        }
+        
+        .toggle-btn.active {
+            background: #6750a4;
+            color: white;
+        }
+        
+        .toggle-btn .material-icons {
+            font-size: 20px;
+        }
+        
+        /* Date Range Chips */
+        .date-chips {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        
+        .date-chip {
+            padding: 8px 16px;
+            border: 1px solid #79747e;
+            border-radius: 8px;
+            background: white;
+            color: #49454f;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .date-chip.active {
+            background: #6750a4;
+            color: white;
+            border-color: #6750a4;
+        }
+        
+        .date-chip:hover:not(.active) {
+            background: rgba(103, 80, 164, 0.04);
+        }
+        
+        /* Search Field */
+        .search-field {
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            height: 48px;
+            padding: 12px 16px 12px 48px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(73, 69, 79, 0.08);
+            font-size: 16px;
+            color: #1d1b20;
+            outline: none;
+        }
+        
+        .search-input::placeholder {
+            color: #49454f;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #49454f;
+            font-size: 20px;
+        }
+        
+        .clear-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 16px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #49454f;
+        }
+        
+        .clear-btn.visible {
+            display: flex;
+        }
+        
+        /* Entry List */
+        .entry-list {
+            background: rgba(73, 69, 79, 0.04);
+            padding: 16px;
+            min-height: 500px;
+        }
+        
+        .entry-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .entry-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .entry-icon.work {
+            background: rgba(3, 218, 198, 0.1);
+            color: #03dac6;
+        }
+        
+        .entry-icon.travel {
+            background: rgba(103, 80, 164, 0.1);
+            color: #6750a4;
+        }
+        
+        .entry-icon .material-icons {
+            font-size: 24px;
+        }
+        
+        .entry-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .entry-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        
+        .entry-type {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        .duration-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .duration-badge.work {
+            background: rgba(3, 218, 198, 0.1);
+            color: #03dac6;
+        }
+        
+        .duration-badge.travel {
+            background: rgba(103, 80, 164, 0.1);
+            color: #6750a4;
+        }
+        
+        .entry-subtitle {
+            font-size: 14px;
+            color: #49454f;
+            margin-bottom: 2px;
+        }
+        
+        .entry-datetime {
+            font-size: 12px;
+            color: rgba(73, 69, 79, 0.7);
+        }
+        
+        .more-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: transparent;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #49454f;
+            transition: background 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .more-btn:hover {
+            background: rgba(73, 69, 79, 0.08);
+        }
+        
+        .more-btn .material-icons {
+            font-size: 20px;
+        }
+        
+        /* Load More */
+        .load-more {
+            text-align: center;
+            padding: 16px;
+        }
+        
+        .load-more-btn {
+            padding: 12px 24px;
+            border: 1px solid #6750a4;
+            border-radius: 20px;
+            background: transparent;
+            color: #6750a4;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .load-more-btn:hover {
+            background: rgba(103, 80, 164, 0.04);
+        }
+        
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(103, 80, 164, 0.2);
+            border-top: 2px solid #6750a4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.visible {
+            display: flex;
+        }
+        
+        .bottom-sheet {
+            background: white;
+            border-radius: 16px 16px 0 0;
+            padding: 16px;
+            width: 100%;
+            max-width: 390px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.visible .bottom-sheet {
+            transform: translateY(0);
+        }
+        
+        .sheet-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .sheet-item:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .sheet-item .material-icons {
+            color: #49454f;
+            font-size: 24px;
+        }
+        
+        .sheet-item-text {
+            font-size: 16px;
+            color: #1d1b20;
+        }
+        
+        /* Responsive */
+        @media (max-width: 430px) {
+            .phone-container {
+                margin: 10px;
+                border-radius: 16px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- App Bar -->
+        <div class="app-bar">
+            <button class="back-btn" onclick="goBack()">
+                <span class="material-icons">arrow_back</span>
+            </button>
+            <div class="app-bar-title">History</div>
+        </div>
+        
+        <!-- Filter Controls -->
+        <div class="filter-section">
+            <!-- Entry Type Toggle -->
+            <div class="entry-toggle">
+                <button class="toggle-btn" data-type="travel" onclick="selectEntryType('travel')">
+                    <span class="material-icons">directions_car</span>
+                    Travel
+                </button>
+                <button class="toggle-btn" data-type="work" onclick="selectEntryType('work')">
+                    <span class="material-icons">work_outline</span>
+                    Work
+                </button>
+                <button class="toggle-btn active" data-type="all" onclick="selectEntryType('all')">
+                    <span class="material-icons">list_alt</span>
+                    All
+                </button>
+            </div>
+            
+            <!-- Date Range Chips -->
+            <div class="date-chips">
+                <div class="date-chip active" onclick="selectDateRange(this, 'today')">Today</div>
+                <div class="date-chip" onclick="selectDateRange(this, 'yesterday')">Yesterday</div>
+                <div class="date-chip" onclick="selectDateRange(this, 'week')">Last 7 Days</div>
+                <div class="date-chip" onclick="selectDateRange(this, 'custom')">Custom</div>
+            </div>
+            
+            <!-- Search Field -->
+            <div class="search-field">
+                <input type="text" class="search-input" placeholder="Search by location, notes..." 
+                       oninput="handleSearch(this)" id="searchInput">
+                <span class="material-icons search-icon">search</span>
+                <button class="clear-btn" onclick="clearSearch()" id="clearBtn">
+                    <span class="material-icons">clear</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Entry List -->
+        <div class="entry-list" id="entryList">
+            <!-- Work Entry -->
+            <div class="entry-card">
+                <div class="entry-icon work">
+                    <span class="material-icons">work_outline</span>
+                </div>
+                <div class="entry-details">
+                    <div class="entry-header">
+                        <div class="entry-type">Work</div>
+                        <div class="duration-badge work">8h</div>
+                    </div>
+                    <div class="entry-subtitle">Office work session</div>
+                    <div class="entry-datetime">Today, 9:00 AM - 5:00 PM</div>
+                </div>
+                <button class="more-btn" onclick="showEntryMenu(this)">
+                    <span class="material-icons">more_vert</span>
+                </button>
+            </div>
+            
+            <!-- Travel Entry -->
+            <div class="entry-card">
+                <div class="entry-icon travel">
+                    <span class="material-icons">directions_car</span>
+                </div>
+                <div class="entry-details">
+                    <div class="entry-header">
+                        <div class="entry-type">Travel</div>
+                        <div class="duration-badge travel">30m</div>
+                    </div>
+                    <div class="entry-subtitle">Home → Office</div>
+                    <div class="entry-datetime">Today, 8:30 AM</div>
+                </div>
+                <button class="more-btn" onclick="showEntryMenu(this)">
+                    <span class="material-icons">more_vert</span>
+                </button>
+            </div>
+            
+            <!-- Work Entry -->
+            <div class="entry-card">
+                <div class="entry-icon work">
+                    <span class="material-icons">work_outline</span>
+                </div>
+                <div class="entry-details">
+                    <div class="entry-header">
+                        <div class="entry-type">Work</div>
+                        <div class="duration-badge work">8h</div>
+                    </div>
+                    <div class="entry-subtitle">Remote work</div>
+                    <div class="entry-datetime">Yesterday, 10:00 AM - 6:00 PM</div>
+                </div>
+                <button class="more-btn" onclick="showEntryMenu(this)">
+                    <span class="material-icons">more_vert</span>
+                </button>
+            </div>
+            
+            <!-- Travel Entry -->
+            <div class="entry-card">
+                <div class="entry-icon travel">
+                    <span class="material-icons">directions_car</span>
+                </div>
+                <div class="entry-details">
+                    <div class="entry-header">
+                        <div class="entry-type">Travel</div>
+                        <div class="duration-badge travel">45m</div>
+                    </div>
+                    <div class="entry-subtitle">Office → Client Meeting</div>
+                    <div class="entry-datetime">Yesterday, 2:00 PM</div>
+                </div>
+                <button class="more-btn" onclick="showEntryMenu(this)">
+                    <span class="material-icons">more_vert</span>
+                </button>
+            </div>
+            
+            <!-- Work Entry -->
+            <div class="entry-card">
+                <div class="entry-icon work">
+                    <span class="material-icons">work_outline</span>
+                </div>
+                <div class="entry-details">
+                    <div class="entry-header">
+                        <div class="entry-type">Work</div>
+                        <div class="duration-badge work">1h 15m</div>
+                    </div>
+                    <div class="entry-subtitle">Client presentation</div>
+                    <div class="entry-datetime">Yesterday, 2:45 PM - 4:00 PM</div>
+                </div>
+                <button class="more-btn" onclick="showEntryMenu(this)">
+                    <span class="material-icons">more_vert</span>
+                </button>
+            </div>
+            
+            <!-- Load More -->
+            <div class="load-more">
+                <button class="load-more-btn" onclick="loadMore()" id="loadMoreBtn">
+                    Load More
+                </button>
+                <div class="loading-indicator" id="loadingIndicator" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Sheet Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="hideModal()">
+        <div class="bottom-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-item" onclick="editEntry()">
+                <span class="material-icons">edit</span>
+                <div class="sheet-item-text">Edit Entry</div>
+            </div>
+            <div class="sheet-item" onclick="deleteEntry()">
+                <span class="material-icons">delete</span>
+                <div class="sheet-item-text">Delete Entry</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentEntryType = 'all';
+        let currentDateRange = 'today';
+        let isLoading = false;
+        
+        function goBack() {
+            alert('Navigate back to previous screen');
+        }
+        
+        function selectEntryType(type) {
+            currentEntryType = type;
+            
+            // Update toggle buttons
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // Filter entries
+            filterEntries();
+        }
+        
+        function selectDateRange(chip, range) {
+            currentDateRange = range;
+            
+            // Update chips
+            document.querySelectorAll('.date-chip').forEach(c => {
+                c.classList.remove('active');
+            });
+            chip.classList.add('active');
+            
+            if (range === 'custom') {
+                alert('Open date range picker');
+            }
+            
+            // Filter entries
+            filterEntries();
+        }
+        
+        function handleSearch(input) {
+            const clearBtn = document.getElementById('clearBtn');
+            if (input.value.length > 0) {
+                clearBtn.classList.add('visible');
+            } else {
+                clearBtn.classList.remove('visible');
+            }
+            
+            // Filter entries based on search
+            filterEntries();
+        }
+        
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearBtn');
+            
+            searchInput.value = '';
+            clearBtn.classList.remove('visible');
+            
+            filterEntries();
+        }
+        
+        function filterEntries() {
+            const entries = document.querySelectorAll('.entry-card');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            entries.forEach(entry => {
+                const entryType = entry.querySelector('.entry-type').textContent.toLowerCase();
+                const subtitle = entry.querySelector('.entry-subtitle').textContent.toLowerCase();
+                
+                let showEntry = true;
+                
+                // Filter by type
+                if (currentEntryType !== 'all' && entryType !== currentEntryType) {
+                    showEntry = false;
+                }
+                
+                // Filter by search term
+                if (searchTerm && !subtitle.includes(searchTerm) && !entryType.includes(searchTerm)) {
+                    showEntry = false;
+                }
+                
+                entry.style.display = showEntry ? 'flex' : 'none';
+            });
+        }
+        
+        function showEntryMenu(button) {
+            const modal = document.getElementById('modalOverlay');
+            modal.classList.add('visible');
+        }
+        
+        function hideModal() {
+            const modal = document.getElementById('modalOverlay');
+            modal.classList.remove('visible');
+        }
+        
+        function editEntry() {
+            hideModal();
+            alert('Navigate to edit entry screen');
+        }
+        
+        function deleteEntry() {
+            hideModal();
+            if (confirm('Are you sure you want to delete this entry?')) {
+                alert('Entry deleted');
+            }
+        }
+        
+        function loadMore() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            loadMoreBtn.style.display = 'none';
+            loadingIndicator.style.display = 'flex';
+            
+            // Simulate loading
+            setTimeout(() => {
+                loadMoreBtn.style.display = 'block';
+                loadingIndicator.style.display = 'none';
+                isLoading = false;
+                
+                // In a real app, you would add more entries here
+                alert('More entries loaded');
+            }, 2000);
+        }
+        
+        // Close modal when clicking outside
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('modalOverlay');
+            if (e.target === modal) {
+                hideModal();
+            }
+        });
+    </script>
+</body>
+</html>
