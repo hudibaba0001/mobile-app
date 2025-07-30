@@ -1,136 +1,140 @@
-import 'dart:convert';
-import 'package:hive/hive.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/entry.dart';
 import '../models/travel_summary.dart';
-import '../repositories/location_repository.dart';
-import '../utils/constants.dart';
 import '../utils/error_handler.dart';
-import '../utils/retry_helper.dart';
 
-/// Service for managing unified Entry objects (replaces TravelService)
-/// Handles both travel and work entries, but filters by type for travel-specific operations
+/// Service for managing unified Entry objects with Firestore backend
+/// Handles both travel and work entries with Firebase Cloud Firestore integration
 class EntryService {
-  final LocationRepository _locationRepository;
-  
-  // Use unified 'entries' box instead of 'travelEntries'
-  static const String _entriesBoxName = 'entries';
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  EntryService({
-    required LocationRepository locationRepository,
-  }) : _locationRepository = locationRepository;
+  /// Collection name for entries in Firestore
+  static const String _entriesCollection = 'entries';
 
-  /// Get the Hive box for entries
-  Future<Box<Entry>> _getEntriesBox() async {
-    return await Hive.openBox<Entry>(_entriesBoxName);
-  }
-
-  /// Get all travel entries (filtered by EntryType.travel)
-  Future<List<Entry>> getAllTravelEntries() async {
+  /// Create a new entry in Firestore
+  /// 
+  /// [entry] - The Entry object to create
+  /// 
+  /// Throws [FirebaseException] on Firestore errors
+  Future<void> createEntry(Entry entry) async {
     try {
-      return await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          // Filter only travel entries from the unified box
-          return box.values
-              .where((entry) => entry.type == EntryType.travel)
-              .toList()
-            ..sort((a, b) => b.date.compareTo(a.date)); // Sort by date descending
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
+      await _firestore
+          .collection(_entriesCollection)
+          .doc(entry.id)
+          .set(entry.toFirestore());
     } catch (error, stackTrace) {
       final appError = ErrorHandler.handleStorageError(error, stackTrace);
       throw appError;
     }
   }
 
-  /// Get travel entries for a specific date range
-  Future<List<Entry>> getEntriesForDateRange(DateTime startDate, DateTime endDate) async {
+  /// Fetch all entries for a specific user
+  /// 
+  /// [userId] - The user ID to fetch entries for
+  /// 
+  /// Returns a list of Entry objects sorted by date (newest first)
+  /// Throws [FirebaseException] on Firestore errors
+  Future<List<Entry>> fetchEntries(String userId) async {
     try {
-      return await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          // Filter by travel type AND date range
-          return box.values
-              .where((entry) => 
-                  entry.type == EntryType.travel &&
-                  entry.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
-                  entry.date.isBefore(endDate.add(const Duration(days: 1))))
-              .toList()
-            ..sort((a, b) => b.date.compareTo(a.date));
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
+      final snapshot = await _firestore
+          .collection(_entriesCollection)
+          .where('userId', isEqualTo: userId)
+          .orderBy('date', descending: true)
+          .get();
+      
+      return snapshot.docs
+          .map((doc) => Entry.fromFirestore(doc.data(), doc.id))
+          .toList();
     } catch (error, stackTrace) {
       final appError = ErrorHandler.handleStorageError(error, stackTrace);
       throw appError;
     }
   }
 
-  /// Get travel entries for a specific date
-  Future<List<Entry>> getEntriesForDate(DateTime date) async {
-    try {
-      return await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          final targetDate = DateTime(date.year, date.month, date.day);
-          
-          // Filter by travel type AND specific date
-          return box.values
-              .where((entry) {
-                final entryDate = DateTime(entry.date.year, entry.date.month, entry.date.day);
-                return entry.type == EntryType.travel && entryDate.isAtSameMomentAs(targetDate);
-              })
-              .toList()
-            ..sort((a, b) => b.date.compareTo(a.date));
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Add a new travel entry
-  Future<void> addEntry(Entry entry) async {
-    try {
-      // Ensure this is a travel entry
-      if (entry.type != EntryType.travel) {
-        throw ArgumentError('EntryService.addEntry only accepts travel entries');
-      }
-
-      await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          // Store in unified entries box with entry ID as key
-          await box.put(entry.id, entry);
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Update an existing travel entry
+  /// Update an existing entry in Firestore
+  /// 
+  /// [entry] - The Entry object to update
+  /// 
+  /// Throws [FirebaseException] on Firestore errors
   Future<void> updateEntry(Entry entry) async {
     try {
-      // Ensure this is a travel entry
-      if (entry.type != EntryType.travel) {
-        throw ArgumentError('EntryService.updateEntry only accepts travel entries');
-      }
+      await _firestore
+          .collection(_entriesCollection)
+          .doc(entry.id)
+          .update(entry.toFirestore());
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
 
-      await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          // Update the entry with current timestamp
-          final updatedEntry = entry.copyWith(updatedAt: DateTime.now());
-          await box.put(updatedEntry.id, updatedEntry);
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
+  /// Delete an entry from Firestore
+  /// 
+  /// [entryId] - The ID of the entry to delete
+  /// 
+  /// Throws [FirebaseException] on Firestore errors
+  Future<void> deleteEntry(String entryId) async {
+    try {
+      await _firestore
+          .collection(_entriesCollection)
+          .doc(entryId)
+          .delete();
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
+
+  /// Fetch entries for a specific user and date range
+  /// 
+  /// [userId] - The user ID to fetch entries for
+  /// [startDate] - Start date of the range
+  /// [endDate] - End date of the range
+  /// 
+  /// Returns a list of Entry objects within the date range
+  /// Throws [FirebaseException] on Firestore errors
+  Future<List<Entry>> fetchEntriesForDateRange(
+    String userId,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    try {
+      final snapshot = await _firestore
+          .collection(_entriesCollection)
+          .where('userId', isEqualTo: userId)
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+          .orderBy('date', descending: true)
+          .get();
+      
+      return snapshot.docs
+          .map((doc) => Entry.fromFirestore(doc.data(), doc.id))
+          .toList();
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
+
+  /// Fetch entries for a specific user filtered by entry type
+  /// 
+  /// [userId] - The user ID to fetch entries for
+  /// [entryType] - The type of entries to fetch (travel or work)
+  /// 
+  /// Returns a list of Entry objects of the specified type
+  /// Throws [FirebaseException] on Firestore errors
+  Future<List<Entry>> fetchEntriesByType(String userId, String entryType) async {
+    try {
+      final snapshot = await _firestore
+          .collection(_entriesCollection)
+          .where('userId', isEqualTo: userId)
+          .where('type', isEqualTo: entryType)
+          .orderBy('date', descending: true)
+          .get();
+      
+      return snapshot.docs
+          .map((doc) => Entry.fromFirestore(doc.data(), doc.id))
+          .toList();
     } catch (error, stackTrace) {
       final appError = ErrorHandler.handleStorageError(error, stackTrace);
       throw appError;

@@ -288,17 +288,6 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-      await _loadEntries();
-      _clearError();
-      return true;
-    } catch (error) {
-      _handleError(error);
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
   void _handleError(dynamic error) {
     if (error is AppError) {
       _lastError = error;

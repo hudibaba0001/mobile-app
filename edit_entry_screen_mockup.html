@@ -281,6 +281,168 @@
             font-weight: 500;
         }
         
+        /* Travel Entry Row */
+        .travel-entry-row {
+            background: rgba(103, 80, 164, 0.04);
+            border: 1px solid rgba(103, 80, 164, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        
+        .travel-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .travel-entry-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .travel-entry-title .material-icons {
+            font-size: 20px;
+            color: #6750a4;
+        }
+        
+        .travel-entry-title span {
+            font-size: 16px;
+            font-weight: 600;
+            color: #6750a4;
+        }
+        
+        .delete-travel-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(186, 26, 26, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .delete-travel-btn:hover {
+            background: rgba(186, 26, 26, 0.2);
+        }
+        
+        .delete-travel-btn .material-icons {
+            color: #ba1a1a;
+            font-size: 18px;
+        }
+        
+        .travel-locations {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .location-field {
+            flex: 1;
+        }
+        
+        .location-input {
+            width: 100%;
+            height: 48px;
+            padding: 12px;
+            border: 1px solid #79747e;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            color: #1d1b20;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .location-input:focus {
+            border-color: #6750a4;
+            border-width: 2px;
+            padding: 11px;
+        }
+        
+        .location-arrow {
+            font-size: 18px;
+            color: #6750a4;
+            margin-top: 20px;
+        }
+        
+        .duration-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        
+        .duration-input-field {
+            flex: 1;
+        }
+        
+        .duration-input-small {
+            width: 100%;
+            height: 48px;
+            padding: 12px;
+            border: 1px solid #79747e;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            color: #1d1b20;
+            outline: none;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .duration-input-small:focus {
+            border-color: #6750a4;
+            border-width: 2px;
+            padding: 11px;
+        }
+        
+        .duration-total {
+            flex: 1;
+            height: 48px;
+            background: rgba(103, 80, 164, 0.08);
+            border: 1px solid rgba(103, 80, 164, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            color: #6750a4;
+        }
+        
+        /* Add Travel Button */
+        .add-travel-btn {
+            width: 100%;
+            height: 48px;
+            border: 2px dashed #6750a4;
+            background: transparent;
+            border-radius: 12px;
+            color: #6750a4;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .add-travel-btn:hover {
+            background: rgba(103, 80, 164, 0.04);
+        }
+        
+        .add-travel-btn .material-icons {
+            font-size: 20px;
+        }
+        
         /* Add Shift Button */
         .add-shift-btn {
             width: 100%;
@@ -403,64 +565,21 @@
         <div class="form-content">
             <!-- Travel Form -->
             <div id="travelForm">
-                <div class="form-field">
-                    <label class="field-label" for="fromLocation">From</label>
-                    <input 
-                        type="text" 
-                        id="fromLocation" 
-                        class="text-input" 
-                        placeholder="Enter departure location"
-                        oninput="validateForm()"
-                    >
+                <div id="travelEntriesContainer">
+                    <!-- Travel entry rows will be added here -->
                 </div>
                 
-                <div class="form-field">
-                    <label class="field-label" for="toLocation">To</label>
-                    <input 
-                        type="text" 
-                        id="toLocation" 
-                        class="text-input" 
-                        placeholder="Enter destination location"
-                        oninput="validateForm()"
-                    >
-                </div>
-                
-                <div class="form-field">
-                    <label class="field-label">Duration</label>
-                    <div class="duration-input">
-                        <div class="duration-field">
-                            <input 
-                                type="number" 
-                                id="durationHours" 
-                                class="duration-number" 
-                                placeholder="0"
-                                min="0"
-                                max="23"
-                                oninput="validateForm()"
-                            >
-                            <span class="duration-label">hours</span>
-                        </div>
-                        <div class="duration-field">
-                            <input 
-                                type="number" 
-                                id="durationMinutes" 
-                                class="duration-number" 
-                                placeholder="0"
-                                min="0"
-                                max="59"
-                                oninput="validateForm()"
-                            >
-                            <span class="duration-label">minutes</span>
-                        </div>
-                    </div>
-                </div>
+                <button class="add-travel-btn" onclick="addTravelEntry()">
+                    <span class="material-icons">add</span>
+                    Add Travel Entry
+                </button>
                 
                 <div class="form-field">
                     <label class="field-label" for="travelNotes">Notes</label>
                     <textarea 
                         id="travelNotes" 
                         class="text-input multiline" 
-                        placeholder="Add any additional notes..."
+                        placeholder="Add any additional notes for all travel entries..."
                         oninput="validateForm()"
                     ></textarea>
                 </div>
@@ -581,13 +700,23 @@
             const saveBtn = document.getElementById('saveBtn');
             let isValid = false;
             
-            if (currentEntryType === 'travel') {
-                const from = document.getElementById('fromLocation').value.trim();
-                const to = document.getElementById('toLocation').value.trim();
-                const hours = document.getElementById('durationHours').value;
-                const minutes = document.getElementById('durationMinutes').value;
+            if (entryType === 'travel') {
+                const travelEntries = document.querySelectorAll('.travel-entry-row');
+                isValid = travelEntries.length > 0;
                 
-                isValid = from !== '' && to !== '' && (hours > 0 || minutes > 0);
+                // Check that all travel entries have from, to, and duration
+                for (const entry of travelEntries) {
+                    const entryId = entry.id.split('-')[1];
+                    const from = document.getElementById(`from-${entryId}`).value.trim();
+                    const to = document.getElementById(`to-${entryId}`).value.trim();
+                    const hours = parseInt(document.getElementById(`hours-${entryId}`).value) || 0;
+                    const minutes = parseInt(document.getElementById(`minutes-${entryId}`).value) || 0;
+                    
+                    if (!from || !to || (hours === 0 && minutes === 0)) {
+                        isValid = false;
+                        break;
+                    }
+                }
             } else {
                 const shifts = document.querySelectorAll('.shift-row');
                 isValid = shifts.length > 0;
@@ -615,16 +744,32 @@
         
         function saveEntry() {
             const entryData = {
-                type: currentEntryType,
+                type: entryType,
                 data: {}
             };
             
-            if (currentEntryType === 'travel') {
+            if (entryType === 'travel') {
+                const travelEntries = [];
+                document.querySelectorAll('.travel-entry-row').forEach(entry => {
+                    const entryId = entry.id.split('-')[1];
+                    const from = document.getElementById(`from-${entryId}`).value;
+                    const to = document.getElementById(`to-${entryId}`).value;
+                    const hours = parseInt(document.getElementById(`hours-${entryId}`).value) || 0;
+                    const minutes = parseInt(document.getElementById(`minutes-${entryId}`).value) || 0;
+                    
+                    if (from && to && (hours > 0 || minutes > 0)) {
+                        travelEntries.push({
+                            from,
+                            to,
+                            hours,
+                            minutes,
+                            totalMinutes: (hours * 60) + minutes
+                        });
+                    }
+                });
+                
                 entryData.data = {
-                    from: document.getElementById('fromLocation').value,
-                    to: document.getElementById('toLocation').value,
-                    hours: parseInt(document.getElementById('durationHours').value) || 0,
-                    minutes: parseInt(document.getElementById('durationMinutes').value) || 0,
+                    travelEntries,
                     notes: document.getElementById('travelNotes').value
                 };
             } else {
@@ -666,17 +811,120 @@
             }, 1000);
         }
         
+        function addTravelEntry() {
+            travelCounter++;
+            const container = document.getElementById('travelEntriesContainer');
+            
+            const travelRow = document.createElement('div');
+            travelRow.className = 'travel-entry-row';
+            travelRow.id = `travel-${travelCounter}`;
+            
+            travelRow.innerHTML = `
+                <div class="travel-entry-header">
+                    <div class="travel-entry-title">
+                        <span class="material-icons">directions</span>
+                        <span>Travel Entry ${travelCounter}</span>
+                    </div>
+                    ${travelCounter > 1 ? `
+                    <button class="delete-travel-btn" onclick="deleteTravelEntry(${travelCounter})">
+                        <span class="material-icons">delete</span>
+                    </button>
+                    ` : ''}
+                </div>
+                
+                <div class="travel-locations">
+                    <div class="location-field">
+                        <label class="field-label">From</label>
+                        <input 
+                            type="text" 
+                            class="location-input" 
+                            id="from-${travelCounter}"
+                            placeholder="Departure location"
+                            oninput="validateForm()"
+                        >
+                    </div>
+                    <span class="material-icons location-arrow">arrow_forward</span>
+                    <div class="location-field">
+                        <label class="field-label">To</label>
+                        <input 
+                            type="text" 
+                            class="location-input" 
+                            id="to-${travelCounter}"
+                            placeholder="Destination location"
+                            oninput="validateForm()"
+                        >
+                    </div>
+                </div>
+                
+                <div class="duration-row">
+                    <div class="duration-input-field">
+                        <label class="field-label">Hours</label>
+                        <input 
+                            type="number" 
+                            class="duration-input-small" 
+                            id="hours-${travelCounter}"
+                            placeholder="0"
+                            min="0"
+                            max="23"
+                            oninput="updateTotalDuration(${travelCounter}); validateForm()"
+                        >
+                    </div>
+                    <div class="duration-input-field">
+                        <label class="field-label">Minutes</label>
+                        <input 
+                            type="number" 
+                            class="duration-input-small" 
+                            id="minutes-${travelCounter}"
+                            placeholder="0"
+                            min="0"
+                            max="59"
+                            oninput="updateTotalDuration(${travelCounter}); validateForm()"
+                        >
+                    </div>
+                    <div class="duration-input-field">
+                        <label class="field-label">Total</label>
+                        <div class="duration-total" id="total-${travelCounter}">0h 0m</div>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(travelRow);
+            validateForm();
+        }
+        
+        function deleteTravelEntry(entryId) {
+            const travelRow = document.getElementById(`travel-${entryId}`);
+            if (travelRow) {
+                travelRow.remove();
+                validateForm();
+            }
+        }
+        
+        function updateTotalDuration(entryId) {
+            const hours = parseInt(document.getElementById(`hours-${entryId}`).value) || 0;
+            const minutes = parseInt(document.getElementById(`minutes-${entryId}`).value) || 0;
+            const totalElement = document.getElementById(`total-${entryId}`);
+            
+            totalElement.textContent = `${hours}h ${minutes}m`;
+        }
+        
         // Initialize with demo data
         document.addEventListener('DOMContentLoaded', function() {
-            // Load demo travel data
-            document.getElementById('fromLocation').value = 'Home';
-            document.getElementById('toLocation').value = 'Office';
-            document.getElementById('durationHours').value = '0';
-            document.getElementById('durationMinutes').value = '30';
-            document.getElementById('travelNotes').value = 'Morning commute via highway';
+            // Add initial travel entry
+            addTravelEntry();
             
-            validateForm();
+            // Load demo travel data
+            setTimeout(() => {
+                document.getElementById('from-1').value = 'Home';
+                document.getElementById('to-1').value = 'Office';
+                document.getElementById('hours-1').value = '0';
+                document.getElementById('minutes-1').value = '30';
+                updateTotalDuration(1);
+                document.getElementById('travelNotes').value = 'Morning commute via highway';
+                
+                validateForm();
+            }, 100);
         });
-    </script>
+</script>
 </body>
 </html>

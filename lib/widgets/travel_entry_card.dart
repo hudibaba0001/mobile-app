@@ -431,7 +431,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
           ),
           
           // Additional info
-          if (widget.entry.notes != null && widget.entry.notes!.isNotEmpty) ..[ // Entry uses 'notes' instead of 'info'
+          if (widget.entry.notes != null && widget.entry.notes!.isNotEmpty) ...[ // Entry uses 'notes' instead of 'info'
             const SizedBox(height: 12),
             Container(
               width: double.infinity,

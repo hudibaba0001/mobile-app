@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "591378163668",
+    "project_id": "time-app-8cd2d",
+    "storage_bucket": "time-app-8cd2d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591378163668:android:7b17765c212ad1cab65841",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPBtmWkR2L3bk-9-T5vdKOVuCpVaXXpgs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591378163668:android:1cfd51baeddb5bc6b65841",
+        "android_client_info": {
+          "package_name": "se.kviktime.logger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPBtmWkR2L3bk-9-T5vdKOVuCpVaXXpgs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
