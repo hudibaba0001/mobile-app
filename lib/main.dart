@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// Firebase imports
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 // Old models (kept for migration compatibility)
 import 'models/travel_time_entry.dart';
 import 'models/location.dart';
@@ -13,6 +16,9 @@ import 'services/entry_migration_service.dart';
 // New unified services (replacing old TravelService)
 import 'services/entry_service.dart';
 import 'services/sync_service.dart';
+// Firebase services
+import 'services/auth_service.dart';
+import 'services/storage_service.dart';
 // App configuration
 import 'utils/constants.dart';
 import 'config/app_router.dart';
@@ -33,6 +39,11 @@ import 'repositories/hive_location_repository.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
   // Initialize Hive and register adapters
   await Hive.initFlutter();
   
@@ -48,6 +59,9 @@ void main() async {
   // Initialize services before creating providers
   final entryService = EntryService();
   final syncService = SyncService();
+  // Initialize Firebase services
+  final authService = AuthService();
+  final storageService = StorageService();
   
   // Access shared preferences for migration flag
   final prefs = await SharedPreferences.getInstance();
@@ -61,18 +75,23 @@ void main() async {
       home: _MigrationScreen(onComplete: () async {
         // Mark migration as done and start app
         await prefs.setBool('didMigrate', true);
-        runApp(_buildMainApp(entryService, syncService));
+        runApp(_buildMainApp(entryService, syncService, authService, storageService));
       }),
     ));
   } else {
     // Normal app startup with unified services
-    runApp(_buildMainApp(entryService, syncService));
+    runApp(_buildMainApp(entryService, syncService, authService, storageService));
   }
 }
 
 /// Build the main app with all providers using unified Entry model
 /// Updated to use EntryProvider instead of TravelProvider
-Widget _buildMainApp(EntryService entryService, SyncService syncService) {
+Widget _buildMainApp(
+  EntryService entryService, 
+  SyncService syncService,
+  AuthService authService,
+  StorageService storageService,
+) {
   return MultiProvider(
     providers: [
       // Core app providers (settings must be initialized early)
@@ -84,6 +103,9 @@ Widget _buildMainApp(EntryService entryService, SyncService syncService) {
       // Service providers (dependency injection)
       Provider<EntryService>.value(value: entryService),
       Provider<SyncService>.value(value: syncService),
+      // Firebase service providers
+      Provider<AuthService>.value(value: authService),
+      Provider<StorageService>.value(value: storageService),
       
       // Repository providers
       Provider<HiveLocationRepository>(

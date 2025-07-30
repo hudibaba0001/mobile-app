@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../models/travel_time_entry.dart';
+import '../models/entry.dart';
 import '../models/location.dart';
-import '../providers/travel_provider.dart';
-import '../providers/location_provider.dart';
+import '../providers/entry_provider.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
-import 'location_selector.dart';
+
 import 'multi_segment_form.dart';
 
 class QuickEntryForm extends StatefulWidget {
-  final TravelTimeEntry? initialEntry;
+  final Entry? initialEntry;
   final VoidCallback? onSuccess;
   final VoidCallback? onCancel;
   final bool showTitle;
@@ -66,22 +65,24 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       final entry = widget.initialEntry!;
       _selectedDate = entry.date;
       _dateController.text = DateFormat(AppConstants.dateFormat).format(entry.date);
-      _departureController.text = entry.departure;
-      _arrivalController.text = entry.arrival;
-      _minutesController.text = entry.minutes.toString();
-      _infoController.text = entry.info ?? '';
+      _departureController.text = entry.from ?? '';
+      _arrivalController.text = entry.to ?? '';
+      _minutesController.text = entry.travelMinutes?.toString() ?? '';
+      _infoController.text = entry.notes ?? '';
     } else {
       _dateController.text = DateFormat(AppConstants.dateFormat).format(_selectedDate);
     }
   }
 
-  void _loadRecentRoutes() {
-    final travelProvider = context.read<TravelProvider>();
-    final recentEntries = travelProvider.getRecentEntries(limit: 5);
+  Future<void> _loadRecentRoutes() async {
+    final entryProvider = context.read<EntryProvider>();
+    final recentEntries = await entryProvider.getRecentEntries(limit: 5);
     
     final routes = <String>{};
     for (final entry in recentEntries) {
-      routes.add('${entry.departure} → ${entry.arrival}');
+      if (entry.from != null && entry.to != null) {
+        routes.add('${entry.from} → ${entry.to}');
+      }
     }
     
     setState(() {
@@ -134,25 +135,25 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     setState(() => _isLoading = true);
 
     try {
-      final entry = TravelTimeEntry(
+      final entry = Entry(
         id: widget.initialEntry?.id,
+        userId: 'current_user', // TODO: Get from auth service
+        type: EntryType.travel,
         date: _selectedDate,
-        departure: _departureController.text.trim(),
-        arrival: _arrivalController.text.trim(),
-        minutes: int.parse(_minutesController.text),
-        info: _infoController.text.trim().isEmpty ? null : _infoController.text.trim(),
-        departureLocationId: _selectedDepartureLocation?.id,
-        arrivalLocationId: _selectedArrivalLocation?.id,
+        from: _departureController.text.trim(),
+        to: _arrivalController.text.trim(),
+        travelMinutes: int.parse(_minutesController.text),
+        notes: _infoController.text.trim().isEmpty ? null : _infoController.text.trim(),
         createdAt: widget.initialEntry?.createdAt,
       );
 
-      final travelProvider = context.read<TravelProvider>();
+      final entryProvider = context.read<EntryProvider>();
       bool success;
 
       if (widget.initialEntry != null) {
-        success = await travelProvider.updateEntry(entry);
+        success = await entryProvider.updateEntry(entry);
       } else {
-        success = await travelProvider.addEntry(entry);
+        success = await entryProvider.addEntry(entry);
       }
 
       if (success && mounted) {

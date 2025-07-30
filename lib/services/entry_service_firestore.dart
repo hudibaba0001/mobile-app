@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/entry.dart';
-import '../models/travel_summary.dart';
 import '../utils/error_handler.dart';
 
 /// Service for managing unified Entry objects with Firestore backend
@@ -155,7 +154,7 @@ class EntryService {
           .get();
       
       if (doc.exists && doc.data() != null) {
-        return Entry.fromFirestore(doc);
+        return Entry.fromFirestore(doc.data()!, doc.id);
       }
       return null;
     } catch (error, stackTrace) {
@@ -178,78 +177,5 @@ class EntryService {
         .map((snapshot) => snapshot.docs
             .map((doc) => Entry.fromFirestore(doc.data(), doc.id))
             .toList());
-  }
-
-  // Additional methods needed by providers
-
-  /// Get all travel entries for current user
-  Future<List<Entry>> getAllTravelEntries() async {
-    // TODO: Get current user ID from auth service
-    const userId = 'current_user';
-    return await fetchEntriesByType(userId, 'travel');
-  }
-
-  /// Add a new entry (alias for createEntry)
-  Future<void> addEntry(Entry entry) async {
-    await createEntry(entry);
-  }
-
-  /// Get recent entries with limit
-  Future<List<Entry>> getRecentEntries({int limit = 5}) async {
-    // TODO: Get current user ID from auth service
-    const userId = 'current_user';
-    final entries = await fetchEntries(userId);
-    return entries.take(limit).toList();
-  }
-
-  /// Get entries for a specific date
-  Future<List<Entry>> getEntriesForDate(DateTime date) async {
-    // TODO: Get current user ID from auth service
-    const userId = 'current_user';
-    final startOfDay = DateTime(date.year, date.month, date.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
-    return await fetchEntriesForDateRange(userId, startOfDay, endOfDay);
-  }
-
-  /// Generate summary for date range (placeholder)
-  Future<dynamic> generateSummary(DateTime startDate, DateTime endDate) async {
-    // TODO: Implement summary generation logic
-    return null;
-  }
-
-  /// Export entries to CSV (placeholder)
-  Future<String> exportToCSV(List<Entry> entries) async {
-    // TODO: Implement CSV export logic
-    return '';
-  }
-
-  /// Get travel statistics (placeholder)
-  Future<Map<String, dynamic>> getTravelStatistics() async {
-    // TODO: Implement statistics calculation
-    return {};
-  }
-
-  /// Get suggested routes (placeholder)
-  Future<List<String>> getSuggestedRoutes({int limit = 5}) async {
-    // TODO: Implement route suggestions logic
-    return [];
-  }
-
-  /// Check if entry is multi-segment
-  bool isMultiSegmentEntry(Entry entry) {
-    return entry.isMultiSegment;
-  }
-
-  /// Update journey (placeholder)
-  Future<void> updateJourney(String journeyId, List<Entry> segments) async {
-    // TODO: Implement journey update logic
-    for (final segment in segments) {
-      await updateEntry(segment);
-    }
-  }
-
-  /// Delete journey (placeholder)
-  Future<void> deleteJourney(String journeyId) async {
-    // TODO: Implement journey deletion logic
   }
 }
