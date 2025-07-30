@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Screen - Material 3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #fefbff;
+            color: #1d1b20;
+            overflow-x: hidden;
+        }
+        
+        .phone-container {
+            max-width: 390px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            position: relative;
+            min-height: 844px;
+        }
+        
+        /* App Bar */
+        .app-bar {
+            padding: 16px 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            min-height: 64px;
+        }
+        
+        .back-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: transparent;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 8px;
+            transition: background 0.2s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .back-btn .material-icons {
+            color: #1d1b20;
+            font-size: 24px;
+        }
+        
+        .app-bar-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        /* Settings Content */
+        .settings-content {
+            padding: 16px;
+        }
+        
+        .settings-section {
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6750a4;
+            margin-bottom: 8px;
+            padding: 0 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .list-tile {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            min-height: 48px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-bottom: 4px;
+        }
+        
+        .list-tile:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .list-tile-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 16px;
+            color: #49454f;
+            flex-shrink: 0;
+        }
+        
+        .list-tile-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .list-tile-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1d1b20;
+            margin-bottom: 2px;
+        }
+        
+        .list-tile-subtitle {
+            font-size: 14px;
+            color: #49454f;
+            line-height: 1.4;
+        }
+        
+        .list-tile-trailing {
+            margin-left: 16px;
+            flex-shrink: 0;
+        }
+        
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            display: flex;
+            align-items: center;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 32px;
+            background: #79747e;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .toggle-switch.active {
+            background: #6750a4;
+        }
+        
+        .toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 14px;
+            transition: transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-switch.active .toggle-thumb {
+            transform: translateX(20px);
+        }
+        
+        /* Color Picker */
+        .color-picker {
+            display: flex;
+            gap: 12px;
+            padding: 8px 0;
+        }
+        
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-swatch.selected {
+            border-color: #1d1b20;
+        }
+        
+        .color-swatch.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .color-purple { background: #6750a4; }
+        .color-teal { background: #03dac6; }
+        .color-orange { background: #ff9800; }
+        .color-green { background: #4caf50; }
+        .color-red { background: #f44336; }
+        
+        /* Language Dropdown */
+        .language-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-button {
+            background: rgba(103, 80, 164, 0.08);
+            border: 1px solid #79747e;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #1d1b20;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 100px;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-button:hover {
+            background: rgba(103, 80, 164, 0.12);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            min-width: 120px;
+            display: none;
+        }
+        
+        .dropdown-menu.visible {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .dropdown-item:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .dropdown-item:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .dropdown-item:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+        
+        /* Switch Component */
+        .switch {
+            position: relative;
+            width: 52px;
+            height: 32px;
+            background: #79747e;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .switch.active {
+            background: #6750a4;
+        }
+        
+        .switch-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 14px;
+            transition: transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .switch.active .switch-thumb {
+            transform: translateX(20px);
+        }
+        
+        /* Time Display */
+        .time-display {
+            background: rgba(103, 80, 164, 0.08);
+            border: 1px solid #79747e;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #1d1b20;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .modal-overlay.visible {
+            display: flex;
+        }
+        
+        .time-picker {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 280px;
+            text-align: center;
+        }
+        
+        .time-picker h3 {
+            margin-bottom: 20px;
+            color: #1d1b20;
+        }
+        
+        .time-inputs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .time-input {
+            width: 60px;
+            height: 48px;
+            border: 1px solid #79747e;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .time-separator {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1d1b20;
+        }
+        
+        .time-picker-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .time-picker-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .time-picker-btn.cancel {
+            background: transparent;
+            color: #6750a4;
+        }
+        
+        .time-picker-btn.save {
+            background: #6750a4;
+            color: white;
+        }
+        
+        .time-picker-btn:hover {
+            opacity: 0.8;
+        }
+        
+        /* Responsive */
+        @media (max-width: 430px) {
+            .phone-container {
+                margin: 10px;
+                border-radius: 16px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- App Bar -->
+        <div class="app-bar">
+            <button class="back-btn" onclick="goBack()">
+                <span class="material-icons">arrow_back</span>
+            </button>
+            <div class="app-bar-title">Settings</div>
+        </div>
+        
+        <!-- Settings Content -->
+        <div class="settings-content">
+            <!-- Appearance Section -->
+            <div class="settings-section">
+                <div class="section-title">Appearance</div>
+                
+                <!-- Dark Mode Toggle -->
+                <div class="list-tile" onclick="toggleDarkMode()">
+                    <span class="material-icons list-tile-icon">dark_mode</span>
+                    <div class="list-tile-content">
+                        <div class="list-tile-title">Dark Mode</div>
+                        <div class="list-tile-subtitle">Switch between light and dark themes</div>
+                    </div>
+                    <div class="list-tile-trailing">
+                        <div class="toggle-switch" id="darkModeToggle">
+                            <div class="toggle-thumb"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Accent Color Picker -->
+                <div class="list-tile">
+                    <span class="material-icons list-tile-icon">palette</span>
+                    <div class="list-tile-content">
+                        <div class="list-tile-title">Accent Color</div>
+                        <div class="list-tile-subtitle">Choose your preferred theme color</div>
+                        <div class="color-picker">
+                            <div class="color-swatch color-purple selected" onclick="selectColor('purple')" data-color="purple"></div>
+                            <div class="color-swatch color-teal" onclick="selectColor('teal')" data-color="teal"></div>
+                            <div class="color-swatch color-orange" onclick="selectColor('orange')" data-color="orange"></div>
+                            <div class="color-swatch color-green" onclick="selectColor('green')" data-color="green"></div>
+                            <div class="color-swatch color-red" onclick="selectColor('red')" data-color="red"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Section -->
+            <div class="settings-section">
+                <div class="section-title">Data</div>
+                
+                <div class="list-tile" onclick="exportCSV()">
+                    <span class="material-icons list-tile-icon">download</span>
+                    <div class="list-tile-content">
+                        <div class="list-tile-title">Export as CSV</div>
+                        <div class="list-tile-subtitle">Download all entries in CSV format</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Localization Section -->
+            <div class="settings-section">
+                <div class="section-title">Localization</div>
+                
+                <div class="list-tile">
+                    <span class="material-icons list-tile-icon">language</span>
+                    <div class="list-tile-content">
+                        <div class="list-tile-title">Language</div>
+                        <div class="list-tile-subtitle">Select your preferred language</div>
+                    </div>
+                    <div class="list-tile-trailing">
+                        <div class="language-dropdown">
+                            <div class="dropdown-button" onclick="toggleLanguageDropdown()">
+                                <span id="selectedLanguage">English</span>
+                                <span class="material-icons">arrow_drop_down</span>
+                            </div>
+                            <div class="dropdown-menu" id="languageDropdown">
+                                <div class="dropdown-item" onclick="selectLanguage('English')">English</div>
+                                <div class="dropdown-item" onclick="selectLanguage('Svenska')">Svenska</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reminders Section -->
+            <div class="settings-section">
+                <div class="section-title">Reminders</div>
+                
+                <!-- Daily Reminder -->
+                <div class="list-tile" onclick="toggleDailyReminder()">
+                    <span class="material-icons list-tile-icon">notifications</span>
+                    <div class="list-tile-content">
+                        <div class="list-tile-title">Daily Reminder</div>
+                        <div class="list-tile-subtitle">Get reminded to log your time</div>
+                    </div>
+                    <div class="list-tile-trailing">
+                        <div class="switch" id="dailyReminderSwitch">
+                            <div class="switch-thumb"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Time Setting (only visible when daily reminder is on) -->
+                <div class="list-tile" id="timeSettingTile" style="display: none; margin-left: 40px;" onclick="showTimePicker()">
+                    <span class="material-icons list-tile-icon">schedule</span>
+                    <div class="list-tile-content">
+                        <div class="list-tile-title">Reminder Time</div>
+                        <div class="list-tile-subtitle">Set when to receive daily reminders</div>
+                    </div>
+                    <div class="list-tile-trailing">
+                        <div class="time-display" id="reminderTime">09:00</div>
+                    </div>
+                </div>
+                
+                <!-- Weekly Summary -->
+                <div class="list-tile" onclick="toggleWeeklySummary()">
+                    <span class="material-icons list-tile-icon">summarize</span>
+                    <div class="list-tile-content">
+                        <div class="list-tile-title">Weekly Summary</div>
+                        <div class="list-tile-subtitle">Receive weekly time tracking summaries</div>
+                    </div>
+                    <div class="list-tile-trailing">
+                        <div class="switch" id="weeklySummarySwitch">
+                            <div class="switch-thumb"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Help & Feedback Section -->
+            <div class="settings-section">
+                <div class="section-title">Help & Feedback</div>
+                
+                <div class="list-tile" onclick="sendFeedback()">
+                    <span class="material-icons list-tile-icon">mail</span>
+                    <div class="list-tile-content">
+                        <div class="list-tile-title">Send Feedback</div>
+                        <div class="list-tile-subtitle">Share your thoughts and suggestions</div>
+                    </div>
+                </div>
+                
+                <div class="list-tile" onclick="rateApp()">
+                    <span class="material-icons list-tile-icon">star</span>
+                    <div class="list-tile-content">
+                        <div class="list-tile-title">Rate the App</div>
+                        <div class="list-tile-subtitle">Help us improve by rating the app</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Time Picker Modal -->
+    <div class="modal-overlay" id="timePickerModal">
+        <div class="time-picker">
+            <h3>Set Reminder Time</h3>
+            <div class="time-inputs">
+                <input type="number" class="time-input" id="hourInput" min="0" max="23" value="9">
+                <span class="time-separator">:</span>
+                <input type="number" class="time-input" id="minuteInput" min="0" max="59" value="0">
+            </div>
+            <div class="time-picker-actions">
+                <button class="time-picker-btn cancel" onclick="hideTimePicker()">Cancel</button>
+                <button class="time-picker-btn save" onclick="saveTime()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDarkMode = false;
+        let selectedAccentColor = 'purple';
+        let selectedLanguage = 'English';
+        let isDailyReminderOn = false;
+        let isWeeklySummaryOn = false;
+        let reminderHour = 9;
+        let reminderMinute = 0;
+        
+        function goBack() {
+            console.log('Navigate back to previous screen');
+        }
+        
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            const toggle = document.getElementById('darkModeToggle');
+            toggle.classList.toggle('active', isDarkMode);
+            console.log('Dark mode:', isDarkMode ? 'enabled' : 'disabled');
+        }
+        
+        function selectColor(color) {
+            selectedAccentColor = color;
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.classList.remove('selected');
+            });
+            document.querySelector(`[data-color="${color}"]`).classList.add('selected');
+            console.log('Selected accent color:', color);
+        }
+        
+        function exportCSV() {
+            console.log('Exporting data as CSV...');
+            // Simulate export process
+            alert('CSV export started. You will be notified when complete.');
+        }
+        
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('languageDropdown');
+            dropdown.classList.toggle('visible');
+        }
+        
+        function selectLanguage(language) {
+            selectedLanguage = language;
+            document.getElementById('selectedLanguage').textContent = language;
+            document.getElementById('languageDropdown').classList.remove('visible');
+            console.log('Selected language:', language);
+        }
+        
+        function toggleDailyReminder() {
+            isDailyReminderOn = !isDailyReminderOn;
+            const switchEl = document.getElementById('dailyReminderSwitch');
+            const timeTile = document.getElementById('timeSettingTile');
+            
+            switchEl.classList.toggle('active', isDailyReminderOn);
+            timeTile.style.display = isDailyReminderOn ? 'flex' : 'none';
+            
+            console.log('Daily reminder:', isDailyReminderOn ? 'enabled' : 'disabled');
+        }
+        
+        function toggleWeeklySummary() {
+            isWeeklySummaryOn = !isWeeklySummaryOn;
+            const switchEl = document.getElementById('weeklySummarySwitch');
+            switchEl.classList.toggle('active', isWeeklySummaryOn);
+            console.log('Weekly summary:', isWeeklySummaryOn ? 'enabled' : 'disabled');
+        }
+        
+        function showTimePicker() {
+            const modal = document.getElementById('timePickerModal');
+            const hourInput = document.getElementById('hourInput');
+            const minuteInput = document.getElementById('minuteInput');
+            
+            hourInput.value = reminderHour;
+            minuteInput.value = reminderMinute;
+            modal.classList.add('visible');
+        }
+        
+        function hideTimePicker() {
+            const modal = document.getElementById('timePickerModal');
+            modal.classList.remove('visible');
+        }
+        
+        function saveTime() {
+            const hourInput = document.getElementById('hourInput');
+            const minuteInput = document.getElementById('minuteInput');
+            
+            reminderHour = parseInt(hourInput.value);
+            reminderMinute = parseInt(minuteInput.value);
+            
+            const timeDisplay = document.getElementById('reminderTime');
+            timeDisplay.textContent = `${reminderHour.toString().padStart(2, '0')}:${reminderMinute.toString().padStart(2, '0')}`;
+            
+            hideTimePicker();
+            console.log('Reminder time set to:', timeDisplay.textContent);
+        }
+        
+        function sendFeedback() {
+            console.log('Opening feedback form...');
+            alert('Feedback form would open here');
+        }
+        
+        function rateApp() {
+            console.log('Opening app store for rating...');
+            alert('App store rating page would open here');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('languageDropdown');
+            const button = event.target.closest('.dropdown-button');
+            
+            if (!button && dropdown.classList.contains('visible')) {
+                dropdown.classList.remove('visible');
+            }
+        });
+        
+        // Close modal when clicking outside
+        document.getElementById('timePickerModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideTimePicker();
+            }
+        });
+        
+        // Format time inputs
+        document.getElementById('hourInput').addEventListener('input', function() {
+            if (this.value > 23) this.value = 23;
+            if (this.value < 0) this.value = 0;
+        });
+        
+        document.getElementById('minuteInput').addEventListener('input', function() {
+            if (this.value > 59) this.value = 59;
+            if (this.value < 0) this.value = 0;
+        });
+    </script>
+</body>
+</html>

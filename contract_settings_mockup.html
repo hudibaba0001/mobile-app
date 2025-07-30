@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Settings - Material 3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #fefbff;
+            color: #1d1b20;
+            overflow-x: hidden;
+        }
+        
+        .phone-container {
+            max-width: 390px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            position: relative;
+            min-height: 844px;
+        }
+        
+        /* App Bar */
+        .app-bar {
+            padding: 16px 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            min-height: 64px;
+        }
+        
+        .back-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: transparent;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 8px;
+            transition: background 0.2s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .back-btn .material-icons {
+            color: #1d1b20;
+            font-size: 24px;
+        }
+        
+        .app-bar-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        /* Form Content */
+        .form-content {
+            padding: 24px;
+        }
+        
+        .form-field {
+            margin-bottom: 24px;
+        }
+        
+        .field-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1d1b20;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .input-container {
+            position: relative;
+        }
+        
+        .text-input {
+            width: 100%;
+            height: 56px;
+            padding: 16px;
+            border: 1px solid #79747e;
+            border-radius: 12px;
+            background: white;
+            font-size: 16px;
+            color: #1d1b20;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .text-input:focus {
+            border-color: #6750a4;
+            border-width: 2px;
+            padding: 15px; /* Adjust for thicker border */
+        }
+        
+        .text-input.error {
+            border-color: #ba1a1a;
+        }
+        
+        .input-suffix {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #49454f;
+            pointer-events: none;
+        }
+        
+        .error-text {
+            color: #ba1a1a;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .error-text.visible {
+            display: block;
+        }
+        
+        /* Live Preview */
+        .preview-section {
+            background: rgba(103, 80, 164, 0.08);
+            border: 1px solid rgba(103, 80, 164, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .preview-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6750a4;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .preview-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        /* Save Button */
+        .save-button {
+            width: 100%;
+            height: 48px;
+            background: #6750a4;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: auto;
+        }
+        
+        .save-button:hover:not(:disabled) {
+            background: #5a3d99;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(103, 80, 164, 0.3);
+        }
+        
+        .save-button:disabled {
+            background: #79747e;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .save-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        /* Form Layout */
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 64px - 40px); /* Subtract app bar and margins */
+        }
+        
+        .form-fields {
+            flex: 1;
+        }
+        
+        .button-container {
+            padding-top: 24px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            margin-top: 24px;
+        }
+        
+        /* Validation States */
+        .field-valid .text-input {
+            border-color: #4caf50;
+        }
+        
+        .field-invalid .text-input {
+            border-color: #ba1a1a;
+        }
+        
+        /* Helper Text */
+        .helper-text {
+            font-size: 12px;
+            color: #49454f;
+            margin-top: 4px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 430px) {
+            .phone-container {
+                margin: 10px;
+                border-radius: 16px;
+                max-width: none;
+            }
+        }
+        
+        /* Animation for preview updates */
+        .preview-value {
+            transition: all 0.3s ease;
+        }
+        
+        .preview-value.updating {
+            transform: scale(1.05);
+            color: #6750a4;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- App Bar -->
+        <div class="app-bar">
+            <button class="back-btn" onclick="goBack()">
+                <span class="material-icons">arrow_back</span>
+            </button>
+            <div class="app-bar-title">Contract Settings</div>
+        </div>
+        
+        <!-- Form Content -->
+        <div class="form-content">
+            <div class="form-container">
+                <div class="form-fields">
+                    <!-- Contract Percentage Field -->
+                    <div class="form-field" id="contractPercentField">
+                        <label class="field-label" for="contractPercent">Contract %</label>
+                        <div class="input-container">
+                            <input 
+                                type="number" 
+                                id="contractPercent" 
+                                class="text-input" 
+                                placeholder="Enter percentage (0-100)"
+                                min="0" 
+                                max="100"
+                                oninput="validateAndUpdate()"
+                            >
+                            <span class="input-suffix">%</span>
+                        </div>
+                        <div class="error-text" id="contractPercentError">
+                            Please enter a valid percentage between 0 and 100
+                        </div>
+                        <div class="helper-text">
+                            Percentage of full-time hours for your contract
+                        </div>
+                    </div>
+                    
+                    <!-- Full-time Hours Field -->
+                    <div class="form-field" id="fullTimeHoursField">
+                        <label class="field-label" for="fullTimeHours">Full-time Hours</label>
+                        <div class="input-container">
+                            <input 
+                                type="number" 
+                                id="fullTimeHours" 
+                                class="text-input" 
+                                placeholder="Enter full-time hours (e.g., 160)"
+                                min="1"
+                                oninput="validateAndUpdate()"
+                            >
+                        </div>
+                        <div class="error-text" id="fullTimeHoursError">
+                            Please enter a valid number of hours (minimum 1)
+                        </div>
+                        <div class="helper-text">
+                            Total hours for a full-time position per period
+                        </div>
+                    </div>
+                    
+                    <!-- Live Preview -->
+                    <div class="preview-section">
+                        <div class="preview-title">Allowed Hours</div>
+                        <div class="preview-value" id="allowedHours">0 h</div>
+                    </div>
+                </div>
+                
+                <!-- Save Button -->
+                <div class="button-container">
+                    <button class="save-button" id="saveButton" onclick="saveSettings()" disabled>
+                        Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let contractPercent = '';
+        let fullTimeHours = '';
+        let isValid = false;
+        
+        function goBack() {
+            console.log('Navigate back to previous screen');
+        }
+        
+        function validateAndUpdate() {
+            const contractPercentInput = document.getElementById('contractPercent');
+            const fullTimeHoursInput = document.getElementById('fullTimeHours');
+            const contractPercentField = document.getElementById('contractPercentField');
+            const fullTimeHoursField = document.getElementById('fullTimeHoursField');
+            const contractPercentError = document.getElementById('contractPercentError');
+            const fullTimeHoursError = document.getElementById('fullTimeHoursError');
+            const allowedHours = document.getElementById('allowedHours');
+            const saveButton = document.getElementById('saveButton');
+            
+            contractPercent = contractPercentInput.value;
+            fullTimeHours = fullTimeHoursInput.value;
+            
+            let contractPercentValid = true;
+            let fullTimeHoursValid = true;
+            
+            // Validate contract percentage
+            if (contractPercent === '') {
+                contractPercentValid = false;
+                contractPercentField.className = 'form-field';
+                contractPercentError.classList.remove('visible');
+            } else {
+                const percent = parseFloat(contractPercent);
+                if (isNaN(percent) || percent < 0 || percent > 100) {
+                    contractPercentValid = false;
+                    contractPercentField.className = 'form-field field-invalid';
+                    contractPercentError.classList.add('visible');
+                } else {
+                    contractPercentField.className = 'form-field field-valid';
+                    contractPercentError.classList.remove('visible');
+                }
+            }
+            
+            // Validate full-time hours
+            if (fullTimeHours === '') {
+                fullTimeHoursValid = false;
+                fullTimeHoursField.className = 'form-field';
+                fullTimeHoursError.classList.remove('visible');
+            } else {
+                const hours = parseFloat(fullTimeHours);
+                if (isNaN(hours) || hours < 1) {
+                    fullTimeHoursValid = false;
+                    fullTimeHoursField.className = 'form-field field-invalid';
+                    fullTimeHoursError.classList.add('visible');
+                } else {
+                    fullTimeHoursField.className = 'form-field field-valid';
+                    fullTimeHoursError.classList.remove('visible');
+                }
+            }
+            
+            // Update live preview
+            if (contractPercentValid && fullTimeHoursValid && contractPercent !== '' && fullTimeHours !== '') {
+                const percent = parseFloat(contractPercent);
+                const hours = parseFloat(fullTimeHours);
+                const allowed = Math.round((percent / 100) * hours * 10) / 10; // Round to 1 decimal
+                
+                allowedHours.classList.add('updating');
+                setTimeout(() => {
+                    allowedHours.textContent = `${allowed} h`;
+                    allowedHours.classList.remove('updating');
+                }, 150);
+                
+                isValid = true;
+            } else {
+                allowedHours.textContent = '0 h';
+                isValid = false;
+            }
+            
+            // Update save button state
+            saveButton.disabled = !isValid;
+        }
+        
+        function saveSettings() {
+            if (!isValid) return;
+            
+            const settings = {
+                contractPercent: parseFloat(contractPercent),
+                fullTimeHours: parseFloat(fullTimeHours),
+                allowedHours: Math.round((parseFloat(contractPercent) / 100) * parseFloat(fullTimeHours) * 10) / 10
+            };
+            
+            console.log('Saving contract settings:', settings);
+            
+            // Simulate save process
+            const saveButton = document.getElementById('saveButton');
+            const originalText = saveButton.textContent;
+            
+            saveButton.textContent = 'Saving...';
+            saveButton.disabled = true;
+            
+            setTimeout(() => {
+                saveButton.textContent = 'Saved!';
+                setTimeout(() => {
+                    saveButton.textContent = originalText;
+                    saveButton.disabled = !isValid;
+                }, 1000);
+            }, 1000);
+        }
+        
+        // Initialize with some demo values
+        document.addEventListener('DOMContentLoaded', function() {
+            // You can uncomment these to start with demo values
+            // document.getElementById('contractPercent').value = '80';
+            // document.getElementById('fullTimeHours').value = '160';
+            // validateAndUpdate();
+        });
+        
+        // Add input event listeners for real-time validation
+        document.getElementById('contractPercent').addEventListener('input', function() {
+            // Ensure value stays within bounds
+            if (this.value > 100) this.value = 100;
+            if (this.value < 0) this.value = 0;
+        });
+        
+        document.getElementById('fullTimeHours').addEventListener('input', function() {
+            // Ensure positive values only
+            if (this.value < 0) this.value = 0;
+        });
+    </script>
+</body>
+</html>
