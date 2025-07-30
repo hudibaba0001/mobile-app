@@ -43,49 +43,42 @@ class AppRouter {
     initialLocation: homePath,
     debugLogDiagnostics: true,
     routes: [
-      // Home screen route
+      // Home screen route - now using UnifiedHomeScreen
       GoRoute(
         path: homePath,
         name: homeName,
-        builder: (context, state) {
-          // TODO: Replace with UnifiedHomeScreen when implemented
-          // return const UnifiedHomeScreen();
-          return const HomeScreen(); // Temporary fallback
-        },
+        builder: (context, state) => const UnifiedHomeScreen(),
       ),
       
-      // History screen route
+      // History screen route - now using HistoryScreen
       GoRoute(
         path: historyPath,
         name: historyName,
-        builder: (context, state) {
-          // TODO: Replace with HistoryScreen when implemented
-          // return const HistoryScreen();
-          return const TravelEntriesScreen(); // Temporary fallback
-        },
+        builder: (context, state) => const HistoryScreen(),
       ),
       
-      // Settings screen route
+      // Settings screen route - using real SettingsScreen
       GoRoute(
         path: settingsPath,
         name: settingsName,
         builder: (context, state) => const SettingsScreen(),
       ),
       
-      // Edit entry screen route with entry type support
+      // Contract Settings screen route - new route
+      GoRoute(
+        path: contractSettingsPath,
+        name: contractSettingsName,
+        builder: (context, state) => const ContractSettingsScreen(),
+      ),
+      
+      // Edit entry screen route with entry type support - now using real EditEntryScreen
       GoRoute(
         path: editEntryPath,
         name: editEntryName,
         builder: (context, state) {
           final entryId = state.pathParameters['entryId']!;
           final entryType = state.uri.queryParameters['type'];
-          
-          // TODO: Replace with EditEntryScreen when implemented
-          // return EditEntryScreen(entryId: entryId, entryType: entryType);
-          return _TemporaryEditEntryScreen(
-            entryId: entryId, 
-            entryType: entryType,
-          ); // Temporary fallback
+          return EditEntryScreen(entryId: entryId, entryType: entryType);
         },
       ),
     ],
@@ -115,6 +108,11 @@ class AppRouter {
   /// Navigate to settings screen
   static void goToSettings(BuildContext context) {
     context.goNamed(settingsName);
+  }
+  
+  /// Navigate to contract settings screen
+  static void goToContractSettings(BuildContext context) {
+    context.goNamed(contractSettingsName);
   }
   
   /// Navigate to edit entry screen with optional entry type
@@ -169,7 +167,7 @@ class AppRouter {
   }
 }
 
-/// Temporary error screen until proper error handling is implemented
+/// Error screen for navigation errors
 class _ErrorScreen extends StatelessWidget {
   final GoException? error;
 
@@ -233,126 +231,5 @@ class _ErrorScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-/// Temporary edit entry screen until proper EditEntryScreen is implemented
-class _TemporaryEditEntryScreen extends StatelessWidget {
-  final String entryId;
-  final String? entryType;
-
-  const _TemporaryEditEntryScreen({
-    required this.entryId,
-    this.entryType,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final displayType = entryType ?? 'travel';
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Edit ${_capitalizeFirst(displayType)} Entry'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => AppRouter.goBackOrHome(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Save functionality will be implemented with unified Entry model'),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                _getEntryTypeIcon(displayType),
-                size: 64,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Edit ${_capitalizeFirst(displayType)} Entry',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Entry ID: $entryId',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.construction,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'This screen will be replaced with a proper EditEntryScreen that works with the unified Entry model.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () => AppRouter.goBackOrHome(context),
-                    icon: const Icon(Icons.arrow_back),
-                    label: const Text('Go Back'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => AppRouter.goHome(context),
-                    icon: const Icon(Icons.home),
-                    label: const Text('Home'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  
-  String _capitalizeFirst(String text) {
-    if (text.isEmpty) return text;
-    return text[0].toUpperCase() + text.substring(1);
-  }
-  
-  IconData _getEntryTypeIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'travel':
-        return Icons.directions_car;
-      case 'work':
-        return Icons.work;
-      default:
-        return Icons.edit;
-    }
   }
 }

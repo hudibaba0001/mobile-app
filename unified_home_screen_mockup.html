@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Home Screen - Material 3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #fefbff;
+            color: #1d1b20;
+            overflow-x: hidden;
+        }
+        
+        .phone-container {
+            max-width: 390px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            position: relative;
+            min-height: 844px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* App Bar */
+        .app-bar {
+            padding: 16px 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            min-height: 64px;
+        }
+        
+        .app-bar-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        .settings-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: transparent;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .settings-btn:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .settings-btn .material-icons {
+            color: #1d1b20;
+            font-size: 24px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        
+        /* Today's Total Card */
+        .total-card {
+            background: linear-gradient(135deg, #6750a4 0%, #5a3d99 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            color: white;
+        }
+        
+        .total-card-header {
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .total-time {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .total-subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        /* Action Cards */
+        .action-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .action-card {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        .action-card .material-icons {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .action-card.travel .material-icons {
+            color: #6750a4;
+        }
+        
+        .action-card.work .material-icons {
+            color: #03dac6;
+        }
+        
+        .action-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .action-card-subtitle {
+            font-size: 12px;
+            color: #49454f;
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1d1b20;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .stat-card {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #6750a4;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #49454f;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Recent Entries */
+        .recent-section {
+            margin-bottom: 80px; /* Space for bottom nav */
+        }
+        
+        .recent-entry {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .entry-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+        
+        .entry-icon.travel {
+            background: rgba(103, 80, 164, 0.1);
+        }
+        
+        .entry-icon.work {
+            background: rgba(3, 218, 198, 0.1);
+        }
+        
+        .entry-icon .material-icons {
+            font-size: 20px;
+        }
+        
+        .entry-icon.travel .material-icons {
+            color: #6750a4;
+        }
+        
+        .entry-icon.work .material-icons {
+            color: #03dac6;
+        }
+        
+        .entry-details {
+            flex: 1;
+        }
+        
+        .entry-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .entry-subtitle {
+            font-size: 12px;
+            color: #49454f;
+        }
+        
+        .entry-time {
+            font-size: 12px;
+            color: #6750a4;
+            font-weight: 600;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-around;
+            position: sticky;
+            bottom: 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 64px;
+            min-height: 48px;
+            justify-content: center;
+        }
+        
+        .nav-item:hover {
+            background: rgba(103, 80, 164, 0.08);
+        }
+        
+        .nav-item.active {
+            background: rgba(103, 80, 164, 0.12);
+        }
+        
+        .nav-item .material-icons {
+            font-size: 24px;
+            margin-bottom: 4px;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-item .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-item:not(.active) .material-icons,
+        .nav-item:not(.active) .nav-label {
+            color: #49454f;
+        }
+        
+        .nav-item.active .material-icons,
+        .nav-item.active .nav-label {
+            color: #6750a4;
+        }
+        
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: 100px;
+            right: 32px;
+            width: 56px;
+            height: 56px;
+            background: #6750a4;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 6px 16px rgba(103, 80, 164, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .fab:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(103, 80, 164, 0.4);
+        }
+        
+        .fab .material-icons {
+            color: white;
+            font-size: 24px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 430px) {
+            .phone-container {
+                margin: 10px;
+                border-radius: 16px;
+                max-width: none;
+            }
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(103, 80, 164, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+        
+        .ripple:active::after {
+            width: 200px;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- App Bar -->
+        <div class="app-bar">
+            <div class="app-bar-title">Time Tracker</div>
+            <button class="settings-btn ripple" onclick="navigateToSettings()">
+                <span class="material-icons">settings</span>
+            </button>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Today's Total Card -->
+            <div class="total-card">
+                <div class="total-card-header">Today's Total</div>
+                <div class="total-time" id="totalTime">7h 45m</div>
+                <div class="total-subtitle">Travel: 1h 30m • Work: 6h 15m</div>
+            </div>
+            
+            <!-- Action Cards -->
+            <div class="action-cards">
+                <div class="action-card travel ripple" onclick="startTravelEntry()">
+                    <span class="material-icons">directions_car</span>
+                    <div class="action-card-title">Log Travel</div>
+                    <div class="action-card-subtitle">Track your commute</div>
+                </div>
+                <div class="action-card work ripple" onclick="startWorkEntry()">
+                    <span class="material-icons">work</span>
+                    <div class="action-card-title">Log Work</div>
+                    <div class="action-card-subtitle">Track work hours</div>
+                </div>
+            </div>
+            
+            <!-- Stats Section -->
+            <div class="stats-section">
+                <div class="section-title">This Week</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">38.5h</div>
+                        <div class="stat-label">Total Hours</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">5.2h</div>
+                        <div class="stat-label">Travel Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">33.3h</div>
+                        <div class="stat-label">Work Hours</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">96%</div>
+                        <div class="stat-label">Contract %</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Entries -->
+            <div class="recent-section">
+                <div class="section-title">Recent Entries</div>
+                
+                <div class="recent-entry" onclick="editEntry('1')">
+                    <div class="entry-icon work">
+                        <span class="material-icons">work</span>
+                    </div>
+                    <div class="entry-details">
+                        <div class="entry-title">Work Session</div>
+                        <div class="entry-subtitle">Office • Today 9:00 AM</div>
+                    </div>
+                    <div class="entry-time">8h</div>
+                </div>
+                
+                <div class="recent-entry" onclick="editEntry('2')">
+                    <div class="entry-icon travel">
+                        <span class="material-icons">directions_car</span>
+                    </div>
+                    <div class="entry-details">
+                        <div class="entry-title">Morning Commute</div>
+                        <div class="entry-subtitle">Home → Office • Today 8:30 AM</div>
+                    </div>
+                    <div class="entry-time">30m</div>
+                </div>
+                
+                <div class="recent-entry" onclick="editEntry('3')">
+                    <div class="entry-icon work">
+                        <span class="material-icons">work</span>
+                    </div>
+                    <div class="entry-details">
+                        <div class="entry-title">Remote Work</div>
+                        <div class="entry-subtitle">Home • Yesterday 10:00 AM</div>
+                    </div>
+                    <div class="entry-time">6h 30m</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="navigateToHome()">
+                <span class="material-icons">home</span>
+                <span class="nav-label">Home</span>
+            </div>
+            <div class="nav-item" onclick="navigateToHistory()">
+                <span class="material-icons">history</span>
+                <span class="nav-label">History</span>
+            </div>
+            <div class="nav-item" onclick="navigateToSettings()">
+                <span class="material-icons">settings</span>
+                <span class="nav-label">Settings</span>
+            </div>
+            <div class="nav-item" onclick="navigateToContract()">
+                <span class="material-icons">assignment</span>
+                <span class="nav-label">Contract</span>
+            </div>
+        </div>
+        
+        <!-- FAB -->
+        <button class="fab ripple" onclick="showQuickEntry()">
+            <span class="material-icons">add</span>
+        </button>
+    </div>
+
+    <script>
+        let currentTab = 'home';
+        
+        function navigateToHome() {
+            setActiveTab('home');
+            console.log('Navigate to Home - AppRouter.goHome(context)');
+        }
+        
+        function navigateToHistory() {
+            setActiveTab('history');
+            console.log('Navigate to History - AppRouter.goToHistory(context)');
+        }
+        
+        function navigateToSettings() {
+            setActiveTab('settings');
+            console.log('Navigate to Settings - AppRouter.goToSettings(context)');
+        }
+        
+        function navigateToContract() {
+            setActiveTab('contract');
+            console.log('Navigate to Contract - AppRouter.goToContractSettings(context)');
+        }
+        
+        function setActiveTab(tabName) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to selected tab
+            const tabs = document.querySelectorAll('.nav-item');
+            const tabIndex = ['home', 'history', 'settings', 'contract'].indexOf(tabName);
+            if (tabIndex >= 0 && tabs[tabIndex]) {
+                tabs[tabIndex].classList.add('active');
+            }
+            
+            currentTab = tabName;
+        }
+        
+        function startTravelEntry() {
+            console.log('Start new travel entry');
+        }
+        
+        function startWorkEntry() {
+            console.log('Start new work entry');
+        }
+        
+        function editEntry(entryId) {
+            console.log(`Edit entry ${entryId} - AppRouter.goToEditEntry(context, '${entryId}')`);
+        }
+        
+        function showQuickEntry() {
+            console.log('Show quick entry modal or navigate to new entry screen');
+        }
+        
+        // Simulate real-time updates
+        function updateTotalTime() {
+            const totalTimeElement = document.getElementById('totalTime');
+            const times = ['7h 45m', '8h 15m', '6h 30m', '9h 0m'];
+            let index = 0;
+            
+            setInterval(() => {
+                totalTimeElement.textContent = times[index % times.length];
+                index++;
+            }, 5000);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTotalTime();
+            
+            // Set initial route based on current location (simulated)
+            const currentRoute = 'home'; // This would come from GoRouter.getCurrentRouteName()
+            setActiveTab(currentRoute);
+        });
+    </script>
+</body>
+</html>

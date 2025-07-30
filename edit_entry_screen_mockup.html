@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Entry Screen - Material 3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #fefbff;
+            color: #1d1b20;
+            overflow-x: hidden;
+        }
+        
+        .phone-container {
+            max-width: 390px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            position: relative;
+            min-height: 844px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* App Bar */
+        .app-bar {
+            padding: 16px 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            min-height: 64px;
+        }
+        
+        .back-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: transparent;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 8px;
+            transition: background 0.2s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .back-btn .material-icons {
+            color: #1d1b20;
+            font-size: 24px;
+        }
+        
+        .app-bar-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        /* Entry Type Toggle */
+        .entry-type-toggle {
+            padding: 16px;
+            background: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        
+        .toggle-container {
+            background: rgba(103, 80, 164, 0.08);
+            border-radius: 12px;
+            padding: 4px;
+            display: flex;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            height: 48px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .toggle-btn.active {
+            background: #6750a4;
+            color: white;
+            box-shadow: 0 2px 8px rgba(103, 80, 164, 0.3);
+        }
+        
+        .toggle-btn:not(.active) {
+            color: #49454f;
+        }
+        
+        .toggle-btn .material-icons {
+            font-size: 20px;
+        }
+        
+        /* Form Content */
+        .form-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .form-field {
+            margin-bottom: 24px;
+        }
+        
+        .field-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1d1b20;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .text-input {
+            width: 100%;
+            height: 56px;
+            padding: 16px;
+            border: 1px solid #79747e;
+            border-radius: 12px;
+            background: white;
+            font-size: 16px;
+            color: #1d1b20;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .text-input:focus {
+            border-color: #6750a4;
+            border-width: 2px;
+            padding: 15px;
+        }
+        
+        .text-input.multiline {
+            height: 120px;
+            resize: vertical;
+            padding-top: 16px;
+        }
+        
+        /* Duration Input */
+        .duration-input {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .duration-field {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .duration-number {
+            width: 80px;
+            height: 56px;
+            padding: 16px;
+            border: 1px solid #79747e;
+            border-radius: 12px;
+            background: white;
+            font-size: 16px;
+            color: #1d1b20;
+            outline: none;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .duration-number:focus {
+            border-color: #6750a4;
+            border-width: 2px;
+            padding: 15px;
+        }
+        
+        .duration-label {
+            font-size: 14px;
+            color: #49454f;
+            font-weight: 500;
+        }
+        
+        /* Shift Row */
+        .shift-row {
+            background: rgba(103, 80, 164, 0.04);
+            border: 1px solid rgba(103, 80, 164, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        
+        .shift-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .shift-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #6750a4;
+        }
+        
+        .delete-shift-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(186, 26, 26, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .delete-shift-btn:hover {
+            background: rgba(186, 26, 26, 0.2);
+        }
+        
+        .delete-shift-btn .material-icons {
+            color: #ba1a1a;
+            font-size: 18px;
+        }
+        
+        .shift-times {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .time-field {
+            flex: 1;
+        }
+        
+        .time-input {
+            width: 100%;
+            height: 48px;
+            padding: 12px;
+            border: 1px solid #79747e;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            color: #1d1b20;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .time-input:focus {
+            border-color: #6750a4;
+            border-width: 2px;
+            padding: 11px;
+        }
+        
+        .time-separator {
+            font-size: 18px;
+            color: #49454f;
+            font-weight: 500;
+        }
+        
+        /* Add Shift Button */
+        .add-shift-btn {
+            width: 100%;
+            height: 48px;
+            border: 2px dashed #6750a4;
+            background: transparent;
+            border-radius: 12px;
+            color: #6750a4;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .add-shift-btn:hover {
+            background: rgba(103, 80, 164, 0.04);
+        }
+        
+        .add-shift-btn .material-icons {
+            font-size: 20px;
+        }
+        
+        /* Bottom Save Bar */
+        .save-bar {
+            background: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            padding: 16px 24px;
+            display: flex;
+            gap: 12px;
+        }
+        
+        .cancel-btn {
+            flex: 1;
+            height: 48px;
+            border: 1px solid #79747e;
+            background: transparent;
+            border-radius: 12px;
+            color: #49454f;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .cancel-btn:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .save-btn {
+            flex: 2;
+            height: 48px;
+            background: #6750a4;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .save-btn:hover:not(:disabled) {
+            background: #5a3d99;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(103, 80, 164, 0.3);
+        }
+        
+        .save-btn:disabled {
+            background: #79747e;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Hidden sections */
+        .hidden {
+            display: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 430px) {
+            .phone-container {
+                margin: 10px;
+                border-radius: 16px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- App Bar -->
+        <div class="app-bar">
+            <button class="back-btn" onclick="goBack()">
+                <span class="material-icons">arrow_back</span>
+            </button>
+            <div class="app-bar-title">Edit Entry</div>
+        </div>
+        
+        <!-- Entry Type Toggle -->
+        <div class="entry-type-toggle">
+            <div class="toggle-container">
+                <button class="toggle-btn active" id="travelBtn" onclick="switchToTravel()">
+                    <span class="material-icons">directions_car</span>
+                    Travel
+                </button>
+                <button class="toggle-btn" id="workBtn" onclick="switchToWork()">
+                    <span class="material-icons">work</span>
+                    Work
+                </button>
+            </div>
+        </div>
+        
+        <!-- Form Content -->
+        <div class="form-content">
+            <!-- Travel Form -->
+            <div id="travelForm">
+                <div class="form-field">
+                    <label class="field-label" for="fromLocation">From</label>
+                    <input 
+                        type="text" 
+                        id="fromLocation" 
+                        class="text-input" 
+                        placeholder="Enter departure location"
+                        oninput="validateForm()"
+                    >
+                </div>
+                
+                <div class="form-field">
+                    <label class="field-label" for="toLocation">To</label>
+                    <input 
+                        type="text" 
+                        id="toLocation" 
+                        class="text-input" 
+                        placeholder="Enter destination location"
+                        oninput="validateForm()"
+                    >
+                </div>
+                
+                <div class="form-field">
+                    <label class="field-label">Duration</label>
+                    <div class="duration-input">
+                        <div class="duration-field">
+                            <input 
+                                type="number" 
+                                id="durationHours" 
+                                class="duration-number" 
+                                placeholder="0"
+                                min="0"
+                                max="23"
+                                oninput="validateForm()"
+                            >
+                            <span class="duration-label">hours</span>
+                        </div>
+                        <div class="duration-field">
+                            <input 
+                                type="number" 
+                                id="durationMinutes" 
+                                class="duration-number" 
+                                placeholder="0"
+                                min="0"
+                                max="59"
+                                oninput="validateForm()"
+                            >
+                            <span class="duration-label">minutes</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label class="field-label" for="travelNotes">Notes</label>
+                    <textarea 
+                        id="travelNotes" 
+                        class="text-input multiline" 
+                        placeholder="Add any additional notes..."
+                        oninput="validateForm()"
+                    ></textarea>
+                </div>
+            </div>
+            
+            <!-- Work Form -->
+            <div id="workForm" class="hidden">
+                <div id="shiftsContainer">
+                    <!-- Shift rows will be added here -->
+                </div>
+                
+                <button class="add-shift-btn" onclick="addShift()">
+                    <span class="material-icons">add</span>
+                    Add Shift
+                </button>
+                
+                <div class="form-field">
+                    <label class="field-label" for="workNotes">Notes</label>
+                    <textarea 
+                        id="workNotes" 
+                        class="text-input multiline" 
+                        placeholder="Add any additional notes..."
+                        oninput="validateForm()"
+                    ></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Save Bar -->
+        <div class="save-bar">
+            <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+            <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Save</button>
+        </div>
+    </div>
+
+    <script>
+        let currentEntryType = 'travel';
+        let shiftCounter = 0;
+        
+        function goBack() {
+            console.log('Navigate back - context.pop()');
+        }
+        
+        function switchToTravel() {
+            currentEntryType = 'travel';
+            document.getElementById('travelBtn').classList.add('active');
+            document.getElementById('workBtn').classList.remove('active');
+            document.getElementById('travelForm').classList.remove('hidden');
+            document.getElementById('workForm').classList.add('hidden');
+            validateForm();
+        }
+        
+        function switchToWork() {
+            currentEntryType = 'work';
+            document.getElementById('workBtn').classList.add('active');
+            document.getElementById('travelBtn').classList.remove('active');
+            document.getElementById('workForm').classList.remove('hidden');
+            document.getElementById('travelForm').classList.add('hidden');
+            
+            // Ensure at least one shift exists
+            if (document.querySelectorAll('.shift-row').length === 0) {
+                addShift();
+            }
+            validateForm();
+        }
+        
+        function addShift() {
+            shiftCounter++;
+            const shiftsContainer = document.getElementById('shiftsContainer');
+            
+            const shiftRow = document.createElement('div');
+            shiftRow.className = 'shift-row';
+            shiftRow.id = `shift-${shiftCounter}`;
+            
+            shiftRow.innerHTML = `
+                <div class="shift-header">
+                    <div class="shift-title">Shift ${shiftCounter}</div>
+                    <button class="delete-shift-btn" onclick="deleteShift(${shiftCounter})">
+                        <span class="material-icons">delete</span>
+                    </button>
+                </div>
+                <div class="shift-times">
+                    <div class="time-field">
+                        <label class="field-label">Start Time</label>
+                        <input 
+                            type="time" 
+                            class="time-input" 
+                            id="start-${shiftCounter}"
+                            oninput="validateForm()"
+                        >
+                    </div>
+                    <div class="time-separator">to</div>
+                    <div class="time-field">
+                        <label class="field-label">End Time</label>
+                        <input 
+                            type="time" 
+                            class="time-input" 
+                            id="end-${shiftCounter}"
+                            oninput="validateForm()"
+                        >
+                    </div>
+                </div>
+            `;
+            
+            shiftsContainer.appendChild(shiftRow);
+            validateForm();
+        }
+        
+        function deleteShift(shiftId) {
+            const shiftRow = document.getElementById(`shift-${shiftId}`);
+            if (shiftRow) {
+                shiftRow.remove();
+                validateForm();
+            }
+        }
+        
+        function validateForm() {
+            const saveBtn = document.getElementById('saveBtn');
+            let isValid = false;
+            
+            if (currentEntryType === 'travel') {
+                const from = document.getElementById('fromLocation').value.trim();
+                const to = document.getElementById('toLocation').value.trim();
+                const hours = document.getElementById('durationHours').value;
+                const minutes = document.getElementById('durationMinutes').value;
+                
+                isValid = from !== '' && to !== '' && (hours > 0 || minutes > 0);
+            } else {
+                const shifts = document.querySelectorAll('.shift-row');
+                isValid = shifts.length > 0;
+                
+                // Check that all shifts have both start and end times
+                for (const shift of shifts) {
+                    const shiftId = shift.id.split('-')[1];
+                    const startTime = document.getElementById(`start-${shiftId}`).value;
+                    const endTime = document.getElementById(`end-${shiftId}`).value;
+                    
+                    if (!startTime || !endTime) {
+                        isValid = false;
+                        break;
+                    }
+                }
+            }
+            
+            saveBtn.disabled = !isValid;
+        }
+        
+        function cancelEdit() {
+            console.log('Cancel edit - navigate back without saving');
+            goBack();
+        }
+        
+        function saveEntry() {
+            const entryData = {
+                type: currentEntryType,
+                data: {}
+            };
+            
+            if (currentEntryType === 'travel') {
+                entryData.data = {
+                    from: document.getElementById('fromLocation').value,
+                    to: document.getElementById('toLocation').value,
+                    hours: parseInt(document.getElementById('durationHours').value) || 0,
+                    minutes: parseInt(document.getElementById('durationMinutes').value) || 0,
+                    notes: document.getElementById('travelNotes').value
+                };
+            } else {
+                const shifts = [];
+                document.querySelectorAll('.shift-row').forEach(shift => {
+                    const shiftId = shift.id.split('-')[1];
+                    const startTime = document.getElementById(`start-${shiftId}`).value;
+                    const endTime = document.getElementById(`end-${shiftId}`).value;
+                    
+                    if (startTime && endTime) {
+                        shifts.push({
+                            startTime,
+                            endTime
+                        });
+                    }
+                });
+                
+                entryData.data = {
+                    shifts,
+                    notes: document.getElementById('workNotes').value
+                };
+            }
+            
+            console.log('Save entry:', entryData);
+            
+            // Simulate save process
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.textContent;
+            
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+            
+            setTimeout(() => {
+                saveBtn.textContent = 'Saved!';
+                setTimeout(() => {
+                    console.log('Entry saved successfully - navigate back');
+                    goBack();
+                }, 1000);
+            }, 1000);
+        }
+        
+        // Initialize with demo data
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load demo travel data
+            document.getElementById('fromLocation').value = 'Home';
+            document.getElementById('toLocation').value = 'Office';
+            document.getElementById('durationHours').value = '0';
+            document.getElementById('durationMinutes').value = '30';
+            document.getElementById('travelNotes').value = 'Morning commute via highway';
+            
+            validateForm();
+        });
+    </script>
+</body>
+</html>

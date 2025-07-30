@@ -24,6 +24,9 @@ import 'providers/search_provider.dart';
 import 'providers/filter_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/app_state_provider.dart';
+// New settings and contract providers
+import 'providers/settings_provider.dart';
+import 'providers/contract_provider.dart';
 // Repositories (still needed for location management)
 import 'repositories/hive_location_repository.dart';
 
@@ -72,7 +75,9 @@ void main() async {
 Widget _buildMainApp(EntryService entryService, SyncService syncService) {
   return MultiProvider(
     providers: [
-      // Core app providers
+      // Core app providers (settings must be initialized early)
+      ChangeNotifierProvider(create: (_) => SettingsProvider()..init()),
+      ChangeNotifierProvider(create: (_) => ContractProvider()..init()),
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),
       
