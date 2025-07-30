@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/travel_time_entry.dart';
+import '../models/entry.dart'; // Updated to use unified Entry model
 import '../utils/constants.dart';
 
 class TravelEntryCard extends StatefulWidget {
-  final TravelTimeEntry entry;
+  final Entry entry; // Updated to use Entry model
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -71,22 +71,24 @@ class _TravelEntryCardState extends State<TravelEntryCard>
   }
 
   String get _formattedDuration {
-    final duration = Duration(minutes: widget.entry.minutes);
+    final minutes = widget.entry.travelMinutes ?? 0; // Entry uses 'travelMinutes' instead of 'minutes'
+    final duration = Duration(minutes: minutes);
     final hours = duration.inHours;
-    final minutes = duration.inMinutes % 60;
+    final mins = duration.inMinutes % 60;
     
     if (hours > 0) {
-      return '${hours}h ${minutes}m';
+      return '${hours}h ${mins}m';
     }
-    return '${minutes}m';
+    return '${mins}m';
   }
 
   Color get _durationColor {
-    if (widget.entry.minutes < 30) {
+    final minutes = widget.entry.travelMinutes ?? 0; // Entry uses 'travelMinutes' instead of 'minutes'
+    if (minutes < 30) {
       return Colors.green;
-    } else if (widget.entry.minutes < 60) {
+    } else if (minutes < 60) {
       return Colors.orange;
-    } else if (widget.entry.minutes < 120) {
+    } else if (minutes < 120) {
       return Colors.red;
     } else {
       return Colors.purple;
@@ -99,8 +101,8 @@ class _TravelEntryCardState extends State<TravelEntryCard>
       return Icons.route;
     }
     
-    final departure = widget.entry.departure.toLowerCase();
-    final arrival = widget.entry.arrival.toLowerCase();
+    final departure = (widget.entry.from ?? '').toLowerCase(); // Entry uses 'from' instead of 'departure'
+    final arrival = (widget.entry.to ?? '').toLowerCase(); // Entry uses 'to' instead of 'arrival'
     
     if (departure.contains('home') || arrival.contains('home')) {
       return Icons.home;
@@ -177,7 +179,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${widget.entry.departure} → ${widget.entry.arrival}',
+                  '${widget.entry.from ?? 'Unknown'} → ${widget.entry.to ?? 'Unknown'}', // Entry uses 'from' and 'to'
                   style: const TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 14,
@@ -372,7 +374,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        widget.entry.departure,
+                        widget.entry.from ?? 'Unknown', // Entry uses 'from' instead of 'departure'
                         style: const TextStyle(
                           fontWeight: FontWeight.w500,
                         ),
@@ -416,7 +418,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        widget.entry.arrival,
+                        widget.entry.to ?? 'Unknown', // Entry uses 'to' instead of 'arrival'
                         style: const TextStyle(
                           fontWeight: FontWeight.w500,
                         ),
@@ -429,7 +431,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
           ),
           
           // Additional info
-          if (widget.entry.info != null && widget.entry.info!.isNotEmpty) ...[
+          if (widget.entry.notes != null && widget.entry.notes!.isNotEmpty) ..[ // Entry uses 'notes' instead of 'info'
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
@@ -452,7 +454,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      widget.entry.info!,
+                      widget.entry.notes!, // Entry uses 'notes' instead of 'info'
                       style: TextStyle(
                         color: Colors.blue[700],
                         fontSize: 13,

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/travel_provider.dart';
+import '../providers/entry_provider.dart'; // Updated to use EntryProvider
 import '../providers/search_provider.dart';
 import '../providers/filter_provider.dart';
 import '../widgets/search_filter_bar.dart';
 import '../widgets/travel_entry_card.dart';
 import '../widgets/quick_entry_form.dart';
 import '../widgets/multi_segment_form.dart';
-import '../models/travel_time_entry.dart';
+import '../models/entry.dart'; // Updated to use unified Entry model
 import '../utils/constants.dart';
 
 class TravelEntriesScreen extends StatefulWidget {
@@ -22,7 +22,7 @@ class TravelEntriesScreen extends StatefulWidget {
 class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showFab = true;
-  List<TravelTimeEntry> _selectedEntries = [];
+  List<Entry> _selectedEntries = []; // Updated to use Entry model
   bool _isSelectionMode = false;
 
   @override
@@ -30,7 +30,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
     super.initState();
     // Load entries when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TravelProvider>(context, listen: false).refreshEntries();
+      Provider.of<EntryProvider>(context, listen: false).refreshEntries(); // Updated to use EntryProvider
     });
 
     // Hide FAB when scrolling down, show when scrolling up
@@ -112,27 +112,27 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
                 ),
               ],
       ),
-      body: Consumer3<TravelProvider, SearchProvider, FilterProvider>(
-        builder: (context, travelProvider, searchProvider, filterProvider, _) {
-          if (travelProvider.isLoading) {
+      body: Consumer3<EntryProvider, SearchProvider, FilterProvider>( // Updated to use EntryProvider
+        builder: (context, entryProvider, searchProvider, filterProvider, _) {
+          if (entryProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
           // Apply search and filters
-          List<TravelTimeEntry> entries = travelProvider.entries;
+          List<Entry> entries = entryProvider.entries; // Updated to use Entry model
           
           // Apply search
           if (searchProvider.hasQuery) {
             entries = entries.where((entry) {
               final query = searchProvider.query.toLowerCase();
-              return entry.departure.toLowerCase().contains(query) ||
-                     entry.arrival.toLowerCase().contains(query) ||
-                     (entry.info?.toLowerCase().contains(query) ?? false);
+              return (entry.from?.toLowerCase().contains(query) ?? false) || // Entry uses 'from' instead of 'departure'
+                     (entry.to?.toLowerCase().contains(query) ?? false) || // Entry uses 'to' instead of 'arrival'
+                     (entry.notes?.toLowerCase().contains(query) ?? false); // Entry uses 'notes' instead of 'info'
             }).toList();
           }
 
-          // Apply filters
-          entries = filterProvider.applyToTravelEntries(entries);
+          // Apply filters - need to update FilterProvider to work with Entry model
+          entries = filterProvider.applyToEntries(entries); // Updated method name
 
           return Column(
             children: [
@@ -174,7 +174,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
 
               // Entries List
               Expanded(
-                child: _buildEntriesList(entries, travelProvider),
+                child: _buildEntriesList(entries, entryProvider), // Updated to use entryProvider
               ),
             ],
           );
@@ -190,14 +190,14 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
     );
   }
 
-  Widget _buildEntriesList(List<TravelTimeEntry> entries, TravelProvider travelProvider) {
+  Widget _buildEntriesList(List<Entry> entries, EntryProvider entryProvider) { // Updated to use Entry and EntryProvider
     if (entries.isEmpty) {
       return _buildEmptyState();
     }
 
     return RefreshIndicator(
       onRefresh: () async {
-        await travelProvider.refreshEntries();
+        await entryProvider.refreshEntries(); // Updated to use entryProvider
       },
       child: ListView.builder(
         controller: _scrollController,
@@ -212,7 +212,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
             child: TravelEntryCard(
               entry: entry,
               onEdit: () => _editEntry(context, entry),
-              onDelete: () => _showDeleteConfirmation(context, entry, travelProvider),
+              onDelete: () => _showDeleteConfirmation(context, entry, entryProvider), // Updated to use entryProvider
               onTap: _isSelectionMode 
                   ? () => _toggleEntrySelection(entry)
                   : () => _showEntryDetails(context, entry),
@@ -290,7 +290,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
         context.go('/reports');
         break;
       case 'refresh':
-        Provider.of<TravelProvider>(context, listen: false).refreshEntries();
+        Provider.of<EntryProvider>(context, listen: false).refreshEntries(); // Updated to use EntryProvider
         break;
     }
   }
@@ -309,14 +309,14 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
     });
   }
 
-  void _toggleSelectionMode(TravelTimeEntry entry) {
+  void _toggleSelectionMode(Entry entry) { // Updated to use Entry
     if (!_isSelectionMode) {
       _enterSelectionMode();
       _toggleEntrySelection(entry);
     }
   }
 
-  void _toggleEntrySelection(TravelTimeEntry entry) {
+  void _toggleEntrySelection(Entry entry) { // Updated to use Entry
     setState(() {
       if (_selectedEntries.contains(entry)) {
         _selectedEntries.remove(entry);
@@ -327,9 +327,9 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
   }
 
   void _selectAll() {
-    final travelProvider = Provider.of<TravelProvider>(context, listen: false);
+    final entryProvider = Provider.of<EntryProvider>(context, listen: false); // Updated to use EntryProvider
     setState(() {
-      _selectedEntries = List.from(travelProvider.entries);
+      _selectedEntries = List.from(entryProvider.entries);
     });
   }
 
@@ -351,11 +351,11 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              final travelProvider = Provider.of<TravelProvider>(context, listen: false);
+              final entryProvider = Provider.of<EntryProvider>(context, listen: false); // Updated to use EntryProvider
               
               int deletedCount = 0;
               for (final entry in _selectedEntries) {
-                final success = await travelProvider.deleteEntry(entry.id);
+                final success = await entryProvider.deleteEntry(entry.id);
                 if (success) deletedCount++;
               }
               
@@ -413,7 +413,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
               QuickEntryForm(
                 onSuccess: () {
                   Navigator.of(context).pop();
-                  Provider.of<TravelProvider>(context, listen: false).refreshEntries();
+                  Provider.of<EntryProvider>(context, listen: false).refreshEntries(); // Updated to use EntryProvider
                 },
                 onCancel: () {
                   Navigator.of(context).pop();
@@ -426,13 +426,13 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
     );
   }
 
-  void _editEntry(BuildContext context, TravelTimeEntry entry) {
-    final travelProvider = Provider.of<TravelProvider>(context, listen: false);
+  void _editEntry(BuildContext context, Entry entry) { // Updated to use Entry
+    final entryProvider = Provider.of<EntryProvider>(context, listen: false); // Updated to use EntryProvider
     
     // Check if this is a multi-segment journey
-    if (travelProvider.isMultiSegmentEntry(entry)) {
+    if (entryProvider.isMultiSegmentEntry(entry)) {
       // Edit as multi-segment journey
-      final journeySegments = travelProvider.getJourneySegments(entry.journeyId!);
+      final journeySegments = entryProvider.getJourneySegments(entry.journeyId!);
       
       showDialog(
         context: context,
@@ -448,7 +448,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
               onSuccess: () {
                 Navigator.of(context).pop();
                 // Refresh the entries list
-                travelProvider.refreshEntries();
+                entryProvider.refreshEntries(); // Updated to use entryProvider
               },
               onCancel: () {
                 Navigator.of(context).pop();
@@ -469,7 +469,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
               initialEntry: entry,
               onSuccess: () {
                 Navigator.of(context).pop();
-                travelProvider.refreshEntries();
+                entryProvider.refreshEntries(); // Updated to use entryProvider
               },
               onCancel: () {
                 Navigator.of(context).pop();
@@ -481,7 +481,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
     }
   }
 
-  void _showEntryDetails(BuildContext context, TravelTimeEntry entry) {
+  void _showEntryDetails(BuildContext context, Entry entry) { // Updated to use Entry
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -496,7 +496,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
             },
             onDelete: () {
               Navigator.of(context).pop();
-              _showDeleteConfirmation(context, entry, Provider.of<TravelProvider>(context, listen: false));
+              _showDeleteConfirmation(context, entry, Provider.of<EntryProvider>(context, listen: false)); // Updated to use EntryProvider
             },
           ),
         ),
@@ -506,11 +506,11 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
 
   void _showDeleteConfirmation(
     BuildContext context,
-    TravelTimeEntry entry,
-    TravelProvider travelProvider,
+    Entry entry, // Updated to use Entry
+    EntryProvider entryProvider, // Updated to use EntryProvider
   ) {
-    final isMultiSegment = travelProvider.isMultiSegmentEntry(entry);
-    final journeySegments = isMultiSegment ? travelProvider.getJourneySegments(entry.journeyId!) : <TravelTimeEntry>[];
+    final isMultiSegment = entryProvider.isMultiSegmentEntry(entry);
+    final journeySegments = isMultiSegment ? entryProvider.getJourneySegments(entry.journeyId!) : <Entry>[]; // Updated to use Entry
     
     showDialog(
       context: context,
@@ -518,7 +518,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
         title: Text(isMultiSegment ? 'Delete Journey' : 'Delete Entry'),
         content: Text(isMultiSegment 
             ? 'Are you sure you want to delete the entire multi-segment journey with ${journeySegments.length} segments?'
-            : 'Are you sure you want to delete the trip from ${entry.departure} to ${entry.arrival}?'),
+            : 'Are you sure you want to delete the trip from ${entry.from ?? 'Unknown'} to ${entry.to ?? 'Unknown'}?'), // Updated to use Entry fields
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -530,9 +530,9 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
               
               bool success;
               if (isMultiSegment) {
-                success = await travelProvider.deleteJourney(entry.journeyId!);
+                success = await entryProvider.deleteJourney(entry.journeyId!); // Updated to use entryProvider
               } else {
-                success = await travelProvider.deleteEntry(entry.id);
+                success = await entryProvider.deleteEntry(entry.id); // Updated to use entryProvider
               }
               
               if (success && context.mounted) {
@@ -547,7 +547,7 @@ class _TravelEntriesScreenState extends State<TravelEntriesScreen> {
               } else if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(travelProvider.lastError?.message ?? 'Failed to delete entry'),
+                    content: Text(entryProvider.lastError?.message ?? 'Failed to delete entry'), // Updated to use entryProvider
                     backgroundColor: Colors.red,
                   ),
                 );

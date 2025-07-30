@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../models/travel_segment.dart';
-import '../models/travel_time_entry.dart';
-import '../providers/travel_provider.dart';
+import '../models/entry.dart'; // Updated to use unified Entry model
+import '../providers/entry_provider.dart'; // Updated to use EntryProvider
 import '../utils/constants.dart';
 import '../utils/validators.dart';
 import 'travel_segment_card.dart';
@@ -13,7 +13,7 @@ class MultiSegmentForm extends StatefulWidget {
   final VoidCallback? onCancel;
   final DateTime? initialDate;
   final String? editingJourneyId;
-  final List<TravelTimeEntry>? existingSegments;
+  final List<Entry>? existingSegments; // Updated to use Entry model
 
   const MultiSegmentForm({
     super.key,
@@ -70,13 +70,13 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
   }
 
   void _loadExistingSegments() {
-    // Convert existing TravelTimeEntry segments to TravelSegment objects
+    // Convert existing Entry segments to TravelSegment objects
     _segments = widget.existingSegments!.map((entry) => TravelSegment(
       id: entry.id,
-      departure: entry.departure,
-      arrival: entry.arrival,
-      minutes: entry.minutes,
-      info: entry.info,
+      departure: entry.from ?? '', // Entry uses 'from' instead of 'departure'
+      arrival: entry.to ?? '', // Entry uses 'to' instead of 'arrival'
+      minutes: entry.travelMinutes ?? 0, // Entry uses 'travelMinutes' instead of 'minutes'
+      info: entry.notes, // Entry uses 'notes' instead of 'info'
     )).toList();
     
     // Set the date from the first segment
@@ -183,20 +183,22 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
     setState(() => _isLoading = true);
 
     try {
-      final travelProvider = context.read<TravelProvider>();
+      final entryProvider = context.read<EntryProvider>(); // Updated to use EntryProvider
       final journeyId = widget.editingJourneyId ?? const Uuid().v4();
       final isEditing = widget.editingJourneyId != null;
       
-      // Create travel entries for each segment
-      final entries = <TravelTimeEntry>[];
+      // Create travel entries for each segment using unified Entry model
+      final entries = <Entry>[];
       for (int i = 0; i < _segments.length; i++) {
         final segment = _segments[i];
-        final entry = TravelTimeEntry(
+        final entry = Entry(
+          userId: 'current_user', // TODO: Get from auth service
+          type: EntryType.travel, // Always travel for this form
           date: _selectedDate,
-          departure: segment.departure,
-          arrival: segment.arrival,
-          minutes: segment.minutes,
-          info: segment.info,
+          from: segment.departure, // Entry uses 'from' instead of 'departure'
+          to: segment.arrival, // Entry uses 'to' instead of 'arrival'
+          travelMinutes: segment.minutes, // Entry uses 'travelMinutes' instead of 'minutes'
+          notes: segment.info, // Entry uses 'notes' instead of 'info'
           journeyId: journeyId,
           segmentOrder: i + 1,
           totalSegments: _segments.length,
@@ -207,12 +209,12 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
       bool success;
       if (isEditing) {
         // Update existing journey
-        success = await travelProvider.updateJourney(journeyId, entries);
+        success = await entryProvider.updateJourney(journeyId, entries);
       } else {
-        // Add new journey
+        // Add new journey - EntryProvider handles this more efficiently
         bool allSuccess = true;
         for (final entry in entries) {
-          final entrySuccess = await travelProvider.addEntry(entry);
+          final entrySuccess = await entryProvider.addEntry(entry);
           if (!entrySuccess) {
             allSuccess = false;
             break;

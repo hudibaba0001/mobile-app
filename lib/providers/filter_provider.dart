@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/travel_time_entry.dart';
+import '../models/entry.dart'; // Added unified Entry model
 import '../models/location.dart';
 import '../utils/data_validator.dart';
 import '../utils/error_handler.dart';
@@ -198,7 +199,62 @@ class FilterProvider extends ChangeNotifier {
     }
   }
 
-  // Apply filters to travel entries
+  // Apply filters to unified Entry model (replaces applyToTravelEntries)
+  List<Entry> applyToEntries(List<Entry> entries) {
+    List<Entry> filtered = List.from(entries);
+
+    // Date filter
+    if (hasDateFilter) {
+      filtered = filtered.where((entry) {
+        if (_startDate != null && entry.date.isBefore(_startDate!)) {
+          return false;
+        }
+        if (_endDate != null && entry.date.isAfter(_endDate!.add(const Duration(days: 1)))) {
+          return false;
+        }
+        return true;
+      }).toList();
+    }
+
+    // Location filter - updated for Entry model
+    if (hasLocationFilter) {
+      filtered = filtered.where((entry) {
+        // Entry model uses 'from' and 'to' strings instead of location IDs
+        // For now, we'll match by location name until location ID mapping is implemented
+        return _selectedLocationsList.any((location) => 
+          entry.from?.toLowerCase().contains(location.name.toLowerCase()) == true ||
+          entry.to?.toLowerCase().contains(location.name.toLowerCase()) == true
+        );
+      }).toList();
+    }
+
+    // Duration filter - updated for Entry model
+    if (hasDurationFilter) {
+      filtered = filtered.where((entry) {
+        final minutes = entry.travelMinutes ?? 0; // Entry uses 'travelMinutes' instead of 'minutes'
+        if (_minMinutes != null && minutes < _minMinutes!) {
+          return false;
+        }
+        if (_maxMinutes != null && minutes > _maxMinutes!) {
+          return false;
+        }
+        return true;
+      }).toList();
+    }
+
+    // Recent only filter
+    if (_showRecentOnly) {
+      final cutoffDate = DateTime.now().subtract(const Duration(days: 7));
+      filtered = filtered.where((entry) => entry.date.isAfter(cutoffDate)).toList();
+    }
+
+    // Apply sorting for Entry model
+    _applyEntrySorting(filtered);
+
+    return filtered;
+  }
+
+  // Apply filters to travel entries (kept for backward compatibility)
   List<TravelTimeEntry> applyToTravelEntries(List<TravelTimeEntry> entries) {
     List<TravelTimeEntry> filtered = List.from(entries);
 
@@ -269,7 +325,40 @@ class FilterProvider extends ChangeNotifier {
     return filtered;
   }
 
-  // Apply sorting to travel entries
+  // Apply sorting to unified Entry model
+  void _applyEntrySorting(List<Entry> entries) {
+    switch (_sortOption) {
+      case SortOption.dateAsc:
+        entries.sort((a, b) => a.date.compareTo(b.date));
+        break;
+      case SortOption.dateDesc:
+        entries.sort((a, b) => b.date.compareTo(a.date));
+        break;
+      case SortOption.durationAsc:
+        entries.sort((a, b) => (a.travelMinutes ?? 0).compareTo(b.travelMinutes ?? 0)); // Entry uses 'travelMinutes'
+        break;
+      case SortOption.durationDesc:
+        entries.sort((a, b) => (b.travelMinutes ?? 0).compareTo(a.travelMinutes ?? 0)); // Entry uses 'travelMinutes'
+        break;
+      case SortOption.departureAZ:
+        entries.sort((a, b) => (a.from ?? '').compareTo(b.from ?? '')); // Entry uses 'from' instead of 'departure'
+        break;
+      case SortOption.arrivalAZ:
+        entries.sort((a, b) => (a.to ?? '').compareTo(b.to ?? '')); // Entry uses 'to' instead of 'arrival'
+        break;
+      case SortOption.nameAZ:
+        // For travel entries, sort by departure name
+        entries.sort((a, b) => (a.from ?? '').compareTo(b.from ?? '')); // Entry uses 'from'
+        break;
+      case SortOption.usageDesc:
+        // Sort by usage frequency (would need usage tracking implementation)
+        // For now, sort by date as fallback
+        entries.sort((a, b) => b.date.compareTo(a.date));
+        break;
+    }
+  }
+
+  // Apply sorting to travel entries (kept for backward compatibility)
   void _applySorting(List<TravelTimeEntry> entries) {
     switch (_sortOption) {
       case SortOption.dateAsc:
