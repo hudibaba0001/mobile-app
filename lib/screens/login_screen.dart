@@ -10,10 +10,7 @@ import '../config/app_router.dart';
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
 
-  const LoginScreen({
-    super.key,
-    this.initialEmail,
-  });
+  const LoginScreen({super.key, this.initialEmail});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -23,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -46,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sign In'),
@@ -64,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 32),
-                
+
                 // Welcome back text
                 Text(
                   'Welcome back!',
@@ -74,9 +71,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 Text(
                   'Sign in to continue tracking your time',
                   style: theme.textTheme.bodyLarge?.copyWith(
@@ -84,9 +81,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 48),
-                
+
                 // Email field
                 TextFormField(
                   controller: _emailController,
@@ -100,14 +97,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                    fillColor: theme.colorScheme.surfaceVariant.withOpacity(
+                      0.3,
+                    ),
                   ),
                   validator: _validateEmail,
                   onChanged: (_) => _updateFormState(),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Password field
                 TextFormField(
                   controller: _passwordController,
@@ -119,7 +118,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {
@@ -131,25 +132,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                    fillColor: theme.colorScheme.surfaceVariant.withOpacity(
+                      0.3,
+                    ),
                   ),
                   validator: _validatePassword,
                   onChanged: (_) => _updateFormState(),
                   onFieldSubmitted: (_) => _handleSignIn(),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Sign In button
                 SizedBox(
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _isFormValid() && !_isLoading ? _handleSignIn : null,
+                    onPressed: _isFormValid() && !_isLoading
+                        ? _handleSignIn
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
                       foregroundColor: theme.colorScheme.onPrimary,
                       disabledBackgroundColor: theme.colorScheme.surfaceVariant,
-                      disabledForegroundColor: theme.colorScheme.onSurfaceVariant,
+                      disabledForegroundColor:
+                          theme.colorScheme.onSurfaceVariant,
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -174,9 +180,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Forgot password link
                 TextButton(
                   onPressed: _handleForgotPassword,
@@ -188,9 +194,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                
+
                 const Spacer(),
-                
+
                 // Divider
                 Row(
                   children: [
@@ -207,9 +213,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Expanded(child: Divider(color: theme.colorScheme.outline)),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Get Started button
                 SizedBox(
                   height: 48,
@@ -233,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
               ],
             ),
@@ -248,13 +254,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.trim().isEmpty) {
       return 'Email is required';
     }
-    
+
     // Basic email regex validation
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Please enter a valid email address';
     }
-    
+
     return null;
   }
 
@@ -263,20 +271,20 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.trim().isEmpty) {
       return 'Password is required';
     }
-    
+
     if (value.trim().length < 6) {
       return 'Password must be at least 6 characters';
     }
-    
+
     return null;
   }
 
   /// Check if form is valid
   bool _isFormValid() {
     return _emailController.text.trim().isNotEmpty &&
-           _passwordController.text.trim().isNotEmpty &&
-           _validateEmail(_emailController.text) == null &&
-           _validatePassword(_passwordController.text) == null;
+        _passwordController.text.trim().isNotEmpty &&
+        _validateEmail(_emailController.text) == null &&
+        _validatePassword(_passwordController.text) == null;
   }
 
   /// Update form state to trigger button enable/disable
@@ -296,9 +304,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await context.read<AuthService>().signIn(
-            _emailController.text.trim(),
-            _passwordController.text.trim(),
-          );
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
 
       if (mounted) {
         // Navigate to home screen using the router
@@ -336,13 +344,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _launchSignUpUrl() async {
     const url = 'https://signup.kviktime.se';
     final uri = Uri.parse(url);
-    
+
     try {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         if (mounted) {
           _showUrlError();
@@ -363,9 +368,7 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

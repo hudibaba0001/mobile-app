@@ -14,16 +14,17 @@ import '../screens/edit_entry_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/contract_settings_screen.dart';
 import '../screens/forgot_password_screen.dart';
+import '../screens/profile_screen.dart';
 
 // Fallback screens (for routes not yet implemented)
 import '../screens/home_screen.dart';
 import '../screens/travel_entries_screen.dart';
 
 /// App Router configuration for unified Entry model architecture
-/// 
+///
 /// This router is designed to work with the new unified Entry model
 /// and provides navigation for both travel and work entry types.
-/// 
+///
 /// Key Features:
 /// - Named routes for consistent navigation
 /// - Helper methods for programmatic navigation
@@ -40,7 +41,8 @@ class AppRouter {
   static const String contractSettingsPath = '/contract-settings';
   static const String editEntryPath = '/edit-entry/:entryId';
   static const String forgotPasswordPath = '/forgot-password';
-  
+  static const String profilePath = '/profile';
+
   // Route names for named navigation
   static const String welcomeName = 'welcome';
   static const String loginName = 'login';
@@ -50,14 +52,17 @@ class AppRouter {
   static const String contractSettingsName = 'contractSettings';
   static const String editEntryName = 'editEntry';
   static const String forgotPasswordName = 'forgotPassword';
-  
+  static const String profileName = 'profile';
+
   /// Main GoRouter configuration with authentication
   static GoRouter get router => _router;
-  
+
   static final _router = GoRouter(
     initialLocation: welcomePath,
     debugLogDiagnostics: true,
-    refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges().asBroadcastStream()),
+    refreshListenable: GoRouterRefreshStream(
+      FirebaseAuth.instance.authStateChanges().asBroadcastStream(),
+    ),
     routes: [
       // Welcome screen route - entry point for new users
       GoRoute(
@@ -65,37 +70,36 @@ class AppRouter {
         name: welcomeName,
         builder: (context, state) => const WelcomeScreen(),
       ),
-      
+
       // Login screen route - accessed via Sign In button
       GoRoute(
         path: loginPath,
         name: loginName,
-        builder: (context, state) => LoginScreen(
-          initialEmail: state.uri.queryParameters['email'],
-        ),
+        builder: (context, state) =>
+            LoginScreen(initialEmail: state.uri.queryParameters['email']),
       ),
-      
+
       // Home screen route - now using UnifiedHomeScreen
       GoRoute(
         path: homePath,
         name: homeName,
         builder: (context, state) => const UnifiedHomeScreen(),
       ),
-      
+
       // History screen route - now using HistoryScreen
       GoRoute(
         path: historyPath,
         name: historyName,
         builder: (context, state) => const HistoryScreen(),
       ),
-      
+
       // Settings screen route - using real SettingsScreen
       GoRoute(
         path: settingsPath,
         name: settingsName,
         builder: (context, state) => const SettingsScreen(),
       ),
-      
+
       // Contract Settings screen route - new route
       GoRoute(
         path: contractSettingsPath,
@@ -109,7 +113,21 @@ class AppRouter {
         name: forgotPasswordName,
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
-      
+
+      // Profile screen route
+      GoRoute(
+        path: profilePath,
+        name: profileName,
+        builder: (context, state) => const ProfileScreen(),
+      ),
+
+      // Profile screen route
+      GoRoute(
+        path: profilePath,
+        name: profileName,
+        builder: (context, state) => const ProfileScreen(),
+      ),
+
       // Edit entry screen route with entry type support - now using real EditEntryScreen
       GoRoute(
         path: editEntryPath,
@@ -121,37 +139,38 @@ class AppRouter {
         },
       ),
     ],
-    
+
     // Error handling
     errorBuilder: (context, state) => _ErrorScreen(error: state.error),
-    
+
     // Authentication redirect logic
     redirect: (BuildContext context, GoRouterState state) {
       final isLoggedIn = FirebaseAuth.instance.currentUser != null;
-      final isLoggingIn = state.uri.path == loginPath || state.uri.path == welcomePath;
-      
+      final isLoggingIn =
+          state.uri.path == loginPath || state.uri.path == welcomePath;
+
       // If user is not logged in and not on login/welcome, redirect to welcome
       if (!isLoggedIn && !isLoggingIn) {
         return welcomePath;
       }
-      
+
       // If user is logged in and on login/welcome, redirect to home
       if (isLoggedIn && isLoggingIn) {
         return homePath;
       }
-      
+
       // No redirect needed
       return null;
     },
   );
-  
+
   // Helper navigation methods
-  
+
   /// Navigate to the welcome screen (auth not required)
   static void goToWelcome(BuildContext context) {
     context.goNamed(welcomeName);
   }
-  
+
   /// Navigate to the login screen (auth not required)
   static void goToLogin(BuildContext context, {String? email}) {
     if (email != null) {
@@ -160,7 +179,7 @@ class AppRouter {
       context.goNamed(loginName);
     }
   }
-  
+
   /// Navigate to the home screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
   static void goToHome(BuildContext context) {
@@ -171,7 +190,7 @@ class AppRouter {
       goToWelcome(context);
     }
   }
-  
+
   /// Navigate to history screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
   static void goToHistory(BuildContext context) {
@@ -182,7 +201,7 @@ class AppRouter {
       goToWelcome(context);
     }
   }
-  
+
   /// Navigate to settings screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
   static void goToSettings(BuildContext context) {
@@ -193,7 +212,7 @@ class AppRouter {
       goToWelcome(context);
     }
   }
-  
+
   /// Navigate to contract settings screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
   static void goToContractSettings(BuildContext context) {
@@ -204,7 +223,7 @@ class AppRouter {
       goToWelcome(context);
     }
   }
-  
+
   /// Navigate to edit entry screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
   static void goToEditEntry(BuildContext context, {String? entryId}) {
@@ -219,7 +238,7 @@ class AppRouter {
       goToWelcome(context);
     }
   }
-  
+
   /// Smart back navigation with fallback to home
   static void goBackOrHome(BuildContext context) {
     if (GoRouter.of(context).canPop()) {
@@ -228,34 +247,38 @@ class AppRouter {
       goHome(context);
     }
   }
-  
+
   /// Check if we can navigate back
   static bool canPop(BuildContext context) {
     return GoRouter.of(context).canPop();
   }
-  
+
   /// Get current route name
   static String? getCurrentRouteName(BuildContext context) {
-    final RouteMatch lastMatch = GoRouter.of(context).routerDelegate.currentConfiguration.last;
-    final RouteMatchList matchList = lastMatch is ImperativeRouteMatch ? lastMatch.matches : GoRouter.of(context).routerDelegate.currentConfiguration;
+    final RouteMatch lastMatch = GoRouter.of(
+      context,
+    ).routerDelegate.currentConfiguration.last;
+    final RouteMatchList matchList = lastMatch is ImperativeRouteMatch
+        ? lastMatch.matches
+        : GoRouter.of(context).routerDelegate.currentConfiguration;
     return matchList.last.route.name;
   }
-  
+
   /// Navigate with path (alternative to named navigation)
   static void goToPath(BuildContext context, String path) {
     context.go(path);
   }
-  
+
   /// Replace current route (no back navigation)
   static void replaceWithHome(BuildContext context) {
     context.goNamed(homeName);
   }
-  
+
   /// Navigate to edit entry for travel type (convenience method)
   static void goToEditTravelEntry(BuildContext context, String entryId) {
     goToEditEntry(context, entryId, entryType: 'travel');
   }
-  
+
   /// Navigate to edit entry for work type (convenience method)
   static void goToEditWorkEntry(BuildContext context, String entryId) {
     goToEditEntry(context, entryId, entryType: 'work');
@@ -264,6 +287,11 @@ class AppRouter {
   /// Navigate to forgot password screen
   static void goToForgotPassword(BuildContext context) {
     context.goNamed(forgotPasswordName);
+  }
+
+  /// Navigate to profile screen
+  static void goToProfile(BuildContext context) {
+    context.goNamed(profileName);
   }
 }
 
@@ -287,28 +315,18 @@ class _ErrorScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.red,
-              ),
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
               const SizedBox(height: 16),
               const Text(
                 'Oops! Something went wrong.',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               Text(
                 error?.toString() ?? 'Unknown navigation error occurred',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
               const SizedBox(height: 32),
               Row(

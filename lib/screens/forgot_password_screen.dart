@@ -47,16 +47,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 32),
-                
+
                 // Icon
                 Icon(
                   Icons.lock_reset_rounded,
                   size: 64,
                   color: colorScheme.primary,
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Title
                 Text(
                   'Forgot your password?',
@@ -66,9 +66,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Description
                 Text(
                   'Enter your email address and we\'ll send you a link to reset your password.',
@@ -77,9 +77,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 48),
-                
+
                 // Email field
                 TextFormField(
                   controller: _emailController,
@@ -98,9 +98,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   validator: _validateEmail,
                   onFieldSubmitted: (_) => _handleResetPassword(),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Send Reset Link button
                 FilledButton(
                   onPressed: _isLoading ? null : _handleResetPassword,
@@ -125,9 +125,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         )
                       : const Text('Send Reset Link'),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Back to Sign In button
                 TextButton(
                   onPressed: () => AppRouter.goToLogin(context),
@@ -146,13 +146,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (value == null || value.trim().isEmpty) {
       return 'Email is required';
     }
-    
+
     // Basic email regex validation
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Please enter a valid email address';
     }
-    
+
     return null;
   }
 
