@@ -1,84 +1,46 @@
-import 'package:hive/hive.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hive/hive.dart';
 import '../models/entry.dart';
 import '../utils/error_handler.dart';
 import '../utils/retry_helper.dart';
 
-/// Service for syncing unified Entry data with Firestore (replaces old sync services)
-/// Syncs to 'entries' collection instead of 'travelEntries', filtering by EntryType.travel
+/// Service for syncing unified Entry data with Firestore
+/// Updated to work with the unified Entry model instead of TravelTimeEntry
+/// Syncs only travel entries (EntryType.travel) to maintain backward compatibility
+/// 
+/// Key Changes:
+/// 1. Changed Firestore collection from 'travelEntries' to unified 'entries'
+/// 2. All sync methods now filter by EntryType.travel
+/// 3. Uses Entry.toFirestore() and Entry.fromFirestore() for serialization
+/// 4. Maintains conflict resolution and error handling
+/// 5. Supports future expansion to other entry types
 class SyncService {
-  static const String _entriesBoxName = 'entries';
-  static const String _syncStatusKey = 'last_sync_timestamp';
-  
-  // Firestore collection name - changed from 'travelEntries' to unified 'entries'
-  static const String _firestoreCollection = 'entries';
-  
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  // Changed from 'travelEntries' to unified 'entries' collection
+  static const String _entriesCollection = 'entries';
+  static const String _entriesBoxName = 'entries';
+  static const String _settingsBoxName = 'app_settings';
+  static const String _syncStatusKey = 'last_sync_timestamp';
 
-  /// Get the Hive box for entries
+  /// Get the Hive box for unified entries
   Future<Box<Entry>> _getEntriesBox() async {
     return await Hive.openBox<Entry>(_entriesBoxName);
   }
 
   /// Get the settings box for sync metadata
   Future<Box> _getSettingsBox() async {
-    return await Hive.openBox('app_settings');
+    return await Hive.openBox(_settingsBoxName);
   }
 
-  /// Get all travel entries that need to be synced to Firestore
-  Future<List<Entry>> getTravelEntriesToSync() async {
+  /// Sync entries by type to Firestore using unified Entry model
+  /// Only syncs entries where type == specified EntryType
+  /// 
+  /// This replaces the old syncTravelEntries method with type-specific filtering
+  Future<SyncResult> syncEntriesByType(EntryType entryType, String userId) async {
     try {
       return await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          
-          // Filter only travel entries from unified box for syncing
-          return box.values
-              .where((entry) => entry.type == EntryType.travel)
-              .toList()
-            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Get travel entries modified since last sync
-  Future<List<Entry>> getTravelEntriesModifiedSince(DateTime lastSync) async {
-    try {
-      return await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          
-          // Filter travel entries modified since last sync from unified box
-          return box.values
-              .where((entry) => 
-                  entry.type == EntryType.travel &&
-                  (entry.updatedAt?.isAfter(lastSync) ?? entry.createdAt.isAfter(lastSync)))
-              .toList()
-            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Sync travel entries by type to Firestore 'entries' collection
-  /// Replaces old syncTravelEntries method with type-specific filtering
-  Future<SyncResult> syncEntriesByType(EntryType type, String userId) async {
-    if (type != EntryType.travel) {
-      throw ArgumentError('SyncService currently only supports travel entries');
-    }
-
-    try {
-      return await RetryHelper.executeWithRetry(
-        () async => _performTravelSync(userId),
+        () async => _syncEntriesByTypeInternal(entryType, userId),
         shouldRetry: RetryHelper.shouldRetryNetworkError,
       );
     } catch (error, stackTrace) {
@@ -87,28 +49,25 @@ class SyncService {
     }
   }
 
-  /// Internal method to perform travel entry sync with Firestore
-  Future<SyncResult> _performTravelSync(String userId) async {
+  /// Internal method to sync entries by type to Firestore
+  Future<SyncResult> _syncEntriesByTypeInternal(EntryType entryType, String userId) async {
     final stopwatch = Stopwatch()..start();
     int uploadedCount = 0;
     int downloadedCount = 0;
     final errors = <String>[];
 
     try {
-      // Get last sync timestamp
-      final settingsBox = await _getSettingsBox();
-      final lastSyncTimestamp = settingsBox.get(_syncStatusKey) as int?;
-      final lastSync = lastSyncTimestamp != null 
-          ? DateTime.fromMillisecondsSinceEpoch(lastSyncTimestamp)
-          : DateTime.fromMillisecondsSinceEpoch(0);
+      // Get last sync timestamp for this entry type
+      final lastSync = await getLastSyncTimeByType(entryType, userId);
+      final cutoffDate = lastSync ?? DateTime.fromMillisecondsSinceEpoch(0);
 
-      // Upload local travel entries to Firestore 'entries' collection
-      final localEntries = await getTravelEntriesModifiedSince(lastSync);
+      // Upload local entries of specified type to Firestore
+      final localEntries = await getEntriesModifiedSince(entryType, cutoffDate);
       for (final entry in localEntries) {
         try {
-          // Upload to 'entries' collection with type filter
+          // Upload to unified 'entries' collection with Entry.toFirestore()
           await _firestore
-              .collection(_firestoreCollection)
+              .collection(_entriesCollection)
               .doc('${userId}_${entry.id}')
               .set(entry.toFirestore());
           uploadedCount++;
@@ -117,31 +76,14 @@ class SyncService {
         }
       }
 
-      // Download travel entries from Firestore 'entries' collection
-      final query = _firestore
-          .collection(_firestoreCollection)
-          .where('userId', isEqualTo: userId)
-          .where('type', isEqualTo: EntryType.travel.name) // Filter by travel type
-          .where('updatedAt', isGreaterThan: Timestamp.fromDate(lastSync));
+      // Download entries of specified type from Firestore
+      await _downloadEntriesByType(entryType, userId, cutoffDate, (count, errorList) {
+        downloadedCount = count;
+        errors.addAll(errorList);
+      });
 
-      final snapshot = await query.get();
-      final box = await _getEntriesBox();
-
-      for (final doc in snapshot.docs) {
-        try {
-          final entry = Entry.fromFirestoreMap(doc.data());
-          // Only process travel entries from Firestore
-          if (entry.type == EntryType.travel) {
-            await box.put(entry.id, entry);
-            downloadedCount++;
-          }
-        } catch (e) {
-          errors.add('Failed to download entry ${doc.id}: $e');
-        }
-      }
-
-      // Update last sync timestamp
-      await settingsBox.put(_syncStatusKey, DateTime.now().millisecondsSinceEpoch);
+      // Update last sync timestamp for this entry type
+      await updateLastSyncTimeByType(entryType, userId);
 
       stopwatch.stop();
 
@@ -151,6 +93,7 @@ class SyncService {
         downloadedCount: downloadedCount,
         duration: stopwatch.elapsed,
         errors: errors,
+        entryType: entryType,
       );
 
     } catch (e) {
@@ -161,27 +104,136 @@ class SyncService {
         downloadedCount: downloadedCount,
         duration: stopwatch.elapsed,
         errors: [...errors, 'Sync failed: $e'],
+        entryType: entryType,
       );
     }
   }
 
-  /// Push local travel entries to Firestore 'entries' collection
-  Future<int> pushTravelEntriesToFirestore(String userId) async {
+  /// Download entries by type from Firestore using unified Entry model
+  /// Only downloads entries where type == specified EntryType
+  Future<void> _downloadEntriesByType(
+    EntryType entryType, 
+    String userId, 
+    DateTime lastSync,
+    Function(int count, List<String> errors) callback,
+  ) async {
+    int downloadedCount = 0;
+    final errors = <String>[];
+
     try {
-      final entries = await getTravelEntriesToSync();
+      // Query unified 'entries' collection filtering by type and user
+      final query = _firestore
+          .collection(_entriesCollection)
+          .where('userId', isEqualTo: userId)
+          .where('type', isEqualTo: entryType.name) // Filter by entry type
+          .where('updatedAt', isGreaterThan: Timestamp.fromDate(lastSync));
+
+      final snapshot = await query.get();
+      final box = await _getEntriesBox();
+
+      for (final doc in snapshot.docs) {
+        try {
+          // Use Entry.fromFirestore() method for consistent deserialization
+          final entry = Entry.fromFirestore(doc);
+          
+          // Double-check the type matches (safety check)
+          if (entry.type == entryType) {
+            // Handle conflict resolution
+            final existingEntry = box.get(entry.id);
+            if (existingEntry != null) {
+              // Resolve conflict by choosing the most recently updated entry
+              final shouldUpdate = entry.updatedAt != null && 
+                  existingEntry.updatedAt != null &&
+                  entry.updatedAt!.isAfter(existingEntry.updatedAt!);
+              
+              if (shouldUpdate) {
+                await box.put(entry.id, entry);
+                downloadedCount++;
+              }
+            } else {
+              // New entry, add it
+              await box.put(entry.id, entry);
+              downloadedCount++;
+            }
+          }
+        } catch (e) {
+          errors.add('Failed to download entry ${doc.id}: $e');
+        }
+      }
+    } catch (e) {
+      errors.add('Failed to query Firestore: $e');
+    }
+
+    callback(downloadedCount, errors);
+  }
+
+  /// Convenience method to sync only travel entries (maintains backward compatibility)
+  Future<SyncResult> syncTravelEntries(String userId) async {
+    return await syncEntriesByType(EntryType.travel, userId);
+  }
+
+  /// Get entries of specified type modified since a given date
+  Future<List<Entry>> getEntriesModifiedSince(EntryType entryType, DateTime lastSync) async {
+    try {
+      return await RetryHelper.executeWithRetry(
+        () async {
+          final box = await _getEntriesBox();
+          
+          // Filter entries by type and modification date from unified box
+          return box.values
+              .where((entry) => 
+                  entry.type == entryType &&
+                  (entry.updatedAt?.isAfter(lastSync) == true ||
+                   entry.createdAt.isAfter(lastSync)))
+              .toList()
+            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        },
+        shouldRetry: RetryHelper.shouldRetryStorageError,
+      );
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
+
+  /// Get all entries of specified type that need to be synced
+  Future<List<Entry>> getEntriesByType(EntryType entryType) async {
+    try {
+      return await RetryHelper.executeWithRetry(
+        () async {
+          final box = await _getEntriesBox();
+          
+          // Filter only entries of specified type from unified box
+          return box.values
+              .where((entry) => entry.type == entryType)
+              .toList()
+            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        },
+        shouldRetry: RetryHelper.shouldRetryStorageError,
+      );
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
+
+  /// Push local entries of specified type to Firestore
+  Future<int> pushEntriesByType(EntryType entryType, String userId) async {
+    try {
+      final entries = await getEntriesByType(entryType);
       int pushedCount = 0;
 
       for (final entry in entries) {
         try {
-          // Push to 'entries' collection instead of 'travelEntries'
+          // Push to unified 'entries' collection using Entry.toFirestore()
           await _firestore
-              .collection(_firestoreCollection)
+              .collection(_entriesCollection)
               .doc('${userId}_${entry.id}')
               .set(entry.toFirestore());
           pushedCount++;
         } catch (e) {
           // Log error but continue with other entries
-          print('Failed to push entry ${entry.id}: $e');
+          print('Failed to push ${entryType.name} entry ${entry.id}: $e');
         }
       }
 
@@ -192,14 +244,14 @@ class SyncService {
     }
   }
 
-  /// Pull travel entries from Firestore 'entries' collection
-  Future<int> pullTravelEntriesFromFirestore(String userId) async {
+  /// Pull entries of specified type from Firestore
+  Future<int> pullEntriesByType(EntryType entryType, String userId) async {
     try {
-      // Query 'entries' collection filtering by travel type
+      // Query unified 'entries' collection filtering by type
       final query = _firestore
-          .collection(_firestoreCollection)
+          .collection(_entriesCollection)
           .where('userId', isEqualTo: userId)
-          .where('type', isEqualTo: EntryType.travel.name);
+          .where('type', isEqualTo: entryType.name);
 
       final snapshot = await query.get();
       final box = await _getEntriesBox();
@@ -207,15 +259,17 @@ class SyncService {
 
       for (final doc in snapshot.docs) {
         try {
-          final entry = Entry.fromFirestoreMap(doc.data());
-          // Double-check it's a travel entry before storing
-          if (entry.type == EntryType.travel) {
+          // Use Entry.fromFirestore() for consistent deserialization
+          final entry = Entry.fromFirestore(doc);
+          
+          // Double-check it's the correct entry type before storing
+          if (entry.type == entryType) {
             await box.put(entry.id, entry);
             pulledCount++;
           }
         } catch (e) {
           // Log error but continue with other entries
-          print('Failed to pull entry ${doc.id}: $e');
+          print('Failed to pull ${entryType.name} entry ${doc.id}: $e');
         }
       }
 
@@ -226,11 +280,13 @@ class SyncService {
     }
   }
 
-  /// Get last sync timestamp
-  Future<DateTime?> getLastSyncTime() async {
+  /// Get last sync timestamp for entries of a specific type
+  Future<DateTime?> getLastSyncTimeByType(EntryType entryType, String userId) async {
     try {
       final settingsBox = await _getSettingsBox();
-      final timestamp = settingsBox.get(_syncStatusKey) as int?;
+      final key = '${_syncStatusKey}_${entryType.name}_$userId';
+      final timestamp = settingsBox.get(key) as int?;
+      
       return timestamp != null 
           ? DateTime.fromMillisecondsSinceEpoch(timestamp)
           : null;
@@ -240,13 +296,35 @@ class SyncService {
     }
   }
 
-  /// Check if sync is needed based on local changes
-  Future<bool> isSyncNeeded() async {
+  /// Update last sync timestamp for entries of a specific type
+  Future<void> updateLastSyncTimeByType(EntryType entryType, String userId) async {
     try {
-      final lastSync = await getLastSyncTime();
+      final settingsBox = await _getSettingsBox();
+      final key = '${_syncStatusKey}_${entryType.name}_$userId';
+      await settingsBox.put(key, DateTime.now().millisecondsSinceEpoch);
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
+
+  /// Convenience method to get travel entries sync time (maintains backward compatibility)
+  Future<DateTime?> getLastSyncTime(String userId) async {
+    return await getLastSyncTimeByType(EntryType.travel, userId);
+  }
+
+  /// Convenience method to update travel entries sync time (maintains backward compatibility)
+  Future<void> updateLastSyncTime(String userId) async {
+    await updateLastSyncTimeByType(EntryType.travel, userId);
+  }
+
+  /// Check if sync is needed for entries of a specific type
+  Future<bool> isSyncNeededByType(EntryType entryType, String userId) async {
+    try {
+      final lastSync = await getLastSyncTimeByType(entryType, userId);
       if (lastSync == null) return true;
 
-      final modifiedEntries = await getTravelEntriesModifiedSince(lastSync);
+      final modifiedEntries = await getEntriesModifiedSince(entryType, lastSync);
       return modifiedEntries.isNotEmpty;
     } catch (error) {
       // If we can't determine sync status, assume sync is needed
@@ -254,22 +332,16 @@ class SyncService {
     }
   }
 
-  /// Clear all sync data (for testing or reset purposes)
-  Future<void> clearSyncData() async {
-    try {
-      final settingsBox = await _getSettingsBox();
-      await settingsBox.delete(_syncStatusKey);
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
+  /// Convenience method to check if travel entry sync is needed (maintains backward compatibility)
+  Future<bool> isSyncNeeded(String userId) async {
+    return await isSyncNeededByType(EntryType.travel, userId);
   }
 
-  /// Delete travel entry from Firestore 'entries' collection
-  Future<void> deleteTravelEntryFromFirestore(String userId, String entryId) async {
+  /// Delete entry from Firestore unified 'entries' collection
+  Future<void> deleteEntryFromFirestore(String userId, String entryId) async {
     try {
       await _firestore
-          .collection(_firestoreCollection)
+          .collection(_entriesCollection)
           .doc('${userId}_$entryId')
           .delete();
     } catch (error, stackTrace) {
@@ -278,14 +350,14 @@ class SyncService {
     }
   }
 
-  /// Batch delete multiple travel entries from Firestore
-  Future<void> batchDeleteTravelEntriesFromFirestore(String userId, List<String> entryIds) async {
+  /// Batch delete multiple entries from Firestore
+  Future<void> batchDeleteEntriesFromFirestore(String userId, List<String> entryIds) async {
     try {
       final batch = _firestore.batch();
       
       for (final entryId in entryIds) {
         final docRef = _firestore
-            .collection(_firestoreCollection)
+            .collection(_entriesCollection)
             .doc('${userId}_$entryId');
         batch.delete(docRef);
       }
@@ -296,15 +368,134 @@ class SyncService {
       throw appError;
     }
   }
+
+  /// Full sync operation for entries of a specific type
+  Future<SyncResult> performFullSyncByType(EntryType entryType, String userId) async {
+    try {
+      // Upload local entries of specified type to Firestore
+      final uploadCount = await pushEntriesByType(entryType, userId);
+      
+      // Download remote entries of specified type from Firestore
+      final downloadCount = await pullEntriesByType(entryType, userId);
+      
+      // Update sync timestamp for this entry type
+      await updateLastSyncTimeByType(entryType, userId);
+
+      return SyncResult(
+        success: true,
+        uploadedCount: uploadCount,
+        downloadedCount: downloadCount,
+        duration: Duration.zero, // Not tracking duration in this simple version
+        errors: [],
+        entryType: entryType,
+      );
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleNetworkError(error, stackTrace);
+      return SyncResult(
+        success: false,
+        uploadedCount: 0,
+        downloadedCount: 0,
+        duration: Duration.zero,
+        errors: [appError.message],
+        entryType: entryType,
+      );
+    }
+  }
+
+  /// Convenience method for full travel entries sync (maintains backward compatibility)
+  Future<SyncResult> performFullSync(String userId) async {
+    return await performFullSyncByType(EntryType.travel, userId);
+  }
+
+  /// Sync all entry types for a user
+  Future<List<SyncResult>> performFullSyncAllTypes(String userId) async {
+    final results = <SyncResult>[];
+    
+    try {
+      // Currently only travel entries are implemented
+      // In the future, this will sync work entries too
+      final travelResult = await performFullSyncByType(EntryType.travel, userId);
+      results.add(travelResult);
+      
+      // TODO: Add work entries sync when work tracking is implemented
+      // final workResult = await performFullSyncByType(EntryType.work, userId);
+      // results.add(workResult);
+      
+      return results;
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleNetworkError(error, stackTrace);
+      results.add(SyncResult(
+        success: false,
+        uploadedCount: 0,
+        downloadedCount: 0,
+        duration: Duration.zero,
+        errors: [appError.message],
+        entryType: EntryType.travel,
+      ));
+      return results;
+    }
+  }
+
+  /// Get sync statistics for entries of a specific type
+  Future<Map<String, dynamic>> getSyncStatisticsByType(EntryType entryType, String userId) async {
+    try {
+      final entries = await getEntriesByType(entryType);
+      final lastSync = await getLastSyncTimeByType(entryType, userId);
+      final needsSync = await isSyncNeededByType(entryType, userId);
+
+      return {
+        'entryType': entryType.name,
+        'totalEntries': entries.length,
+        'lastSyncAt': lastSync?.toIso8601String(),
+        'needsSync': needsSync,
+        'syncEnabled': true,
+      };
+    } catch (error) {
+      return {
+        'entryType': entryType.name,
+        'totalEntries': 0,
+        'lastSyncAt': null,
+        'needsSync': false,
+        'syncEnabled': false,
+        'error': error.toString(),
+      };
+    }
+  }
+
+  /// Clear all sync data for a specific entry type (for testing or reset purposes)
+  Future<void> clearSyncDataByType(EntryType entryType, String userId) async {
+    try {
+      final settingsBox = await _getSettingsBox();
+      final key = '${_syncStatusKey}_${entryType.name}_$userId';
+      await settingsBox.delete(key);
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
+
+  /// Clear all sync data (for testing or reset purposes)
+  Future<void> clearAllSyncData(String userId) async {
+    try {
+      // Clear sync data for all entry types
+      await clearSyncDataByType(EntryType.travel, userId);
+      // TODO: Add other entry types when implemented
+      // await clearSyncDataByType(EntryType.work, userId);
+    } catch (error, stackTrace) {
+      final appError = ErrorHandler.handleStorageError(error, stackTrace);
+      throw appError;
+    }
+  }
 }
 
-/// Result object for sync operations
+/// Result object for sync operations with entry type information
 class SyncResult {
   final bool success;
   final int uploadedCount;
   final int downloadedCount;
   final Duration duration;
   final List<String> errors;
+  final EntryType entryType;
 
   const SyncResult({
     required this.success,
@@ -312,6 +503,7 @@ class SyncResult {
     required this.downloadedCount,
     required this.duration,
     required this.errors,
+    required this.entryType,
   });
 
   /// Get total number of entries processed
@@ -326,281 +518,30 @@ class SyncResult {
 
   /// Human-readable summary
   String get summary {
+    final typeStr = entryType.name;
     if (success) {
-      return 'Sync completed: $uploadedCount uploaded, $downloadedCount downloaded in ${duration.inMilliseconds}ms';
+      return 'Sync completed for $typeStr: $uploadedCount uploaded, $downloadedCount downloaded in ${duration.inMilliseconds}ms';
     } else {
-      return 'Sync completed with ${errors.length} errors: $uploadedCount uploaded, $downloadedCount downloaded';
+      return 'Sync completed for $typeStr with ${errors.length} errors: $uploadedCount uploaded, $downloadedCount downloaded';
     }
+  }
+
+  /// Convert to JSON for logging/debugging
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'uploadedCount': uploadedCount,
+      'downloadedCount': downloadedCount,
+      'duration': duration.inMilliseconds,
+      'errors': errors,
+      'entryType': entryType.name,
+      'totalProcessed': totalProcessed,
+      'successRate': successRate,
+    };
   }
 
   @override
   String toString() {
-    return 'SyncResult(success: $success, uploaded: $uploadedCount, downloaded: $downloadedCount, errors: ${errors.length})';
-  }
-          return box.values
-              .where((entry) => 
-                  entry.type == EntryType.travel &&
-                  (entry.updatedAt?.isAfter(lastSync) == true ||
-                   entry.createdAt.isAfter(lastSync)))
-              .toList()
-            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Sync travel entries to cloud (placeholder for future cloud implementation)
-  Future<bool> syncTravelEntriesToCloud() async {
-    try {
-      return await RetryHelper.executeWithRetry(
-        () async {
-          // Get only travel entries for syncing
-          final travelEntries = await getTravelEntriesToSync();
-          
-          // TODO: Implement actual cloud sync logic here
-          // For now, just simulate sync success
-          await Future.delayed(const Duration(milliseconds: 500));
-          
-          // Update last sync timestamp
-          await _updateLastSyncTimestamp();
-          
-          return true;
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Sync travel entries from cloud (placeholder for future cloud implementation)
-  Future<List<Entry>> syncTravelEntriesFromCloud() async {
-    try {
-      return await RetryHelper.executeWithRetry(
-        () async {
-          // TODO: Implement actual cloud sync logic here
-          // For now, return empty list
-          await Future.delayed(const Duration(milliseconds: 500));
-          
-          return <Entry>[];
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Add synced travel entry to local storage
-  Future<void> addSyncedTravelEntry(Entry entry) async {
-    try {
-      // Ensure this is a travel entry
-      if (entry.type != EntryType.travel) {
-        throw ArgumentError('SyncService only handles travel entries');
-      }
-
-      await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          // Add to unified entries box
-          await box.put(entry.id, entry);
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Update synced travel entry in local storage
-  Future<void> updateSyncedTravelEntry(Entry entry) async {
-    try {
-      // Ensure this is a travel entry
-      if (entry.type != EntryType.travel) {
-        throw ArgumentError('SyncService only handles travel entries');
-      }
-
-      await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          // Update in unified entries box
-          await box.put(entry.id, entry);
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Delete synced travel entry from local storage
-  Future<void> deleteSyncedTravelEntry(String entryId) async {
-    try {
-      await RetryHelper.executeWithRetry(
-        () async {
-          final box = await _getEntriesBox();
-          final entry = box.get(entryId);
-          
-          // Only delete if it's a travel entry
-          if (entry != null && entry.type == EntryType.travel) {
-            await box.delete(entryId);
-          }
-        },
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  /// Get last sync timestamp
-  Future<DateTime?> getLastSyncTimestamp() async {
-    try {
-      final box = await _getSettingsBox();
-      final timestamp = box.get(_syncStatusKey);
-      return timestamp != null ? DateTime.parse(timestamp) : null;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  /// Update last sync timestamp
-  Future<void> _updateLastSyncTimestamp() async {
-    try {
-      final box = await _getSettingsBox();
-      await box.put(_syncStatusKey, DateTime.now().toIso8601String());
-    } catch (error) {
-      // Ignore sync timestamp update errors
-    }
-  }
-
-  /// Check if sync is needed (has unsync travel entries)
-  Future<bool> isSyncNeeded() async {
-    try {
-      final lastSync = await getLastSyncTimestamp();
-      if (lastSync == null) return true;
-
-      final modifiedEntries = await getTravelEntriesModifiedSince(lastSync);
-      return modifiedEntries.isNotEmpty;
-    } catch (error) {
-      return true; // Assume sync is needed if we can't determine
-    }
-  }
-
-  /// Get sync statistics
-  Future<Map<String, dynamic>> getSyncStatistics() async {
-    try {
-      final travelEntries = await getTravelEntriesToSync();
-      final lastSync = await getLastSyncTimestamp();
-      final needsSync = await isSyncNeeded();
-
-      return {
-        'totalTravelEntries': travelEntries.length,
-        'lastSyncAt': lastSync?.toIso8601String(),
-        'needsSync': needsSync,
-        'syncEnabled': true, // TODO: Make this configurable
-      };
-    } catch (error) {
-      return {
-        'totalTravelEntries': 0,
-        'lastSyncAt': null,
-        'needsSync': false,
-        'syncEnabled': false,
-      };
-    }
-  }
-
-  /// Perform full sync (both directions)
-  Future<SyncResult> performFullSync() async {
-    try {
-      final startTime = DateTime.now();
-      int uploadedCount = 0;
-      int downloadedCount = 0;
-      final errors = <String>[];
-
-      // Upload travel entries to cloud
-      try {
-        final success = await syncTravelEntriesToCloud();
-        if (success) {
-          final travelEntries = await getTravelEntriesToSync();
-          uploadedCount = travelEntries.length;
-        }
-      } catch (error) {
-        errors.add('Upload failed: $error');
-      }
-
-      // Download travel entries from cloud
-      try {
-        final downloadedEntries = await syncTravelEntriesFromCloud();
-        downloadedCount = downloadedEntries.length;
-        
-        // Add downloaded entries to local storage
-        for (final entry in downloadedEntries) {
-          await addSyncedTravelEntry(entry);
-        }
-      } catch (error) {
-        errors.add('Download failed: $error');
-      }
-
-      final duration = DateTime.now().difference(startTime);
-      final success = errors.isEmpty;
-
-      return SyncResult(
-        success: success,
-        uploadedCount: uploadedCount,
-        downloadedCount: downloadedCount,
-        duration: duration,
-        errors: errors,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      return SyncResult(
-        success: false,
-        uploadedCount: 0,
-        downloadedCount: 0,
-        duration: Duration.zero,
-        errors: [appError.message],
-      );
-    }
-  }
-}
-
-/// Result object for sync operations
-class SyncResult {
-  final bool success;
-  final int uploadedCount;
-  final int downloadedCount;
-  final Duration duration;
-  final List<String> errors;
-
-  const SyncResult({
-    required this.success,
-    required this.uploadedCount,
-    required this.downloadedCount,
-    required this.duration,
-    required this.errors,
-  });
-
-  /// Human-readable summary
-  String get summary {
-    if (success) {
-      return 'Sync completed: $uploadedCount uploaded, $downloadedCount downloaded in ${duration.inSeconds}s';
-    } else {
-      return 'Sync failed: ${errors.join(', ')}';
-    }
-  }
-
-  @override
-  String toString() {
-    return 'SyncResult(success: $success, uploaded: $uploadedCount, downloaded: $downloadedCount, duration: ${duration.inMilliseconds}ms)';
+    return 'SyncResult(${entryType.name}: success: $success, uploaded: $uploadedCount, downloaded: $downloadedCount, errors: ${errors.length})';
   }
 }

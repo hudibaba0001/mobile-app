@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PieChartStats Widget - Material 3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #1d1b20;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .demo-container {
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .chart-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chart-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .header-icon {
+            width: 48px;
+            height: 48px;
+            background: #e8f5e8;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+        }
+        
+        .header-icon .material-icons {
+            color: #1d1b20;
+            font-size: 24px;
+        }
+        
+        .header-content h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1b20;
+            margin-bottom: 4px;
+        }
+        
+        .header-content p {
+            font-size: 12px;
+            color: rgba(29, 27, 32, 0.7);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pie-chart {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            position: relative;
+            background: conic-gradient(
+                from 0deg,
+                #03dac6 0deg 288deg,
+                #6750a4 288deg 360deg
+            );
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .pie-chart::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .chart-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 2;
+        }
+        
+        .center-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1d1b20;
+            margin-bottom: 2px;
+        }
+        
+        .center-label {
+            font-size: 12px;
+            color: rgba(29, 27, 32, 0.7);
+        }
+        
+        .legend {
+            margin-bottom: 16px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .legend-item:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .legend-item.selected {
+            background: rgba(103, 80, 164, 0.1);
+            border: 1px solid rgba(103, 80, 164, 0.3);
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .legend-color.work {
+            background: #03dac6;
+        }
+        
+        .legend-color.travel {
+            background: #6750a4;
+        }
+        
+        .legend-content {
+            flex: 1;
+        }
+        
+        .legend-label {
+            font-size: 14px;
+            color: #1d1b20;
+            margin-bottom: 2px;
+        }
+        
+        .legend-values {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .legend-time {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        .legend-percentage {
+            font-size: 12px;
+            color: rgba(29, 27, 32, 0.7);
+        }
+        
+        .total-section {
+            border-top: 1px solid rgba(121, 116, 126, 0.2);
+            padding-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .total-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1d1b20;
+        }
+        
+        .total-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6750a4;
+        }
+        
+        .demo-controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .demo-button {
+            background: #6750a4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 8px 8px 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .demo-button:hover {
+            background: #5a3d99;
+            transform: translateY(-1px);
+        }
+        
+        .demo-button:active {
+            transform: translateY(0);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+        
+        .empty-state .material-icons {
+            font-size: 64px;
+            color: rgba(121, 116, 126, 0.5);
+            margin-bottom: 16px;
+        }
+        
+        .empty-state h3 {
+            font-size: 16px;
+            color: rgba(29, 27, 32, 0.7);
+            margin-bottom: 8px;
+        }
+        
+        .empty-state p {
+            font-size: 12px;
+            color: rgba(29, 27, 32, 0.5);
+        }
+        
+        /* Animations */
+        .pie-chart {
+            animation: chartAppear 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        @keyframes chartAppear {
+            0% {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        
+        .legend-item {
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: legendSlideIn 0.6s ease-out forwards;
+        }
+        
+        .legend-item:nth-child(1) {
+            animation-delay: 0.3s;
+        }
+        
+        .legend-item:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+        
+        @keyframes legendSlideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Hover effects */
+        .pie-chart:hover {
+            transform: scale(1.05);
+        }
+        
+        .pie-chart.work-hover {
+            background: conic-gradient(
+                from 0deg,
+                #00c4a7 0deg 288deg,
+                #6750a4 288deg 360deg
+            );
+        }
+        
+        .pie-chart.travel-hover {
+            background: conic-gradient(
+                from 0deg,
+                #03dac6 0deg 288deg,
+                #5a3d99 288deg 360deg
+            );
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="header-icon">
+                    <span class="material-icons">pie_chart</span>
+                </div>
+                <div class="header-content">
+                    <h3>Time Distribution</h3>
+                    <p id="dateRange">Today</p>
+                </div>
+            </div>
+            
+            <div class="chart-container" id="chartContainer">
+                <div class="pie-chart" id="pieChart">
+                    <div class="chart-center">
+                        <div class="center-value" id="centerValue">10h</div>
+                        <div class="center-label">Total</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="legend" id="legend">
+                <div class="legend-item" data-type="work" onclick="selectLegendItem('work')">
+                    <div class="legend-color work"></div>
+                    <div class="legend-content">
+                        <div class="legend-label">Work Time</div>
+                    </div>
+                    <div class="legend-values">
+                        <div class="legend-time" id="workTime">8h</div>
+                        <div class="legend-percentage" id="workPercentage">80%</div>
+                    </div>
+                </div>
+                
+                <div class="legend-item" data-type="travel" onclick="selectLegendItem('travel')">
+                    <div class="legend-color travel"></div>
+                    <div class="legend-content">
+                        <div class="legend-label">Travel Time</div>
+                    </div>
+                    <div class="legend-values">
+                        <div class="legend-time" id="travelTime">2h</div>
+                        <div class="legend-percentage" id="travelPercentage">20%</div>
+                    </div>
+                </div>
+                
+                <div class="total-section">
+                    <div class="total-label">Total Time</div>
+                    <div class="total-value" id="totalTime">10h</div>
+                </div>
+            </div>
+            
+            <div class="empty-state" id="emptyState">
+                <span class="material-icons">pie_chart_outline</span>
+                <h3>No data available</h3>
+                <p>Start tracking your time to see statistics</p>
+            </div>
+        </div>
+        
+        <div class="demo-controls">
+            <button class="demo-button" onclick="updateChart('balanced')">Balanced Data</button>
+            <button class="demo-button" onclick="updateChart('unbalanced')">Unbalanced Data</button>
+            <button class="demo-button" onclick="updateChart('empty')">Empty State</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedLegendItem = null;
+        
+        function selectLegendItem(type) {
+            // Remove previous selection
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            const pieChart = document.getElementById('pieChart');
+            pieChart.className = 'pie-chart';
+            
+            if (selectedLegendItem === type) {
+                // Deselect if clicking the same item
+                selectedLegendItem = null;
+            } else {
+                // Select new item
+                selectedLegendItem = type;
+                document.querySelector(`[data-type="${type}"]`).classList.add('selected');
+                pieChart.classList.add(`${type}-hover`);
+            }
+        }
+        
+        function updateChart(dataType) {
+            const chartContainer = document.getElementById('chartContainer');
+            const legend = document.getElementById('legend');
+            const emptyState = document.getElementById('emptyState');
+            const pieChart = document.getElementById('pieChart');
+            const centerValue = document.getElementById('centerValue');
+            const dateRange = document.getElementById('dateRange');
+            
+            // Reset selection
+            selectedLegendItem = null;
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            pieChart.className = 'pie-chart';
+            
+            if (dataType === 'empty') {
+                chartContainer.style.display = 'none';
+                legend.style.display = 'none';
+                emptyState.style.display = 'block';
+                dateRange.textContent = 'No data period';
+            } else {
+                chartContainer.style.display = 'flex';
+                legend.style.display = 'block';
+                emptyState.style.display = 'none';
+                
+                if (dataType === 'balanced') {
+                    // 80% work, 20% travel
+                    pieChart.style.background = `conic-gradient(
+                        from 0deg,
+                        #03dac6 0deg 288deg,
+                        #6750a4 288deg 360deg
+                    )`;
+                    centerValue.textContent = '10h';
+                    document.getElementById('workTime').textContent = '8h';
+                    document.getElementById('workPercentage').textContent = '80%';
+                    document.getElementById('travelTime').textContent = '2h';
+                    document.getElementById('travelPercentage').textContent = '20%';
+                    document.getElementById('totalTime').textContent = '10h';
+                    dateRange.textContent = 'Today';
+                } else if (dataType === 'unbalanced') {
+                    // 40% work, 60% travel
+                    pieChart.style.background = `conic-gradient(
+                        from 0deg,
+                        #03dac6 0deg 144deg,
+                        #6750a4 144deg 360deg
+                    )`;
+                    centerValue.textContent = '7h 30m';
+                    document.getElementById('workTime').textContent = '3h';
+                    document.getElementById('workPercentage').textContent = '40%';
+                    document.getElementById('travelTime').textContent = '4h 30m';
+                    document.getElementById('travelPercentage').textContent = '60%';
+                    document.getElementById('totalTime').textContent = '7h 30m';
+                    dateRange.textContent = 'Last 7 days';
+                }
+                
+                // Restart animation
+                pieChart.style.animation = 'none';
+                setTimeout(() => {
+                    pieChart.style.animation = 'chartAppear 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                }, 10);
+            }
+        }
+        
+        // Add hover effects to pie chart sections
+        document.getElementById('pieChart').addEventListener('mousemove', function(e) {
+            if (selectedLegendItem) return;
+            
+            const rect = this.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+            const degrees = (angle * 180 / Math.PI + 360) % 360;
+            
+            // Determine which section is being hovered (assuming 80/20 split)
+            if (degrees >= 0 && degrees <= 288) {
+                this.className = 'pie-chart work-hover';
+            } else {
+                this.className = 'pie-chart travel-hover';
+            }
+        });
+        
+        document.getElementById('pieChart').addEventListener('mouseleave', function() {
+            if (!selectedLegendItem) {
+                this.className = 'pie-chart';
+            }
+        });
+        
+        // Initialize with balanced data
+        updateChart('balanced');
+    </script>
+</body>
+</html>

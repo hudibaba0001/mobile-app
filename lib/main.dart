@@ -3,20 +3,28 @@ import 'package:provider/provider.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// Old models (kept for migration compatibility)
 import 'models/travel_time_entry.dart';
 import 'models/location.dart';
+// New unified Entry model
 import 'models/entry.dart';
+// Migration service
 import 'services/entry_migration_service.dart';
+// New unified services (replacing old TravelService)
+import 'services/entry_service.dart';
+import 'services/sync_service.dart';
+// App configuration
 import 'utils/constants.dart';
 import 'config/app_router.dart';
 import 'config/app_theme.dart';
-import 'providers/travel_provider.dart';
+// Updated providers (EntryProvider replaces TravelProvider)
+import 'providers/entry_provider.dart';
 import 'providers/location_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/filter_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/app_state_provider.dart';
-import 'repositories/hive_travel_repository.dart';
+// Repositories (still needed for location management)
 import 'repositories/hive_location_repository.dart';
 
 void main() async {
@@ -25,7 +33,7 @@ void main() async {
   // Initialize Hive and register adapters
   await Hive.initFlutter();
   
-  // Register old adapters
+  // Register old adapters (kept for migration compatibility)
   Hive.registerAdapter(TravelTimeEntryAdapter());
   Hive.registerAdapter(LocationAdapter());
   
@@ -33,6 +41,10 @@ void main() async {
   Hive.registerAdapter(EntryAdapter());
   Hive.registerAdapter(EntryTypeAdapter());
   Hive.registerAdapter(ShiftAdapter());
+  
+  // Initialize services before creating providers
+  final entryService = EntryService();
+  final syncService = SyncService();
   
   // Access shared preferences for migration flag
   final prefs = await SharedPreferences.getInstance();
@@ -46,24 +58,50 @@ void main() async {
       home: _MigrationScreen(onComplete: () async {
         // Mark migration as done and start app
         await prefs.setBool('didMigrate', true);
-        runApp(_buildMainApp());
+        runApp(_buildMainApp(entryService, syncService));
       }),
     ));
   } else {
-    // Normal app startup
-    runApp(_buildMainApp());
+    // Normal app startup with unified services
+    runApp(_buildMainApp(entryService, syncService));
   }
 }
 
-/// Build the main app with all providers
-Widget _buildMainApp() {
+/// Build the main app with all providers using unified Entry model
+/// Updated to use EntryProvider instead of TravelProvider
+Widget _buildMainApp(EntryService entryService, SyncService syncService) {
   return MultiProvider(
     providers: [
+      // Core app providers
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),
-      // Updated to use EntryService instead of TravelService
-      ChangeNotifierProvider(create: (_) => TravelProvider()),
-      ChangeNotifierProvider(create: (_) => LocationProvider()),
+      
+      // Service providers (dependency injection)
+      Provider<EntryService>.value(value: entryService),
+      Provider<SyncService>.value(value: syncService),
+      
+      // Repository providers
+      Provider<HiveLocationRepository>(
+        create: (_) => HiveLocationRepository(),
+      ),
+      
+      // State management providers (EntryProvider replaces TravelProvider)
+      ChangeNotifierProvider(
+        create: (_) => EntryProvider(
+          entryService: entryService,
+        ),
+      ),
+      
+      // Location provider (updated to work with new architecture)
+      ChangeNotifierProxyProvider<HiveLocationRepository, LocationProvider>(
+        create: (context) => LocationProvider(
+          repository: Provider.of<HiveLocationRepository>(context, listen: false),
+        ),
+        update: (context, repository, previous) => 
+            previous ?? LocationProvider(repository: repository),
+      ),
+      
+      // UI state providers
       ChangeNotifierProvider(create: (_) => SearchProvider()),
       ChangeNotifierProvider(create: (_) => FilterProvider()),
     ],
@@ -158,4 +196,5 @@ class _MigrationScreenState extends State<_MigrationScreen> {
         ),
       ),
     );
+  }
 }
