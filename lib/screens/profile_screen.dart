@@ -1,9 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
-import '../services/storage_service.dart';
 import '../config/app_router.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -16,6 +13,22 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
   String? _error;
+  final _nameController = TextEditingController();
+  
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthService>().currentUser;
+    if (user != null) {
+      _nameController.text = user.displayName ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +50,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => AppRouter.goBackOrHome(context),
         ),
+        actions: [
+          TextButton(
+            onPressed: _handleSignOut,
+            child: Text(
+              'Sign Out',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(24.0),
         children: [
-          // Error message if any
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
@@ -52,52 +75,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-          // Profile Picture
+          // Profile Icon
           Center(
-            child: Column(
-              children: [
-                FutureBuilder<String?>(
-                  future: context.read<StorageService>().getProfilePictureUrl(
-                    user.uid,
-                  ),
-                  builder: (context, snapshot) {
-                    return Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 48,
-                          backgroundImage: snapshot.data != null
-                              ? NetworkImage(snapshot.data!)
-                              : null,
-                          child: snapshot.data == null
-                              ? Icon(
-                                  Icons.person_outline,
-                                  size: 48,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                )
-                              : null,
-                        ),
-                        if (_isLoading)
-                          Positioned.fill(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                theme.colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: _isLoading ? null : _handleChangePhoto,
-                  icon: const Icon(Icons.camera_alt_outlined),
-                  label: const Text('Change Photo'),
-                ),
-              ],
+            child: Icon(
+              Icons.account_circle_outlined,
+              size: 96,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+
+          const SizedBox(height: 32),
 
           const SizedBox(height: 32),
 
@@ -164,53 +151,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _handleChangePhoto() async {
-    final user = context.read<AuthService>().currentUser;
-    if (user == null) return;
-
+  Future<void> _handleSignOut() async {
     try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      // Pick image
-      final imagePicker = ImagePicker();
-      final pickedFile = await imagePicker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 75,
-      );
-
-      if (pickedFile == null) {
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
-
-      // Upload image
-      final file = File(pickedFile.path);
-      await context.read<StorageService>().uploadProfilePicture(user.uid, file);
-
-      // Refresh UI
+      await context.read<AuthService>().signOut();
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        AppRouter.goToLogin(context);
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _isLoading = false;
-          _error = 'Failed to update profile picture: $e';
+          _error = 'Failed to sign out: ${e.toString()}';
         });
       }
     }
   }
 
-  Future<void> _showEditNameDialog(BuildContext context, user) async {
+  Future<void> _showEditNameDialog(BuildContext context, User user) async {
     final theme = Theme.of(context);
     final controller = TextEditingController(text: user.displayName);
 

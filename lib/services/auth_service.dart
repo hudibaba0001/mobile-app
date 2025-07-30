@@ -50,9 +50,9 @@ class AuthService {
   }
 
   /// Update the current user's display name
-  /// 
+  ///
   /// [name] - The new display name to set
-  /// 
+  ///
   /// Throws [FirebaseAuthException] on authentication errors
   Future<void> updateDisplayName(String name) async {
     try {
@@ -82,19 +82,6 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
-    } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
-    }
-  }
-
-  /// Send a password reset email to the specified email address
-  ///
-  /// [email] - Email address to send password reset link to
-  ///
-  /// Throws [FirebaseAuthException] if email is not found or invalid
-  Future<void> sendPasswordResetEmail(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
