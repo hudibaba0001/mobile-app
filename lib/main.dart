@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // Firebase imports
@@ -19,6 +18,8 @@ import 'services/sync_service.dart';
 // Firebase services
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
+// Dummy services for testing (keeping for debug purposes)
+import 'services/dummy_auth_service.dart';
 // App configuration
 import 'utils/constants.dart';
 import 'config/app_router.dart';
@@ -48,23 +49,30 @@ void main() async {
   // Register old adapters (kept for migration compatibility)
   Hive.registerAdapter(TravelTimeEntryAdapter());
   Hive.registerAdapter(LocationAdapter());
-  
+
   // Register new unified Entry adapters
   Hive.registerAdapter(EntryAdapter());
   Hive.registerAdapter(EntryTypeAdapter());
   Hive.registerAdapter(ShiftAdapter());
-  
+
   // Open Hive boxes
   await Future.wait([
     Hive.openBox<Location>(AppConstants.locationsBox),
     Hive.openBox<TravelTimeEntry>(AppConstants.travelEntriesBox),
     Hive.openBox(AppConstants.appSettingsBox),
-  ]);  // Initialize services (repositories will be created as providers)
-  final entryService = EntryService();
+  ]);
+
+  // Initialize repositories and services
+  final locationRepository = HiveLocationRepository();
+  final entryService = EntryService(locationRepository: locationRepository);
   final syncService = SyncService();
-  // Initialize Firebase services
+  // Initialize services (using real Firebase auth)
   final authService = AuthService();
   final storageService = StorageService();
+
+  // Keep dummy auth service for debug purposes
+  final dummyAuthService = DummyAuthService();
+  await dummyAuthService.initialize();
 
   // Access shared preferences for migration flag
   final prefs = await SharedPreferences.getInstance();
@@ -86,6 +94,7 @@ void main() async {
                 syncService,
                 authService,
                 storageService,
+                dummyAuthService,
               ),
             );
           },
@@ -95,7 +104,13 @@ void main() async {
   } else {
     // Normal app startup with unified services
     runApp(
-      _buildMainApp(entryService, syncService, authService, storageService),
+      _buildMainApp(
+        entryService,
+        syncService,
+        authService,
+        storageService,
+        dummyAuthService,
+      ),
     );
   }
 }
@@ -107,6 +122,7 @@ Widget _buildMainApp(
   SyncService syncService,
   AuthService authService,
   StorageService storageService,
+  DummyAuthService dummyAuthService,
 ) {
   return MultiProvider(
     providers: [
@@ -114,15 +130,15 @@ Widget _buildMainApp(
       ChangeNotifierProvider(create: (_) => SettingsProvider()..init()),
       ChangeNotifierProvider(create: (_) => ContractProvider()..init()),
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
-      // Auth service must be available throughout the app
+      // Authentication services
       Provider<AuthService>.value(value: authService),
+      ChangeNotifierProvider<DummyAuthService>.value(value: dummyAuthService),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),
 
       // Service providers (dependency injection)
       Provider<EntryService>.value(value: entryService),
       Provider<SyncService>.value(value: syncService),
-      // Firebase service providers
-      Provider<AuthService>.value(value: authService),
+      // Storage service provider
       Provider<StorageService>.value(value: storageService),
 
       // Repository providers
@@ -158,8 +174,6 @@ Widget _buildMainApp(
           themeMode: themeProvider.themeMode,
           routerConfig: AppRouter.router,
           debugShowCheckedModeBanner: false,
-          // Ensure back button works as expected
-          backButtonDispatcher: RootBackButtonDispatcher(),
         );
       },
     ),

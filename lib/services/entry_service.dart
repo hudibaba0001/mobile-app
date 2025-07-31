@@ -6,11 +6,11 @@ import '../repositories/location_repository.dart';
 /// Service for managing unified Entry objects with Firestore backend
 class EntryService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final LocationRepository? locationRepository;
+  final LocationRepository locationRepository;
   static const String _entriesCollection = 'entries';
 
   /// Default constructor
-  EntryService({this.locationRepository});
+  EntryService({required this.locationRepository});
 
   /// Create a new entry in Firestore
   Future<void> createEntry(Entry entry) async {
@@ -104,7 +104,7 @@ class EntryService {
 
   // Provider methods
   Future<List<Entry>> getAllTravelEntries() async {
-    const userId = 'current_user';
+    const userId = 'dummy_user_123';
     return await fetchEntriesByType(userId, 'travel');
   }
 
@@ -113,13 +113,13 @@ class EntryService {
   }
 
   Future<List<Entry>> getRecentEntries({int limit = 5}) async {
-    const userId = 'current_user';
+    const userId = 'dummy_user_123';
     final entries = await fetchEntries(userId);
     return entries.take(limit).toList();
   }
 
   Future<List<Entry>> getEntriesForDate(DateTime date) async {
-    const userId = 'current_user';
+    const userId = 'dummy_user_123';
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 

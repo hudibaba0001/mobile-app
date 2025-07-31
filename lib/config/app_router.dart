@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../utils/go_router_refresh_stream.dart';
+import '../services/dummy_auth_service.dart';
 
 // Real implementations now available
 import '../screens/welcome_screen.dart';
@@ -15,6 +17,8 @@ import '../screens/settings_screen.dart';
 import '../screens/contract_settings_screen.dart';
 import '../screens/forgot_password_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/firebase_registration_screen.dart';
+import '../screens/debug_auth_screen.dart';
 
 // Fallback screens (for routes not yet implemented)
 
@@ -37,9 +41,11 @@ class AppRouter {
   static const String historyPath = '/history';
   static const String settingsPath = '/settings';
   static const String contractSettingsPath = '/contract-settings';
-  static const String editEntryPath = '/edit-entry/:entryId';
+  static const String editEntryPath = '/edit-entry/:entryId/:entryType';
   static const String forgotPasswordPath = '/forgot-password';
   static const String profilePath = '/profile';
+  static const String firebaseRegistrationPath = '/firebase-registration';
+  static const String debugAuthPath = '/debug-auth';
 
   // Route names for named navigation
   static const String welcomeName = 'welcome';
@@ -51,6 +57,8 @@ class AppRouter {
   static const String editEntryName = 'editEntry';
   static const String forgotPasswordName = 'forgotPassword';
   static const String profileName = 'profile';
+  static const String firebaseRegistrationName = 'firebaseRegistration';
+  static const String debugAuthName = 'debugAuth';
 
   /// Main GoRouter configuration with authentication
   static GoRouter get router => _router;
@@ -129,6 +137,20 @@ class AppRouter {
           return EditEntryScreen(entryId: entryId, entryType: entryType);
         },
       ),
+
+      // Firebase Registration screen route - for creating real Firebase accounts
+      GoRoute(
+        path: firebaseRegistrationPath,
+        name: firebaseRegistrationName,
+        builder: (context, state) => const FirebaseRegistrationScreen(),
+      ),
+
+      // Debug Auth screen route - for switching between dummy users
+      GoRoute(
+        path: debugAuthPath,
+        name: debugAuthName,
+        builder: (context, state) => const DebugAuthScreen(),
+      ),
     ],
 
     // Error handling
@@ -155,6 +177,25 @@ class AppRouter {
     },
   );
 
+  // Helper methods
+
+  /// Check if user is authenticated (either Firebase or Dummy)
+  static bool _isUserAuthenticated(BuildContext context) {
+    // Check Firebase Auth first
+    if (FirebaseAuth.instance.currentUser != null) {
+      return true;
+    }
+
+    // Check Dummy Auth as fallback
+    try {
+      final dummyAuth = Provider.of<DummyAuthService>(context, listen: false);
+      return dummyAuth.isAuthenticated;
+    } catch (e) {
+      // Provider not available, assume not authenticated
+      return false;
+    }
+  }
+
   // Helper navigation methods
 
   /// Navigate to the welcome screen (auth not required)
@@ -174,8 +215,7 @@ class AppRouter {
   /// Navigate to the home screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
   static void goToHome(BuildContext context) {
-    final auth = FirebaseAuth.instance;
-    if (auth.currentUser != null) {
+    if (_isUserAuthenticated(context)) {
       context.goNamed(homeName);
     } else {
       goToWelcome(context);
@@ -185,8 +225,7 @@ class AppRouter {
   /// Navigate to history screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
   static void goToHistory(BuildContext context) {
-    final auth = FirebaseAuth.instance;
-    if (auth.currentUser != null) {
+    if (_isUserAuthenticated(context)) {
       context.goNamed(historyName);
     } else {
       goToWelcome(context);
@@ -196,8 +235,7 @@ class AppRouter {
   /// Navigate to settings screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
   static void goToSettings(BuildContext context) {
-    final auth = FirebaseAuth.instance;
-    if (auth.currentUser != null) {
+    if (_isUserAuthenticated(context)) {
       context.goNamed(settingsName);
     } else {
       goToWelcome(context);
@@ -207,8 +245,7 @@ class AppRouter {
   /// Navigate to contract settings screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
   static void goToContractSettings(BuildContext context) {
-    final auth = FirebaseAuth.instance;
-    if (auth.currentUser != null) {
+    if (_isUserAuthenticated(context)) {
       context.goNamed(contractSettingsName);
     } else {
       goToWelcome(context);

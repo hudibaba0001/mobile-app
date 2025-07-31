@@ -436,32 +436,79 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   void _startTravelEntry() {
-    // TODO: Navigate to new travel entry or show quick entry modal
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Start new travel entry'),
-        duration: Duration(seconds: 1),
-      ),
-    );
+    print('🚀 Starting travel entry navigation...');
+    try {
+      // Navigate to create new travel entry
+      AppRouter.goToEditEntry(
+        context,
+        entryId: 'new', // Use 'new' to indicate creating a new entry
+        entryType: 'travel',
+      );
+      print('✅ Travel entry navigation called successfully');
+    } catch (e) {
+      print('❌ Error navigating to travel entry: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Navigation error: $e')));
+    }
   }
 
   void _startWorkEntry() {
-    // TODO: Navigate to new work entry or show quick entry modal
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Start new work entry'),
-        duration: Duration(seconds: 1),
-      ),
-    );
+    print('🚀 Starting work entry navigation...');
+    try {
+      // Navigate to create new work entry
+      AppRouter.goToEditEntry(
+        context,
+        entryId: 'new', // Use 'new' to indicate creating a new entry
+        entryType: 'work',
+      );
+      print('✅ Work entry navigation called successfully');
+    } catch (e) {
+      print('❌ Error navigating to work entry: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Navigation error: $e')));
+    }
   }
 
   void _showQuickEntry() {
-    // TODO: Show quick entry modal or bottom sheet
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Quick entry feature coming soon'),
-        duration: Duration(seconds: 1),
-      ),
+    // Show bottom sheet with quick entry options
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Quick Entry',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.directions_car, color: Colors.blue),
+                title: const Text('Log Travel'),
+                subtitle: const Text('Quick travel entry'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _startTravelEntry();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.work, color: Colors.green),
+                title: const Text('Log Work'),
+                subtitle: const Text('Quick work entry'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _startWorkEntry();
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
     );
   }
 }
