@@ -6,11 +6,11 @@ import '../repositories/location_repository.dart';
 /// Service for managing unified Entry objects with Firestore backend
 class EntryService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final LocationRepository locationRepository;
+  final LocationRepository? locationRepository;
   static const String _entriesCollection = 'entries';
 
   /// Default constructor
-  EntryService({required this.locationRepository});
+  EntryService({this.locationRepository});
 
   /// Create a new entry in Firestore
   Future<void> createEntry(Entry entry) async {

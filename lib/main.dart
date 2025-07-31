@@ -54,9 +54,8 @@ void main() async {
   Hive.registerAdapter(EntryTypeAdapter());
   Hive.registerAdapter(ShiftAdapter());
 
-  // Initialize repositories and services
-  final locationRepository = HiveLocationRepository();
-  final entryService = EntryService(locationRepository: locationRepository);
+  // Initialize services (repositories will be created as providers)
+  final entryService = EntryService();
   final syncService = SyncService();
   // Initialize Firebase services
   final authService = AuthService();
