@@ -147,6 +147,16 @@ class Entry extends HiveObject {
        createdAt = createdAt ?? DateTime.now();
 
   // Computed getters
+  double get workHours {
+    if (type != EntryType.work || shifts == null || shifts!.isEmpty) {
+      return 0.0;
+    }
+    final totalMinutes = shifts!.fold<int>(
+      0,
+      (total, shift) => total + shift.duration.inMinutes,
+    );
+    return totalMinutes / 60.0;
+  }
 
   /// Duration for travel entries
   Duration get travelDuration =>

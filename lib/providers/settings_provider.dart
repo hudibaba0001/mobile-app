@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import '../services/entry_service.dart';
 import '../models/entry.dart';
+import '../repositories/hive_location_repository.dart';
 
 /// Provider for managing app settings and preferences
 /// 
@@ -175,9 +176,9 @@ class SettingsProvider extends ChangeNotifier {
   /// Returns the file path where the CSV was saved, or null if export failed.
   Future<String?> exportCsv() async {
     try {
-      // Get EntryService instance (this would need to be injected in a real implementation)
-      // For now, we'll create a new instance
-      final entryService = EntryService();
+      // Get EntryService instance with location repository
+      final locationRepository = HiveLocationRepository();
+      final entryService = EntryService(locationRepository: locationRepository);
       
       // Get all entries from the service
       final entries = await entryService.getAllTravelEntries();

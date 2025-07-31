@@ -1,14 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/entry.dart';
 import '../utils/error_handler.dart';
+import '../repositories/location_repository.dart';
 
 /// Service for managing unified Entry objects with Firestore backend
 class EntryService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LocationRepository locationRepository;
   static const String _entriesCollection = 'entries';
 
   /// Default constructor
-  EntryService();
+  EntryService({
+    required this.locationRepository,
+  });
 
   /// Create a new entry in Firestore
   Future<void> createEntry(Entry entry) async {

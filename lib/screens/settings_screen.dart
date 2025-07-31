@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/auth_service.dart';
 import '../config/app_router.dart';
 
 /// Settings screen with full SettingsProvider integration
@@ -493,6 +494,25 @@ class SettingsScreen extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+
+  /// Builds a card section with consistent styling
+  Widget _buildSectionCard(
+    BuildContext context, {
+    required List<Widget> children,
+  }) {
+    final theme = Theme.of(context);
+    
+    return Card(
+      elevation: 0,
+      color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: children,
+      ),
     );
   }
 }

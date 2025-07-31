@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
+
 import '../utils/go_router_refresh_stream.dart';
 
 // Real implementations now available
@@ -17,8 +17,6 @@ import '../screens/forgot_password_screen.dart';
 import '../screens/profile_screen.dart';
 
 // Fallback screens (for routes not yet implemented)
-import '../screens/home_screen.dart';
-import '../screens/travel_entries_screen.dart';
 
 /// App Router configuration for unified Entry model architecture
 ///
@@ -112,13 +110,6 @@ class AppRouter {
         path: forgotPasswordPath,
         name: forgotPasswordName,
         builder: (context, state) => const ForgotPasswordScreen(),
-      ),
-
-      // Profile screen route
-      GoRoute(
-        path: profilePath,
-        name: profileName,
-        builder: (context, state) => const ProfileScreen(),
       ),
 
       // Profile screen route
@@ -226,14 +217,23 @@ class AppRouter {
 
   /// Navigate to edit entry screen (requires auth)
   /// If user is not authenticated, redirects to welcome screen
-  static void goToEditEntry(BuildContext context, {String? entryId}) {
+  static void goToEditEntry(
+    BuildContext context, {
+    String? entryId,
+    String? entryType,
+  }) {
     final auth = FirebaseAuth.instance;
     if (auth.currentUser != null) {
+      final params = <String, String>{};
       if (entryId != null) {
-        context.goNamed(editEntryName, pathParameters: {'entryId': entryId});
+        params['entryId'] = entryId;
       } else {
-        context.goNamed(editEntryName, pathParameters: {'entryId': 'new'});
+        params['entryId'] = 'new';
       }
+      if (entryType != null) {
+        params['entryType'] = entryType;
+      }
+      context.goNamed(editEntryName, pathParameters: params);
     } else {
       goToWelcome(context);
     }
@@ -244,7 +244,7 @@ class AppRouter {
     if (GoRouter.of(context).canPop()) {
       context.pop();
     } else {
-      goHome(context);
+      goToHome(context);
     }
   }
 
@@ -276,12 +276,12 @@ class AppRouter {
 
   /// Navigate to edit entry for travel type (convenience method)
   static void goToEditTravelEntry(BuildContext context, String entryId) {
-    goToEditEntry(context, entryId, entryType: 'travel');
+    goToEditEntry(context, entryId: entryId, entryType: 'travel');
   }
 
   /// Navigate to edit entry for work type (convenience method)
   static void goToEditWorkEntry(BuildContext context, String entryId) {
-    goToEditEntry(context, entryId, entryType: 'work');
+    goToEditEntry(context, entryId: entryId, entryType: 'work');
   }
 
   /// Navigate to forgot password screen
@@ -338,7 +338,7 @@ class _ErrorScreen extends StatelessWidget {
                     label: const Text('Go Back'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: () => AppRouter.goHome(context),
+                    onPressed: () => AppRouter.goToHome(context),
                     icon: const Icon(Icons.home),
                     label: const Text('Home'),
                   ),

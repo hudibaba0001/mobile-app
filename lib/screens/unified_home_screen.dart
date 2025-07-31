@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../config/app_router.dart';
 
 /// Unified Home screen with navigation integration.
@@ -48,7 +47,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
     switch (index) {
       case 0:
-        AppRouter.goHome(context);
+        AppRouter.goToHome(context);
         break;
       case 1:
         AppRouter.goToHistory(context);
@@ -76,11 +75,16 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         foregroundColor: colorScheme.onSurface,
         actions: [
           IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => AppRouter.goToProfile(context),
+            tooltip: 'Profile',
+            style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => AppRouter.goToSettings(context),
-            style: IconButton.styleFrom(
-              minimumSize: const Size(48, 48),
-            ),
+            tooltip: 'Settings',
+            style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
           ),
         ],
       ),
@@ -92,15 +96,15 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             // Today's Total Card
             _buildTotalCard(theme),
             const SizedBox(height: 24),
-            
+
             // Action Cards
             _buildActionCards(theme),
             const SizedBox(height: 24),
-            
+
             // Stats Section
             _buildStatsSection(theme),
             const SizedBox(height: 24),
-            
+
             // Recent Entries
             _buildRecentEntries(theme),
             const SizedBox(height: 80), // Space for bottom nav
@@ -111,9 +115,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         onPressed: _showQuickEntry,
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -128,14 +130,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         ),
         unselectedLabelStyle: theme.textTheme.labelMedium,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'History',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
@@ -234,9 +230,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-        ),
+        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
       ),
       child: InkWell(
         onTap: onTap,
@@ -247,11 +241,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 32,
-                color: color,
-              ),
+              Icon(icon, size: 32, color: color),
               const SizedBox(height: 8),
               Text(
                 title,
@@ -309,9 +299,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-        ),
+        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -330,7 +318,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               label,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
-                textTransform: TextTransform.uppercase,
                 letterSpacing: 0.5,
               ),
               textAlign: TextAlign.center,
@@ -386,19 +373,19 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
   Widget _buildRecentEntry(ThemeData theme, _EntryData entry) {
     final isWork = entry.type == 'work';
-    final color = isWork ? theme.colorScheme.secondary : theme.colorScheme.primary;
+    final color = isWork
+        ? theme.colorScheme.secondary
+        : theme.colorScheme.primary;
 
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-        ),
+        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
       ),
       child: InkWell(
-        onTap: () => AppRouter.goToEditEntry(context, entry.id),
+        onTap: () => AppRouter.goToEditEntry(context, entryId: entry.id),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -411,11 +398,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  entry.icon,
-                  size: 20,
-                  color: color,
-                ),
+                child: Icon(entry.icon, size: 20, color: color),
               ),
               const SizedBox(width: 12),
               Expanded(
