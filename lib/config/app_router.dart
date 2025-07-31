@@ -133,7 +133,7 @@ class AppRouter {
         name: editEntryName,
         builder: (context, state) {
           final entryId = state.pathParameters['entryId']!;
-          final entryType = state.uri.queryParameters['type'];
+          final entryType = state.pathParameters['entryType'];
           return EditEntryScreen(entryId: entryId, entryType: entryType);
         },
       ),
