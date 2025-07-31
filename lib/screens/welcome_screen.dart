@@ -10,7 +10,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
@@ -23,9 +23,9 @@ class WelcomeScreen extends StatelessWidget {
               children: [
                 // App logo
                 _buildAppLogo(theme),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Welcome title
                 Text(
                   'Welcome to KvikTime',
@@ -35,9 +35,9 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Subtitle
                 Text(
                   'Track your travel time effortlessly',
@@ -46,9 +46,9 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 48),
-                
+
                 // Sign In button
                 SizedBox(
                   width: double.infinity,
@@ -71,9 +71,9 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Get Started button
                 SizedBox(
                   width: double.infinity,
@@ -98,9 +98,9 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Footer text
                 Text(
                   'New to KvikTime? Create an account to get started.',
@@ -150,13 +150,10 @@ class WelcomeScreen extends StatelessWidget {
   Future<void> _launchSignUpUrl(BuildContext context) async {
     const url = 'https://signup.kviktime.se';
     final uri = Uri.parse(url);
-    
+
     try {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         if (context.mounted) {
           _showUrlError(context);
@@ -177,9 +174,7 @@ class WelcomeScreen extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

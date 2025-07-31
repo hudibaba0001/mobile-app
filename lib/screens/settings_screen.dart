@@ -53,7 +53,7 @@ class SettingsScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildRemindersSection(context, settingsProvider),
                 const SizedBox(height: 24),
-                
+
                 _buildSectionHeader(context, 'Account'),
                 const SizedBox(height: 8),
                 _buildAccountSection(context, authService),
@@ -89,7 +89,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAppearanceSection(BuildContext context, SettingsProvider settingsProvider) {
+  Widget _buildAppearanceSection(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) {
     return Column(
       children: [
         // Accent Color Picker
@@ -104,7 +107,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildColorPicker(BuildContext context, SettingsProvider settingsProvider) {
+  Widget _buildColorPicker(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) {
     final colors = [
       const Color(0xFF6750A4), // Purple
       const Color(0xFF03DAC6), // Teal
@@ -135,11 +141,7 @@ class SettingsScreen extends StatelessWidget {
                     : null,
               ),
               child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 20,
-                    )
+                  ? const Icon(Icons.check, color: Colors.white, size: 20)
                   : null,
             ),
           );
@@ -148,7 +150,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDataSection(BuildContext context, SettingsProvider settingsProvider) {
+  Widget _buildDataSection(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) {
     return _buildListTile(
       context,
       icon: Icons.download,
@@ -158,7 +163,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLocalizationSection(BuildContext context, SettingsProvider settingsProvider) {
+  Widget _buildLocalizationSection(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) {
     return _buildListTile(
       context,
       icon: Icons.language,
@@ -182,7 +190,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRemindersSection(BuildContext context, SettingsProvider settingsProvider) {
+  Widget _buildRemindersSection(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) {
     return Column(
       children: [
         // Daily Reminder
@@ -201,7 +212,7 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
         ),
-        
+
         // Time Setting (visible when daily reminder is on)
         if (settingsProvider.dailyReminderEnabled) ...[
           const SizedBox(height: 8),
@@ -220,7 +231,9 @@ class SettingsScreen extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceVariant.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: Theme.of(context).colorScheme.outline,
@@ -235,9 +248,9 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ],
-        
+
         const SizedBox(height: 8),
-        
+
         // Weekly Summary
         _buildListTile(
           context,
@@ -296,13 +309,11 @@ class SettingsScreen extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     final theme = Theme.of(context);
-    
+
     return Card(
       elevation: 0,
       color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -352,7 +363,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _exportCSV(BuildContext context, SettingsProvider settingsProvider) async {
+  Future<void> _exportCSV(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) async {
     try {
       // Show loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
@@ -373,16 +387,13 @@ class SettingsScreen extends StatelessWidget {
       );
 
       final path = await settingsProvider.exportCsv();
-      
+
       if (path != null && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('CSV saved to $path'),
             backgroundColor: Colors.green,
-            action: SnackBarAction(
-              label: 'OK',
-              onPressed: () {},
-            ),
+            action: SnackBarAction(label: 'OK', onPressed: () {}),
           ),
         );
       } else if (context.mounted) {
@@ -405,12 +416,15 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _showTimePicker(BuildContext context, SettingsProvider settingsProvider) async {
+  Future<void> _showTimePicker(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: settingsProvider.dailyReminderTime,
     );
-    
+
     if (picked != null) {
       settingsProvider.setDailyReminderTime(picked);
     }
@@ -418,20 +432,16 @@ class SettingsScreen extends StatelessWidget {
 
   void _sendFeedback(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Feedback feature coming soon!'),
-      ),
+      const SnackBar(content: Text('Feedback feature coming soon!')),
     );
   }
 
   void _rateApp(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('App rating feature coming soon!'),
-      ),
+      const SnackBar(content: Text('App rating feature coming soon!')),
     );
   }
-  
+
   /// Builds the account section with sign out button
   Widget _buildAccountSection(BuildContext context, AuthService authService) {
     return _buildSectionCard(
@@ -503,17 +513,12 @@ class SettingsScreen extends StatelessWidget {
     required List<Widget> children,
   }) {
     final theme = Theme.of(context);
-    
+
     return Card(
       elevation: 0,
       color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: children,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(children: children),
     );
   }
 }
-

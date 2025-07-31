@@ -10,9 +10,7 @@ class EntryService {
   static const String _entriesCollection = 'entries';
 
   /// Default constructor
-  EntryService({
-    required this.locationRepository,
-  });
+  EntryService({required this.locationRepository});
 
   /// Create a new entry in Firestore
   Future<void> createEntry(Entry entry) async {
@@ -35,7 +33,7 @@ class EntryService {
           .where('userId', isEqualTo: userId)
           .orderBy('date', descending: true)
           .get();
-      
+
       return snapshot.docs.map((doc) => Entry.fromFirestore(doc)).toList();
     } catch (error, stackTrace) {
       final appError = ErrorHandler.handleStorageError(error, stackTrace);
@@ -59,10 +57,7 @@ class EntryService {
   /// Delete an entry from Firestore
   Future<void> deleteEntry(String entryId) async {
     try {
-      await _firestore
-          .collection(_entriesCollection)
-          .doc(entryId)
-          .delete();
+      await _firestore.collection(_entriesCollection).doc(entryId).delete();
     } catch (error, stackTrace) {
       final appError = ErrorHandler.handleStorageError(error, stackTrace);
       throw appError;
@@ -70,7 +65,10 @@ class EntryService {
   }
 
   /// Fetch entries by type
-  Future<List<Entry>> fetchEntriesByType(String userId, String entryType) async {
+  Future<List<Entry>> fetchEntriesByType(
+    String userId,
+    String entryType,
+  ) async {
     try {
       final snapshot = await _firestore
           .collection(_entriesCollection)
@@ -78,7 +76,7 @@ class EntryService {
           .where('type', isEqualTo: entryType)
           .orderBy('date', descending: true)
           .get();
-      
+
       return snapshot.docs.map((doc) => Entry.fromFirestore(doc)).toList();
     } catch (error, stackTrace) {
       final appError = ErrorHandler.handleStorageError(error, stackTrace);
@@ -93,7 +91,7 @@ class EntryService {
           .collection(_entriesCollection)
           .doc(entryId)
           .get();
-      
+
       if (doc.exists && doc.data() != null) {
         return Entry.fromFirestore(doc);
       }
@@ -124,7 +122,7 @@ class EntryService {
     const userId = 'current_user';
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
-    
+
     try {
       final snapshot = await _firestore
           .collection(_entriesCollection)
@@ -133,7 +131,7 @@ class EntryService {
           .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
           .orderBy('date', descending: true)
           .get();
-      
+
       return snapshot.docs.map((doc) => Entry.fromFirestore(doc)).toList();
     } catch (error, stackTrace) {
       final appError = ErrorHandler.handleStorageError(error, stackTrace);
@@ -142,7 +140,8 @@ class EntryService {
   }
 
   // Placeholder methods
-  Future<dynamic> generateSummary(DateTime startDate, DateTime endDate) async => null;
+  Future<dynamic> generateSummary(DateTime startDate, DateTime endDate) async =>
+      null;
   Future<String> exportToCSV(List<Entry> entries) async => '';
   Future<Map<String, dynamic>> getTravelStatistics() async => {};
   Future<List<String>> getSuggestedRoutes({int limit = 5}) async => [];
@@ -152,5 +151,6 @@ class EntryService {
       await updateEntry(segment);
     }
   }
+
   Future<void> deleteJourney(String journeyId) async {}
 }

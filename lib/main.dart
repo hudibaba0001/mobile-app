@@ -38,24 +38,22 @@ import 'repositories/hive_location_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   // Initialize Hive and register adapters
   await Hive.initFlutter();
-  
+
   // Register old adapters (kept for migration compatibility)
   Hive.registerAdapter(TravelTimeEntryAdapter());
   Hive.registerAdapter(LocationAdapter());
-  
+
   // Register new unified Entry adapters
   Hive.registerAdapter(EntryAdapter());
   Hive.registerAdapter(EntryTypeAdapter());
   Hive.registerAdapter(ShiftAdapter());
-  
+
   // Initialize repositories and services
   final locationRepository = HiveLocationRepository();
   final entryService = EntryService(locationRepository: locationRepository);
@@ -63,32 +61,45 @@ void main() async {
   // Initialize Firebase services
   final authService = AuthService();
   final storageService = StorageService();
-  
+
   // Access shared preferences for migration flag
   final prefs = await SharedPreferences.getInstance();
   final didMigrate = prefs.getBool('didMigrate') ?? false;
-  
+
   // If not migrated, show migration flow
   if (!didMigrate) {
-    runApp(MaterialApp(
-      title: 'Travel Time Logger - Migration',
-      theme: ThemeData.light(),
-      home: _MigrationScreen(onComplete: () async {
-        // Mark migration as done and start app
-        await prefs.setBool('didMigrate', true);
-        runApp(_buildMainApp(entryService, syncService, authService, storageService));
-      }),
-    ));
+    runApp(
+      MaterialApp(
+        title: 'Travel Time Logger - Migration',
+        theme: ThemeData.light(),
+        home: _MigrationScreen(
+          onComplete: () async {
+            // Mark migration as done and start app
+            await prefs.setBool('didMigrate', true);
+            runApp(
+              _buildMainApp(
+                entryService,
+                syncService,
+                authService,
+                storageService,
+              ),
+            );
+          },
+        ),
+      ),
+    );
   } else {
     // Normal app startup with unified services
-    runApp(_buildMainApp(entryService, syncService, authService, storageService));
+    runApp(
+      _buildMainApp(entryService, syncService, authService, storageService),
+    );
   }
 }
 
 /// Build the main app with all providers using unified Entry model
 /// Updated to use EntryProvider instead of TravelProvider
 Widget _buildMainApp(
-  EntryService entryService, 
+  EntryService entryService,
   SyncService syncService,
   AuthService authService,
   StorageService storageService,
@@ -102,35 +113,34 @@ Widget _buildMainApp(
       // Auth service must be available throughout the app
       Provider<AuthService>.value(value: authService),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),
-      
+
       // Service providers (dependency injection)
       Provider<EntryService>.value(value: entryService),
       Provider<SyncService>.value(value: syncService),
       // Firebase service providers
       Provider<AuthService>.value(value: authService),
       Provider<StorageService>.value(value: storageService),
-      
+
       // Repository providers
-      Provider<HiveLocationRepository>(
-        create: (_) => HiveLocationRepository(),
-      ),
-      
+      Provider<HiveLocationRepository>(create: (_) => HiveLocationRepository()),
+
       // State management providers (EntryProvider replaces TravelProvider)
       ChangeNotifierProvider(
-        create: (_) => EntryProvider(
-          entryService: entryService,
-        ),
+        create: (_) => EntryProvider(entryService: entryService),
       ),
-      
+
       // Location provider (updated to work with new architecture)
       ChangeNotifierProxyProvider<HiveLocationRepository, LocationProvider>(
         create: (context) => LocationProvider(
-          repository: Provider.of<HiveLocationRepository>(context, listen: false),
+          repository: Provider.of<HiveLocationRepository>(
+            context,
+            listen: false,
+          ),
         ),
-        update: (context, repository, previous) => 
+        update: (context, repository, previous) =>
             previous ?? LocationProvider(repository: repository),
       ),
-      
+
       // UI state providers
       ChangeNotifierProvider(create: (_) => SearchProvider()),
       ChangeNotifierProvider(create: (_) => FilterProvider()),
@@ -155,9 +165,9 @@ Widget _buildMainApp(
 /// A simple full-screen widget that runs migration, showing progress and errors if any.
 class _MigrationScreen extends StatefulWidget {
   final VoidCallback onComplete;
-  
+
   const _MigrationScreen({required this.onComplete});
-  
+
   @override
   State<_MigrationScreen> createState() => _MigrationScreenState();
 }
@@ -165,40 +175,40 @@ class _MigrationScreen extends StatefulWidget {
 class _MigrationScreenState extends State<_MigrationScreen> {
   String _message = 'Preparing migration...';
   bool _isComplete = false;
-  
+
   @override
   void initState() {
     super.initState();
     _runMigration();
   }
-  
+
   Future<void> _runMigration() async {
     try {
       setState(() => _message = 'Migrating data...');
-      
+
       final migrationService = EntryMigrationService();
       final result = await migrationService.migrate();
-      
+
       setState(() {
-        _message = 'Migrated ${result.migrationCount} entries in ${result.duration.inSeconds}s';
+        _message =
+            'Migrated ${result.migrationCount} entries in ${result.duration.inSeconds}s';
         _isComplete = true;
       });
-      
     } catch (e) {
       setState(() {
         _message = 'Migration failed: $e';
         _isComplete = true;
       });
     }
-    
+
     // Short delay to let user read the message
     await Future.delayed(const Duration(seconds: 2));
-    
+
     if (mounted) {
       widget.onComplete();
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -218,11 +228,7 @@ class _MigrationScreenState extends State<_MigrationScreen> {
             ),
             if (_isComplete) ...[
               const SizedBox(height: 16),
-              const Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 48,
-              ),
+              const Icon(Icons.check_circle, color: Colors.green, size: 48),
             ],
           ],
         ),

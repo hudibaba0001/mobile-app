@@ -4,15 +4,19 @@ import '../utils/constants.dart';
 import 'location_repository.dart';
 
 class HiveLocationRepository implements LocationRepository {
-  late Box<Location> _box;
+  Box<Location>? _box;
 
-  HiveLocationRepository() {
-    _box = Hive.box<Location>(AppConstants.locationsBox);
+  Future<Box<Location>> _getBox() async {
+    if (_box == null || !_box!.isOpen) {
+      _box = await Hive.openBox<Location>(AppConstants.locationsBox);
+    }
+    return _box!;
   }
 
   @override
   Future<List<Location>> getAllLocations() async {
-    final locations = _box.values.toList();
+    final box = await _getBox();
+    final locations = box.values.toList();
     // Sort by usage count descending, then by name
     locations.sort((a, b) {
       final usageComparison = b.usageCount.compareTo(a.usageCount);
@@ -24,14 +28,16 @@ class HiveLocationRepository implements LocationRepository {
 
   @override
   Future<void> addLocation(Location location) async {
-    await _box.add(location);
+    final box = await _getBox();
+    await box.add(location);
   }
 
   @override
   Future<void> updateLocation(Location location) async {
-    final index = _box.values.toList().indexWhere((l) => l.id == location.id);
+    final box = await _getBox();
+    final index = box.values.toList().indexWhere((l) => l.id == location.id);
     if (index != -1) {
-      await _box.putAt(index, location);
+      await box.putAt(index, location);
     } else {
       throw Exception('Location not found for update');
     }
@@ -39,10 +45,11 @@ class HiveLocationRepository implements LocationRepository {
 
   @override
   Future<void> deleteLocation(String id) async {
-    final locations = _box.values.toList();
+    final box = await _getBox();
+    final locations = box.values.toList();
     for (int i = 0; i < locations.length; i++) {
       if (locations[i].id == id) {
-        await _box.deleteAt(i);
+        await box.deleteAt(i);
         return;
       }
     }
@@ -60,7 +67,7 @@ class HiveLocationRepository implements LocationRepository {
 
     return allLocations.where((location) {
       return location.name.toLowerCase().contains(lowercaseQuery) ||
-             location.address.toLowerCase().contains(lowercaseQuery);
+          location.address.toLowerCase().contains(lowercaseQuery);
     }).toList();
   }
 
@@ -76,11 +83,13 @@ class HiveLocationRepository implements LocationRepository {
   @override
   Future<List<Location>> getFrequentLocations({int limit = 10}) async {
     final allLocations = await getAllLocations();
-    final frequentLocations = allLocations.where((l) => l.usageCount > 0).toList();
-    
+    final frequentLocations = allLocations
+        .where((l) => l.usageCount > 0)
+        .toList();
+
     // Sort by usage count descending
     frequentLocations.sort((a, b) => b.usageCount.compareTo(a.usageCount));
-    
+
     return frequentLocations.take(limit).toList();
   }
 
@@ -92,7 +101,8 @@ class HiveLocationRepository implements LocationRepository {
 
   @override
   Future<Location?> getLocationById(String id) async {
-    final locations = _box.values.toList();
+    final box = await _getBox();
+    final locations = box.values.toList();
     try {
       return locations.firstWhere((location) => location.id == id);
     } catch (e) {
@@ -102,7 +112,8 @@ class HiveLocationRepository implements LocationRepository {
 
   @override
   Future<Location?> findLocationByAddress(String address) async {
-    final locations = _box.values.toList();
+    final box = await _getBox();
+    final locations = box.values.toList();
     try {
       return locations.firstWhere(
         (location) => location.address.toLowerCase() == address.toLowerCase(),
@@ -113,17 +124,18 @@ class HiveLocationRepository implements LocationRepository {
   }
 
   // Helper method to get location suggestions for autocomplete
-  Future<List<String>> getLocationSuggestions(String query, {int limit = 5}) async {
+  Future<List<String>> getLocationSuggestions(
+    String query, {
+    int limit = 5,
+  }) async {
     final locations = await searchLocations(query);
-    return locations
-        .take(limit)
-        .map((location) => location.address)
-        .toList();
+    return locations.take(limit).map((location) => location.address).toList();
   }
 
   // Helper method to get locations count
   Future<int> getLocationsCount() async {
-    return _box.length;
+    final box = await _getBox();
+    return box.length;
   }
 
   // Helper method to toggle favorite status
@@ -143,7 +155,8 @@ class HiveLocationRepository implements LocationRepository {
 
   // Helper method to get recently added locations
   Future<List<Location>> getRecentlyAddedLocations({int limit = 5}) async {
-    final allLocations = _box.values.toList();
+    final box = await _getBox();
+    final allLocations = box.values.toList();
     allLocations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return allLocations.take(limit).toList();
   }

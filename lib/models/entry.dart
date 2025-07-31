@@ -18,13 +18,13 @@ enum EntryType {
 class Shift extends HiveObject {
   @HiveField(0)
   final DateTime start;
-  
+
   @HiveField(1)
   final DateTime end;
-  
+
   @HiveField(2)
   final String? description;
-  
+
   @HiveField(3)
   final String? location;
 
@@ -161,15 +161,13 @@ class Entry extends HiveObject {
   /// Duration for travel entries
   Duration get travelDuration =>
       type == EntryType.travel && travelMinutes != null
-          ? Duration(minutes: travelMinutes!)
-          : Duration.zero;
+      ? Duration(minutes: travelMinutes!)
+      : Duration.zero;
 
   /// Duration for work entries (sum of all shifts)
   Duration get workDuration {
     if (type != EntryType.work || shifts == null) return Duration.zero;
-    return shifts!
-        .map((s) => s.duration)
-        .fold(Duration.zero, (a, b) => a + b);
+    return shifts!.map((s) => s.duration).fold(Duration.zero, (a, b) => a + b);
   }
 
   /// Total duration regardless of entry type
@@ -186,10 +184,10 @@ class Entry extends HiveObject {
   String get formattedDuration {
     final duration = totalDuration;
     if (duration.inMinutes == 0) return '0m';
-    
+
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
-    
+
     if (hours > 0) {
       return minutes > 0 ? '${hours}h ${minutes}m' : '${hours}h';
     }
@@ -208,12 +206,12 @@ class Entry extends HiveObject {
   /// Validation for travel entries
   bool get isValidTravel {
     if (type != EntryType.travel) return false;
-    return from != null && 
-           from!.isNotEmpty && 
-           to != null && 
-           to!.isNotEmpty && 
-           travelMinutes != null && 
-           travelMinutes! > 0;
+    return from != null &&
+        from!.isNotEmpty &&
+        to != null &&
+        to!.isNotEmpty &&
+        travelMinutes != null &&
+        travelMinutes! > 0;
   }
 
   /// Validation for work entries
@@ -269,7 +267,7 @@ class Entry extends HiveObject {
   /// Create from Firestore document
   factory Entry.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return Entry(
       id: data['id'] ?? doc.id,
       userId: data['userId'],
@@ -279,12 +277,12 @@ class Entry extends HiveObject {
       travelMinutes: data['travelMinutes'],
       shifts: data['shifts'] != null
           ? (data['shifts'] as List)
-              .map((s) => Shift.fromFirestore(s as Map<String, dynamic>))
-              .toList()
+                .map((s) => Shift.fromFirestore(s as Map<String, dynamic>))
+                .toList()
           : null,
       date: (data['date'] as Timestamp).toDate(),
       notes: data['notes'],
-      createdAt: data['createdAt'] != null 
+      createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
       updatedAt: data['updatedAt'] != null
@@ -307,12 +305,12 @@ class Entry extends HiveObject {
       travelMinutes: data['travelMinutes'],
       shifts: data['shifts'] != null
           ? (data['shifts'] as List)
-              .map((s) => Shift.fromFirestore(s as Map<String, dynamic>))
-              .toList()
+                .map((s) => Shift.fromFirestore(s as Map<String, dynamic>))
+                .toList()
           : null,
       date: (data['date'] as Timestamp).toDate(),
       notes: data['notes'],
-      createdAt: data['createdAt'] != null 
+      createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
       updatedAt: data['updatedAt'] != null
