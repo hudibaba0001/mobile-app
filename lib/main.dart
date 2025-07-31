@@ -48,13 +48,18 @@ void main() async {
   // Register old adapters (kept for migration compatibility)
   Hive.registerAdapter(TravelTimeEntryAdapter());
   Hive.registerAdapter(LocationAdapter());
-
+  
   // Register new unified Entry adapters
   Hive.registerAdapter(EntryAdapter());
   Hive.registerAdapter(EntryTypeAdapter());
   Hive.registerAdapter(ShiftAdapter());
-
-  // Initialize services (repositories will be created as providers)
+  
+  // Open Hive boxes
+  await Future.wait([
+    Hive.openBox<Location>(AppConstants.locationsBox),
+    Hive.openBox<TravelTimeEntry>(AppConstants.travelEntriesBox),
+    Hive.openBox(AppConstants.appSettingsBox),
+  ]);  // Initialize services (repositories will be created as providers)
   final entryService = EntryService();
   final syncService = SyncService();
   // Initialize Firebase services
