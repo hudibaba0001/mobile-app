@@ -13,8 +13,10 @@ export const listUsers = async (_req: Request, res: Response) => {
       email: userRecord.email,
       displayName: userRecord.displayName,
       disabled: userRecord.disabled,
+      createdAt: admin.firestore.Timestamp.fromDate(new Date(userRecord.metadata.creationTime || Date.now())),
+      updatedAt: admin.firestore.Timestamp.fromDate(new Date(userRecord.metadata.lastSignInTime || Date.now()))
     }));
-    res.status(200).json({ users });
+    res.json({ users });
   } catch (error) {
     console.error('Error listing users:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -38,10 +40,14 @@ export const getUserById = async (req: Request, res: Response) => {
       settings: userDoc.exists ? userDoc.data()?.settings : undefined
     };
 
-    res.status(200).json(userData);
-  } catch (error) {
+    res.json(userData);
+  } catch (error: any) {
     console.error('Error fetching user:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    if (error?.code === 'auth/user-not-found') {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 };
 
@@ -62,10 +68,14 @@ export const updateUser = async (req: Request, res: Response) => {
       updatedAt: admin.firestore.Timestamp.now()
     }, { merge: true });
 
-    res.status(200).json({ message: 'User updated successfully' });
-  } catch (error) {
+    res.json({ message: 'User updated successfully' });
+  } catch (error: any) {
     console.error('Error updating user:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    if (error?.code === 'auth/user-not-found') {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 };
 
@@ -80,10 +90,14 @@ export const deleteUser = async (req: Request, res: Response) => {
     // Delete from Firestore
     await admin.firestore().collection('users').doc(userId).delete();
     
-    res.status(200).json({ message: 'User deleted successfully' });
-  } catch (error) {
+    res.json({ message: 'User deleted successfully' });
+  } catch (error: any) {
     console.error('Error deleting user:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    if (error?.code === 'auth/user-not-found') {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 };
 
@@ -107,19 +121,30 @@ export const getUserTravelHistory = async (req: Request, res: Response) => {
     }
 
     const snapshot = await query.get();
-    const entries = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const entries = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        date: data.date,
+        from: data.from,
+        to: data.to,
+        duration: data.duration,
+        type: data.type
+      };
+    });
 
     const history: TravelHistory = {
       userId,
       entries
     };
 
-    res.status(200).json(history);
-  } catch (error) {
+    res.json(history);
+  } catch (error: any) {
     console.error('Error fetching travel history:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    if (error?.code === 'auth/user-not-found') {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 };

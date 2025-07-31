@@ -1,8 +1,8 @@
 // src/app.ts
 
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
 import { validateFirebaseIdToken } from './middleware/auth.middleware';
 import usersRouter from './routes/users.routes';
 

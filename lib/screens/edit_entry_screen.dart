@@ -178,7 +178,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        context.pop();
+        // Use AppRouter for safer navigation
+        Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
