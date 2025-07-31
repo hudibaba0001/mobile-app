@@ -2,6 +2,7 @@
 
 import { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
+import { body, validationResult } from 'express-validator';
 import { User, UserUpdateData, TravelHistory } from '../models/user.model';
 
 // List all users (admin only)
@@ -51,9 +52,45 @@ export const getUserById = async (req: Request, res: Response) => {
   }
 };
 
+// Validation middleware for updateUser
+export const validateUpdateUser = [
+  body('displayName')
+    .optional()
+    .isString()
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Display name must be at least 3 characters long'),
+  body('settings')
+    .optional()
+    .isObject()
+    .withMessage('Settings must be an object'),
+  body('settings.theme')
+    .optional()
+    .isIn(['light', 'dark', 'system'])
+    .withMessage('Theme must be either light, dark, or system'),
+  body('settings.notifications')
+    .optional()
+    .isBoolean()
+    .withMessage('Notifications must be a boolean'),
+  body('settings.defaultTravelMode')
+    .optional()
+    .isString()
+    .withMessage('Default travel mode must be a string')
+];
+
 // Update user
-export const updateUser = async (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ 
+        error: 'Validation failed',
+        details: errors.array()
+      });
+      return;
+    }
+
     const { userId } = req.params;
     const updateData: UserUpdateData = req.body;
 
