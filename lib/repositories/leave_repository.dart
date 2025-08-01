@@ -1,23 +1,23 @@
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
-import '../models/travel_entry.dart';
+import '../models/leave_entry.dart';
 
-class TravelRepository {
-  final Box<TravelEntry> _box;
+class LeaveRepository {
+  final Box<LeaveEntry> _box;
   final _uuid = const Uuid();
 
-  TravelRepository(this._box);
+  LeaveRepository(this._box);
 
-  /// Get all travel entries for a user
-  List<TravelEntry> getAllForUser(String userId) {
+  /// Get all leave entries for a user
+  List<LeaveEntry> getAllForUser(String userId) {
     return _box.values
         .where((entry) => entry.userId == userId)
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
-  /// Get travel entries for a user within a date range
-  List<TravelEntry> getForUserInRange(
+  /// Get leave entries for a user within a date range
+  List<LeaveEntry> getForUserInRange(
     String userId,
     DateTime start,
     DateTime end,
@@ -31,15 +31,15 @@ class TravelRepository {
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
-  /// Add a new travel entry
-  Future<TravelEntry> add(TravelEntry entry) async {
+  /// Add a new leave entry
+  Future<LeaveEntry> add(LeaveEntry entry) async {
     final newEntry = entry.copyWith(id: _uuid.v4());
     await _box.put(newEntry.id, newEntry);
     return newEntry;
   }
 
-  /// Update an existing travel entry
-  Future<TravelEntry> update(TravelEntry entry) async {
+  /// Update an existing leave entry
+  Future<LeaveEntry> update(LeaveEntry entry) async {
     final updatedEntry = entry.copyWith(
       updatedAt: DateTime.now(),
     );
@@ -47,15 +47,30 @@ class TravelRepository {
     return updatedEntry;
   }
 
-  /// Delete a travel entry
+  /// Delete a leave entry
   Future<void> delete(String id) async {
     await _box.delete(id);
   }
 
-  /// Get total travel minutes for a user within a date range
-  int getTotalMinutesInRange(String userId, DateTime start, DateTime end) {
+  /// Get total paid leave days used in a year
+  int getPaidLeaveDaysInYear(String userId, int year) {
+    final start = DateTime(year, 1, 1);
+    final end = DateTime(year, 12, 31);
     return getForUserInRange(userId, start, end)
-        .fold(0, (sum, entry) => sum + entry.travelMinutes);
+        .where((entry) => entry.isPaid)
+        .length;
+  }
+
+  /// Get leave entries by type for a user within a date range
+  List<LeaveEntry> getByTypeInRange(
+    String userId,
+    LeaveType type,
+    DateTime start,
+    DateTime end,
+  ) {
+    return getForUserInRange(userId, start, end)
+        .where((entry) => entry.type == type)
+        .toList();
   }
 
   /// Close the Hive box

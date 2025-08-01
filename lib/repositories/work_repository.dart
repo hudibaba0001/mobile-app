@@ -1,23 +1,23 @@
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
-import '../models/travel_entry.dart';
+import '../models/work_entry.dart';
 
-class TravelRepository {
-  final Box<TravelEntry> _box;
+class WorkRepository {
+  final Box<WorkEntry> _box;
   final _uuid = const Uuid();
 
-  TravelRepository(this._box);
+  WorkRepository(this._box);
 
-  /// Get all travel entries for a user
-  List<TravelEntry> getAllForUser(String userId) {
+  /// Get all work entries for a user
+  List<WorkEntry> getAllForUser(String userId) {
     return _box.values
         .where((entry) => entry.userId == userId)
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
-  /// Get travel entries for a user within a date range
-  List<TravelEntry> getForUserInRange(
+  /// Get work entries for a user within a date range
+  List<WorkEntry> getForUserInRange(
     String userId,
     DateTime start,
     DateTime end,
@@ -31,15 +31,15 @@ class TravelRepository {
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
-  /// Add a new travel entry
-  Future<TravelEntry> add(TravelEntry entry) async {
+  /// Add a new work entry
+  Future<WorkEntry> add(WorkEntry entry) async {
     final newEntry = entry.copyWith(id: _uuid.v4());
     await _box.put(newEntry.id, newEntry);
     return newEntry;
   }
 
-  /// Update an existing travel entry
-  Future<TravelEntry> update(TravelEntry entry) async {
+  /// Update an existing work entry
+  Future<WorkEntry> update(WorkEntry entry) async {
     final updatedEntry = entry.copyWith(
       updatedAt: DateTime.now(),
     );
@@ -47,15 +47,15 @@ class TravelRepository {
     return updatedEntry;
   }
 
-  /// Delete a travel entry
+  /// Delete a work entry
   Future<void> delete(String id) async {
     await _box.delete(id);
   }
 
-  /// Get total travel minutes for a user within a date range
+  /// Get total work minutes for a user within a date range
   int getTotalMinutesInRange(String userId, DateTime start, DateTime end) {
     return getForUserInRange(userId, start, end)
-        .fold(0, (sum, entry) => sum + entry.travelMinutes);
+        .fold(0, (sum, entry) => sum + entry.workMinutes);
   }
 
   /// Close the Hive box

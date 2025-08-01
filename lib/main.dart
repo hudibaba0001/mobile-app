@@ -7,35 +7,17 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 // Old models (kept for migration compatibility)
 import 'models/travel_time_entry.dart';
-import 'models/location.dart';
-// New unified Entry model
-import 'models/entry.dart';
-// Migration service
-import 'services/entry_migration_service.dart';
-// New unified services (replacing old TravelService)
-import 'services/entry_service.dart';
-import 'services/sync_service.dart';
 // Firebase services
 import 'services/auth_service.dart';
-import 'services/storage_service.dart';
-// Dummy services for testing (keeping for debug purposes)
-import 'services/dummy_auth_service.dart';
 // App configuration
 import 'utils/constants.dart';
 import 'config/app_router.dart';
 import 'config/app_theme.dart';
-// Updated providers (LocalEntryProvider for local storage)
-import 'providers/local_entry_provider.dart';
-import 'providers/location_provider.dart';
-import 'providers/search_provider.dart';
-import 'providers/filter_provider.dart';
+// Providers
 import 'providers/theme_provider.dart';
 import 'providers/app_state_provider.dart';
-// New settings and contract providers
 import 'providers/settings_provider.dart';
 import 'providers/contract_provider.dart';
-// Repositories (still needed for location management)
-import 'repositories/hive_location_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -126,42 +108,13 @@ Widget _buildMainApp(
 ) {
   return MultiProvider(
     providers: [
-      // Core app providers (settings must be initialized early)
+      // Core app providers
       ChangeNotifierProvider(create: (_) => SettingsProvider()..init()),
       ChangeNotifierProvider(create: (_) => ContractProvider()..init()),
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
       // Authentication services
       Provider<AuthService>.value(value: authService),
-      ChangeNotifierProvider<DummyAuthService>.value(value: dummyAuthService),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),
-
-      // Service providers (dependency injection)
-      Provider<EntryService>.value(value: entryService),
-      Provider<SyncService>.value(value: syncService),
-      // Storage service provider
-      Provider<StorageService>.value(value: storageService),
-
-      // Repository providers
-      Provider<HiveLocationRepository>(create: (_) => HiveLocationRepository()),
-
-      // State management providers (LocalEntryProvider for local storage)
-      ChangeNotifierProvider(create: (_) => LocalEntryProvider()..init()),
-
-      // Location provider (updated to work with new architecture)
-      ChangeNotifierProxyProvider<HiveLocationRepository, LocationProvider>(
-        create: (context) => LocationProvider(
-          repository: Provider.of<HiveLocationRepository>(
-            context,
-            listen: false,
-          ),
-        ),
-        update: (context, repository, previous) =>
-            previous ?? LocationProvider(repository: repository),
-      ),
-
-      // UI state providers
-      ChangeNotifierProvider(create: (_) => SearchProvider()),
-      ChangeNotifierProvider(create: (_) => FilterProvider()),
     ],
     child: Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {
