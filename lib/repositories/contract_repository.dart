@@ -11,26 +11,26 @@ class ContractRepository {
   /// Get current contract settings for a user
   ContractSettings? getCurrentForUser(String userId) {
     final now = DateTime.now();
-    return _box.values
+    final settings = _box.values
         .where((settings) =>
             settings.userId == userId &&
             settings.effectiveFrom.isBefore(now) &&
             (settings.effectiveTo == null || settings.effectiveTo!.isAfter(now)))
-        .toList()
-      ..sort((a, b) => b.effectiveFrom.compareTo(a.effectiveFrom))
-      ..firstOrNull;
+        .toList();
+    settings.sort((a, b) => b.effectiveFrom.compareTo(a.effectiveFrom));
+    return settings.isNotEmpty ? settings.first : null;
   }
 
   /// Get contract settings for a user at a specific date
   ContractSettings? getForUserAtDate(String userId, DateTime date) {
-    return _box.values
+    final settings = _box.values
         .where((settings) =>
             settings.userId == userId &&
             settings.effectiveFrom.isBefore(date) &&
             (settings.effectiveTo == null || settings.effectiveTo!.isAfter(date)))
-        .toList()
-      ..sort((a, b) => b.effectiveFrom.compareTo(a.effectiveFrom))
-      ..firstOrNull;
+        .toList();
+    settings.sort((a, b) => b.effectiveFrom.compareTo(a.effectiveFrom));
+    return settings.isNotEmpty ? settings.first : null;
   }
 
   /// Get all contract settings for a user

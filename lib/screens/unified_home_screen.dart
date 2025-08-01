@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../config/app_router.dart';
+import '../models/travel_entry.dart';
+import '../models/work_entry.dart';
+import '../repositories/repository_provider.dart';
 
 /// Unified Home screen with navigation integration.
 /// Main entry point combining travel and work time tracking.
@@ -13,11 +17,13 @@ class UnifiedHomeScreen extends StatefulWidget {
 
 class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   int _selectedIndex = 0;
+  List<_EntryData> _recentEntries = [];
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateSelectedIndex();
+    _loadRecentEntries();
   }
 
   void _updateSelectedIndex() {
@@ -37,6 +43,59 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         break;
       default:
         _selectedIndex = 0;
+    }
+  }
+
+  void _loadRecentEntries() {
+    try {
+      final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+      final userId = 'current_user'; // TODO: Get actual user ID
+      
+      // Get recent travel entries
+      final travelEntries = repositoryProvider.travelRepository.getAllForUser(userId);
+      final workEntries = repositoryProvider.workRepository.getAllForUser(userId);
+      
+      // Combine and sort by date
+      final allEntries = <_EntryData>[];
+      
+      // Convert travel entries
+      for (final entry in travelEntries.take(5)) {
+        allEntries.add(_EntryData(
+          id: entry.id,
+          type: 'travel',
+          title: 'Travel: ${entry.fromLocation} → ${entry.toLocation}',
+          subtitle: '${entry.date.toString().split(' ')[0]} • ${entry.remarks.isNotEmpty ? entry.remarks : 'No remarks'}',
+          duration: '${entry.travelMinutes ~/ 60}h ${entry.travelMinutes % 60}m',
+          icon: Icons.directions_car,
+        ));
+      }
+      
+      // Convert work entries
+      for (final entry in workEntries.take(5)) {
+        allEntries.add(_EntryData(
+          id: entry.id,
+          type: 'work',
+          title: 'Work Session',
+          subtitle: '${entry.date.toString().split(' ')[0]} • ${entry.remarks.isNotEmpty ? entry.remarks : 'No remarks'}',
+          duration: '${entry.workMinutes ~/ 60}h ${entry.workMinutes % 60}m',
+          icon: Icons.work,
+        ));
+      }
+      
+      // Sort by date (most recent first)
+      allEntries.sort((a, b) {
+        // Extract date from subtitle for sorting
+        final aDate = a.subtitle.split(' • ')[0];
+        final bDate = b.subtitle.split(' • ')[0];
+        return bDate.compareTo(aDate);
+      });
+      
+      setState(() {
+        _recentEntries = allEntries.take(10).toList();
+      });
+    } catch (e) {
+      // If there's an error, keep the mock data
+      print('Error loading recent entries: $e');
     }
   }
 
@@ -329,33 +388,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Widget _buildRecentEntries(ThemeData theme) {
-    final entries = [
-      _EntryData(
-        id: '1',
-        type: 'work',
-        title: 'Work Session',
-        subtitle: 'Office • Today 9:00 AM',
-        duration: '8h',
-        icon: Icons.work,
-      ),
-      _EntryData(
-        id: '2',
-        type: 'travel',
-        title: 'Morning Commute',
-        subtitle: 'Home → Office • Today 8:30 AM',
-        duration: '30m',
-        icon: Icons.directions_car,
-      ),
-      _EntryData(
-        id: '3',
-        type: 'work',
-        title: 'Remote Work',
-        subtitle: 'Home • Yesterday 10:00 AM',
-        duration: '6h 30m',
-        icon: Icons.work,
-      ),
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -366,7 +398,41 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        ...entries.map((entry) => _buildRecentEntry(theme, entry)),
+        if (_recentEntries.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.history,
+                  size: 48,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'No entries yet',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Start logging your travel and work time to see them here',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[500],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          )
+        else
+          ..._recentEntries.map((entry) => _buildRecentEntry(theme, entry)),
       ],
     );
   }
@@ -385,7 +451,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
       ),
       child: InkWell(
-        onTap: () => AppRouter.goToEditEntry(context, entryId: entry.id),
+                        onTap: () => AppRouter.goToEditEntry(context, entryId: entry.id, entryType: entry.type),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -957,28 +1023,75 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _isValid() ? () {
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                Icon(
-                                  Icons.check_circle,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text('Travel entry logged successfully!'),
-                              ],
+                      onPressed: _isValid() ? () async {
+                        try {
+                          // Get the repository provider
+                          final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+                          
+                          // Create travel entry from the first trip (for now, we'll save each trip as a separate entry)
+                          final trip = _trips.first;
+                          final travelEntry = TravelEntry(
+                            id: '', // Will be generated by repository
+                            userId: 'current_user', // TODO: Get actual user ID
+                            date: DateTime.now(),
+                            fromLocation: trip.fromController.text.trim(),
+                            toLocation: trip.toController.text.trim(),
+                            travelMinutes: trip.totalMinutes,
+                            remarks: _notesController.text.trim(),
+                          );
+                          
+                          // Save to repository
+                          await repositoryProvider.travelRepository.add(travelEntry);
+                          
+                          Navigator.of(context).pop();
+                          
+                          // Refresh recent entries by calling the parent's method
+                          if (context.mounted) {
+                            final parent = context.findAncestorStateOfType<_UnifiedHomeScreenState>();
+                            parent?._loadRecentEntries();
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Travel entry logged successfully!'),
+                                ],
+                              ),
+                              backgroundColor: Colors.green[600],
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                            backgroundColor: Colors.green[600],
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  Icon(
+                                    Icons.error,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text('Error saving entry: ${e.toString()}'),
+                                ],
+                              ),
+                              backgroundColor: Colors.red[600],
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       } : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.primary,
@@ -1685,28 +1798,78 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _isValid() ? () {
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                Icon(
-                                  Icons.check_circle,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text('Work entry logged successfully!'),
-                              ],
+                      onPressed: _isValid() ? () async {
+                        try {
+                          // Get the repository provider
+                          final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+                          
+                          // Calculate total work minutes from all shifts
+                          int totalWorkMinutes = 0;
+                          for (final shift in _shifts) {
+                            totalWorkMinutes += shift.totalMinutes;
+                          }
+                          
+                          // Create work entry
+                          final workEntry = WorkEntry(
+                            id: '', // Will be generated by repository
+                            userId: 'current_user', // TODO: Get actual user ID
+                            date: DateTime.now(),
+                            workMinutes: totalWorkMinutes,
+                            remarks: _notesController.text.trim(),
+                          );
+                          
+                          // Save to repository
+                          await repositoryProvider.workRepository.add(workEntry);
+                          
+                          Navigator.of(context).pop();
+                          
+                          // Refresh recent entries by calling the parent's method
+                          if (context.mounted) {
+                            final parent = context.findAncestorStateOfType<_UnifiedHomeScreenState>();
+                            parent?._loadRecentEntries();
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Work entry logged successfully!'),
+                                ],
+                              ),
+                              backgroundColor: Colors.green[600],
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                            backgroundColor: Colors.green[600],
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  Icon(
+                                    Icons.error,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text('Error saving entry: ${e.toString()}'),
+                                ],
+                              ),
+                              backgroundColor: Colors.red[600],
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       } : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.secondary,

@@ -18,6 +18,8 @@ import 'providers/theme_provider.dart';
 import 'providers/app_state_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/contract_provider.dart';
+// Repositories
+import 'repositories/repository_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +30,10 @@ void main() async {
   // Initialize Hive
   await Hive.initFlutter();
 
+  // Initialize repositories
+  final repositoryProvider = RepositoryProvider();
+  await repositoryProvider.initialize();
+
   // Initialize services
   final authService = AuthService();
 
@@ -35,6 +41,7 @@ void main() async {
   runApp(
     _buildMainApp(
       authService,
+      repositoryProvider,
     ),
   );
 }
@@ -43,6 +50,7 @@ void main() async {
 /// Updated to use EntryProvider instead of TravelProvider
 Widget _buildMainApp(
   AuthService authService,
+  RepositoryProvider repositoryProvider,
 ) {
   return MultiProvider(
     providers: [
@@ -53,6 +61,8 @@ Widget _buildMainApp(
       // Authentication services
       Provider<AuthService>.value(value: authService),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),
+      // Repository provider
+      Provider<RepositoryProvider>.value(value: repositoryProvider),
     ],
     child: Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {

@@ -1,5 +1,7 @@
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import '../models/travel_entry.dart';
 import '../models/work_entry.dart';
 import '../models/contract_settings.dart';
@@ -19,11 +21,23 @@ class RepositoryProvider {
   static const _workBoxName = 'work_entries';
   static const _contractBoxName = 'contract_settings';
   static const _leaveBoxName = 'leave_entries';
+  static const _appSettingsBoxName = 'app_settings';
 
   /// Initialize all repositories
   Future<void> initialize() async {
-    final appDir = await getApplicationDocumentsDirectory();
-    Hive.init(appDir.path);
+    if (kIsWeb) {
+      // For web, use Hive without path initialization
+      Hive.initFlutter();
+    } else {
+      // For mobile platforms, use path_provider
+      try {
+        final appDir = await getApplicationDocumentsDirectory();
+        Hive.init(appDir.path);
+      } catch (e) {
+        // Fallback to initFlutter if path_provider fails
+        Hive.initFlutter();
+      }
+    }
 
     // Register adapters
     Hive.registerAdapter(TravelEntryAdapter());
@@ -37,6 +51,7 @@ class RepositoryProvider {
     final workBox = await Hive.openBox<WorkEntry>(_workBoxName);
     final contractBox = await Hive.openBox<ContractSettings>(_contractBoxName);
     final leaveBox = await Hive.openBox<LeaveEntry>(_leaveBoxName);
+    final appSettingsBox = await Hive.openBox(_appSettingsBoxName);
 
     // Initialize repositories
     travelRepository = TravelRepository(travelBox);
