@@ -25,86 +25,24 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize Hive and register adapters
+  // Initialize Hive
   await Hive.initFlutter();
 
-  // Register old adapters (kept for migration compatibility)
-  Hive.registerAdapter(TravelTimeEntryAdapter());
-  Hive.registerAdapter(LocationAdapter());
-
-  // Register new unified Entry adapters
-  Hive.registerAdapter(EntryAdapter());
-  Hive.registerAdapter(EntryTypeAdapter());
-  Hive.registerAdapter(ShiftAdapter());
-
-  // Open Hive boxes
-  await Future.wait([
-    Hive.openBox<Location>(AppConstants.locationsBox),
-    Hive.openBox<TravelTimeEntry>(AppConstants.travelEntriesBox),
-    Hive.openBox(AppConstants.appSettingsBox),
-  ]);
-
-  // Initialize repositories and services
-  final locationRepository = HiveLocationRepository();
-  final entryService = EntryService(locationRepository: locationRepository);
-  final syncService = SyncService();
-  // Initialize services (using real Firebase auth)
+  // Initialize services
   final authService = AuthService();
-  final storageService = StorageService();
 
-  // Keep dummy auth service for debug purposes
-  final dummyAuthService = DummyAuthService();
-  await dummyAuthService.initialize();
-
-  // Access shared preferences for migration flag
-  final prefs = await SharedPreferences.getInstance();
-  final didMigrate = prefs.getBool('didMigrate') ?? false;
-
-  // If not migrated, show migration flow
-  if (!didMigrate) {
-    runApp(
-      MaterialApp(
-        title: 'Travel Time Logger - Migration',
-        theme: ThemeData.light(),
-        home: _MigrationScreen(
-          onComplete: () async {
-            // Mark migration as done and start app
-            await prefs.setBool('didMigrate', true);
-            runApp(
-              _buildMainApp(
-                entryService,
-                syncService,
-                authService,
-                storageService,
-                dummyAuthService,
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  } else {
-    // Normal app startup with unified services
-    runApp(
-      _buildMainApp(
-        entryService,
-        syncService,
-        authService,
-        storageService,
-        dummyAuthService,
-      ),
-    );
-  }
+  // Start the app
+  runApp(
+    _buildMainApp(
+      authService,
+    ),
+  );
 }
 
 /// Build the main app with all providers using unified Entry model
 /// Updated to use EntryProvider instead of TravelProvider
 Widget _buildMainApp(
-  EntryService entryService,
-  SyncService syncService,
   AuthService authService,
-  StorageService storageService,
-  DummyAuthService dummyAuthService,
 ) {
   return MultiProvider(
     providers: [
@@ -131,77 +69,4 @@ Widget _buildMainApp(
   );
 }
 
-/// A simple full-screen widget that runs migration, showing progress and errors if any.
-class _MigrationScreen extends StatefulWidget {
-  final VoidCallback onComplete;
 
-  const _MigrationScreen({required this.onComplete});
-
-  @override
-  State<_MigrationScreen> createState() => _MigrationScreenState();
-}
-
-class _MigrationScreenState extends State<_MigrationScreen> {
-  String _message = 'Preparing migration...';
-  bool _isComplete = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _runMigration();
-  }
-
-  Future<void> _runMigration() async {
-    try {
-      setState(() => _message = 'Migrating data...');
-
-      final migrationService = EntryMigrationService();
-      final result = await migrationService.migrate();
-
-      setState(() {
-        _message =
-            'Migrated ${result.migrationCount} entries in ${result.duration.inSeconds}s';
-        _isComplete = true;
-      });
-    } catch (e) {
-      setState(() {
-        _message = 'Migration failed: $e';
-        _isComplete = true;
-      });
-    }
-
-    // Short delay to let user read the message
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      widget.onComplete();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (!_isComplete) ...[
-              const CircularProgressIndicator(),
-              const SizedBox(height: 24),
-            ],
-            Text(
-              _message,
-              style: const TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-            if (_isComplete) ...[
-              const SizedBox(height: 16),
-              const Icon(Icons.check_circle, color: Colors.green, size: 48),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
