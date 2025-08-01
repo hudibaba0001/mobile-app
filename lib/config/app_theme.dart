@@ -24,11 +24,9 @@ class AppTheme {
     onError: Color(0xFFFFFFFF),
     errorContainer: Color(0xFFFFCDD2),
     onErrorContainer: Color(0xFFB71C1C),
-    background: Color(0xFFFAFAFA),
-    onBackground: Color(0xFF212121),
     surface: Color(0xFFFFFFFF),
     onSurface: Color(0xFF212121),
-    surfaceVariant: Color(0xFFF5F5F5),
+    surfaceContainerHighest: Color(0xFFF5F5F5),
     onSurfaceVariant: Color(0xFF424242),
     outline: Color(0xFF9E9E9E),
     outlineVariant: Color(0xFFE0E0E0),
@@ -58,11 +56,9 @@ class AppTheme {
     onError: Color(0xFFB71C1C),
     errorContainer: Color(0xFFC62828),
     onErrorContainer: Color(0xFFFFEBEE),
-    background: Color(0xFF121212),
-    onBackground: Color(0xFFE0E0E0),
     surface: Color(0xFF1E1E1E),
     onSurface: Color(0xFFE0E0E0),
-    surfaceVariant: Color(0xFF2C2C2C),
+    surfaceContainerHighest: Color(0xFF2C2C2C),
     onSurfaceVariant: Color(0xFFBDBDBD),
     outline: Color(0xFF757575),
     outlineVariant: Color(0xFF424242),
@@ -491,7 +487,7 @@ class AppTheme {
     backgroundColor: Color(0xFFFFFFFF),
     surfaceTintColor: Color(0xFF1976D2),
     indicatorColor: Color(0xFFBBDEFB),
-    labelTextStyle: MaterialStatePropertyAll(
+    labelTextStyle: WidgetStatePropertyAll(
       TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -504,7 +500,7 @@ class AppTheme {
     backgroundColor: Color(0xFF1E1E1E),
     surfaceTintColor: Color(0xFF90CAF9),
     indicatorColor: Color(0xFF1565C0),
-    labelTextStyle: MaterialStatePropertyAll(
+    labelTextStyle: WidgetStatePropertyAll(
       TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -572,14 +568,14 @@ class AppTheme {
 
   // Form control themes
   static final SwitchThemeData _lightSwitchTheme = SwitchThemeData(
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFF1976D2);
       }
       return const Color(0xFFFFFFFF);
     }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFFBBDEFB);
       }
       return const Color(0xFFE0E0E0);
@@ -587,14 +583,14 @@ class AppTheme {
   );
 
   static final SwitchThemeData _darkSwitchTheme = SwitchThemeData(
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFF90CAF9);
       }
       return const Color(0xFF424242);
     }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFF1565C0);
       }
       return const Color(0xFF757575);
@@ -602,34 +598,34 @@ class AppTheme {
   );
 
   static final CheckboxThemeData _lightCheckboxTheme = CheckboxThemeData(
-    fillColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    fillColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFF1976D2);
       }
       return Colors.transparent;
     }),
-    checkColor: MaterialStateProperty.all(const Color(0xFFFFFFFF)),
+    checkColor: WidgetStateProperty.all(const Color(0xFFFFFFFF)),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
   );
 
   static final CheckboxThemeData _darkCheckboxTheme = CheckboxThemeData(
-    fillColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    fillColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFF90CAF9);
       }
       return Colors.transparent;
     }),
-    checkColor: MaterialStateProperty.all(const Color(0xFF0D47A1)),
+    checkColor: WidgetStateProperty.all(const Color(0xFF0D47A1)),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
   );
 
   static final RadioThemeData _lightRadioTheme = RadioThemeData(
-    fillColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    fillColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFF1976D2);
       }
       return const Color(0xFF757575);
@@ -637,8 +633,8 @@ class AppTheme {
   );
 
   static final RadioThemeData _darkRadioTheme = RadioThemeData(
-    fillColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    fillColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFF90CAF9);
       }
       return const Color(0xFFBDBDBD);

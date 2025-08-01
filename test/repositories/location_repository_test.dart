@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:myapp/models/location.dart';
 import 'package:myapp/repositories/hive_location_repository.dart';

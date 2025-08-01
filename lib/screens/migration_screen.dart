@@ -4,7 +4,7 @@ import '../providers/app_state_provider.dart';
 import '../utils/constants.dart';
 
 class MigrationScreen extends StatefulWidget {
-  const MigrationScreen({Key? key}) : super(key: key);
+  const MigrationScreen({super.key});
 
   @override
   State<MigrationScreen> createState() => _MigrationScreenState();

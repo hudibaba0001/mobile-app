@@ -265,9 +265,9 @@ class LocationProvider extends ChangeNotifier {
   List<String> getLocationNameSuggestions(String query, {int limit = 5}) {
     if (query.isEmpty) return [];
     
-    final query_lower = query.toLowerCase();
+    final queryLower = query.toLowerCase();
     final suggestions = _locations
-        .where((location) => location.name.toLowerCase().contains(query_lower))
+        .where((location) => location.name.toLowerCase().contains(queryLower))
         .map((location) => location.name)
         .take(limit)
         .toList();
@@ -279,9 +279,9 @@ class LocationProvider extends ChangeNotifier {
   List<String> getAddressSuggestions(String query, {int limit = 5}) {
     if (query.isEmpty) return [];
     
-    final query_lower = query.toLowerCase();
+    final queryLower = query.toLowerCase();
     final suggestions = _locations
-        .where((location) => location.address.toLowerCase().contains(query_lower))
+        .where((location) => location.address.toLowerCase().contains(queryLower))
         .map((location) => location.address)
         .take(limit)
         .toList();
@@ -318,8 +318,4 @@ class LocationProvider extends ChangeNotifier {
     _clearError();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

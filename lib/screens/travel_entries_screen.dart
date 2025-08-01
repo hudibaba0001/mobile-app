@@ -13,7 +13,7 @@ import '../models/entry.dart'; // Updated to use unified Entry model
 import '../utils/constants.dart';
 
 class TravelEntriesScreen extends StatefulWidget {
-  const TravelEntriesScreen({Key? key}) : super(key: key);
+  const TravelEntriesScreen({super.key});
 
   @override
   State<TravelEntriesScreen> createState() => _TravelEntriesScreenState();

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/search_provider.dart';
-import '../utils/constants.dart';
 
 class SearchBarWidget extends StatefulWidget {
   final String hintText;

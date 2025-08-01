@@ -7,9 +7,9 @@ class FilterChips extends StatelessWidget {
   final Function()? onFiltersChanged;
   
   const FilterChips({
-    Key? key,
+    super.key,
     this.onFiltersChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +180,7 @@ class FilterChips extends StatelessWidget {
         ],
       ),
       onPressed: onTap,
-      backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
     );
   }
 

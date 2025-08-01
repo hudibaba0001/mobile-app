@@ -9,7 +9,7 @@ export const validateFirebaseIdToken = async (
   next: NextFunction
 ) => {
   if ((!req.headers.authorization || !req.headers.authorization.startsWith('Bearer '))) {
-    res.status(403).json({ error: 'Unauthorized' });
+    res.status(403).json({ error: 'No token provided' });
     return;
   }
 
@@ -21,6 +21,26 @@ export const validateFirebaseIdToken = async (
     next();
   } catch (error) {
     console.error('Error verifying auth token:', error);
-    res.status(403).json({ error: 'Unauthorized' });
+    res.status(403).json({ error: 'Invalid token' });
   }
+};
+
+export const requireAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+  
+  if (!user) {
+    res.status(403).json({ error: 'Unauthenticated request' });
+    return;
+  }
+
+  if (!user.admin) {
+    res.status(403).json({ error: 'Insufficient privileges' });
+    return;
+  }
+
+  next();
 };

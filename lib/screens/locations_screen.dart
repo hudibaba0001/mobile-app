@@ -11,7 +11,7 @@ import '../utils/constants.dart';
 import '../utils/validators.dart';
 
 class LocationsScreen extends StatefulWidget {
-  const LocationsScreen({Key? key}) : super(key: key);
+  const LocationsScreen({super.key});
 
   @override
   State<LocationsScreen> createState() => _LocationsScreenState();

@@ -91,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // User Info Section
           Card(
             elevation: 0,
-            color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),

@@ -11,7 +11,7 @@ void main() {
 }
 
 class MigrationDemoApp extends StatelessWidget {
-  const MigrationDemoApp({Key? key}) : super(key: key);
+  const MigrationDemoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class MigrationDemoApp extends StatelessWidget {
 }
 
 class MigrationScreen extends StatefulWidget {
-  const MigrationScreen({Key? key}) : super(key: key);
+  const MigrationScreen({super.key});
 
   @override
   State<MigrationScreen> createState() => _MigrationScreenState();

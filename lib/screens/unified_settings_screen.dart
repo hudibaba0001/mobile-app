@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class UnifiedSettingsScreen extends StatefulWidget {
-  const UnifiedSettingsScreen({Key? key}) : super(key: key);
+  const UnifiedSettingsScreen({super.key});
 
   @override
   State<UnifiedSettingsScreen> createState() => _UnifiedSettingsScreenState();

@@ -73,7 +73,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   Text(
                     _filterType == 'all'
                         ? 'No entries yet'
-                        : 'No ${_filterType} entries yet',
+                        : 'No $_filterType entries yet',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,

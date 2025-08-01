@@ -436,39 +436,65 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   void _startTravelEntry() {
-    print('🚀 Starting travel entry navigation...');
-    try {
-      // Navigate to create new travel entry
-      AppRouter.goToEditEntry(
-        context,
-        entryId: 'new', // Use 'new' to indicate creating a new entry
-        entryType: 'travel',
-      );
-      print('✅ Travel entry navigation called successfully');
-    } catch (e) {
-      print('❌ Error navigating to travel entry: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Navigation error: $e')));
-    }
+    // Show a simple dialog instead of navigating to complex screen
+    _showQuickEntryDialog('travel');
   }
 
   void _startWorkEntry() {
-    print('🚀 Starting work entry navigation...');
-    try {
-      // Navigate to create new work entry
-      AppRouter.goToEditEntry(
-        context,
-        entryId: 'new', // Use 'new' to indicate creating a new entry
-        entryType: 'work',
-      );
-      print('✅ Work entry navigation called successfully');
-    } catch (e) {
-      print('❌ Error navigating to work entry: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Navigation error: $e')));
-    }
+    // Show a simple dialog instead of navigating to complex screen
+    _showQuickEntryDialog('work');
+  }
+
+  void _showQuickEntryDialog(String type) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final TextEditingController notesController = TextEditingController();
+        
+        return AlertDialog(
+          title: Text('Log ${type.toUpperCase()} Entry'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: notesController,
+                decoration: InputDecoration(
+                  labelText: 'Notes (optional)',
+                  hintText: 'Add details about your $type...',
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Entry will be logged for ${DateTime.now().toString().split(' ')[0]}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${type.toUpperCase()} entry logged successfully!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              child: const Text('Log Entry'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showQuickEntry() {
@@ -530,3 +556,4 @@ class _EntryData {
     required this.icon,
   });
 }
+

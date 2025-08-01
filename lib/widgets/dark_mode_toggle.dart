@@ -11,7 +11,7 @@ import '../providers/theme_provider.dart';
 /// - Proper accessibility support
 /// - Material 3 theming integration
 class DarkModeToggle extends StatelessWidget {
-  const DarkModeToggle({Key? key}) : super(key: key);
+  const DarkModeToggle({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +149,7 @@ class DarkModeToggle extends StatelessWidget {
         activeColor: colorScheme.primary,
         activeTrackColor: colorScheme.primary.withOpacity(0.5),
         inactiveThumbColor: colorScheme.outline,
-        inactiveTrackColor: colorScheme.surfaceVariant,
+        inactiveTrackColor: colorScheme.surfaceContainerHighest,
         materialTapTargetSize: MaterialTapTargetSize.padded,
         splashRadius: 24.0,
       ),

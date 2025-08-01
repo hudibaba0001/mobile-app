@@ -231,7 +231,7 @@ class SettingsProvider extends ChangeNotifier {
         _escapeCsvField(entry.from ?? ''),
         _escapeCsvField(entry.to ?? ''),
         entry.travelMinutes?.toString() ?? '',
-        entry.workHours?.toString() ?? '',
+        entry.workHours.toString() ?? '',
         _escapeCsvField(entry.notes ?? ''),
         _escapeCsvField(entry.journeyId ?? ''),
         entry.segmentOrder?.toString() ?? '',

@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 import 'date_range_picker_widget.dart';
 
 class FilterDialog extends StatefulWidget {
-  const FilterDialog({Key? key}) : super(key: key);
+  const FilterDialog({super.key});
 
   @override
   State<FilterDialog> createState() => _FilterDialogState();

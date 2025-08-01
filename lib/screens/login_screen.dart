@@ -98,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: theme.colorScheme.surfaceVariant.withOpacity(
+                    fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(
                       0.3,
                     ),
                   ),
@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: theme.colorScheme.surfaceVariant.withOpacity(
+                    fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(
                       0.3,
                     ),
                   ),
@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
                       foregroundColor: theme.colorScheme.onPrimary,
-                      disabledBackgroundColor: theme.colorScheme.surfaceVariant,
+                      disabledBackgroundColor: theme.colorScheme.surfaceContainerHighest,
                       disabledForegroundColor:
                           theme.colorScheme.onSurfaceVariant,
                       elevation: 2,

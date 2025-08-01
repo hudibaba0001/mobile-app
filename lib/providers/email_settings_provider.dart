@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../models/email_settings.dart';
 import '../services/email_export_service.dart';
-import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 
 class EmailSettingsProvider extends ChangeNotifier {

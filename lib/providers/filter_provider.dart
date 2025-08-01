@@ -24,7 +24,7 @@ class FilterProvider extends ChangeNotifier {
   
   // Filter state
   bool _isActive = false;
-  Map<String, FilterPreset> _filterPresets = {};
+  final Map<String, FilterPreset> _filterPresets = {};
   String? _activePresetName;
   AppError? _lastError;
   
@@ -34,7 +34,7 @@ class FilterProvider extends ChangeNotifier {
   bool _enableSmartFiltering = true;
   
   // Filter statistics
-  Map<String, int> _filterUsageStats = {};
+  final Map<String, int> _filterUsageStats = {};
   DateTime? _lastFilterApplied;
 
   // Getters
@@ -767,10 +767,6 @@ class FilterProvider extends ChangeNotifier {
     _clearError();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
 
 enum SortOption {

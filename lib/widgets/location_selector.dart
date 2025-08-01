@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/location.dart';
 import '../providers/location_provider.dart';
-import '../utils/constants.dart';
 
 class LocationSelector extends StatefulWidget {
   final String? initialValue;

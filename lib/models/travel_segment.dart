@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../models/location.dart';
 
 /// Represents a single segment in a multi-segment journey

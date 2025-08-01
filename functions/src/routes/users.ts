@@ -6,25 +6,27 @@ import {
   getUserById, 
   updateUser, 
   validateUpdateUser,
-  deleteUser, 
+  deleteUser,
+  disableUser,
+  enableUser,
   getUserTravelHistory 
 } from '../controllers/users.controller';
+import { validateFirebaseIdToken, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// List all users (admin only)
-router.get('/', listUsers);
+// Apply auth middleware to all routes
+router.use(validateFirebaseIdToken);
 
-// Get specific user
+// Admin-only routes
+router.get('/', requireAdmin, listUsers);
+router.put('/:userId', requireAdmin, validateUpdateUser, updateUser);
+router.post('/:uid/disable', requireAdmin, disableUser);
+router.post('/:uid/enable', requireAdmin, enableUser);
+router.delete('/:userId', requireAdmin, deleteUser);
+
+// User-accessible routes (still need authentication)
 router.get('/:userId', getUserById);
-
-// Update user - with validation middleware
-router.put('/:userId', validateUpdateUser, updateUser);
-
-// Delete user
-router.delete('/:userId', deleteUser);
-
-// Get user's travel history
 router.get('/:userId/travel-history', getUserTravelHistory);
 
 export default router;

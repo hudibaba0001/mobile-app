@@ -9,7 +9,7 @@ enum EntryType { travel, work, all }
 enum DateRange { today, yesterday, lastWeek, custom }
 
 class EnhancedHistoryScreen extends StatefulWidget {
-  const EnhancedHistoryScreen({Key? key}) : super(key: key);
+  const EnhancedHistoryScreen({super.key});
 
   @override
   State<EnhancedHistoryScreen> createState() => _EnhancedHistoryScreenState();
@@ -133,7 +133,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
       builder: (context, selectedType, child) {
         return Container(
           decoration: BoxDecoration(
-            color: colorScheme.surfaceVariant.withOpacity(0.3),
+            color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -309,7 +309,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
           },
         ),
         filled: true,
-        fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+        fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -335,7 +335,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      color: colorScheme.surfaceVariant.withOpacity(0.1),
+      color: colorScheme.surfaceContainerHighest.withOpacity(0.1),
       child: Consumer<EntryProvider>(
         builder: (context, entryProvider, child) {
           final entries = entryProvider.filteredEntries;

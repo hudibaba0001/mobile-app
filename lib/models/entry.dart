@@ -371,9 +371,9 @@ class Entry extends HiveObject {
   String toString() {
     switch (type) {
       case EntryType.travel:
-        return 'Entry(travel: $from → $to, ${formattedDuration})';
+        return 'Entry(travel: $from → $to, $formattedDuration)';
       case EntryType.work:
-        return 'Entry(work: ${shifts?.length ?? 0} shifts, ${formattedDuration})';
+        return 'Entry(work: ${shifts?.length ?? 0} shifts, $formattedDuration)';
     }
   }
 }

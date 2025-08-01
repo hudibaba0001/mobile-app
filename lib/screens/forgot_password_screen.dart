@@ -93,7 +93,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+                    fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                   ),
                   validator: _validateEmail,
                   onFieldSubmitted: (_) => _handleResetPassword(),
@@ -107,7 +107,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: FilledButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
-                    disabledBackgroundColor: colorScheme.surfaceVariant,
+                    disabledBackgroundColor: colorScheme.surfaceContainerHighest,
                     disabledForegroundColor: colorScheme.onSurfaceVariant,
                     minimumSize: const Size.fromHeight(48),
                     shape: RoundedRectangleBorder(

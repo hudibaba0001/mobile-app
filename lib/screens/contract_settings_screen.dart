@@ -7,7 +7,7 @@ import '../config/app_router.dart';
 /// Contract Settings screen with full ContractProvider integration
 /// Features: Contract percentage input, full-time hours input, live preview, validation
 class ContractSettingsScreen extends StatefulWidget {
-  const ContractSettingsScreen({Key? key}) : super(key: key);
+  const ContractSettingsScreen({super.key});
 
   @override
   State<ContractSettingsScreen> createState() => _ContractSettingsScreenState();
@@ -262,7 +262,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   // Live Preview Card
                   Card(
                     elevation: 0,
-                    color: colorScheme.surfaceVariant.withOpacity(0.3),
+                    color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),

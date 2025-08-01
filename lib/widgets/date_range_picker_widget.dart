@@ -11,14 +11,14 @@ class DateRangePickerWidget extends StatefulWidget {
   final bool showQuickSelects;
 
   const DateRangePickerWidget({
-    Key? key,
+    super.key,
     this.initialStartDate,
     this.initialEndDate,
     required this.onDateRangeSelected,
     this.onClear,
     this.label,
     this.showQuickSelects = true,
-  }) : super(key: key);
+  });
 
   @override
   State<DateRangePickerWidget> createState() => _DateRangePickerWidgetState();
@@ -319,7 +319,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
               return ActionChip(
                 label: Text(_getQuickRangeLabel(range)),
                 onPressed: () => _setQuickDateRange(range),
-                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               );
             }).toList(),
           ),

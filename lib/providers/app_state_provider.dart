@@ -133,8 +133,4 @@ class AppStateProvider extends ChangeNotifier {
     _clearError();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

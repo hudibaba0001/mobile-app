@@ -15,13 +15,13 @@ class SearchFilterBar extends StatefulWidget {
   final bool expandable;
   
   const SearchFilterBar({
-    Key? key,
+    super.key,
     this.onSearch,
     this.onFiltersChanged,
     this.searchHint = 'Search travel entries...',
     this.showFilterChips = true,
     this.expandable = true,
-  }) : super(key: key);
+  });
 
   @override
   State<SearchFilterBar> createState() => _SearchFilterBarState();

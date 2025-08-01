@@ -18,7 +18,7 @@ class SearchProvider extends ChangeNotifier {
   List<Location> _locationResults = [];
   
   // Saved searches
-  Map<String, SavedSearch> _savedSearches = {};
+  final Map<String, SavedSearch> _savedSearches = {};
   
   // Advanced search options
   bool _caseSensitive = false;
@@ -563,10 +563,6 @@ class SearchProvider extends ChangeNotifier {
     _clearError();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
 
 enum SearchType {
