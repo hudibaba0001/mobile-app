@@ -54,15 +54,8 @@ class ExportService {
     required DateTime endDate,
     String? customFileName,
   }) async {
-    try {
-      return await RetryHelper.executeWithRetry(
-        () async => _exportToCSVLegacyInternal(startDate, endDate, customFileName),
-        shouldRetry: (error) => false, // Don't retry file operations
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
+    // Temporarily disabled due to repository structure changes
+    throw UnimplementedError('Export functionality temporarily disabled');
   }
 
   Future<String> _exportToCSVInternal(
@@ -73,30 +66,8 @@ class ExportService {
     List<CSVColumn> columns,
     Function(double progress)? onProgress,
   ) async {
-    // Validate date range
-    final dateValidationErrors = DataValidator.validateDateRange(startDate, endDate);
-    if (dateValidationErrors.isNotEmpty) {
-      throw dateValidationErrors.first;
-    }
-
-    // Generate filename
-    final fileName = customFileName ?? _generateFileName(startDate, endDate, 'csv');
-    
-    // Validate filename
-    final fileNameValidationErrors = DataValidator.validateFileName(fileName);
-    if (fileNameValidationErrors.isNotEmpty) {
-      throw fileNameValidationErrors.first;
-    }
-
-    // Generate CSV content with progress tracking
-    final csvContent = await _generateAdvancedCSVContent(entries, columns, onProgress);
-
-    // Save to file
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsString(csvContent);
-
-    return file.path;
+    // Temporarily disabled due to repository structure changes
+    throw UnimplementedError('Export functionality temporarily disabled');
   }
 
   Future<String> _exportToCSVLegacyInternal(

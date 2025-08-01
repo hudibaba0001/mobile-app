@@ -31,13 +31,17 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> setDarkMode(bool value) async {
     _isDarkMode = value;
-    await _settingsBox.put('isDarkMode', value);
+    if (_settingsBox != null) {
+      await _settingsBox!.put('isDarkMode', value);
+    }
     notifyListeners();
   }
 
   Future<void> setFirstLaunch(bool value) async {
     _isFirstLaunch = value;
-    await _settingsBox.put('isFirstLaunch', value);
+    if (_settingsBox != null) {
+      await _settingsBox!.put('isFirstLaunch', value);
+    }
     notifyListeners();
   }
 }

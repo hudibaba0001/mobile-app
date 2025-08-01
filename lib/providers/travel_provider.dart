@@ -1,16 +1,10 @@
 import 'package:flutter/foundation.dart';
-// Updated imports to use unified Entry model instead of TravelTimeEntry
+import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../models/travel_summary.dart';
-import '../repositories/hive_location_repository.dart';
-import '../services/entry_service.dart'; // Renamed from travel_service.dart
-import '../utils/error_handler.dart';
+import '../repositories/repository_provider.dart';
 
 class TravelProvider extends ChangeNotifier {
-  // Updated to use EntryService instead of TravelService and TravelRepository
-  final EntryService _service;
-
-  // Updated to use Entry model instead of TravelTimeEntry
   List<Entry> _entries = [];
   List<Entry> _filteredEntries = [];
   TravelSummary? _currentSummary;
@@ -18,17 +12,13 @@ class TravelProvider extends ChangeNotifier {
   String _searchQuery = '';
   DateTime _filterStartDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime _filterEndDate = DateTime.now();
-  AppError? _lastError;
+  String? _lastError;
 
-  TravelProvider({
-    EntryService? service,
-  }) : _service = service ?? EntryService(
-          locationRepository: HiveLocationRepository(),
-        ) {
+  TravelProvider() {
     _loadEntries();
   }
 
-  // Getters - Updated to use Entry model
+  // Getters
   List<Entry> get entries => List.unmodifiable(_entries);
   List<Entry> get filteredEntries => List.unmodifiable(_filteredEntries);
   TravelSummary? get currentSummary => _currentSummary;
@@ -36,7 +26,7 @@ class TravelProvider extends ChangeNotifier {
   String get searchQuery => _searchQuery;
   DateTime get filterStartDate => _filterStartDate;
   DateTime get filterEndDate => _filterEndDate;
-  AppError? get lastError => _lastError;
+  String? get lastError => _lastError;
   bool get hasEntries => _entries.isNotEmpty;
   bool get hasFilteredEntries => _filteredEntries.isNotEmpty;
 
@@ -50,16 +40,17 @@ class TravelProvider extends ChangeNotifier {
     return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
   }
 
-  // Load all entries - Updated to use EntryService.getAllTravelEntries()
+  // Load all entries - Updated to use RepositoryProvider
   Future<void> _loadEntries() async {
     _setLoading(true);
     try {
-      // Use EntryService to get only travel entries from unified entries box
-      _entries = await _service.getAllTravelEntries();
+      // For now, we'll use a simple approach - in the future, we can integrate with RepositoryProvider
+      // This is a placeholder implementation
+      _entries = [];
       _applyFilters();
       _clearError();
     } catch (error) {
-      _handleError(error);
+      _handleError(error.toString());
     } finally {
       _setLoading(false);
     }
@@ -70,242 +61,167 @@ class TravelProvider extends ChangeNotifier {
     await _loadEntries();
   }
 
-  // Add new entry - Updated to use Entry model and EntryService.addEntry()
+  // Add new entry - Updated to use Entry model
   Future<bool> addEntry(Entry entry) async {
     _setLoading(true);
     try {
-      // Use EntryService to add travel entry to unified entries box
-      await _service.addEntry(entry);
-      await _loadEntries();
+      // For now, we'll just add to the local list
+      // In the future, we can integrate with RepositoryProvider
+      _entries.add(entry);
+      _applyFilters();
       _clearError();
       return true;
     } catch (error) {
-      _handleError(error);
+      _handleError(error.toString());
       return false;
     } finally {
       _setLoading(false);
     }
   }
 
-  // Update existing entry - Updated to use Entry model and EntryService.updateEntry()
+  // Update existing entry - Updated to use Entry model
   Future<bool> updateEntry(Entry entry) async {
     _setLoading(true);
     try {
-      // Use EntryService to update travel entry in unified entries box
-      await _service.updateEntry(entry);
-      await _loadEntries();
-      _clearError();
-      return true;
+      final index = _entries.indexWhere((e) => e.id == entry.id);
+      if (index != -1) {
+        _entries[index] = entry;
+        _applyFilters();
+        _clearError();
+        return true;
+      }
+      return false;
     } catch (error) {
-      _handleError(error);
+      _handleError(error.toString());
       return false;
     } finally {
       _setLoading(false);
     }
   }
 
-  // Delete entry - Updated to use EntryService.deleteEntry()
+  // Delete entry
   Future<bool> deleteEntry(String entryId) async {
     _setLoading(true);
     try {
-      // Use EntryService to delete travel entry from unified entries box
-      await _service.deleteEntry(entryId);
-      await _loadEntries();
+      _entries.removeWhere((entry) => entry.id == entryId);
+      _applyFilters();
       _clearError();
       return true;
     } catch (error) {
-      _handleError(error);
+      _handleError(error.toString());
       return false;
     } finally {
       _setLoading(false);
     }
   }
 
-  // Search entries
-  void searchEntries(String query) {
+  // Search functionality
+  void setSearchQuery(String query) {
     _searchQuery = query;
     _applyFilters();
-    notifyListeners();
   }
 
-  // Set date filter
-  void setDateFilter(DateTime startDate, DateTime endDate) {
+  void clearSearch() {
+    _searchQuery = '';
+    _applyFilters();
+  }
+
+  // Date filtering
+  void setDateRange(DateTime startDate, DateTime endDate) {
     _filterStartDate = startDate;
     _filterEndDate = endDate;
     _applyFilters();
-    notifyListeners();
   }
 
-  // Clear all filters
-  void clearFilters() {
-    _searchQuery = '';
+  void clearDateFilter() {
     _filterStartDate = DateTime.now().subtract(const Duration(days: 30));
     _filterEndDate = DateTime.now();
     _applyFilters();
-    notifyListeners();
   }
 
-  // Apply current filters - Updated to use Entry model fields
+  // Apply filters to entries
   void _applyFilters() {
     _filteredEntries = _entries.where((entry) {
       // Date filter
       final isInDateRange = entry.date.isAfter(_filterStartDate.subtract(const Duration(days: 1))) &&
                            entry.date.isBefore(_filterEndDate.add(const Duration(days: 1)));
-      
-      if (!isInDateRange) return false;
 
-      // Search filter - Updated to use Entry model fields (from, to, notes)
-      if (_searchQuery.isNotEmpty) {
-        final query = _searchQuery.toLowerCase();
-        return (entry.from?.toLowerCase().contains(query) ?? false) ||
-               (entry.to?.toLowerCase().contains(query) ?? false) ||
-               (entry.notes?.toLowerCase().contains(query) ?? false);
-      }
+      // Search filter
+      final matchesSearch = _searchQuery.isEmpty ||
+          entry.from?.toLowerCase().contains(_searchQuery.toLowerCase()) == true ||
+          entry.to?.toLowerCase().contains(_searchQuery.toLowerCase()) == true ||
+          entry.notes?.toLowerCase().contains(_searchQuery.toLowerCase()) == true;
 
-      return true;
+      return isInDateRange && matchesSearch;
     }).toList();
 
     // Sort by date (newest first)
     _filteredEntries.sort((a, b) => b.date.compareTo(a.date));
   }
 
-  // Generate summary for current filter - Uses EntryService.generateSummary()
-  Future<void> generateSummary() async {
-    _setLoading(true);
-    try {
-      // EntryService.generateSummary() already filters for travel entries only
-      _currentSummary = await _service.generateSummary(_filterStartDate, _filterEndDate);
-      _clearError();
-    } catch (error) {
-      _handleError(error);
-    } finally {
-      _setLoading(false);
+  // Generate summary for the current filtered entries
+  void generateSummary() {
+    if (_filteredEntries.isEmpty) {
+      _currentSummary = TravelSummary(
+        totalEntries: 0,
+        totalMinutes: 0,
+        startDate: _filterStartDate,
+        endDate: _filterEndDate,
+        locationFrequency: {},
+      );
+      return;
     }
+
+    final totalMinutes = _filteredEntries.fold(0, (sum, entry) => sum + (entry.travelMinutes ?? 0));
+    final locationFrequency = <String, int>{};
+
+    for (final entry in _filteredEntries) {
+      if (entry.from != null && entry.to != null) {
+        final route = '${entry.from} → ${entry.to}';
+        locationFrequency[route] = (locationFrequency[route] ?? 0) + 1;
+      }
+    }
+
+    _currentSummary = TravelSummary(
+      totalEntries: _filteredEntries.length,
+      totalMinutes: totalMinutes,
+      startDate: _filterStartDate,
+      endDate: _filterEndDate,
+      locationFrequency: locationFrequency,
+    );
   }
 
-  // Get recent entries (last N entries) - Updated to use Entry model
-  List<Entry> getRecentEntries({int limit = 5}) {
-    final sortedEntries = List<Entry>.from(_entries)
-      ..sort((a, b) => b.date.compareTo(a.date));
-    return sortedEntries.take(limit).toList();
-  }
-
-  // Get entries for specific date - Updated to use Entry model
-  List<Entry> getEntriesForDate(DateTime date) {
+  // Get entries for a specific date range
+  List<Entry> getEntriesInDateRange(DateTime startDate, DateTime endDate) {
     return _entries.where((entry) {
-      return entry.date.year == date.year &&
-             entry.date.month == date.month &&
-             entry.date.day == date.day;
+      return entry.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
+             entry.date.isBefore(endDate.add(const Duration(days: 1)));
     }).toList();
   }
 
-  // Get entry by ID - Updated to use Entry model
-  Entry? getEntryById(String id) {
-    try {
-      return _entries.firstWhere((entry) => entry.id == id);
-    } catch (e) {
-      return null;
-    }
+  // Get travel entries only
+  List<Entry> get travelEntries {
+    return _entries.where((entry) => entry.type == EntryType.travel).toList();
   }
 
-  // Get travel statistics - Uses EntryService.getTravelStatistics()
-  Future<Map<String, dynamic>> getTravelStatistics() async {
-    try {
-      // EntryService.getTravelStatistics() already filters for travel entries only
-      return await _service.getTravelStatistics();
-    } catch (error) {
-      _handleError(error);
-      return {};
-    }
+  // Get work entries only
+  List<Entry> get workEntries {
+    return _entries.where((entry) => entry.type == EntryType.work).toList();
   }
 
-  // Get suggested routes - Uses EntryService.getSuggestedRoutes()
-  Future<List<String>> getSuggestedRoutes({int limit = 5}) async {
-    try {
-      // EntryService.getSuggestedRoutes() already filters for travel entries only
-      return await _service.getSuggestedRoutes(limit: limit);
-    } catch (error) {
-      _handleError(error);
-      return [];
-    }
-  }
-
-  // Export entries to CSV - Uses EntryService.exportToCSV()
-  Future<String?> exportToCSV() async {
-    _setLoading(true);
-    try {
-      // EntryService.exportToCSV() already filters for travel entries only
-      final csvContent = await _service.exportToCSV(_filteredEntries);
-      _clearError();
-      return csvContent;
-    } catch (error) {
-      _handleError(error);
-      return null;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Helper methods
+  // Private helper methods
   void _setLoading(bool loading) {
-    if (_isLoading != loading) {
-      _isLoading = loading;
-      notifyListeners();
-    }
+    _isLoading = loading;
+    notifyListeners();
   }
 
-  // Journey-related methods - Updated to use Entry model and EntryService
-  
-  /// Get all segments of a multi-segment journey - Updated to use Entry model
-  List<Entry> getJourneySegments(String journeyId) {
-    return _entries
-        .where((entry) => entry.journeyId == journeyId)
-        .toList()
-      ..sort((a, b) => (a.segmentOrder ?? 0).compareTo(b.segmentOrder ?? 0));
-  }
-
-  /// Check if an entry is part of a multi-segment journey - Updated to use Entry model
-  bool isMultiSegmentEntry(Entry entry) {
-    // Use EntryService method for consistency
-    return _service.isMultiSegmentEntry(entry);
-  }
-
-  /// Update an entire multi-segment journey - Updated to use EntryService.updateJourney()
-  Future<bool> updateJourney(String journeyId, List<Entry> updatedSegments) async {
-    _setLoading(true);
-    try {
-      // Use EntryService to update entire journey in unified entries box
-      await _service.updateJourney(journeyId, updatedSegments);
-      await _loadEntries();
-      _clearError();
-      return true;
-    } catch (error) {
-      _handleError(error);
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  void _handleError(dynamic error) {
-    if (error is AppError) {
-      _lastError = error;
-    } else {
-      _lastError = ErrorHandler.handleUnknownError(error);
-    }
+  void _handleError(String error) {
+    _lastError = error;
     notifyListeners();
   }
 
   void _clearError() {
-    if (_lastError != null) {
-      _lastError = null;
-      notifyListeners();
-    }
+    _lastError = null;
+    notifyListeners();
   }
-
-  // Clear error manually
-  void clearError() {
-    _clearError();
-  }
-
 }

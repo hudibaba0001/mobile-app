@@ -6,6 +6,7 @@ import '../models/travel_entry.dart';
 import '../models/work_entry.dart';
 import '../models/contract_settings.dart';
 import '../models/leave_entry.dart';
+import '../location.dart';
 import 'travel_repository.dart';
 import 'work_repository.dart';
 import 'contract_repository.dart';
@@ -22,6 +23,7 @@ class RepositoryProvider {
   static const _contractBoxName = 'contract_settings';
   static const _leaveBoxName = 'leave_entries';
   static const _appSettingsBoxName = 'app_settings';
+  static const _locationsBoxName = 'locationsBox';
 
   /// Initialize all repositories
   Future<void> initialize() async {
@@ -45,6 +47,7 @@ class RepositoryProvider {
     Hive.registerAdapter(ContractSettingsAdapter());
     Hive.registerAdapter(LeaveEntryAdapter());
     Hive.registerAdapter(LeaveTypeAdapter());
+    Hive.registerAdapter(LocationAdapter());
 
     // Open boxes
     final travelBox = await Hive.openBox<TravelEntry>(_travelBoxName);
@@ -52,6 +55,7 @@ class RepositoryProvider {
     final contractBox = await Hive.openBox<ContractSettings>(_contractBoxName);
     final leaveBox = await Hive.openBox<LeaveEntry>(_leaveBoxName);
     final appSettingsBox = await Hive.openBox(_appSettingsBoxName);
+    final locationsBox = await Hive.openBox<Location>(_locationsBoxName);
 
     // Initialize repositories
     travelRepository = TravelRepository(travelBox);

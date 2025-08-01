@@ -30,13 +30,13 @@ export const getDashboardData = async (req: Request, res: Response) => {
     entriesSnapshot.forEach(doc => {
       const data = doc.data();
       activeUserIds.add(data.userId);
-      totalMinutesLogged += data.duration || 0; // Assuming duration is in minutes
+      totalMinutesLogged += data.workMinutes || 0;
     });
 
     travelEntriesSnapshot.forEach(doc => {
       const data = doc.data();
       activeUserIds.add(data.userId);
-      totalMinutesLogged += data.duration || 0; // Assuming duration is in minutes
+      totalMinutesLogged += data.travelMinutes || 0;
     });
 
     res.json({

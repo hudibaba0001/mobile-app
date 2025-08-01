@@ -19,6 +19,7 @@ import '../screens/forgot_password_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/firebase_registration_screen.dart';
 import '../screens/debug_auth_screen.dart';
+import '../screens/reports_screen.dart';
 
 // Fallback screens (for routes not yet implemented)
 
@@ -42,6 +43,7 @@ class AppRouter {
   static const String settingsPath = '/settings';
   static const String contractSettingsPath = '/contract-settings';
   static const String editEntryPath = '/edit-entry/:entryId/:entryType';
+  static const String reportsPath = '/reports';
   static const String forgotPasswordPath = '/forgot-password';
   static const String profilePath = '/profile';
   static const String firebaseRegistrationPath = '/firebase-registration';
@@ -55,6 +57,7 @@ class AppRouter {
   static const String settingsName = 'settings';
   static const String contractSettingsName = 'contractSettings';
   static const String editEntryName = 'editEntry';
+  static const String reportsName = 'reports';
   static const String forgotPasswordName = 'forgotPassword';
   static const String profileName = 'profile';
   static const String firebaseRegistrationName = 'firebaseRegistration';
@@ -136,6 +139,13 @@ class AppRouter {
           final entryType = state.pathParameters['entryType'];
           return EditEntryScreen(entryId: entryId, entryType: entryType);
         },
+      ),
+
+      // Reports screen route - analytics and reporting
+      GoRoute(
+        path: reportsPath,
+        name: reportsName,
+        builder: (context, state) => const ReportsScreen(),
       ),
 
       // Firebase Registration screen route - for creating real Firebase accounts
@@ -247,6 +257,16 @@ class AppRouter {
   static void goToContractSettings(BuildContext context) {
     if (_isUserAuthenticated(context)) {
       context.goNamed(contractSettingsName);
+    } else {
+      goToWelcome(context);
+    }
+  }
+
+  /// Navigate to reports screen (requires auth)
+  /// If user is not authenticated, redirects to welcome screen
+  static void goToReports(BuildContext context) {
+    if (_isUserAuthenticated(context)) {
+      context.goNamed(reportsName);
     } else {
       goToWelcome(context);
     }

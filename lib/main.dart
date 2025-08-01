@@ -18,6 +18,9 @@ import 'providers/theme_provider.dart';
 import 'providers/app_state_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/contract_provider.dart';
+import 'providers/location_provider.dart';
+import 'providers/travel_provider.dart';
+import 'viewmodels/analytics_view_model.dart';
 // Repositories
 import 'repositories/repository_provider.dart';
 
@@ -58,6 +61,9 @@ Widget _buildMainApp(
       ChangeNotifierProvider(create: (_) => SettingsProvider()..init()),
       ChangeNotifierProvider(create: (_) => ContractProvider()..init()),
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ChangeNotifierProvider(create: (_) => LocationProvider()),
+      ChangeNotifierProvider(create: (_) => TravelProvider()),
+      ChangeNotifierProvider(create: (_) => AnalyticsViewModel(repositoryProvider)),
       // Authentication services
       Provider<AuthService>.value(value: authService),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),

@@ -18,14 +18,14 @@ class TravelEntryAdapter extends TypeAdapter<TravelEntry> {
     };
     return TravelEntry(
       id: fields[0] as String,
-      date: fields[1] as DateTime,
-      fromLocation: fields[2] as String,
-      toLocation: fields[3] as String,
-      travelMinutes: fields[4] as int,
-      remarks: fields[5] as String,
-      userId: fields[8] as String,
-      createdAt: fields[6] as DateTime?,
-      updatedAt: fields[7] as DateTime?,
+      userId: fields[3] as String,
+      date: fields[4] as DateTime,
+      fromLocation: fields[5] as String,
+      toLocation: fields[6] as String,
+      travelMinutes: fields[7] as int,
+      remarks: fields[8] as String,
+      createdAt: fields[1] as DateTime?,
+      updatedAt: fields[2] as DateTime?,
     );
   }
 
@@ -33,23 +33,23 @@ class TravelEntryAdapter extends TypeAdapter<TravelEntry> {
   void write(BinaryWriter writer, TravelEntry obj) {
     writer
       ..writeByte(9)
+      ..writeByte(4)
+      ..write(obj.date)
+      ..writeByte(5)
+      ..write(obj.fromLocation)
+      ..writeByte(6)
+      ..write(obj.toLocation)
+      ..writeByte(7)
+      ..write(obj.travelMinutes)
+      ..writeByte(8)
+      ..write(obj.remarks)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.date)
-      ..writeByte(2)
-      ..write(obj.fromLocation)
-      ..writeByte(3)
-      ..write(obj.toLocation)
-      ..writeByte(4)
-      ..write(obj.travelMinutes)
-      ..writeByte(5)
-      ..write(obj.remarks)
-      ..writeByte(6)
       ..write(obj.createdAt)
-      ..writeByte(7)
+      ..writeByte(2)
       ..write(obj.updatedAt)
-      ..writeByte(8)
+      ..writeByte(3)
       ..write(obj.userId);
   }
 
