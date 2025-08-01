@@ -47,13 +47,19 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   void _loadRecentEntries() {
+    print('=== LOADING RECENT ENTRIES ===');
     try {
       final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
       final userId = 'current_user'; // TODO: Get actual user ID
       
+      print('Loading entries for user: $userId');
+      
       // Get recent travel entries
       final travelEntries = repositoryProvider.travelRepository.getAllForUser(userId);
       final workEntries = repositoryProvider.workRepository.getAllForUser(userId);
+      
+      print('Found ${travelEntries.length} travel entries');
+      print('Found ${workEntries.length} work entries');
       
       // Combine and sort by date
       final allEntries = <_EntryData>[];
@@ -450,52 +456,88 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
       ),
-      child: InkWell(
-                        onTap: () => AppRouter.goToEditEntry(context, entryId: entry.id, entryType: entry.type),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(entry.icon, size: 20, color: color),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+              child: Icon(entry.icon, size: 20, color: color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    entry.title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w500,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      entry.subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    entry.subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Text(
-                entry.duration,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
+            ),
+            Text(
+              entry.duration,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            PopupMenuButton<String>(
+              icon: Icon(
+                Icons.more_vert,
+                color: theme.colorScheme.onSurfaceVariant,
+                size: 20,
+              ),
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    _editEntry(entry);
+                    break;
+                  case 'delete':
+                    _deleteEntry(entry);
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem<String>(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, size: 18, color: theme.colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, size: 18, color: theme.colorScheme.error),
+                      const SizedBox(width: 8),
+                      Text('Delete', style: TextStyle(color: theme.colorScheme.error)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -576,6 +618,75 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         );
       },
     );
+  }
+
+  void _editEntry(_EntryData entry) {
+    // Navigate to edit entry screen with the specific entry data
+    AppRouter.goToEditEntry(context, entryId: entry.id, entryType: entry.type);
+  }
+
+  void _deleteEntry(_EntryData entry) {
+    // Show confirmation dialog before deleting
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Entry'),
+          content: Text('Are you sure you want to delete this ${entry.type} entry? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _performDelete(entry);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _performDelete(_EntryData entry) async {
+    try {
+      final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+      
+      if (entry.type == 'travel') {
+        await repositoryProvider.travelRepository.delete(entry.id);
+      } else if (entry.type == 'work') {
+        await repositoryProvider.workRepository.delete(entry.id);
+      }
+      
+      // Refresh the recent entries list
+      _loadRecentEntries();
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${entry.type[0].toUpperCase() + entry.type.substring(1)} entry deleted successfully'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete entry: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -1025,11 +1136,16 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     child: ElevatedButton(
                       onPressed: _isValid() ? () async {
                         try {
+                          print('=== TRAVEL ENTRY SAVE ATTEMPT ===');
+                          
                           // Get the repository provider
                           final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+                          print('Repository provider obtained: ${repositoryProvider != null}');
                           
                           // Create travel entry from the first trip (for now, we'll save each trip as a separate entry)
                           final trip = _trips.first;
+                          print('Trip data: from=${trip.fromController.text}, to=${trip.toController.text}, minutes=${trip.totalMinutes}');
+                          
                           final travelEntry = TravelEntry(
                             id: '', // Will be generated by repository
                             userId: 'current_user', // TODO: Get actual user ID
@@ -1040,8 +1156,13 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                             remarks: _notesController.text.trim(),
                           );
                           
+                          print('Created TravelEntry: ${travelEntry.toString()}');
+                          print('TravelEntry details: from=${travelEntry.fromLocation}, to=${travelEntry.toLocation}, minutes=${travelEntry.travelMinutes}');
+                          
                           // Save to repository
+                          print('Attempting to save to travel repository...');
                           await repositoryProvider.travelRepository.add(travelEntry);
+                          print('Successfully saved to travel repository!');
                           
                           Navigator.of(context).pop();
                           
@@ -1800,14 +1921,19 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     child: ElevatedButton(
                       onPressed: _isValid() ? () async {
                         try {
+                          print('=== WORK ENTRY SAVE ATTEMPT ===');
+                          
                           // Get the repository provider
                           final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+                          print('Repository provider obtained: ${repositoryProvider != null}');
                           
                           // Calculate total work minutes from all shifts
                           int totalWorkMinutes = 0;
                           for (final shift in _shifts) {
                             totalWorkMinutes += shift.totalMinutes;
+                            print('Shift: ${shift.startTimeController.text} - ${shift.endTimeController.text}, minutes: ${shift.totalMinutes}');
                           }
+                          print('Total work minutes: $totalWorkMinutes');
                           
                           // Create work entry
                           final workEntry = WorkEntry(
@@ -1818,8 +1944,13 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                             remarks: _notesController.text.trim(),
                           );
                           
+                          print('Created WorkEntry: ${workEntry.toString()}');
+                          print('WorkEntry details: minutes=${workEntry.workMinutes}, remarks=${workEntry.remarks}');
+                          
                           // Save to repository
+                          print('Attempting to save to work repository...');
                           await repositoryProvider.workRepository.add(workEntry);
+                          print('Successfully saved to work repository!');
                           
                           Navigator.of(context).pop();
                           
