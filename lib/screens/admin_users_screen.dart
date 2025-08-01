@@ -2,29 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/admin_user.dart';
 import '../services/admin_api_service.dart';
+import '../viewmodels/admin_users_view_model.dart';
 
-class AdminUsersScreen extends StatefulWidget {
+class AdminUsersScreen extends StatelessWidget {
   const AdminUsersScreen({super.key});
 
   @override
-  State<AdminUsersScreen> createState() => _AdminUsersScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => AdminUsersViewModel(context.read<AdminApiService>()),
+      child: const _AdminUsersScreenContent(),
+    );
+  }
 }
 
-class _AdminUsersScreenState extends State<AdminUsersScreen> {
-  late final AdminApiService _adminApiService;
-  String? _searchQuery;
-  String _filterRole = 'All';
+class _AdminUsersScreenContent extends StatefulWidget {
+  const _AdminUsersScreenContent();
 
+  @override
+  State<_AdminUsersScreenContent> createState() => _AdminUsersScreenContentState();
+}
+
+class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
   @override
   void initState() {
     super.initState();
-    _adminApiService = context.read<AdminApiService>();
+    // Fetch users when the screen is mounted
+    Future.microtask(() => context.read<AdminUsersViewModel>().fetchUsers());
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final viewModel = context.watch<AdminUsersViewModel>();
 
     return Scaffold(
       appBar: AppBar(
@@ -51,18 +62,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value.isEmpty ? null : value;
-                      });
-                    },
+                    onChanged: viewModel.setSearchQuery,
                   ),
                 ),
                 const SizedBox(width: 16),
                 // Filter Dropdown
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _filterRole,
+                    value: viewModel.filterRole,
                     decoration: InputDecoration(
                       labelText: 'Filter by Role',
                       border: OutlineInputBorder(
@@ -74,11 +81,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       DropdownMenuItem(value: 'Admin', child: Text('Admin')),
                       DropdownMenuItem(value: 'User', child: Text('User')),
                     ],
-                    onChanged: (value) {
-                      setState(() {
-                        _filterRole = value ?? 'All';
-                      });
-                    },
+                    onChanged: (value) => viewModel.setFilterRole(value ?? 'All'),
                   ),
                 ),
               ],
@@ -87,14 +90,13 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
           // Users List
           Expanded(
-            child: FutureBuilder<List<AdminUser>>(
-              future: _adminApiService.fetchUsers(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            child: Builder(
+              builder: (context) {
+                if (viewModel.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (snapshot.hasError) {
+                if (viewModel.error != null) {
                   return Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -111,7 +113,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          snapshot.error.toString(),
+                          viewModel.error!,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: colorScheme.error,
                           ),
@@ -119,7 +121,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
-                          onPressed: () => setState(() {}),
+                          onPressed: viewModel.fetchUsers,
                           icon: const Icon(Icons.refresh),
                           label: const Text('Retry'),
                         ),
@@ -128,14 +130,13 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   );
                 }
 
-                final users = snapshot.data!;
-                final filteredUsers = _filterUsers(users);
+                final filteredUsers = viewModel.filteredUsers;
 
                 if (filteredUsers.isEmpty) {
                   return Center(
                     child: Text(
-                      _searchQuery != null
-                          ? 'No users found matching "$_searchQuery"'
+                      viewModel.searchQuery != null
+                          ? 'No users found matching "${viewModel.searchQuery}"'
                           : 'No users found',
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSurfaceVariant,
@@ -157,8 +158,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         children: [
                           OutlinedButton(
                             onPressed: () => user.disabled
-                                ? _enableUser(context, user)
-                                : _disableUser(context, user),
+                                ? _enableUser(context, user, viewModel)
+                                : _disableUser(context, user, viewModel),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: user.disabled
                                   ? Theme.of(context).colorScheme.primary
@@ -179,16 +180,22 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                 value: 'delete',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.delete_forever, color: Colors.red),
+                                    Icon(
+                                      Icons.delete_forever,
+                                      color: Colors.red,
+                                    ),
                                     SizedBox(width: 8),
-                                    Text('Delete', style: TextStyle(color: Colors.red)),
+                                    Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
                                   ],
                                 ),
                               ),
                             ],
                             onSelected: (value) {
                               if (value == 'delete') {
-                                _showDeleteConfirmation(context, user);
+                                _showDeleteConfirmation(context, user, viewModel);
                               }
                             },
                           ),
@@ -203,33 +210,6 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         ],
       ),
     );
-  }
-
-  List<AdminUser> _filterUsers(List<AdminUser> users) {
-    var filteredUsers = users;
-
-    // Apply role filter
-    if (_filterRole != 'All') {
-      filteredUsers = users.where((user) {
-        // TODO: Implement role-based filtering once roles are added to the model
-        return true;
-      }).toList();
-    }
-
-    // Apply search filter
-    if (_searchQuery != null && _searchQuery!.isNotEmpty) {
-      final query = _searchQuery!.toLowerCase();
-      filteredUsers = filteredUsers.where((user) {
-        final searchString = [
-          user.displayName,
-          user.email,
-          user.uid,
-        ].whereType<String>().join(' ').toLowerCase();
-        return searchString.contains(query);
-      }).toList();
-    }
-
-    return filteredUsers;
   }
 
   void _showUserDetails(BuildContext context, AdminUser user) {
@@ -259,7 +239,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     );
   }
 
-  Future<void> _disableUser(BuildContext context, AdminUser user) async {
+  Future<void> _disableUser(BuildContext context, AdminUser user, AdminUsersViewModel viewModel) async {
     final confirmed =
         await showDialog<bool>(
           context: context,
@@ -285,35 +265,23 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         ) ??
         false;
 
-    if (!confirmed || !mounted) return;
+    if (!confirmed) return;
 
-    try {
-      await _adminApiService.disableUser(user.uid);
-      if (!mounted) return;
+    final success = await viewModel.disableUser(user);
+    if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User disabled successfully'),
-          behavior: SnackBarBehavior.floating,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? 'User disabled successfully' : viewModel.error!,
         ),
-      );
-
-      // Refresh the users list
-      setState(() {}); // This will trigger a rebuild and fetch fresh data
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to disable user: ${e.toString()}'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
+        backgroundColor: success ? null : Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
-  Future<void> _enableUser(BuildContext context, AdminUser user) async {
+  Future<void> _enableUser(BuildContext context, AdminUser user, AdminUsersViewModel viewModel) async {
     final confirmed =
         await showDialog<bool>(
           context: context,
@@ -336,27 +304,102 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         ) ??
         false;
 
-    if (!confirmed || !mounted) return;
+    if (!confirmed) return;
 
-    try {
-      await _adminApiService.enableUser(user.uid);
-      if (!mounted) return;
+    final success = await viewModel.enableUser(user);
+    if (!context.mounted) return;
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? 'User enabled successfully' : viewModel.error!,
+        ),
+        backgroundColor: success ? null : Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _showDeleteConfirmation(BuildContext context, AdminUser user, AdminUsersViewModel viewModel) async {
+    String confirmationText = '';
+    bool isLoading = false;
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Confirm Permanent Deletion'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Warning: This action cannot be undone. All user data will be permanently deleted.',
+                style: TextStyle(color: Colors.red),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Type DELETE to confirm:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                onChanged: (value) {
+                  setState(() => confirmationText = value);
+                },
+                decoration: const InputDecoration(
+                  hintText: 'Type DELETE here',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: isLoading || confirmationText != 'DELETE'
+                  ? null
+                  : () async {
+                      setState(() => isLoading = true);
+                      final success = await viewModel.deleteUser(user);
+                      if (!context.mounted) return;
+                      Navigator.of(context).pop(success);
+                    },
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Confirm Delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!context.mounted) return;
+
+    if (confirmed == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('User enabled successfully'),
+          content: Text('User deleted successfully'),
           behavior: SnackBarBehavior.floating,
         ),
       );
-
-      // Refresh the users list
-      setState(() {}); // This will trigger a rebuild and fetch fresh data
-    } catch (e) {
-      if (!mounted) return;
-
+    } else if (viewModel.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to enable user: ${e.toString()}'),
+          content: Text('Failed to delete user: ${viewModel.error}'),
           backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating,
         ),

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import '../providers/location_provider.dart';
 import '../providers/search_provider.dart';
 import '../providers/filter_provider.dart';
-import '../widgets/search_filter_bar.dart';
 import '../models/location.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';

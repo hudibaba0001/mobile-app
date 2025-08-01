@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import '../providers/travel_provider.dart';
 import '../providers/location_provider.dart';
 import '../services/export_service.dart';
-import '../models/travel_time_entry.dart';
 import '../models/travel_summary.dart';
 import '../widgets/date_range_picker_widget.dart';
 import '../utils/constants.dart';

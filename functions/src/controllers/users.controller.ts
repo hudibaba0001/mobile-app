@@ -4,7 +4,6 @@ import { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import { body, validationResult } from 'express-validator';
 import { User, UserUpdateData, TravelHistory } from '../models/user.model';
-import { FirebaseError } from 'firebase-admin';
 
 // Disable a user
 export const disableUser = async (req: Request, res: Response) => {
@@ -67,12 +66,13 @@ export const enableUser = async (req: Request, res: Response) => {
   }
 };
 
-// Delete a user
-export const deleteUser = async (req: Request, res: Response) => {
+// Delete a user (admin only with comprehensive data cleanup)
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  const db = admin.firestore();
+  const { uid } = req.params;
+  
   try {
-    const { uid } = req.params;
-    
-    // Check if user exists
+    // Step 1: Verify user exists in Firebase Auth
     let userRecord;
     try {
       userRecord = await admin.auth().getUser(uid);
@@ -84,39 +84,103 @@ export const deleteUser = async (req: Request, res: Response) => {
       throw error;
     }
 
-    // Cannot delete yourself
+    // Step 2: Safety check - prevent admin from deleting their own account
     const requestingUser = req.user;
     if (requestingUser?.uid === uid) {
       res.status(403).json({ error: 'Cannot delete your own account' });
       return;
     }
 
-    // Start a Firestore batch
-    const db = admin.firestore();
+    // Step 3: Start Firestore batch operations
     const batch = db.batch();
+    let deletionCounts = {
+      userProfile: 0,
+      travelEntries: 0,
+      entries: 0,
+      totalOperations: 0
+    };
 
-    // Delete user's travel entries
-    const travelEntries = await db.collection('travel_entries')
+    // Step 4: Collect and batch delete user's profile document
+    const userDoc = await db.collection('users').doc(uid).get();
+    if (userDoc.exists) {
+      batch.delete(userDoc.ref);
+      deletionCounts.userProfile = 1;
+      deletionCounts.totalOperations++;
+    }
+
+    // Step 5: Collect and batch delete travel entries
+    const travelEntriesSnapshot = await db.collection('travel_entries')
       .where('userId', '==', uid)
       .get();
-    travelEntries.docs.forEach(doc => {
+    
+    travelEntriesSnapshot.forEach(doc => {
       batch.delete(doc.ref);
+      deletionCounts.travelEntries++;
+      deletionCounts.totalOperations++;
     });
 
-    // Delete user's profile document
-    const userProfileRef = db.collection('users').doc(uid);
-    batch.delete(userProfileRef);
+    // Step 6: Collect and batch delete general entries
+    const entriesSnapshot = await db.collection('entries')
+      .where('userId', '==', uid)
+      .get();
+    
+    entriesSnapshot.forEach(doc => {
+      batch.delete(doc.ref);
+      deletionCounts.entries++;
+      deletionCounts.totalOperations++;
+    });
 
-    // Execute batch deletion of Firestore data
+    // Step 7: Execute all Firestore deletions atomically
     await batch.commit();
 
-    // Finally, delete the user from Firebase Auth
+    // Step 8: Delete user from Firebase Auth (final step - cannot be rolled back)
     await admin.auth().deleteUser(uid);
 
-    res.json({ message: 'User and all associated data deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({ error: 'Failed to delete user and associated data' });
+    // Step 9: Log successful deletion for audit purposes
+    console.info('User successfully deleted:', {
+      uid,
+      email: userRecord.email,
+      deletedBy: requestingUser?.uid,
+      deletionCounts
+    });
+
+    // Step 10: Return success response with detailed count information
+    res.json({
+      message: 'User and all associated data deleted successfully',
+      details: {
+        uid,
+        email: userRecord.email,
+        userProfileDeleted: deletionCounts.userProfile > 0,
+        travelEntriesDeleted: deletionCounts.travelEntries,
+        entriesDeleted: deletionCounts.entries,
+        totalDatabaseOperations: deletionCounts.totalOperations
+      }
+    });
+
+  } catch (error: any) {
+    // Log the full error context for debugging
+    console.error('Error in deleteUser:', {
+      uid: req.params.uid,
+      requestingUser: req.user?.uid,
+      errorCode: error?.code,
+      errorMessage: error?.message,
+      stack: error?.stack
+    });
+
+    // Return appropriate error response
+    if (error?.code === 'auth/invalid-uid') {
+      res.status(400).json({ error: 'Invalid user ID format' });
+    } else if (error?.code?.startsWith('auth/')) {
+      res.status(403).json({ 
+        error: 'Authentication error', 
+        details: error.message 
+      });
+    } else {
+      res.status(500).json({ 
+        error: 'Failed to delete user',
+        message: process.env.NODE_ENV === 'development' ? error?.message : 'Internal server error'
+      });
+    }
   }
 };
 
@@ -259,131 +323,6 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       res.status(404).json({ error: 'User not found' });
     } else {
       res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-};
-
-// Delete user and all associated data
-export const deleteUser = async (req: Request, res: Response): Promise<void> => {
-  const db = admin.firestore();
-  const { userId } = req.params;
-  
-  try {
-    // Step 1: Verify user exists
-    const userRecord = await admin.auth().getUser(userId);
-      
-    // Step 2: Prevent self-deletion
-    const requestingUser = req.user;
-    if (requestingUser?.uid === userRecord.uid) {
-      res.status(403).json({ error: 'Cannot delete your own account' });
-      return;
-    }
-
-    // Step 3: Start Firestore batch operations
-    const batch = db.batch();
-
-    // Step 4: Collect all data to be deleted
-    const [userDoc, entriesSnapshot] = await Promise.all([
-      db.collection('users').doc(userId).get(),
-      db.collection('entries').where('userId', '==', userId).get()
-    ]);
-
-    // Step 5: Add all deletions to batch
-    if (userDoc.exists) {
-      batch.delete(userDoc.ref);
-    }
-
-    entriesSnapshot.forEach(doc => {
-      batch.delete(doc.ref);
-    });
-
-    // Step 6: Execute Firestore deletions
-    await batch.commit();
-
-    // Step 7: Delete Firebase Auth user
-    await admin.auth().deleteUser(userId);
-
-    res.json({
-      message: 'User deleted successfully',
-      details: {
-        profileDeleted: userDoc.exists,
-        entriesDeleted: entriesSnapshot.size
-      }
-    });
-
-  } catch (error: any) {
-    console.error('Error deleting user:', error);
-    
-    if (error?.code === 'auth/user-not-found') {
-      res.status(404).json({ error: 'User not found' });
-      return;
-    }
-
-    if (error?.code?.startsWith('auth/')) {
-      res.status(403).json({ error: 'Authentication error', details: error.message });
-      return;
-    }
-
-    res.status(500).json({
-      error: 'Failed to delete user',
-      details: error.message
-    });
-  }
-};
-      
-      entriesSnapshot.docs.forEach(doc => {
-        batch.delete(doc.ref);
-      });
-
-      // Execute Firestore batch
-      await batch.commit();
-      
-      // Delete from Firebase Auth (do this last as it can't be rolled back)
-      await admin.auth().deleteUser(userId);
-
-      // Log successful deletion
-      console.info('User successfully deleted:', {
-        userId,
-        hadFirestoreData: userDoc.exists,
-        entriesDeleted: entriesSnapshot.size
-      });
-
-      res.json({ 
-        message: 'User deleted successfully',
-        details: {
-          profileDeleted: userDoc.exists,
-          entriesDeleted: entriesSnapshot.size
-        }
-      });
-    } catch (error: any) {
-      // If we fail after some operations, log the incomplete state
-      console.error('Partial deletion failure:', {
-        userId,
-        errorCode: error?.code,
-        errorMessage: error?.message,
-        stack: error?.stack
-      });
-      throw error; // Re-throw to be handled by outer catch
-    }
-  } catch (error: any) {
-    // Log the full error context
-    console.error('Error in deleteUser:', {
-      userId: req.params.userId,
-      errorCode: error?.code,
-      errorMessage: error?.message,
-      stack: error?.stack
-    });
-
-    // Return appropriate error response
-    if (error?.code === 'auth/invalid-uid') {
-      res.status(400).json({ error: 'Invalid user ID format' });
-    } else if (error?.code?.startsWith('auth/')) {
-      res.status(403).json({ error: 'Authentication error', message: error.message });
-    } else {
-      res.status(500).json({ 
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error?.message : undefined
-      });
     }
   }
 };

@@ -24,8 +24,8 @@ import 'services/dummy_auth_service.dart';
 import 'utils/constants.dart';
 import 'config/app_router.dart';
 import 'config/app_theme.dart';
-// Updated providers (EntryProvider replaces TravelProvider)
-import 'providers/entry_provider.dart';
+// Updated providers (LocalEntryProvider for local storage)
+import 'providers/local_entry_provider.dart';
 import 'providers/location_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/filter_provider.dart';
@@ -144,10 +144,8 @@ Widget _buildMainApp(
       // Repository providers
       Provider<HiveLocationRepository>(create: (_) => HiveLocationRepository()),
 
-      // State management providers (EntryProvider replaces TravelProvider)
-      ChangeNotifierProvider(
-        create: (_) => EntryProvider(entryService: entryService),
-      ),
+      // State management providers (LocalEntryProvider for local storage)
+      ChangeNotifierProvider(create: (_) => LocalEntryProvider()..init()),
 
       // Location provider (updated to work with new architecture)
       ChangeNotifierProxyProvider<HiveLocationRepository, LocationProvider>(

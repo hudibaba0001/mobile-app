@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 // Updated imports to use unified Entry model instead of TravelTimeEntry
 import '../models/entry.dart';
 import '../models/travel_summary.dart';
-import '../repositories/location_repository.dart';
 import '../repositories/hive_location_repository.dart';
 import '../services/entry_service.dart'; // Renamed from travel_service.dart
 import '../utils/error_handler.dart';

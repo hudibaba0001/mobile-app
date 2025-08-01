@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
-import '../providers/location_provider.dart';
 import '../widgets/location_selector.dart';
 
 /// Unified entry form for both travel and work entries
