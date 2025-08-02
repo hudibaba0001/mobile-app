@@ -61,6 +61,7 @@
       "source": "functions",
       "codebase": "default",
       "runtime": "nodejs20",
+      "region": "europe-west3",
       "ignore": [
         "node_modules",
         ".git",

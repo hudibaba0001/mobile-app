@@ -595,8 +595,8 @@
                      throw new Error(error.message);
                  }
  
-                 // Create customer in Stripe
-                 const customerResponse = await fetch('https://us-central1-kviktime-9ee5f.cloudfunctions.net/api/payments/create-customer', {
+                                  // Create customer in Stripe
+                 const customerResponse = await fetch('https://europe-west3-kviktime-9ee5f.cloudfunctions.net/api/payments/create-customer', {
                      method: 'POST',
                      headers: {
                          'Content-Type': 'application/json',
@@ -607,15 +607,15 @@
                          phone: document.getElementById('phone').value || undefined,
                      }),
                  });
- 
+
                  if (!customerResponse.ok) {
                      throw new Error('Failed to create customer');
                  }
- 
+
                  const customerData = await customerResponse.json();
- 
+
                  // Create subscription (150 SEK = 15000 cents)
-                 const subscriptionResponse = await fetch('https://us-central1-kviktime-9ee5f.cloudfunctions.net/api/payments/create-subscription', {
+                 const subscriptionResponse = await fetch('https://europe-west3-kviktime-9ee5f.cloudfunctions.net/api/payments/create-subscription', {
                      method: 'POST',
                      headers: {
                          'Content-Type': 'application/json',

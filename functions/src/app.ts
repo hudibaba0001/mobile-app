@@ -36,7 +36,7 @@ app.get('/test', (_req: Request, res: Response) => res.status(200).json({
   message: 'Backend is working!', 
   timestamp: new Date().toISOString(),
   project: 'kviktime-9ee5f',
-  region: 'europe-west3'
+  region: 'us-central1'
 }));
 
 // Root endpoint (no auth required)
