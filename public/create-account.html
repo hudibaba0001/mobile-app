@@ -564,7 +564,7 @@
 
         function redirectToAppWithEmail(email) {
             const appUrl = `kviktime://login?email=${encodeURIComponent(email)}`;
-            const fallbackUrl = `https://kviktime-9ee5f.web.app/login?email=${encodeURIComponent(email)}`;
+            const fallbackUrl = `https://app-kviktime-se.web.app/login?email=${encodeURIComponent(email)}`;
             window.location.href = appUrl;
             setTimeout(() => {
                 window.location.href = fallbackUrl;
