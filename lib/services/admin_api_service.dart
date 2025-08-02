@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import '../models/admin_user.dart';
 import '../config/api_config.dart';
 
@@ -25,7 +25,8 @@ class DashboardData {
 
   factory DashboardData.fromJson(Map<String, dynamic> json) {
     return DashboardData(
-      totalHoursLoggedThisWeek: (json['totalHoursLoggedThisWeek'] as num).toDouble(),
+      totalHoursLoggedThisWeek:
+          (json['totalHoursLoggedThisWeek'] as num).toDouble(),
       activeUsers: json['activeUsers'] as int,
       overtimeBalance: (json['overtimeBalance'] as num).toDouble(),
       averageDailyHours: (json['averageDailyHours'] as num).toDouble(),
@@ -110,8 +111,8 @@ class AdminApiService {
   final http.Client _client;
 
   AdminApiService({String? baseUrl, http.Client? client})
-    : baseUrl = baseUrl ?? ApiConfig.functionBaseUrl,
-      _client = client ?? http.Client();
+      : baseUrl = baseUrl ?? ApiConfig.functionBaseUrl,
+        _client = client ?? http.Client();
 
   /// Fetches all users from the backend
   /// Throws an [ApiException] if the request fails
@@ -159,8 +160,9 @@ class AdminApiService {
         queryParams['userId'] = userId;
       }
 
-      final uri = Uri.parse('$baseUrl/analytics/dashboard').replace(queryParameters: queryParams);
-      
+      final uri = Uri.parse('$baseUrl/analytics/dashboard')
+          .replace(queryParameters: queryParams);
+
       final response = await _client.get(
         uri,
         headers: await _getAuthHeaders(),
@@ -185,15 +187,15 @@ class AdminApiService {
 
   /// Gets the authorization headers for API requests
   Future<Map<String, String>> _getAuthHeaders() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw ApiException(code: 401, message: 'Not authenticated');
-    }
-
-    final token = await user.getIdToken();
+    // Mock authentication headers
+    // final user = FirebaseAuth.instance.currentUser;
+    // if (user == null) {
+    //   throw ApiException(code: 401, message: 'Not authenticated');
+    // }
+    // final token = await user.getIdToken();
     return {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
+      'Authorization': 'Bearer mock-token',
     };
   }
 

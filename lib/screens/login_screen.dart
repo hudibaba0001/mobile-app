@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final authService = context.read<AuthService>();
-      await authService.signIn(
+      await authService.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
@@ -94,7 +94,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showUrlError() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Could not open account creation page. Please try again.'),
+        content: const Text(
+            'Could not open account creation page. Please try again.'),
         backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),

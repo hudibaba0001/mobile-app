@@ -111,10 +111,7 @@ class StripeService {
 
       // Confirm payment with Stripe
       final paymentResult = await Stripe.instance.confirmPayment(
-        paymentIntent['clientSecret'],
-        PaymentMethodParams.card(
-          paymentMethodData: PaymentMethodData(),
-        ),
+        paymentIntentClientSecret: paymentIntent['clientSecret'],
       );
 
       return {

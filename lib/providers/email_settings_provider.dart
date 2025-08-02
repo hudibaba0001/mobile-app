@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../models/email_settings.dart';
-import '../services/email_export_service.dart';
 import '../utils/error_handler.dart';
 
 class EmailSettingsProvider extends ChangeNotifier {
@@ -72,17 +71,18 @@ class EmailSettingsProvider extends ChangeNotifier {
       // Validate settings
       final validationErrors = newSettings.validate();
       if (validationErrors.isNotEmpty) {
-        _handleError(ErrorHandler.handleValidationError(validationErrors.first));
+        _handleError(
+            ErrorHandler.handleValidationError(validationErrors.first));
         return false;
       }
 
       _settings = newSettings;
       final success = await _saveSettings();
-      
+
       if (success) {
         notifyListeners();
       }
-      
+
       return success;
     } catch (error) {
       _handleError(error);
@@ -172,18 +172,16 @@ class EmailSettingsProvider extends ChangeNotifier {
   Future<bool> testEmailConfiguration() async {
     try {
       if (!_settings.isConfigured) {
-        _handleError(ErrorHandler.handleValidationError('Email settings are not configured'));
+        _handleError(ErrorHandler.handleValidationError(
+            'Email settings are not configured'));
         return false;
       }
 
-      // Create a test email service
-      final emailService = EmailExportService();
-      
-      // Try to send a test email (you might want to implement a simpler test)
-      // For now, we'll just validate the settings
+      // Validate the settings
       final validationErrors = _settings.validate();
       if (validationErrors.isNotEmpty) {
-        _handleError(ErrorHandler.handleValidationError(validationErrors.first));
+        _handleError(
+            ErrorHandler.handleValidationError(validationErrors.first));
         return false;
       }
 
@@ -264,7 +262,7 @@ class EmailSettingsProvider extends ChangeNotifier {
 
     final now = DateTime.now();
     final lastSent = _settings.lastSentDate!;
-    
+
     switch (_settings.autoSendFrequency) {
       case 'weekly':
         return now.difference(lastSent).inDays >= 7;
@@ -287,11 +285,11 @@ class EmailSettingsProvider extends ChangeNotifier {
   Future<bool> resetToDefaults() async {
     _settings = EmailSettings();
     final success = await _saveSettings();
-    
+
     if (success) {
       notifyListeners();
     }
-    
+
     return success;
   }
 

@@ -102,4 +102,32 @@ class AppRouter {
   static void goToContractSettings(BuildContext context) =>
       context.goNamed(contractSettingsName);
   static void goToProfile(BuildContext context) => context.goNamed(profileName);
+
+  // Additional navigation methods
+  static String getCurrentRouteName(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    if (location == homePath) return homeName;
+    if (location == loginPath) return loginName;
+    if (location == settingsPath) return settingsName;
+    if (location == reportsPath) return reportsName;
+    if (location == adminUsersPath) return adminUsersName;
+    if (location == contractSettingsPath) return contractSettingsName;
+    if (location == profilePath) return profileName;
+    return homeName;
+  }
+
+  static void goToHistory(BuildContext context) => context.goNamed(reportsName);
+  static void goToEditEntry(BuildContext context, {required String entryId, required String entryType}) {
+    // For now, just go to reports since edit entry screen was removed
+    context.goNamed(reportsName);
+  }
+  static void goBackOrHome(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.goNamed(homeName);
+    }
+  }
+
+  static const String historyName = 'history';
 }

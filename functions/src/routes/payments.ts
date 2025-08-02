@@ -322,7 +322,7 @@ router.post('/test-subscription', async (req, res) => {
     
     // Test customer
     const customer = await stripe.customers.retrieve(customerId);
-    console.log('Customer:', customer.id, customer.email);
+    console.log('Customer:', customer.id, (customer as any).email);
     
     // Test subscription creation
     const subscription = await stripe.subscriptions.create({

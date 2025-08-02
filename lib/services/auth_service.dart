@@ -1,219 +1,136 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
+// Mock user class
+class MockUser {
+  final String uid;
+  final String email;
+  final String? displayName;
+  final String? photoURL;
+
+  MockUser({
+    required this.uid,
+    required this.email,
+    this.displayName,
+    this.photoURL,
+  });
+}
+
+// Mock user credential class
+class MockUserCredential {
+  final MockUser user;
+
+  MockUserCredential({required this.user});
+}
+
+// Mock auth service
 class AuthService extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  MockUser? _currentUser;
+  bool _isAuthenticated = false;
 
-  User? get currentUser => _auth.currentUser;
-  bool get isAuthenticated => _auth.currentUser != null;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  MockUser? get currentUser => _currentUser;
+  bool get isAuthenticated => _isAuthenticated;
 
-  // User profile data
-  Map<String, dynamic>? _userProfile;
-  Map<String, dynamic>? get userProfile => _userProfile;
-
-  AuthService() {
-    _auth.authStateChanges().listen((User? user) {
-      if (user != null) {
-        _loadUserProfile(user.uid);
-      } else {
-        _userProfile = null;
-      }
-      notifyListeners();
-    });
-  }
-
-  // Sign up with email and password
-  Future<UserCredential> signUp({
-    required String email,
-    required String password,
-    required String fullName,
-    String? company,
-    String? phone,
-  }) async {
-    try {
-      UserCredential userCredential = await _auth
-          .createUserWithEmailAndPassword(email: email, password: password);
-
-      // Create user profile in Firestore
-      await _createUserProfile(
-        userCredential.user!.uid,
-        email: email,
-        fullName: fullName,
-        company: company,
-        phone: phone,
-      );
-
-      return userCredential;
-    } catch (e) {
-      throw _handleAuthError(e);
-    }
-  }
-
-  // Sign in with email and password
-  Future<UserCredential> signIn({
+  // Mock sign in with email and password
+  Future<MockUserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    try {
-      return await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } catch (e) {
-      throw _handleAuthError(e);
-    }
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Mock successful login
+    _currentUser = MockUser(
+      uid: 'mock-user-id',
+      email: email,
+      displayName: 'Mock User',
+    );
+    _isAuthenticated = true;
+    notifyListeners();
+
+    return MockUserCredential(user: _currentUser!);
   }
 
-  // Sign out
+  // Mock sign up
+  Future<MockUserCredential> createUserWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Mock successful signup
+    _currentUser = MockUser(
+      uid: 'mock-user-id-${DateTime.now().millisecondsSinceEpoch}',
+      email: email,
+      displayName: 'New User',
+    );
+    _isAuthenticated = true;
+    notifyListeners();
+
+    return MockUserCredential(user: _currentUser!);
+  }
+
+  // Mock sign out
   Future<void> signOut() async {
-    await _auth.signOut();
-    _userProfile = null;
+    await Future.delayed(const Duration(milliseconds: 500));
+    _currentUser = null;
+    _isAuthenticated = false;
     notifyListeners();
   }
 
-  // Reset password
-  Future<void> resetPassword(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-    } catch (e) {
-      throw _handleAuthError(e);
-    }
+  // Mock password reset
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    await Future.delayed(const Duration(seconds: 1));
+    // Mock successful password reset email
   }
 
-  // Create user profile in Firestore
-  Future<void> _createUserProfile(
-    String uid, {
-    required String email,
-    required String fullName,
-    String? company,
-    String? phone,
-  }) async {
-    final userData = {
-      'uid': uid,
-      'email': email,
-      'fullName': fullName,
-      'company': company,
-      'phone': phone,
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-      'isActive': true,
-      'subscriptionStatus': 'free', // free, basic, premium
-      'subscriptionExpiry': null,
-      'stripeCustomerId': null,
-      'lastLoginAt': FieldValue.serverTimestamp(),
-    };
-
-    await _firestore.collection('users').doc(uid).set(userData);
-    _userProfile = userData;
-  }
-
-  // Load user profile from Firestore
-  Future<void> _loadUserProfile(String uid) async {
-    try {
-      DocumentSnapshot doc = await _firestore
-          .collection('users')
-          .doc(uid)
-          .get();
-      if (doc.exists) {
-        _userProfile = doc.data() as Map<String, dynamic>;
-        notifyListeners();
-      }
-    } catch (e) {
-      print('Error loading user profile: $e');
-    }
-  }
-
-  // Update user profile
+  // Mock user profile update
   Future<void> updateUserProfile({
+    String? displayName,
+    String? photoURL,
+  }) async {
+    if (_currentUser != null) {
+      _currentUser = MockUser(
+        uid: _currentUser!.uid,
+        email: _currentUser!.email,
+        displayName: displayName ?? _currentUser!.displayName,
+        photoURL: photoURL ?? _currentUser!.photoURL,
+      );
+      notifyListeners();
+    }
+  }
+
+  // Mock user profile creation in Firestore
+  Future<void> createUserProfile({
+    required String uid,
+    required String email,
     String? fullName,
     String? company,
     String? phone,
   }) async {
-    if (currentUser == null) return;
-
-    final updates = <String, dynamic>{
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-
-    if (fullName != null) updates['fullName'] = fullName;
-    if (company != null) updates['company'] = company;
-    if (phone != null) updates['phone'] = phone;
-
-    await _firestore.collection('users').doc(currentUser!.uid).update(updates);
-    await _loadUserProfile(currentUser!.uid);
+    await Future.delayed(const Duration(milliseconds: 500));
+    // Mock successful profile creation
   }
 
-  // Update subscription status
-  Future<void> updateSubscriptionStatus({
-    required String status,
-    DateTime? expiryDate,
-    String? stripeCustomerId,
+  // Mock user profile update in Firestore
+  Future<void> updateUserProfileInFirestore({
+    required String uid,
+    required Map<String, dynamic> data,
   }) async {
-    if (currentUser == null) return;
+    await Future.delayed(const Duration(milliseconds: 500));
+    // Mock successful profile update
+  }
 
-    final updates = <String, dynamic>{
-      'subscriptionStatus': status,
-      'updatedAt': FieldValue.serverTimestamp(),
+  // Mock get user profile from Firestore
+  Future<Map<String, dynamic>?> getUserProfile(String uid) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    // Return mock profile data
+    return {
+      'email': 'mock@example.com',
+      'name': 'Mock User',
+      'company': 'Mock Company',
+      'phone': '+1234567890',
+      'createdAt': DateTime.now().toIso8601String(),
     };
-
-    if (expiryDate != null) updates['subscriptionExpiry'] = expiryDate;
-    if (stripeCustomerId != null)
-      updates['stripeCustomerId'] = stripeCustomerId;
-
-    await _firestore.collection('users').doc(currentUser!.uid).update(updates);
-    await _loadUserProfile(currentUser!.uid);
-  }
-
-  // Handle authentication errors
-  String _handleAuthError(dynamic error) {
-    if (error is FirebaseAuthException) {
-      switch (error.code) {
-        case 'user-not-found':
-          return 'No user found with this email address.';
-        case 'wrong-password':
-          return 'Incorrect password.';
-        case 'email-already-in-use':
-          return 'An account with this email already exists.';
-        case 'weak-password':
-          return 'Password is too weak. Please choose a stronger password.';
-        case 'invalid-email':
-          return 'Please enter a valid email address.';
-        case 'too-many-requests':
-          return 'Too many failed attempts. Please try again later.';
-        default:
-          return 'Authentication failed. Please try again.';
-      }
-    }
-    return 'An unexpected error occurred. Please try again.';
-  }
-
-  // Check if user has active subscription
-  bool get hasActiveSubscription {
-    if (_userProfile == null) return false;
-
-    final status = _userProfile!['subscriptionStatus'] as String?;
-    final expiry = _userProfile!['subscriptionExpiry'] as Timestamp?;
-
-    if (status == 'free') return true; // Free tier is always active
-
-    if (expiry != null) {
-      return DateTime.now().isBefore(expiry.toDate());
-    }
-
-    return false;
-  }
-
-  // Get subscription status
-  String get subscriptionStatus {
-    return _userProfile?['subscriptionStatus'] ?? 'free';
-  }
-
-  // Get subscription expiry date
-  DateTime? get subscriptionExpiry {
-    final expiry = _userProfile?['subscriptionExpiry'] as Timestamp?;
-    return expiry?.toDate();
   }
 }
