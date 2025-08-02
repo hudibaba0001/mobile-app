@@ -1,5 +1,6 @@
 import express from 'express';
 import Stripe from 'stripe';
+import * as admin from 'firebase-admin';
 
 const router = express.Router();
 
