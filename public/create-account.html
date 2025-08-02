@@ -571,7 +571,7 @@
             }, 1000);
         }
 
-        form.addEventListener('submit', async (e) => {
+                form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             if (!validateForm()) {
@@ -580,64 +580,49 @@
 
             setLoading(true);
 
-                         try {
-                 // Create payment method
-                 const { paymentMethod, error } = await stripe.createPaymentMethod({
-                     type: 'card',
-                     card: card,
-                     billing_details: {
-                         name: document.getElementById('fullName').value,
-                         email: document.getElementById('email').value,
-                     },
-                 });
- 
-                 if (error) {
-                     throw new Error(error.message);
-                 }
- 
-                                  // Create customer in Stripe
-                 const customerResponse = await fetch('https://europe-west3-kviktime-9ee5f.cloudfunctions.net/api/payments/create-customer', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                     },
-                     body: JSON.stringify({
-                         email: document.getElementById('email').value,
-                         name: document.getElementById('fullName').value,
-                         phone: document.getElementById('phone').value || undefined,
-                     }),
-                 });
+            try {
+                // Create payment method
+                const { paymentMethod, error } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: card,
+                    billing_details: {
+                        name: document.getElementById('fullName').value,
+                        email: document.getElementById('email').value,
+                    },
+                });
 
-                 if (!customerResponse.ok) {
-                     throw new Error('Failed to create customer');
-                 }
+                if (error) {
+                    throw new Error(error.message);
+                }
 
-                 const customerData = await customerResponse.json();
+                // Create complete account (Firebase Auth + Stripe)
+                const accountResponse = await fetch('https://europe-west3-kviktime-9ee5f.cloudfunctions.net/api/payments/create-account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value,
+                        name: document.getElementById('fullName').value,
+                        phone: document.getElementById('phone').value || undefined,
+                        company: document.getElementById('company').value || undefined,
+                        paymentMethodId: paymentMethod.id,
+                    }),
+                });
 
-                 // Create subscription (150 SEK = 15000 cents)
-                 const subscriptionResponse = await fetch('https://europe-west3-kviktime-9ee5f.cloudfunctions.net/api/payments/create-subscription', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                     },
-                     body: JSON.stringify({
-                         customerId: customerData.customerId,
-                         priceId: 'price_1Rrm0vLUAmVQpcCRPCe9XF18', // Your actual price ID
-                         paymentMethodId: paymentMethod.id,
-                     }),
-                 });
- 
-                 if (!subscriptionResponse.ok) {
-                     throw new Error('Failed to create subscription');
-                 }
- 
-                 const subscriptionData = await subscriptionResponse.json();
-                 
-                 showMessage('Account created successfully! Redirecting to app...', 'success');
-                 
-                 setTimeout(() => {
-                     redirectToAppWithEmail(document.getElementById('email').value);
-                 }, 2000);
+                if (!accountResponse.ok) {
+                    const errorData = await accountResponse.json();
+                    throw new Error(errorData.error || 'Failed to create account');
+                }
+
+                const accountData = await accountResponse.json();
+                
+                showMessage('Account created successfully! Redirecting to app...', 'success');
+                
+                setTimeout(() => {
+                    redirectToAppWithEmail(document.getElementById('email').value);
+                }, 2000);
 
             } catch (error) {
                 showMessage(`Account creation failed: ${error.message}`, 'error');
