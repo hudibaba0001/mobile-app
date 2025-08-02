@@ -191,6 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (newName.isEmpty) return;
 
               try {
+                final authService = context.read<AuthService>();
                 await authService.updateUserProfile(displayName: newName);
                 if (mounted) {
                   setState(() {}); // Refresh UI

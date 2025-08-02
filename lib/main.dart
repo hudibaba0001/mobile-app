@@ -16,6 +16,7 @@ import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
 import 'repositories/repository_provider.dart';
 import 'services/admin_api_service.dart';
+import 'viewmodels/analytics_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +57,14 @@ class MyApp extends StatelessWidget {
 
         // Services
         Provider(create: (_) => AdminApiService()),
+
+        // ViewModels
+        ChangeNotifierProxyProvider<AdminApiService, AnalyticsViewModel>(
+          create: (context) =>
+              AnalyticsViewModel(context.read<AdminApiService>()),
+          update: (context, apiService, previous) =>
+              previous ?? AnalyticsViewModel(apiService),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

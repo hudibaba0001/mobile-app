@@ -1,15 +1,27 @@
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../config/api_config.dart';
 
 class StripeService {
-  static const String _stripePublishableKey = 'pk_test_...'; // Replace with your Stripe publishable key
-  
-  // Initialize Stripe
+  static const String _stripePublishableKey =
+      'pk_test_51RrleLLUAmVQpcCRcBRThMOQo1naQeFV4t2zKuOhkHE1bpBJiwnYo5rlzPOHNChrrGeMHI6crSJaz8DEFOzNlzLq00Q5cBvuCe';
+
+  // Initialize Stripe - only on mobile platforms
   static Future<void> initialize() async {
-    Stripe.publishableKey = _stripePublishableKey;
-    await Stripe.instance.applySettings();
+    // Only initialize Stripe on mobile platforms, not on web
+    if (!kIsWeb) {
+      try {
+        Stripe.publishableKey = _stripePublishableKey;
+        await Stripe.instance.applySettings();
+      } catch (e) {
+        // Log error but don't crash the app
+        print('Stripe initialization failed: $e');
+      }
+    } else {
+      print('Stripe initialization skipped on web platform');
+    }
   }
 
   // Create payment intent
@@ -109,16 +121,26 @@ class StripeService {
         customerId: customerId,
       );
 
-      // Confirm payment with Stripe
-      final paymentResult = await Stripe.instance.confirmPayment(
-        paymentIntentClientSecret: paymentIntent['clientSecret'],
-      );
+      // Confirm payment with Stripe - only on mobile platforms
+      if (!kIsWeb) {
+        final paymentResult = await Stripe.instance.confirmPayment(
+          paymentIntentClientSecret: paymentIntent['clientSecret'],
+        );
 
-      return {
-        'success': true,
-        'paymentIntent': paymentIntent,
-        'paymentResult': paymentResult,
-      };
+        return {
+          'success': true,
+          'paymentIntent': paymentIntent,
+          'paymentResult': paymentResult,
+        };
+      } else {
+        // On web, return the payment intent without confirmation
+        // The web signup page handles payment confirmation separately
+        return {
+          'success': true,
+          'paymentIntent': paymentIntent,
+          'message': 'Payment intent created. Use web signup page for payment confirmation.',
+        };
+      }
     } catch (e) {
       return {
         'success': false,
@@ -179,7 +201,8 @@ class StripeService {
   }) async {
     try {
       final response = await http.get(
-        Uri.parse('${ApiConfig.functionBaseUrl}/stripe/customer-subscriptions/$customerId'),
+        Uri.parse(
+            '${ApiConfig.functionBaseUrl}/stripe/customer-subscriptions/$customerId'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -189,7 +212,8 @@ class StripeService {
         final data = json.decode(response.body);
         return List<Map<String, dynamic>>.from(data['subscriptions']);
       } else {
-        throw Exception('Failed to get customer subscriptions: ${response.body}');
+        throw Exception(
+            'Failed to get customer subscriptions: ${response.body}');
       }
     } catch (e) {
       throw Exception('Error getting customer subscriptions: $e');
@@ -244,4 +268,4 @@ class SubscriptionPlan {
       'isPopular': isPopular,
     };
   }
-} 
+}

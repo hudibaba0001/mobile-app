@@ -9,6 +9,7 @@ import '../screens/reports_screen.dart';
 import '../screens/admin_users_screen.dart';
 import '../screens/contract_settings_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/analytics_screen.dart';
 
 class AppRouter {
   static const String loginPath = '/login';
@@ -16,6 +17,7 @@ class AppRouter {
   static const String settingsPath = '/settings';
   static const String reportsPath = '/reports';
   static const String adminUsersPath = '/admin/users';
+  static const String analyticsPath = '/analytics';
   static const String contractSettingsPath = '/settings/contract';
   static const String profilePath = '/profile';
 
@@ -24,6 +26,7 @@ class AppRouter {
   static const String settingsName = 'settings';
   static const String reportsName = 'reports';
   static const String adminUsersName = 'admin-users';
+  static const String analyticsName = 'analytics';
   static const String contractSettingsName = 'contract-settings';
   static const String profileName = 'profile';
 
@@ -73,6 +76,11 @@ class AppRouter {
         builder: (context, state) => const AdminUsersScreen(),
       ),
       GoRoute(
+        path: analyticsPath,
+        name: analyticsName,
+        builder: (context, state) => const AnalyticsScreen(),
+      ),
+      GoRoute(
         path: contractSettingsPath,
         name: contractSettingsName,
         builder: (context, state) => const ContractSettingsScreen(),
@@ -99,6 +107,8 @@ class AppRouter {
   static void goToReports(BuildContext context) => context.goNamed(reportsName);
   static void goToAdminUsers(BuildContext context) =>
       context.goNamed(adminUsersName);
+  static void goToAnalytics(BuildContext context) =>
+      context.goNamed(analyticsName);
   static void goToContractSettings(BuildContext context) =>
       context.goNamed(contractSettingsName);
   static void goToProfile(BuildContext context) => context.goNamed(profileName);
@@ -111,6 +121,7 @@ class AppRouter {
     if (location == settingsPath) return settingsName;
     if (location == reportsPath) return reportsName;
     if (location == adminUsersPath) return adminUsersName;
+    if (location == analyticsPath) return analyticsName;
     if (location == contractSettingsPath) return contractSettingsName;
     if (location == profilePath) return profileName;
     return homeName;
