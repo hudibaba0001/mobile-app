@@ -9,6 +9,7 @@ import 'firebase_options.dart';
 import 'models/travel_time_entry.dart';
 // Firebase services
 import 'services/auth_service.dart';
+import 'services/admin_api_service.dart';
 // App configuration
 import 'utils/constants.dart';
 import 'config/app_router.dart';
@@ -39,12 +40,14 @@ void main() async {
 
   // Initialize services
   final authService = AuthService();
+  final adminApiService = AdminApiService();
 
   // Start the app
   runApp(
     _buildMainApp(
       authService,
       repositoryProvider,
+      adminApiService,
     ),
   );
 }
@@ -54,6 +57,7 @@ void main() async {
 Widget _buildMainApp(
   AuthService authService,
   RepositoryProvider repositoryProvider,
+  AdminApiService adminApiService,
 ) {
   return MultiProvider(
     providers: [
@@ -63,12 +67,14 @@ Widget _buildMainApp(
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ChangeNotifierProvider(create: (_) => LocationProvider()),
       ChangeNotifierProvider(create: (_) => TravelProvider()),
-      ChangeNotifierProvider(create: (_) => AnalyticsViewModel(repositoryProvider)),
+      ChangeNotifierProvider(create: (_) => AnalyticsViewModel(adminApiService)),
       // Authentication services
       Provider<AuthService>.value(value: authService),
       ChangeNotifierProvider(create: (_) => AppStateProvider()),
       // Repository provider
       Provider<RepositoryProvider>.value(value: repositoryProvider),
+      // API services
+      Provider<AdminApiService>.value(value: adminApiService),
     ],
     child: Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {

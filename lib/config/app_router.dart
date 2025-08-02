@@ -20,6 +20,7 @@ import '../screens/profile_screen.dart';
 import '../screens/firebase_registration_screen.dart';
 import '../screens/debug_auth_screen.dart';
 import '../screens/reports_screen.dart';
+import '../screens/analytics_screen.dart';
 
 // Fallback screens (for routes not yet implemented)
 
@@ -44,6 +45,7 @@ class AppRouter {
   static const String contractSettingsPath = '/contract-settings';
   static const String editEntryPath = '/edit-entry/:entryId/:entryType';
   static const String reportsPath = '/reports';
+  static const String analyticsPath = '/analytics';
   static const String forgotPasswordPath = '/forgot-password';
   static const String profilePath = '/profile';
   static const String firebaseRegistrationPath = '/firebase-registration';
@@ -58,6 +60,7 @@ class AppRouter {
   static const String contractSettingsName = 'contractSettings';
   static const String editEntryName = 'editEntry';
   static const String reportsName = 'reports';
+  static const String analyticsName = 'analytics';
   static const String forgotPasswordName = 'forgotPassword';
   static const String profileName = 'profile';
   static const String firebaseRegistrationName = 'firebaseRegistration';
@@ -146,6 +149,13 @@ class AppRouter {
         path: reportsPath,
         name: reportsName,
         builder: (context, state) => const ReportsScreen(),
+      ),
+
+      // Analytics screen route - new route
+      GoRoute(
+        path: analyticsPath,
+        name: analyticsName,
+        builder: (context, state) => const AnalyticsScreen(),
       ),
 
       // Firebase Registration screen route - for creating real Firebase accounts
@@ -267,6 +277,16 @@ class AppRouter {
   static void goToReports(BuildContext context) {
     if (_isUserAuthenticated(context)) {
       context.goNamed(reportsName);
+    } else {
+      goToWelcome(context);
+    }
+  }
+
+  /// Navigate to analytics screen (requires auth)
+  /// If user is not authenticated, redirects to welcome screen
+  static void goToAnalytics(BuildContext context) {
+    if (_isUserAuthenticated(context)) {
+      context.goNamed(analyticsName);
     } else {
       goToWelcome(context);
     }
