@@ -33,7 +33,7 @@ app.get('/health', (_req: Request, res: Response) => res.status(200).json({ stat
 
 // Test endpoint (no auth required)
 app.get('/test', (_req: Request, res: Response) => res.status(200).json({ 
-  message: 'Backend is working!', 
+  message: 'Backend is working with optional fields fix!', 
   timestamp: new Date().toISOString(),
   project: 'kviktime-9ee5f',
   region: 'europe-west3'
