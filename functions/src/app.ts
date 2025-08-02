@@ -17,7 +17,15 @@ const app = express();
 
 // Middleware
 app.use(helmet());
-app.use(cors({ origin: true }));
+app.use(cors({ 
+  origin: [
+    'https://app-kviktime-se.web.app',
+    'https://kviktime-9ee5f.web.app',
+    'http://localhost:3000',
+    'http://localhost:5000'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Health check endpoint (no auth required)
