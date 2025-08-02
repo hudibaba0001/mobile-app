@@ -26,7 +26,7 @@ router.post('/create-payment-intent', async (req, res) => {
       clientSecret: paymentIntent.client_secret,
       status: paymentIntent.status,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Payment intent error:', error);
     res.status(400).json({ error: error.message });
   }
@@ -44,7 +44,7 @@ router.post('/create-customer', async (req, res) => {
     });
 
     res.json({ customerId: customer.id });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Customer creation error:', error);
     res.status(400).json({ error: error.message });
   }
@@ -80,7 +80,7 @@ router.post('/create-subscription', async (req, res) => {
       subscriptionId: subscription.id,
       clientSecret: (subscription.latest_invoice as any)?.payment_intent?.client_secret,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Subscription creation error:', error);
     res.status(400).json({ error: error.message });
   }
@@ -108,7 +108,7 @@ router.get('/plans', async (req, res) => {
     }));
 
     res.json(plans);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Plans fetch error:', error);
     res.status(400).json({ error: error.message });
   }

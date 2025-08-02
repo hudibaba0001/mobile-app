@@ -3,6 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+import { Request, Response } from 'express';
 import { validateFirebaseIdToken } from './middleware/auth.middleware';
 import analyticsRouter from './routes/analytics';
 import usersRouter from './routes/users.routes';
@@ -16,10 +17,10 @@ app.use(cors({ origin: true }));
 app.use(express.json());
 
 // Health check endpoint (no auth required)
-app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
+app.get('/health', (_req: Request, res: Response) => res.status(200).json({ status: 'ok' }));
 
 // Test endpoint (no auth required)
-app.get('/test', (_req, res) => res.status(200).json({ 
+app.get('/test', (_req: Request, res: Response) => res.status(200).json({ 
   message: 'Backend is working!', 
   timestamp: new Date().toISOString(),
   project: 'kviktime-9ee5f',
@@ -27,13 +28,14 @@ app.get('/test', (_req, res) => res.status(200).json({
 }));
 
 // Root endpoint (no auth required)
-app.get('/', (_req, res) => res.status(200).json({ 
+app.get('/', (_req: Request, res: Response) => res.status(200).json({ 
   message: 'KvikTime API is running!', 
   endpoints: {
     health: '/health',
     test: '/test',
     users: '/users (requires auth)',
-    analytics: '/analytics (requires auth)'
+    analytics: '/analytics (requires auth)',
+    payments: '/payments'
   }
 }));
 

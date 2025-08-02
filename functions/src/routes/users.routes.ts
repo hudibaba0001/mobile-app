@@ -1,24 +1,14 @@
 // src/routes/users.routes.ts
 
-import { Router } from 'express';
-import { listUsers, getUserById, updateUser, deleteUser, getUserTravelHistory } from '../controllers/users.controller';
-import { validateFirebaseIdToken, requireAdmin } from '../middleware/auth.middleware';
+import express from 'express';
+import { getUsers, deleteUser } from '../controllers/users.controller';
 
-const router = Router();
+const router = express.Router();
 
-// Get all users (admin only)
-router.get('/', validateFirebaseIdToken, requireAdmin, listUsers);
+// Get all users
+router.get('/', getUsers);
 
-// Get specific user by ID
-router.get('/:userId', validateFirebaseIdToken, getUserById);
-
-// Update user details
-router.put('/:userId', validateFirebaseIdToken, updateUser);
-
-// Delete user (admin only)
-router.delete('/:uid', validateFirebaseIdToken, requireAdmin, deleteUser);
-
-// Get user's travel history
-router.get('/:userId/travel-history', validateFirebaseIdToken, getUserTravelHistory);
+// Delete a user
+router.delete('/:userId', deleteUser);
 
 export default router;
