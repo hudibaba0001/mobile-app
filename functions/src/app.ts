@@ -22,7 +22,8 @@ app.use(cors({
     'https://app-kviktime-se.web.app',
     'https://kviktime-9ee5f.web.app',
     'http://localhost:3000',
-    'http://localhost:5000'
+    'http://localhost:5000',
+    'http://localhost:8080'
   ],
   credentials: true
 }));

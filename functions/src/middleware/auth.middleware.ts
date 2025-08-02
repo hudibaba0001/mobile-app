@@ -8,9 +8,10 @@ export const validateFirebaseIdToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  if ((!req.headers.authorization || !req.headers.authorization.startsWith('Bearer '))) {
-    res.status(403).json({ error: 'No token provided' });
-    return;
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No valid authorization header' });
   }
 
   const idToken = req.headers.authorization.split('Bearer ')[1];

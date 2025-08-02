@@ -187,15 +187,10 @@ class AdminApiService {
 
   /// Gets the authorization headers for API requests
   Future<Map<String, String>> _getAuthHeaders() async {
-    // Mock authentication headers
-    // final user = FirebaseAuth.instance.currentUser;
-    // if (user == null) {
-    //   throw ApiException(code: 401, message: 'Not authenticated');
-    // }
-    // final token = await user.getIdToken();
+    // Mock authentication for now
     return {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer mock-token',
+      'Authorization': 'Bearer mock_token', // Replace with actual token if available
     };
   }
 
