@@ -24,6 +24,16 @@ import 'package:myapp/services/admin_api_service.dart' as _i2;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
+class _FakeDashboardData_0 extends _i1.SmartFake implements _i2.DashboardData {
+  _FakeDashboardData_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [AdminApiService].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -49,6 +59,36 @@ class MockAdminApiService extends _i1.Mock implements _i2.AdminApiService {
         ),
         returnValue: _i4.Future<List<_i5.AdminUser>>.value(<_i5.AdminUser>[]),
       ) as _i4.Future<List<_i5.AdminUser>>);
+
+  @override
+  _i4.Future<_i2.DashboardData> fetchDashboardData({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? userId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchDashboardData,
+          [],
+          {
+            #startDate: startDate,
+            #endDate: endDate,
+            #userId: userId,
+          },
+        ),
+        returnValue: _i4.Future<_i2.DashboardData>.value(_FakeDashboardData_0(
+          this,
+          Invocation.method(
+            #fetchDashboardData,
+            [],
+            {
+              #startDate: startDate,
+              #endDate: endDate,
+              #userId: userId,
+            },
+          ),
+        )),
+      ) as _i4.Future<_i2.DashboardData>);
 
   @override
   _i4.Future<void> disableUser(String? uid) => (super.noSuchMethod(

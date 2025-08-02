@@ -5,11 +5,11 @@
     "noUnusedLocals": true,
     "outDir": "lib",
     "sourceMap": true,
-    "strict": false,
+    "strict": true,
     "target": "es2017",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true
   },
   "compileOnSave": true,
   "include": [

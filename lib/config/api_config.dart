@@ -1,8 +1,12 @@
 class ApiConfig {
   ApiConfig._();
 
+  // Current Firebase Functions URL
   static const String functionBaseUrl =
-      'https://us-central1-travel-time-logger.cloudfunctions.net/api';
+      'https://europe-west3-kviktime-9ee5f.cloudfunctions.net/api';
+
+  // Future Custom Domain URL (after DNS setup)
+  // static const String functionBaseUrl = 'https://api.kviktime.se';
 
   // Add other API configuration constants here
   static const int timeoutSeconds = 30;

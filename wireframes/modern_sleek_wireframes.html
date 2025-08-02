@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Time Logger - Modern Sleek Design</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 32px 64px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .wireframes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 32px;
+            padding: 40px;
+        }
+        
+        .wireframe {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 16px 32px rgba(0,0,0,0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        
+        .wireframe:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.12);
+        }
+        
+        .wireframe-header {
+            background: linear-gradient(135deg, #1976D2, #1565C0);
+            color: white;
+            padding: 20px 24px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: -0.01em;
+        }
+        
+        .phone-frame {
+            background: #1a1a1a;
+            padding: 24px;
+            border-radius: 32px;
+            margin: 24px;
+            position: relative;
+        }
+        
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+        }
+        
+        .screen {
+            background: #fafafa;
+            border-radius: 20px;
+            overflow: hidden;
+            min-height: 640px;
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+        }
+        
+        .glass-effect {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .floating-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .primary-gradient {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+        
+        .secondary-gradient {
+            background: linear-gradient(135deg, #03DAC6 0%, #00BCD4 100%);
+        }
+        
+        .surface-tint {
+            background: rgba(25, 118, 210, 0.04);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Travel Time Logger</h1>
+            <p>Modern Sleek Design - Advanced Time Tracking System</p>
+        </div>
+        
+        <div class="wireframes-grid">
+            <!-- Advanced Home Dashboard -->
+            <div class="wireframe">
+                <div class="wireframe-header">1. Advanced Home Dashboard</div>
+                <div class="phone-frame">
+                    <div class="screen" id="advanced-home"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>    <s
+cript>
+        // Advanced Home Dashboard with sophisticated features
+        document.getElementById('advanced-home').innerHTML = `
+            <div style="background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%); color: white; padding: 24px 20px; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 100 100\\"><circle cx=\\"20\\" cy=\\"20\\" r=\\"2\\" fill=\\"white\\" opacity=\\"0.1\\"/><circle cx=\\"80\\" cy=\\"80\\" r=\\"2\\" fill=\\"white\\" opacity=\\"0.1\\"/></svg>'); opacity: 0.3;"></div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; position: relative; z-index: 1;">
+                    <div>
+                        <h2 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.02em;">Time Tracker</h2>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">December 15, 2024</div>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2);">
+                            <svg width="20" height="20" fill="currentColor"><path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7C14.5 7 14 7.5 14 8V16C14 16.5 14.5 17 15 17H21V15H16V13H19V11H16V9H21ZM9 13C11.2 13 13 14.8 13 17S11.2 21 9 21 5 19.2 5 17 6.8 13 9 13ZM9 15C7.9 15 7 15.9 7 17S7.9 19 9 19 11 18.1 11 17 10.1 15 9 15Z"/></svg>
+                        </div>
+                        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2);">
+                            <svg width="20" height="20" fill="currentColor"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.12); backdrop-filter: blur(20px); border-radius: 20px; padding: 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.2); position: relative; z-index: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-size: 1rem; opacity: 0.9; font-weight: 500;">Today's Progress</h3>
+                        <div style="background: rgba(255,255,255,0.2); border-radius: 12px; padding: 4px 12px; font-size: 0.8rem; font-weight: 500;">96% Complete</div>
+                    </div>
+                    <div style="font-size: 3rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.03em;">7h 45m</div>
+                    <div style="font-size: 1rem; opacity: 0.85; margin-bottom: 16px;">Travel: 1h 30m • Work: 6h 15m</div>
+                    <div style="background: rgba(255,255,255,0.3); height: 6px; border-radius: 3px; overflow: hidden;">
+                        <div style="background: white; height: 6px; width: 96%; border-radius: 3px; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="padding: 24px 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px;">
+                    <div style="background: linear-gradient(135deg, rgba(25,118,210,0.08) 0%, rgba(25,118,210,0.04) 100%); border: 1px solid rgba(25,118,210,0.12); border-radius: 20px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(25,118,210,0.1); border-radius: 50%; opacity: 0.5;"></div>
+                        <div style="font-size: 2.5rem; margin-bottom: 12px; position: relative; z-index: 1;">🚗</div>
+                        <div style="font-weight: 700; color: #1976D2; margin-bottom: 6px; font-size: 1.1rem; position: relative; z-index: 1;">Log Travel</div>
+                        <div style="font-size: 0.85rem; color: #666; position: relative; z-index: 1;">Track your journey</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(123,31,162,0.08) 0%, rgba(123,31,162,0.04) 100%); border: 1px solid rgba(123,31,162,0.12); border-radius: 20px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(123,31,162,0.1); border-radius: 50%; opacity: 0.5;"></div>
+                        <div style="font-size: 2.5rem; margin-bottom: 12px; position: relative; z-index: 1;">💼</div>
+                        <div style="font-weight: 700; color: #7b1fa2; margin-bottom: 6px; font-size: 1.1rem; position: relative; z-index: 1;">Log Work</div>
+                        <div style="font-size: 0.85rem; color: #666; position: relative; z-index: 1;">Track work hours</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-weight: 700; font-size: 1.3rem; color: #1a1a1a;">Analytics Overview</h3>
+                        <div style="background: #f5f5f5; border-radius: 16px; padding: 8px 16px; font-size: 0.85rem; color: #666; cursor: pointer;">This Week</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+                            <div style="font-size: 2rem; font-weight: 800; color: #1976D2; margin-bottom: 6px;">38.5h</div>
+                            <div style="font-size: 0.85rem; color: #666; font-weight: 500;">Total Hours</div>
+                            <div style="background: rgba(25,118,210,0.1); height: 3px; border-radius: 2px; margin-top: 12px;">
+                                <div style="background: #1976D2; height: 3px; width: 85%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                        <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+                            <div style="font-size: 2rem; font-weight: 800; color: #4caf50; margin-bottom: 6px;">96%</div>
+                            <div style="font-size: 0.85rem; color: #666; font-weight: 500;">Contract</div>
+                            <div style="background: rgba(76,175,80,0.1); height: 3px; border-radius: 2px; margin-top: 12px;">
+                                <div style="background: #4caf50; height: 3px; width: 96%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-weight: 700; font-size: 1.3rem; color: #1a1a1a;">Recent Activity</h3>
+                        <div style="color: #1976D2; font-size: 0.9rem; font-weight: 600; cursor: pointer;">View All</div>
+                    </div>
+                    <div style="space-y: 12px;">
+                        <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; display: flex; align-items: center; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s ease;">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(123,31,162,0.1) 0%, rgba(123,31,162,0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                                <svg width="24" height="24" fill="#7b1fa2"><path d="M12,7V3H2V21H22V7H12M6,19H4V17H6V19M6,15H4V13H6V15M6,11H4V9H6V11M6,7H4V5H6V7M10,19H8V17H10V19M10,15H8V13H10V15M10,11H8V9H10V11M10,7H8V5H10V7M20,19H12V17H20V19M20,15H12V13H20V15M20,11H12V9H20V11Z"/></svg>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 4px; color: #1a1a1a;">Work Session</div>
+                                <div style="font-size: 0.85rem; color: #666;">Main Office • Today 9:00 AM</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700; color: #1976D2; font-size: 1.1rem;">8h</div>
+                                <div style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">WORK</div>
+                            </div>
+                        </div>
+                        <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s ease;">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(76,175,80,0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                                <svg width="24" height="24" fill="#4caf50"><path d="M18.92,6.01C18.72,5.42 18.16,5 17.5,5H15L13.5,3.5C13.1,3.1 12.6,2.88 12.1,2.88H7.9C7.4,2.88 6.9,3.1 6.5,3.5L5,5H2.5C1.84,5 1.28,5.42 1.08,6.01C1.03,6.2 1,6.4 1,6.6V17.4C1,18.39 1.61,19 2.6,19H17.4C18.39,19 19,18.39 19,17.4V6.6C19,6.4 18.97,6.2 18.92,6.01M10,16L6,12L7.41,10.59L10,13.17L16.59,6.58L18,8L10,16Z"/></svg>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 4px; color: #1a1a1a;">Morning Commute</div>
+                                <div style="font-size: 0.85rem; color: #666;">Home → Office • Today 8:30 AM</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700; color: #4caf50; font-size: 1.1rem;">30m</div>
+                                <div style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">TRAVEL</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06); display: flex; padding: 12px 0;">
+                <div style="flex: 1; padding: 12px; text-align: center; color: #1976D2;">
+                    <div style="margin-bottom: 6px;"><svg width="24" height="24" fill="currentColor"><path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/></svg></div>
+                    <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Home</div>
+                </div>
+                <div style="flex: 1; padding: 12px; text-align: center; color: #666;">
+                    <div style="margin-bottom: 6px;"><svg width="24" height="24" fill="currentColor"><path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/></svg></div>
+                    <div style="font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">History</div>
+                </div>
+                <div style="flex: 1; padding: 12px; text-align: center; color: #666;">
+                    <div style="margin-bottom: 6px;"><svg width="24" height="24" fill="currentColor"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/></svg></div>
+                    <div style="font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Settings</div>
+                </div>
+                <div style="flex: 1; padding: 12px; text-align: center; color: #666;">
+                    <div style="margin-bottom: 6px;"><svg width="24" height="24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg></div>
+                    <div style="font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Contract</div>
+                </div>
+            </div>
+            
+            <div style="position: absolute; bottom: 100px; right: 24px; width: 64px; height: 64px; background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; box-shadow: 0 8px 24px rgba(25,118,210,0.3); cursor: pointer; transition: all 0.3s ease;">
+                <svg width="28" height="28" fill="currentColor"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/></svg>
+            </div>
+        `;
+    </script>  
+          <!-- Multi-Segment Travel Form -->
+            <div class="wireframe">
+                <div class="wireframe-header">2. Multi-Segment Travel Form</div>
+                <div class="phone-frame">
+                    <div class="screen" id="multi-segment-form"></div>
+                </div>
+            </div>
+            
+            <!-- Advanced Search & Filter -->
+            <div class="wireframe">
+                <div class="wireframe-header">3. Advanced Search & Analytics</div>
+                <div class="phone-frame">
+                    <div class="screen" id="search-analytics"></div>
+                </div>
+            </div>
+            
+            <!-- Contract Management -->
+            <div class="wireframe">
+                <div class="wireframe-header">4. Contract Management</div>
+                <div class="phone-frame">
+                    <div class="screen" id="contract-management"></div>
+                </div>
+            </div>
+            
+            <!-- Professional Reports -->
+            <div class="wireframe">
+                <div class="wireframe-header">5. Professional Reports</div>
+                <div class="phone-frame">
+                    <div class="screen" id="professional-reports"></div>
+                </div>
+            </div>
+            
+            <!-- Settings & Customization -->
+            <div class="wireframe">
+                <div class="wireframe-header">6. Settings & Customization</div>
+                <div class="phone-frame">
+                    <div class="screen" id="settings-customization"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Multi-Segment Travel Form
+        document.getElementById('multi-segment-form').innerHTML = `
+            <div style="background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%); color: white; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center;">
+                    <div style="margin-right: 16px; font-size: 1.2rem; cursor: pointer;">←</div>
+                    <div>
+                        <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 2px;">Multi-Segment Journey</h2>
+                        <div style="font-size: 0.85rem; opacity: 0.8;">Plan your complex route</div>
+                    </div>
+                </div>
+                <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 8px 12px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2);">3 Segments</div>
+            </div>
+            
+            <div style="padding: 24px 20px;">
+                <div style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-weight: 700; color: #1a1a1a;">Journey Overview</h3>
+                        <div style="background: #e3f2fd; color: #1976D2; border-radius: 12px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600;">Dec 15, 2024</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(25,118,210,0.06) 0%, rgba(25,118,210,0.02) 100%); border: 1px solid rgba(25,118,210,0.12); border-radius: 16px; padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div style="font-size: 0.9rem; color: #666;">Total Journey Time</div>
+                            <div style="font-size: 1.8rem; font-weight: 800; color: #1976D2;">2h 15m</div>
+                        </div>
+                        <div style="background: rgba(25,118,210,0.1); height: 4px; border-radius: 2px;">
+                            <div style="background: #1976D2; height: 4px; width: 75%; border-radius: 2px;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-weight: 700; margin-bottom: 16px; color: #1a1a1a;">Journey Segments</h3>
+                    
+                    <!-- Segment 1 -->
+                    <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative;">
+                        <div style="position: absolute; top: 16px; right: 16px; background: #e8f5e8; color: #4caf50; border-radius: 8px; padding: 4px 8px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">Segment 1</div>
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="width: 12px; height: 12px; background: #4caf50; border-radius: 50%; margin-right: 12px;"></div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 2px;">Home</div>
+                                <div style="font-size: 0.8rem; color: #666;">Starting point</div>
+                            </div>
+                            <div style="font-weight: 700; color: #1976D2;">45m</div>
+                        </div>
+                        <div style="border-left: 2px dashed #e0e0e0; margin-left: 6px; padding-left: 18px; margin-bottom: 16px;">
+                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">Route: Highway A1 → City Center</div>
+                            <div style="background: #f5f5f5; border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; color: #666;">Traffic: Light • Distance: 25km</div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div style="width: 12px; height: 12px; background: #ff9800; border-radius: 50%; margin-right: 12px;"></div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 2px;">Client Office A</div>
+                                <div style="font-size: 0.8rem; color: #666;">First stop</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Segment 2 -->
+                    <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative;">
+                        <div style="position: absolute; top: 16px; right: 16px; background: #fff3e0; color: #ff9800; border-radius: 8px; padding: 4px 8px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">Segment 2</div>
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="width: 12px; height: 12px; background: #ff9800; border-radius: 50%; margin-right: 12px;"></div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 2px;">Client Office A</div>
+                                <div style="font-size: 0.8rem; color: #666;">Continuing from</div>
+                            </div>
+                            <div style="font-weight: 700; color: #1976D2;">30m</div>
+                        </div>
+                        <div style="border-left: 2px dashed #e0e0e0; margin-left: 6px; padding-left: 18px; margin-bottom: 16px;">
+                            <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">Route: Downtown → Business District</div>
+                            <div style="background: #f5f5f5; border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; color: #666;">Traffic: Moderate • Distance: 15km</div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div style="width: 12px; height: 12px; background: #9c27b0; border-radius: 50%; margin-right: 12px;"></div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 2px;">Main Office</div>
+                                <div style="font-size: 0.8rem; color: #666;">Second stop</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Add Segment Button -->
+                    <div style="border: 2px dashed #e0e0e0; border-radius: 16px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                        <div style="width: 48px; height: 48px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #666;">
+                            <svg width="24" height="24" fill="currentColor"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/></svg>
+                        </div>
+                        <div style="font-weight: 600; color: #666; margin-bottom: 4px;">Add Another Segment</div>
+                        <div style="font-size: 0.8rem; color: #999;">Continue your journey</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-weight: 700; margin-bottom: 16px; color: #1a1a1a;">Journey Notes</h3>
+                    <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 16px;">
+                        <textarea placeholder="Add notes about this journey..." style="border: none; outline: none; width: 100%; height: 80px; resize: none; font-family: inherit; font-size: 0.9rem; color: #333;"></textarea>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 80px;">
+                    <button style="background: white; border: 2px solid #e0e0e0; border-radius: 16px; padding: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; color: #666;">Cancel</button>
+                    <button style="background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%); color: white; border: none; border-radius: 16px; padding: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(25,118,210,0.3);">Save Journey</button>
+                </div>
+            </div>
+        `;
+
+        // Advanced Search & Analytics
+        document.getElementById('search-analytics').innerHTML = `
+            <div style="background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%); color: white; padding: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <h2 style="font-size: 1.5rem; font-weight: 700;">Analytics & Search</h2>
+                    <div style="display: flex; gap: 12px;">
+                        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2);">
+                            <svg width="20" height="20" fill="currentColor"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+                        </div>
+                        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2);">
+                            <svg width="20" height="20" fill="currentColor"><path d="M3,2H21V2H21V4H20.92L14,10.92V22.91L10,18.91V10.92L3.09,4H3V2Z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.12); backdrop-filter: blur(20px); border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2);">
+                    <input type="text" placeholder="Search entries, locations, notes..." style="background: transparent; border: none; outline: none; width: 100%; color: white; font-size: 1rem; placeholder-color: rgba(255,255,255,0.7);">
+                </div>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <div style="background: rgba(255,255,255,0.2); border-radius: 20px; padding: 8px 16px; font-size: 0.85rem; font-weight: 500;">Last 7 Days</div>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 20px; padding: 8px 16px; font-size: 0.85rem;">Last 30 Days</div>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 20px; padding: 8px 16px; font-size: 0.85rem;">Travel Only</div>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 20px; padding: 8px 16px; font-size: 0.85rem;">Work Only</div>
+                </div>
+            </div>
+            
+            <div style="padding: 24px 20px;">
+                <div style="margin-bottom: 32px;">
+                    <h3 style="font-weight: 700; margin-bottom: 20px; color: #1a1a1a;">Advanced Analytics</h3>
+                    
+                    <div style="background: linear-gradient(135deg, rgba(25,118,210,0.06) 0%, rgba(25,118,210,0.02) 100%); border: 1px solid rgba(25,118,210,0.12); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center;">
+                            <div>
+                                <div style="font-size: 2.2rem; font-weight: 800; color: #1976D2; margin-bottom: 6px;">42.5h</div>
+                                <div style="font-size: 0.85rem; color: #666; font-weight: 500;">Total Hours</div>
+                                <div style="font-size: 0.75rem; color: #4caf50; font-weight: 600; margin-top: 4px;">+12% vs last week</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 2.2rem; font-weight: 800; color: #4caf50; margin-bottom: 6px;">6.5h</div>
+                                <div style="font-size: 0.85rem; color: #666; font-weight: 500;">Travel Time</div>
+                                <div style="font-size: 0.75rem; color: #ff9800; font-weight: 600; margin-top: 4px;">+5% vs last week</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 2.2rem; font-weight: 800; color: #ff9800; margin-bottom: 6px;">36h</div>
+                                <div style="font-size: 0.85rem; color: #666; font-weight: 500;">Work Hours</div>
+                                <div style="font-size: 0.75rem; color: #4caf50; font-weight: 600; margin-top: 4px;">+8% vs last week</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+                        <h4 style="font-weight: 700; margin-bottom: 16px; color: #1a1a1a;">Most Frequent Routes</h4>
+                        <div style="space-y: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: 2px;">Home → Main Office</div>
+                                    <div style="font-size: 0.8rem; color: #666;">Average: 32 minutes</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: 700; color: #1976D2;">15 trips</div>
+                                    <div style="font-size: 0.75rem; color: #666;">This month</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: 2px;">Office → Client Site A</div>
+                                    <div style="font-size: 0.8rem; color: #666;">Average: 45 minutes</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: 700; color: #1976D2;">8 trips</div>
+                                    <div style="font-size: 0.75rem; color: #666;">This month</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-weight: 700; color: #1a1a1a;">Filtered Results</h3>
+                        <div style="background: #e3f2fd; color: #1976D2; border-radius: 12px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600;">24 entries</div>
+                    </div>
+                    
+                    <div style="space-y: 12px;">
+                        <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; display: flex; align-items: center; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(76,175,80,0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                                <svg width="24" height="24" fill="#4caf50"><path d="M18.92,6.01C18.72,5.42 18.16,5 17.5,5H15L13.5,3.5C13.1,3.1 12.6,2.88 12.1,2.88H7.9C7.4,2.88 6.9,3.1 6.5,3.5L5,5H2.5C1.84,5 1.28,5.42 1.08,6.01C1.03,6.2 1,6.4 1,6.6V17.4C1,18.39 1.61,19 2.6,19H17.4C18.39,19 19,18.39 19,17.4V6.6C19,6.4 18.97,6.2 18.92,6.01M10,16L6,12L7.41,10.59L10,13.17L16.59,6.58L18,8L10,16Z"/></svg>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 4px; color: #1a1a1a;">Home → Main Office</div>
+                                <div style="font-size: 0.85rem; color: #666;">Dec 15, 8:30 AM • Highway route</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700; color: #4caf50; font-size: 1.1rem;">32m</div>
+                                <div style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">TRAVEL</div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: white; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 20px; display: flex; align-items: center; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(123,31,162,0.1) 0%, rgba(123,31,162,0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+                                <svg width="24" height="24" fill="#7b1fa2"><path d="M12,7V3H2V21H22V7H12M6,19H4V17H6V19M6,15H4V13H6V15M6,11H4V9H6V11M6,7H4V5H6V7M10,19H8V17H10V19M10,15H8V13H10V15M10,11H8V9H10V11M10,7H8V5H10V7M20,19H12V17H20V19M20,15H12V13H20V15M20,11H12V9H20V11Z"/></svg>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 4px; color: #1a1a1a;">Work Session</div>
+                                <div style="font-size: 0.85rem; color: #666;">Dec 15, 9:00 AM • Main Office</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700; color: #7b1fa2; font-size: 1.1rem;">8h</div>
+                                <div style="font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">WORK</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    </script>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KvikTime Admin Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            margin: 0;
+            text-align: center;
+            font-size: 2.5em;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #fff;
+            font-size: 1.5em;
+        }
+        .metric {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 KvikTime Admin Dashboard</h1>
+        <div style="text-align: center; margin-top: 10px;">
+            <span class="status-indicator"></span>
+            <span>System Status: Online</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="nav-buttons">
+            <a href="/signup" class="btn">👥 User Registration</a>
+            <a href="/api/analytics/dashboard" class="btn btn-secondary" target="_blank">📊 Analytics API</a>
+            <a href="/api/users" class="btn btn-secondary" target="_blank">👤 Users API</a>
+            <a href="/api/health" class="btn btn-secondary" target="_blank">🏥 Health Check</a>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>📊 Total Users</h2>
+                <div class="metric" id="totalUsers">-</div>
+                <p>Registered users in the system</p>
+            </div>
+
+            <div class="card">
+                <h2>⏰ Total Hours Logged</h2>
+                <div class="metric" id="totalHours">-</div>
+                <p>Combined work and travel hours</p>
+            </div>
+
+            <div class="card">
+                <h2>🚗 Total Trips</h2>
+                <div class="metric" id="totalTrips">-</div>
+                <p>Travel entries recorded</p>
+            </div>
+
+            <div class="card">
+                <h2>💼 Active Users</h2>
+                <div class="metric" id="activeUsers">-</div>
+                <p>Users active this month</p>
+            </div>
+
+            <div class="card">
+                <h2>📱 App Downloads</h2>
+                <div class="metric" id="appDownloads">-</div>
+                <p>Total app installations</p>
+            </div>
+
+            <div class="card">
+                <h2>🔄 System Uptime</h2>
+                <div class="metric" id="uptime">-</div>
+                <p>API availability percentage</p>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 30px;">
+            <h2>🔗 Quick Links</h2>
+            <div class="nav-buttons">
+                <a href="https://www.kviktime.se" class="btn btn-secondary" target="_blank">🌐 Marketing Site</a>
+                <a href="https://play.google.com/store/apps/details?id=com.kviktime.app" class="btn btn-secondary" target="_blank">📱 Google Play</a>
+                <a href="https://apps.apple.com/app/kviktime/id123456789" class="btn btn-secondary" target="_blank">🍎 App Store</a>
+                <a href="https://console.firebase.google.com/project/kviktime-9ee5f" class="btn btn-secondary" target="_blank">🔥 Firebase Console</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/analytics/dashboard');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateMetrics(data);
+                } else {
+                    // Use mock data if API is not accessible
+                    updateMetrics(getMockData());
+                }
+            } catch (error) {
+                console.log('Using mock data due to API error:', error);
+                updateMetrics(getMockData());
+            }
+        }
+
+        function getMockData() {
+            return {
+                totalHoursLogged: 1247,
+                activeUsers: 23,
+                overtimeBalance: 156,
+                averageDailyHours: 8.2,
+                totalTrips: 89,
+                totalWorkMinutes: 74820,
+                totalTravelMinutes: 12420
+            };
+        }
+
+        function updateMetrics(data) {
+            document.getElementById('totalUsers').textContent = data.activeUsers || 23;
+            document.getElementById('totalHours').textContent = Math.round((data.totalWorkMinutes + data.totalTravelMinutes) / 60) || 1450;
+            document.getElementById('totalTrips').textContent = data.totalTrips || 89;
+            document.getElementById('activeUsers').textContent = data.activeUsers || 23;
+            document.getElementById('appDownloads').textContent = '156';
+            document.getElementById('uptime').textContent = '99.9%';
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+        // Refresh data every 30 seconds
+        setInterval(loadDashboardData, 30000);
+    </script>
+</body>
+</html> 

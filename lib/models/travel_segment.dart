@@ -1,81 +1,95 @@
-import '../models/location.dart';
+import 'package:hive/hive.dart';
 
-/// Represents a single segment in a multi-segment journey
-class TravelSegment {
+part 'travel_segment.g.dart';
+
+@HiveType(typeId: 4)
+class TravelSegment extends HiveObject {
+  @HiveField(0)
   final String id;
-  final String departure;
-  final String arrival;
-  final int minutes;
-  final String? info;
-  final Location? departureLocation;
-  final Location? arrivalLocation;
 
-  const TravelSegment({
+  @HiveField(1)
+  final String departure;
+
+  @HiveField(2)
+  final String arrival;
+
+  @HiveField(3)
+  final int durationMinutes;
+
+  @HiveField(4)
+  final String? departureLocation;
+
+  @HiveField(5)
+  final String? arrivalLocation;
+
+  @HiveField(6)
+  final String? notes;
+
+  TravelSegment({
     required this.id,
     required this.departure,
     required this.arrival,
-    required this.minutes,
-    this.info,
+    required this.durationMinutes,
     this.departureLocation,
     this.arrivalLocation,
+    this.notes,
   });
 
-  TravelSegment copyWith({
-    String? id,
-    String? departure,
-    String? arrival,
-    int? minutes,
-    String? info,
-    Location? departureLocation,
-    Location? arrivalLocation,
-  }) {
-    return TravelSegment(
-      id: id ?? this.id,
-      departure: departure ?? this.departure,
-      arrival: arrival ?? this.arrival,
-      minutes: minutes ?? this.minutes,
-      info: info ?? this.info,
-      departureLocation: departureLocation ?? this.departureLocation,
-      arrivalLocation: arrivalLocation ?? this.arrivalLocation,
-    );
-  }
+  // Getter for backward compatibility
+  String? get info => notes;
 
-  /// Check if this segment is valid (has all required fields)
-  bool get isValid {
-    return departure.trim().isNotEmpty && 
-           arrival.trim().isNotEmpty && 
-           minutes > 0;
-  }
-
-  /// Get total duration formatted as string
+  // Getter for formatted duration
   String get formattedDuration {
-    if (minutes == 0) return '0m';
-    final hours = minutes ~/ 60;
-    final mins = minutes % 60;
+    if (durationMinutes == 0) return '0m';
+    final hours = durationMinutes ~/ 60;
+    final mins = durationMinutes % 60;
     if (hours > 0) {
       return mins > 0 ? '${hours}h ${mins}m' : '${hours}h';
     }
     return '${mins}m';
   }
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is TravelSegment &&
-        other.id == id &&
-        other.departure == departure &&
-        other.arrival == arrival &&
-        other.minutes == minutes &&
-        other.info == info;
+  TravelSegment copyWith({
+    String? id,
+    String? departure,
+    String? arrival,
+    int? durationMinutes,
+    String? departureLocation,
+    String? arrivalLocation,
+    String? notes,
+  }) {
+    return TravelSegment(
+      id: id ?? this.id,
+      departure: departure ?? this.departure,
+      arrival: arrival ?? this.arrival,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      departureLocation: departureLocation ?? this.departureLocation,
+      arrivalLocation: arrivalLocation ?? this.arrivalLocation,
+      notes: notes ?? this.notes,
+    );
   }
 
-  @override
-  int get hashCode {
-    return Object.hash(id, departure, arrival, minutes, info);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'departure': departure,
+      'arrival': arrival,
+      'durationMinutes': durationMinutes,
+      'departureLocation': departureLocation,
+      'arrivalLocation': arrivalLocation,
+      'notes': notes,
+    };
   }
 
-  @override
-  String toString() {
-    return 'TravelSegment(id: $id, departure: $departure, arrival: $arrival, minutes: $minutes)';
+  factory TravelSegment.fromJson(Map<String, dynamic> json) {
+    return TravelSegment(
+      id: json['id'] as String,
+      departure: json['departure'] as String,
+      arrival: json['arrival'] as String,
+      durationMinutes: json['durationMinutes'] as int,
+      departureLocation: json['departureLocation'] as String?,
+      arrivalLocation: json['arrivalLocation'] as String?,
+      notes: json['notes'] as String?,
+    );
   }
 }

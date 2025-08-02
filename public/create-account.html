@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KvikTime - Create Account</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .create-account-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-section h1 {
+            color: #333;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .logo-section p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input.error {
+            border-color: #e74c3c;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle input {
+            padding-right: 50px;
+        }
+
+        .password-toggle button {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .payment-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e9ecef;
+        }
+
+        .payment-section h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .plan-options {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .plan-option {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .plan-option:hover {
+            border-color: #667eea;
+        }
+
+        .plan-option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .plan-option h4 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .plan-option .price {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .plan-option .description {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        #card-element {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            background: white;
+        }
+
+        #card-errors {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+
+        .app-links {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .app-links h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .app-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .app-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .app-btn:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+
+        .back-to-app {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-to-app a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .back-to-app a:hover {
+            color: #764ba2;
+        }
+
+        .terms {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .terms a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .create-account-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .app-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="create-account-container">
+        <div class="logo-section">
+            <h1>KvikTime</h1>
+            <p>Create your account to get started</p>
+        </div>
+
+        <form id="createAccountForm">
+            <div class="form-group">
+                <label for="fullName">Full Name *</label>
+                <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
+                <div class="error-message" id="fullNameError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password *</label>
+                <div class="password-toggle">
+                    <input type="password" id="password" name="password" placeholder="Create a password (min 6 characters)" required>
+                    <button type="button" onclick="togglePassword('password')">👁️</button>
+                </div>
+                <div class="error-message" id="passwordError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password *</label>
+                <div class="password-toggle">
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                    <button type="button" onclick="togglePassword('confirmPassword')">👁️</button>
+                </div>
+                <div class="error-message" id="confirmPasswordError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="company">Company (Optional)</label>
+                <input type="text" id="company" name="company" placeholder="Enter your company name">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number (Optional)</label>
+                <input type="tel" id="phone" name="phone" placeholder="Enter your phone number">
+            </div>
+
+                         <div class="payment-section">
+                 <h3>Subscription Plan</h3>
+                 <div class="plan-options">
+                     <div class="plan-option selected" data-plan="standard">
+                         <h4>KvikTime Standard</h4>
+                         <div class="price">150 SEK/month</div>
+                         <div class="description">Complete time tracking solution for all your needs</div>
+                     </div>
+                 </div>
+
+                <div class="form-group">
+                    <label for="card-element">Credit or Debit Card</label>
+                    <div id="card-element"></div>
+                    <div id="card-errors" role="alert"></div>
+                </div>
+            </div>
+
+                         <button type="submit" class="submit-btn" id="submitBtn">
+                 <span id="btnText">Create Account & Start Subscription (150 SEK/month)</span>
+                 <span id="btnLoading" class="loading" style="display: none;"></span>
+             </button>
+        </form>
+
+        <div id="message" class="message"></div>
+
+        <div class="app-links">
+            <h3>Download Our Mobile App</h3>
+            <div class="app-buttons">
+                <a href="https://play.google.com/store/apps/details?id=com.kviktime.app" class="app-btn" rel="noopener" target="_blank">
+                    📱 Google Play
+                </a>
+                <a href="https://apps.apple.com/app/kviktime/id123456789" class="app-btn" rel="noopener" target="_blank">
+                    🍎 App Store
+                </a>
+            </div>
+        </div>
+
+        <div class="back-to-app">
+            <a href="#" onclick="redirectToApp()">← Back to KvikTime App</a>
+        </div>
+
+        <div class="terms">
+            By creating an account, you agree to our 
+            <a href="#" target="_blank">Terms of Service</a> and 
+            <a href="#" target="_blank">Privacy Policy</a>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Stripe
+        const stripe = Stripe('pk_test_51RrleLLUAmVQpcCRcBRThMOQo1naQeFV4t2zKuOhkHE1bpBJiwnYo5rlzPOHNChrrGeMHI6crSJaz8DEFOzNlzLq00Q5cBvuCe');
+        const elements = stripe.elements();
+        const card = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#333',
+                    '::placeholder': {
+                        color: '#aab7c4',
+                    },
+                },
+                invalid: {
+                    color: '#e74c3c',
+                },
+            },
+        });
+        card.mount('#card-element');
+
+        // Handle card errors
+        card.addEventListener('change', function(event) {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+                 // Plan selection (single plan)
+         const planOptions = document.querySelectorAll('.plan-option');
+         let selectedPlan = 'standard';
+ 
+         // Set default selection
+         document.querySelector('[data-plan="standard"]').classList.add('selected');
+
+        // Password toggle
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const button = field.nextElementSibling;
+            if (field.type === 'password') {
+                field.type = 'text';
+                button.textContent = '🙈';
+            } else {
+                field.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            const errors = {};
+
+            // Full name validation
+            const fullName = document.getElementById('fullName').value.trim();
+            if (!fullName) {
+                errors.fullName = 'Full name is required';
+                isValid = false;
+            }
+
+            // Email validation
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                errors.email = 'Email is required';
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errors.email = 'Please enter a valid email address';
+                isValid = false;
+            }
+
+            // Password validation
+            const password = document.getElementById('password').value;
+            if (!password) {
+                errors.password = 'Password is required';
+                isValid = false;
+            } else if (password.length < 6) {
+                errors.password = 'Password must be at least 6 characters';
+                isValid = false;
+            }
+
+            // Confirm password validation
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (!confirmPassword) {
+                errors.confirmPassword = 'Please confirm your password';
+                isValid = false;
+            } else if (password !== confirmPassword) {
+                errors.confirmPassword = 'Passwords do not match';
+                isValid = false;
+            }
+
+            // Display errors
+            Object.keys(errors).forEach(field => {
+                const errorElement = document.getElementById(field + 'Error');
+                if (errorElement) {
+                    errorElement.textContent = errors[field];
+                    errorElement.style.display = 'block';
+                    document.getElementById(field).classList.add('error');
+                }
+            });
+
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(element => {
+                if (!errors[element.id.replace('Error', '')]) {
+                    element.style.display = 'none';
+                    const field = document.getElementById(element.id.replace('Error', ''));
+                    if (field) field.classList.remove('error');
+                }
+            });
+
+            return isValid;
+        }
+
+        // Form submission
+        const form = document.getElementById('createAccountForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoading = document.getElementById('btnLoading');
+        const messageDiv = document.getElementById('message');
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+
+        function setLoading(loading) {
+            if (loading) {
+                submitBtn.disabled = true;
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'inline-block';
+            } else {
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+            }
+        }
+
+        function redirectToApp() {
+            const appUrl = 'kviktime://login';
+            const fallbackUrl = 'https://kviktime-9ee5f.web.app';
+            window.location.href = appUrl;
+            setTimeout(() => {
+                window.location.href = fallbackUrl;
+            }, 1000);
+        }
+
+        function redirectToAppWithEmail(email) {
+            const appUrl = `kviktime://login?email=${encodeURIComponent(email)}`;
+            const fallbackUrl = `https://kviktime-9ee5f.web.app/login?email=${encodeURIComponent(email)}`;
+            window.location.href = appUrl;
+            setTimeout(() => {
+                window.location.href = fallbackUrl;
+            }, 1000);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            setLoading(true);
+
+                         try {
+                 // Create payment method
+                 const { paymentMethod, error } = await stripe.createPaymentMethod({
+                     type: 'card',
+                     card: card,
+                     billing_details: {
+                         name: document.getElementById('fullName').value,
+                         email: document.getElementById('email').value,
+                     },
+                 });
+ 
+                 if (error) {
+                     throw new Error(error.message);
+                 }
+ 
+                 // Create customer in Stripe
+                 const customerResponse = await fetch('https://europe-west3-kviktime-9ee5f.cloudfunctions.net/api/payments/create-customer', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                     },
+                     body: JSON.stringify({
+                         email: document.getElementById('email').value,
+                         name: document.getElementById('fullName').value,
+                         phone: document.getElementById('phone').value || undefined,
+                     }),
+                 });
+ 
+                 if (!customerResponse.ok) {
+                     throw new Error('Failed to create customer');
+                 }
+ 
+                 const customerData = await customerResponse.json();
+ 
+                 // Create subscription (150 SEK = 15000 cents)
+                 const subscriptionResponse = await fetch('https://europe-west3-kviktime-9ee5f.cloudfunctions.net/api/payments/create-subscription', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                     },
+                     body: JSON.stringify({
+                         customerId: customerData.customerId,
+                         priceId: 'price_150sek_monthly', // You'll need to create this in Stripe
+                         paymentMethodId: paymentMethod.id,
+                     }),
+                 });
+ 
+                 if (!subscriptionResponse.ok) {
+                     throw new Error('Failed to create subscription');
+                 }
+ 
+                 const subscriptionData = await subscriptionResponse.json();
+                 
+                 showMessage('Account created successfully! Redirecting to app...', 'success');
+                 
+                 setTimeout(() => {
+                     redirectToAppWithEmail(document.getElementById('email').value);
+                 }, 2000);
+
+            } catch (error) {
+                showMessage(`Account creation failed: ${error.message}`, 'error');
+                setLoading(false);
+            }
+        });
+
+        // Pre-fill email if provided via URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailParam = urlParams.get('email');
+        if (emailParam) {
+            document.getElementById('email').value = emailParam;
+        }
+    </script>
+</body>
+</html> 

@@ -1,5 +1,18 @@
 {
   "projects": {
-    "default": "time-app-8cd2d"
-  }
+    "default": "travel-time-app-v2"
+  },
+  "targets": {
+    "kviktime-9ee5f": {
+      "hosting": {
+        "main": [
+          "kviktime-9ee5f"
+        ],
+        "app": [
+          "app-kviktime-se"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Time Logger - UI/UX Wireframes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .wireframes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .wireframe {
+            background: #f8f9fa;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .wireframe:hover {
+            transform: translateY(-5px);
+        }
+
+        .wireframe-header {
+            background: #1976D2;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .phone-frame {
+            background: #333;
+            padding: 20px;
+            border-radius: 25px;
+            margin: 20px;
+        }
+
+        .screen {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            min-height: 600px;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Travel Time Logger</h1>
+            <p>High-End UI/UX Wireframes - Mobile Time Tracking App</p>
+        </div>
+
+        <div class="wireframes-grid">
+            <!-- Home Screen Wireframe -->
+            <div class="wireframe">
+                <div class="wireframe-header">1. Home Dashboard</div>
+                <div class="phone-frame">
+                    <div class="screen" id="home-screen"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    // Home Screen Wireframe
+    document.getElementById('home-screen').innerHTML = `
+            <div style="background: linear-gradient(135deg, #1976D2, #1565C0); color: white; padding: 20px; text-align: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="font-size: 1.5rem; font-weight: 600;">Time Tracker</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">👤</div>
+                        <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">⚙️</div>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.15); border-radius: 15px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="font-size: 1rem; opacity: 0.9; margin-bottom: 8px;">Today's Total</h3>
+                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 5px;">7h 45m</div>
+                    <div style="font-size: 0.9rem; opacity: 0.8;">Travel: 1h 30m • Work: 6h 15m</div>
+                </div>
+            </div>
+            
+            <div style="padding: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                    <div style="background: #f0f7ff; border: 2px solid #e3f2fd; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="#1976D2" style="margin-bottom: 10px;">
+                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                        </svg>
+                        <div style="font-weight: 600; color: #1976D2; margin-bottom: 5px;">Log Travel</div>
+                        <div style="font-size: 0.8rem; color: #666;">Track your commute</div>
+                    </div>
+                    <div style="background: #f3e5f5; border: 2px solid #e1bee7; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="#7b1fa2" style="margin-bottom: 10px;">
+                            <path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1z"/>
+                        </svg>
+                        <div style="font-weight: 600; color: #7b1fa2; margin-bottom: 5px;">Log Work</div>
+                        <div style="font-size: 0.8rem; color: #666;">Track work hours</div>
+                    </div>
+                </div>
+                
+                <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">This Week</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px;">
+                    <div style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #1976D2; margin-bottom: 5px;">38.5h</div>
+                        <div style="font-size: 0.8rem; color: #666;">Total Hours</div>
+                    </div>
+                    <div style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #1976D2; margin-bottom: 5px;">96%</div>
+                        <div style="font-size: 0.8rem; color: #666;">Contract %</div>
+                    </div>
+                </div>
+                
+                <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Recent Entries</h3>
+                <div style="space-y: 10px;">
+                    <div style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center; margin-bottom: 10px;">
+                        <div style="width: 40px; height: 40px; background: #e3f2fd; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1976D2">
+                                <path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1z"/>
+                            </svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; margin-bottom: 2px;">Work Session</div>
+                            <div style="font-size: 0.8rem; color: #666;">Office • Today 9:00 AM</div>
+                        </div>
+                        <div style="font-weight: 600; color: #1976D2;">8h</div>
+                    </div>
+                    <div style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                        <div style="width: 40px; height: 40px; background: #e8f5e8; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#4caf50">
+                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                            </svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; margin-bottom: 2px;">Morning Commute</div>
+                            <div style="font-size: 0.8rem; color: #666;">Home → Office • Today 8:30 AM</div>
+                        </div>
+                        <div style="font-weight: 600; color: #1976D2;">30m</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e0e0e0; display: flex;">
+                <div style="flex: 1; padding: 12px; text-align: center; color: #1976D2; border-right: 1px solid #e0e0e0;">
+                    <div style="margin-bottom: 4px;">🏠</div>
+                    <div style="font-size: 0.7rem; font-weight: 500;">Home</div>
+                </div>
+                <div style="flex: 1; padding: 12px; text-align: center; color: #666; border-right: 1px solid #e0e0e0;">
+                    <div style="margin-bottom: 4px;">📊</div>
+                    <div style="font-size: 0.7rem;">History</div>
+                </div>
+                <div style="flex: 1; padding: 12px; text-align: center; color: #666; border-right: 1px solid #e0e0e0;">
+                    <div style="margin-bottom: 4px;">⚙️</div>
+                    <div style="font-size: 0.7rem;">Settings</div>
+                </div>
+                <div style="flex: 1; padding: 12px; text-align: center; color: #666;">
+                    <div style="margin-bottom: 4px;">📋</div>
+                    <div style="font-size: 0.7rem;">Contract</div>
+                </div>
+            </div>
+            
+            <div style="position: absolute; bottom: 80px; right: 20px; width: 56px; height: 56px; background: #1976D2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(25,118,210,0.3);">+</div>
+        `;
+</script>
+<!-- Travel Entry Form Wireframe -->
+<div class="wireframe">
+    <div class="wireframe-header">2. Travel Entry Form</div>
+    <div class="phone-frame">
+        <div class="screen" id="travel-form"></div>
+    </div>
+</div>
+
+<!-- Work Entry Form Wireframe -->
+<div class="wireframe">
+    <div class="wireframe-header">3. Work Entry Form</div>
+    <div class="phone-frame">
+        <div class="screen" id="work-form"></div>
+    </div>
+</div>
+
+<!-- History/Analytics Screen -->
+<div class="wireframe">
+    <div class="wireframe-header">4. History & Analytics</div>
+    <div class="phone-frame">
+        <div class="screen" id="history-screen"></div>
+    </div>
+</div>
+
+<!-- Contract Settings Screen -->
+<div class="wireframe">
+    <div class="wireframe-header">5. Contract Settings</div>
+    <div class="phone-frame">
+        <div class="screen" id="contract-screen"></div>
+    </div>
+</div>
+
+<!-- Reports Screen -->
+<div class="wireframe">
+    <div class="wireframe-header">6. Reports & Export</div>
+    <div class="phone-frame">
+        <div class="screen" id="reports-screen"></div>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+    // Travel Entry Form
+    document.getElementById('travel-form').innerHTML = `
+            <div style="background: #1976D2; color: white; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 12px;">
+                        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                    </svg>
+                    <h2 style="font-size: 1.3rem; font-weight: 600;">Log Travel Entry</h2>
+                </div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="cursor: pointer;">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </div>
+            
+            <div style="padding: 25px;">
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Date & Time</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1976D2" style="margin-right: 12px;">
+                                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                            </svg>
+                            <div>Dec 15, 2024</div>
+                        </div>
+                        <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1976D2" style="margin-right: 12px;">
+                                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.7L16.2,16.2Z"/>
+                            </svg>
+                            <div>8:30 AM</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Travel Route</h3>
+                    <div style="margin-bottom: 15px;">
+                        <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#4caf50" style="margin-right: 12px;">
+                                <path d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22S19,14.25 19,9A7,7 0 0,0 12,2Z"/>
+                            </svg>
+                            <input type="text" placeholder="From location" style="border: none; outline: none; flex: 1; font-size: 1rem;" value="Home">
+                        </div>
+                    </div>
+                    <div>
+                        <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#f44336" style="margin-right: 12px;">
+                                <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H9V3H7V21A2,2 0 0,0 9,23H15A2,2 0 0,0 17,21V9H21Z"/>
+                            </svg>
+                            <input type="text" placeholder="To location" style="border: none; outline: none; flex: 1; font-size: 1rem;" value="Office">
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Duration</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px;">
+                            <input type="number" placeholder="0" style="border: none; outline: none; width: 100%; font-size: 1.2rem; text-align: center;" value="0">
+                            <div style="text-align: center; font-size: 0.8rem; color: #666; margin-top: 5px;">Hours</div>
+                        </div>
+                        <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px;">
+                            <input type="number" placeholder="0" style="border: none; outline: none; width: 100%; font-size: 1.2rem; text-align: center;" value="30">
+                            <div style="text-align: center; font-size: 0.8rem; color: #666; margin-top: 5px;">Minutes</div>
+                        </div>
+                    </div>
+                    <div style="background: #e3f2fd; border-radius: 8px; padding: 10px; margin-top: 10px; text-align: center;">
+                        <div style="color: #1976D2; font-weight: 500; font-size: 0.9rem;">Total: 30 minutes</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Notes (Optional)</h3>
+                    <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px;">
+                        <textarea placeholder="Add any additional details..." style="border: none; outline: none; width: 100%; height: 80px; resize: none; font-family: inherit;"></textarea>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <button style="background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 500; cursor: pointer;">Cancel</button>
+                    <button style="background: #1976D2; color: white; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 500; cursor: pointer;">Save Entry</button>
+                </div>
+            </div>
+        `;
+
+    // Work Entry Form
+    document.getElementById('work-form').innerHTML = `
+            <div style="background: #7b1fa2; color: white; padding: 20px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 12px;">
+                        <path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1z"/>
+                    </svg>
+                    <h2 style="font-size: 1.3rem; font-weight: 600;">Log Work Entry</h2>
+                </div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="cursor: pointer;">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </div>
+            
+            <div style="padding: 25px;">
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Date</h3>
+                    <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#7b1fa2" style="margin-right: 12px;">
+                            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                        </svg>
+                        <div>Dec 15, 2024</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Work Location</h3>
+                    <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#7b1fa2" style="margin-right: 12px;">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        <input type="text" placeholder="Work location" style="border: none; outline: none; flex: 1; font-size: 1rem;" value="Main Office">
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Shift Times</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; font-size: 0.9rem; color: #666; margin-bottom: 8px;">Start Time</label>
+                            <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="#7b1fa2" style="margin-right: 10px;">
+                                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.7L16.2,16.2Z"/>
+                                </svg>
+                                <div>9:00 AM</div>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.9rem; color: #666; margin-bottom: 8px;">End Time</label>
+                            <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="#7b1fa2" style="margin-right: 10px;">
+                                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.7L16.2,16.2Z"/>
+                                </svg>
+                                <div>5:00 PM</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background: #f3e5f5; border-radius: 8px; padding: 12px; text-align: center;">
+                        <div style="color: #7b1fa2; font-weight: 500; font-size: 0.9rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#7b1fa2" style="margin-right: 6px; vertical-align: middle;">
+                                <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
+                            </svg>
+                            Total Duration: 8 hours (excluding breaks)
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Shift Type</h3>
+                    <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#7b1fa2" style="margin-right: 12px;">
+                            <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6Z"/>
+                        </svg>
+                        <select style="border: none; outline: none; width: 100%; font-size: 1rem; background: transparent;">
+                            <option>Morning Shift (6 AM - 2 PM)</option>
+                            <option>Day Shift (9 AM - 5 PM)</option>
+                            <option>Evening Shift (2 PM - 10 PM)</option>
+                            <option>Night Shift (10 PM - 6 AM)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Notes (Optional)</h3>
+                    <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: flex-start;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#7b1fa2" style="margin-right: 12px; margin-top: 2px;">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                        <textarea placeholder="Add details about your work session..." style="border: none; outline: none; width: 100%; height: 80px; resize: none; font-family: inherit;"></textarea>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <button style="background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 500; cursor: pointer;">Cancel</button>
+                    <button style="background: #7b1fa2; color: white; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 500; cursor: pointer;">Save Entry</button>
+                </div>
+            </div>
+        `;
+</script>
+// History & Analytics Screen
+document.getElementById('history-screen').innerHTML = `
+<div style="background: #1976D2; color: white; padding: 20px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <h2 style="font-size: 1.5rem; font-weight: 600;">History & Analytics</h2>
+        <div style="display: flex; gap: 10px;">
+            <div
+                style="width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                🔍</div>
+            <div
+                style="width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                📊</div>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <div style="background: rgba(255,255,255,0.2); border-radius: 20px; padding: 8px 16px; font-size: 0.9rem;">Last
+            7 Days</div>
+        <div style="background: rgba(255,255,255,0.1); border-radius: 20px; padding: 8px 16px; font-size: 0.9rem;">Last
+            15 Days</div>
+        <div style="background: rgba(255,255,255,0.1); border-radius: 20px; padding: 8px 16px; font-size: 0.9rem;">Last
+            30 Days</div>
+    </div>
+</div>
+
+<div style="padding: 20px;">
+    <div
+        style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 15px; padding: 20px; margin-bottom: 25px;">
+        <h3 style="font-weight: 600; margin-bottom: 15px; color: #1976D2;">Weekly Summary</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center;">
+            <div>
+                <div style="font-size: 1.8rem; font-weight: 700; color: #1976D2; margin-bottom: 5px;">42.5h</div>
+                <div style="font-size: 0.8rem; color: #666;">Total Hours</div>
+            </div>
+            <div>
+                <div style="font-size: 1.8rem; font-weight: 700; color: #4caf50; margin-bottom: 5px;">6.5h</div>
+                <div style="font-size: 0.8rem; color: #666;">Travel Time</div>
+            </div>
+            <div>
+                <div style="font-size: 1.8rem; font-weight: 700; color: #ff9800; margin-bottom: 5px;">36h</div>
+                <div style="font-size: 0.8rem; color: #666;">Work Hours</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="font-weight: 600; color: #333;">Recent Entries</h3>
+        <div style="background: #f5f5f5; border-radius: 20px; padding: 6px 12px; font-size: 0.8rem; color: #666;">Filter
+        </div>
+    </div>
+
+    <div style="space-y: 12px;">
+        <div
+            style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center;">
+                    <div
+                        style="width: 35px; height: 35px; background: #e3f2fd; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                        💼</div>
+                    <div>
+                        <div style="font-weight: 500; margin-bottom: 2px;">Work Session</div>
+                        <div style="font-size: 0.8rem; color: #666;">Main Office • Dec 15, 9:00 AM</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 600; color: #1976D2;">8h</div>
+                    <div style="font-size: 0.7rem; color: #666;">Work</div>
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center;">
+                    <div
+                        style="width: 35px; height: 35px; background: #e8f5e8; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                        🚗</div>
+                    <div>
+                        <div style="font-weight: 500; margin-bottom: 2px;">Morning Commute</div>
+                        <div style="font-size: 0.8rem; color: #666;">Home → Office • Dec 15, 8:30 AM</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 600; color: #4caf50;">30m</div>
+                    <div style="font-size: 0.7rem; color: #666;">Travel</div>
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center;">
+                    <div
+                        style="width: 35px; height: 35px; background: #fff3e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                        🏠</div>
+                    <div>
+                        <div style="font-weight: 500; margin-bottom: 2px;">Remote Work</div>
+                        <div style="font-size: 0.8rem; color: #666;">Home Office • Dec 14, 10:00 AM</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 600; color: #ff9800;">6.5h</div>
+                    <div style="font-size: 0.7rem; color: #666;">Work</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button
+            style="background: #1976D2; color: white; border: none; border-radius: 25px; padding: 12px 24px; font-size: 0.9rem; font-weight: 500; cursor: pointer;">Load
+            More Entries</button>
+    </div>
+</div>
+
+<div
+    style="position: absolute; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e0e0e0; display: flex;">
+    <div style="flex: 1; padding: 12px; text-align: center; color: #666; border-right: 1px solid #e0e0e0;">
+        <div style="margin-bottom: 4px;">🏠</div>
+        <div style="font-size: 0.7rem;">Home</div>
+    </div>
+    <div style="flex: 1; padding: 12px; text-align: center; color: #1976D2; border-right: 1px solid #e0e0e0;">
+        <div style="margin-bottom: 4px;">📊</div>
+        <div style="font-size: 0.7rem; font-weight: 500;">History</div>
+    </div>
+    <div style="flex: 1; padding: 12px; text-align: center; color: #666; border-right: 1px solid #e0e0e0;">
+        <div style="margin-bottom: 4px;">⚙️</div>
+        <div style="font-size: 0.7rem;">Settings</div>
+    </div>
+    <div style="flex: 1; padding: 12px; text-align: center; color: #666;">
+        <div style="margin-bottom: 4px;">📋</div>
+        <div style="font-size: 0.7rem;">Contract</div>
+    </div>
+</div>
+`;
+
+// Contract Settings Screen
+document.getElementById('contract-screen').innerHTML = `
+<div style="background: #1976D2; color: white; padding: 20px; display: flex; align-items: center;">
+    <div style="margin-right: 15px; font-size: 1.2rem; cursor: pointer;">←</div>
+    <h2 style="font-size: 1.5rem; font-weight: 600;">Contract Settings</h2>
+</div>
+
+<div style="padding: 25px;">
+    <div
+        style="background: linear-gradient(135deg, #e8f5e8, #c8e6c9); border-radius: 15px; padding: 20px; margin-bottom: 30px; text-align: center;">
+        <h3 style="font-weight: 600; margin-bottom: 10px; color: #2e7d32;">Current Contract Status</h3>
+        <div style="font-size: 2.5rem; font-weight: 700; color: #2e7d32; margin-bottom: 5px;">96%</div>
+        <div style="font-size: 0.9rem; color: #666;">120h / 125h target this month</div>
+        <div style="background: #4caf50; height: 6px; border-radius: 3px; margin-top: 15px; position: relative;">
+            <div style="background: #2e7d32; height: 6px; border-radius: 3px; width: 96%;"></div>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Contract Configuration</h3>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555;">Full-time Hours
+                (Monthly)</label>
+            <div
+                style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                <input type="number" style="border: none; outline: none; flex: 1; font-size: 1.1rem;" value="160">
+                <div style="color: #666; margin-left: 10px;">hours</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #555;">Contract
+                Percentage</label>
+            <div
+                style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                <input type="number" style="border: none; outline: none; flex: 1; font-size: 1.1rem;" value="75">
+                <div style="color: #666; margin-left: 10px;">%</div>
+            </div>
+        </div>
+
+        <div style="background: #f5f5f5; border-radius: 12px; padding: 15px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #666;">Target Monthly Hours:</span>
+                <span style="font-weight: 600; color: #1976D2;">120 hours</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #666;">Target Weekly Hours:</span>
+                <span style="font-weight: 600; color: #1976D2;">30 hours</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: #666;">Target Daily Hours:</span>
+                <span style="font-weight: 600; color: #1976D2;">6 hours</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Hour Balance Tracking</h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div
+                style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #4caf50; margin-bottom: 5px;">+5h</div>
+                <div style="font-size: 0.8rem; color: #666;">Over Target</div>
+            </div>
+            <div
+                style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: #1976D2; margin-bottom: 5px;">125h</div>
+                <div style="font-size: 0.8rem; color: #666;">This Month</div>
+            </div>
+        </div>
+
+        <div style="background: #e3f2fd; border-radius: 12px; padding: 15px;">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <div style="margin-right: 10px;">ℹ️</div>
+                <div style="font-weight: 500; color: #1976D2;">Travel Time Integration</div>
+            </div>
+            <div style="font-size: 0.9rem; color: #666;">Travel hours are automatically included in your total working
+                hours calculation.</div>
+        </div>
+    </div>
+
+    <button
+        style="background: #1976D2; color: white; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 500; cursor: pointer; width: 100%;">Save
+        Settings</button>
+</div>
+`;
+</script>
+// Reports & Export Screen
+document.getElementById('reports-screen').innerHTML = `
+<div style="background: #1976D2; color: white; padding: 20px; display: flex; align-items: center;">
+    <div style="margin-right: 15px; font-size: 1.2rem; cursor: pointer;">←</div>
+    <h2 style="font-size: 1.5rem; font-weight: 600;">Reports & Export</h2>
+</div>
+
+<div style="padding: 25px;">
+    <div style="margin-bottom: 30px;">
+        <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Report Period</h3>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <div
+                style="background: #1976D2; color: white; border-radius: 20px; padding: 8px 16px; font-size: 0.9rem; cursor: pointer;">
+                Last 7 Days</div>
+            <div
+                style="background: #f5f5f5; border-radius: 20px; padding: 8px 16px; font-size: 0.9rem; cursor: pointer;">
+                Last 15 Days</div>
+            <div
+                style="background: #f5f5f5; border-radius: 20px; padding: 8px 16px; font-size: 0.9rem; cursor: pointer;">
+                Last 30 Days</div>
+            <div
+                style="background: #f5f5f5; border-radius: 20px; padding: 8px 16px; font-size: 0.9rem; cursor: pointer;">
+                Custom</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div
+                style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                <div style="margin-right: 10px; color: #1976D2;">📅</div>
+                <div>Dec 8, 2024</div>
+            </div>
+            <div
+                style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; display: flex; align-items: center;">
+                <div style="margin-right: 10px; color: #1976D2;">📅</div>
+                <div>Dec 15, 2024</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Report Summary</h3>
+
+        <div
+            style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 15px; padding: 20px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center;">
+                <div>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #1976D2; margin-bottom: 5px;">42.5h</div>
+                    <div style="font-size: 0.8rem; color: #666;">Total Hours</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #4caf50; margin-bottom: 5px;">6.5h</div>
+                    <div style="font-size: 0.8rem; color: #666;">Travel Time</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #ff9800; margin-bottom: 5px;">36h</div>
+                    <div style="font-size: 0.8rem; color: #666;">Work Hours</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px;">
+            <h4 style="font-weight: 600; margin-bottom: 15px; color: #333;">Breakdown by Day</h4>
+            <div style="space-y: 10px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                    <div>
+                        <div style="font-weight: 500;">Monday, Dec 9</div>
+                        <div style="font-size: 0.8rem; color: #666;">Work: 8h • Travel: 1h</div>
+                    </div>
+                    <div style="font-weight: 600; color: #1976D2;">9h</div>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                    <div>
+                        <div style="font-weight: 500;">Tuesday, Dec 10</div>
+                        <div style="font-size: 0.8rem; color: #666;">Work: 7.5h • Travel: 45m</div>
+                    </div>
+                    <div style="font-weight: 600; color: #1976D2;">8.25h</div>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                    <div>
+                        <div style="font-weight: 500;">Wednesday, Dec 11</div>
+                        <div style="font-size: 0.8rem; color: #666;">Work: 8h • Travel: 1.5h</div>
+                    </div>
+                    <div style="font-weight: 600; color: #1976D2;">9.5h</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <h3 style="font-weight: 600; margin-bottom: 15px; color: #333;">Export Options</h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div
+                style="background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">📊</div>
+                <div style="font-weight: 600; margin-bottom: 5px;">Excel Report</div>
+                <div style="font-size: 0.8rem; color: #666;">Detailed spreadsheet</div>
+            </div>
+            <div
+                style="background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">📄</div>
+                <div style="font-weight: 600; margin-bottom: 5px;">PDF Report</div>
+                <div style="font-size: 0.8rem; color: #666;">Professional format</div>
+            </div>
+        </div>
+
+        <div style="background: #f5f5f5; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+            <h4 style="font-weight: 600; margin-bottom: 10px; color: #333;">Email Settings</h4>
+            <div style="margin-bottom: 15px;">
+                <input type="email" placeholder="manager@company.com"
+                    style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 12px; width: 100%; font-size: 1rem;">
+            </div>
+            <div style="display: flex; align-items: center;">
+                <input type="checkbox" style="margin-right: 8px;">
+                <label style="font-size: 0.9rem; color: #666;">Send copy to myself</label>
+            </div>
+        </div>
+
+        <button
+            style="background: #1976D2; color: white; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 500; cursor: pointer; width: 100%; margin-bottom: 10px;">📧
+            Generate & Email Report</button>
+        <button
+            style="background: white; border: 2px solid #1976D2; color: #1976D2; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 500; cursor: pointer; width: 100%;">💾
+            Save to Device</button>
+    </div>
+</div>
+`;
+</script>
+</body>
+
+</html>
