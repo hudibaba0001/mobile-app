@@ -1,5 +1,9 @@
 // src/app.ts
 
+// Initialize Firebase Admin first
+import * as admin from 'firebase-admin';
+admin.initializeApp();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
