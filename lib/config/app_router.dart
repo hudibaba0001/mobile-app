@@ -17,7 +17,7 @@ class AppRouter {
   static const String settingsPath = '/settings';
   static const String reportsPath = '/reports';
   static const String adminUsersPath = '/admin/users';
-  static const String analyticsPath = '/test';
+  static const String analyticsPath = '/analytics';
   static const String contractSettingsPath = '/settings/contract';
   static const String profilePath = '/profile';
 
@@ -33,55 +33,30 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: homePath,
     redirect: (context, state) {
-      // Temporarily disable all authentication checks for testing
-      print('Router redirect check - AUTH DISABLED FOR TESTING');
-      print('  - currentLocation: ${state.matchedLocation}');
-      print('  - fullPath: ${state.uri.path}');
-      print('  - isAnalytics: ${state.uri.path == analyticsPath}');
-      return null; // No redirects
+      final authService = context.read<AuthService>();
+      final isAuthenticated = authService.isAuthenticated;
+      final isInitialized = authService.isInitialized;
+      final isLoggingIn = state.matchedLocation == loginPath;
+
+      // Wait for AuthService to be initialized
+      if (!isInitialized) {
+        return null; // Don't redirect yet
+      }
+
+      if (!isAuthenticated && !isLoggingIn) {
+        return loginPath;
+      }
+
+      if (isAuthenticated && isLoggingIn) {
+        return homePath;
+      }
+      return null;
     },
     routes: [
       GoRoute(
-        path: '/simple-test',
-        name: 'simple-test',
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(
-            title: const Text('SIMPLE TEST'),
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-          ),
-          body: const Center(
-            child: Text(
-              'SIMPLE TEST ROUTE WORKS!',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
-              ),
-            ),
-          ),
-        ),
-      ),
-      GoRoute(
         path: analyticsPath,
         name: analyticsName,
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(
-            title: const Text('ANALYTICS TEST'),
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-          ),
-          body: const Center(
-            child: Text(
-              'ANALYTICS ROUTE WORKS!',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
-              ),
-            ),
-          ),
-        ),
+        builder: (context, state) => const AnalyticsScreen(),
       ),
       GoRoute(
         path: loginPath,
