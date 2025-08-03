@@ -57,6 +57,44 @@ class AnalyticsViewModel extends ChangeNotifier {
     await fetchDashboardData();
   }
 
+  /// Loads mock data for testing
+  void loadMockData() {
+    _setLoading(true);
+    _clearError();
+    
+    // Simulate API delay
+    Future.delayed(const Duration(seconds: 1), () {
+      _dashboardData = DashboardData(
+        totalHoursLoggedThisWeek: 45.5,
+        activeUsers: 12,
+        overtimeBalance: 8.5,
+        averageDailyHours: 7.2,
+        dailyTrends: [
+          DailyTrend(date: 'Mon', totalHours: 8.0, workHours: 6.0, travelHours: 2.0),
+          DailyTrend(date: 'Tue', totalHours: 7.5, workHours: 6.5, travelHours: 1.0),
+          DailyTrend(date: 'Wed', totalHours: 9.0, workHours: 7.0, travelHours: 2.0),
+          DailyTrend(date: 'Thu', totalHours: 6.5, workHours: 5.5, travelHours: 1.0),
+          DailyTrend(date: 'Fri', totalHours: 8.5, workHours: 7.5, travelHours: 1.0),
+          DailyTrend(date: 'Sat', totalHours: 4.0, workHours: 3.0, travelHours: 1.0),
+          DailyTrend(date: 'Sun', totalHours: 2.0, workHours: 1.5, travelHours: 0.5),
+        ],
+        userDistribution: [
+          UserDistribution(userId: '1', userName: 'John Doe', totalHours: 12.5, percentage: 27.5),
+          UserDistribution(userId: '2', userName: 'Jane Smith', totalHours: 10.0, percentage: 22.0),
+          UserDistribution(userId: '3', userName: 'Bob Johnson', totalHours: 8.5, percentage: 18.7),
+          UserDistribution(userId: '4', userName: 'Alice Brown', totalHours: 7.0, percentage: 15.4),
+          UserDistribution(userId: '5', userName: 'Charlie Wilson', totalHours: 7.5, percentage: 16.4),
+        ],
+        availableUsers: [
+          AvailableUser(userId: '1', userName: 'John Doe'),
+          AvailableUser(userId: '2', userName: 'Jane Smith'),
+          AvailableUser(userId: '3', userName: 'Bob Johnson'),
+        ],
+      );
+      _setLoading(false);
+    });
+  }
+
   /// Clears all filters
   void clearFilters() {
     _startDate = null;

@@ -17,7 +17,7 @@ class AppRouter {
   static const String settingsPath = '/settings';
   static const String reportsPath = '/reports';
   static const String adminUsersPath = '/admin/users';
-  static const String analyticsPath = '/analytics';
+  static const String analyticsPath = '/test';
   static const String contractSettingsPath = '/settings/contract';
   static const String profilePath = '/profile';
 
@@ -33,20 +33,35 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: homePath,
     redirect: (context, state) {
-      final authService = context.read<AuthService>();
-      final isAuthenticated = authService.isAuthenticated;
-      final isLoggingIn = state.matchedLocation == loginPath;
-
-      if (!isAuthenticated && !isLoggingIn) {
-        return loginPath;
-      }
-
-      if (isAuthenticated && isLoggingIn) {
-        return homePath;
-      }
-      return null;
+      // Temporarily disable all authentication checks for testing
+      print('Router redirect check - AUTH DISABLED FOR TESTING');
+      print('  - currentLocation: ${state.matchedLocation}');
+      print('  - fullPath: ${state.uri.path}');
+      print('  - isAnalytics: ${state.uri.path == analyticsPath}');
+      return null; // No redirects
     },
     routes: [
+      GoRoute(
+        path: analyticsPath,
+        name: analyticsName,
+        builder: (context, state) => Scaffold(
+          appBar: AppBar(
+            title: const Text('ANALYTICS TEST'),
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+          body: const Center(
+            child: Text(
+              'ANALYTICS ROUTE WORKS!',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+            ),
+          ),
+        ),
+      ),
       GoRoute(
         path: loginPath,
         name: loginName,
@@ -54,11 +69,6 @@ class AppRouter {
           final email = state.uri.queryParameters['email'];
           return LoginScreen(initialEmail: email);
         },
-      ),
-      GoRoute(
-        path: analyticsPath,
-        name: analyticsName,
-        builder: (context, state) => const AnalyticsScreen(),
       ),
       GoRoute(
         path: homePath,

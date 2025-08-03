@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Mock user class
 class MockUser {
@@ -26,14 +27,72 @@ class MockUserCredential {
 class AuthService extends ChangeNotifier {
   MockUser? _currentUser;
   bool _isAuthenticated = false; // Start unauthenticated for proper security
+  bool _isInitialized = false; // Track initialization status
 
   MockUser? get currentUser => _currentUser;
   bool get isAuthenticated => _isAuthenticated;
+  bool get isInitialized => _isInitialized;
 
   // Initialize with no authenticated user for proper security
   AuthService() {
     _currentUser = null;
     _isAuthenticated = false;
+    // Temporarily start authenticated for testing
+    _currentUser = MockUser(
+      uid: 'mock-admin-user',
+      email: 'admin@test.com',
+      displayName: 'Admin User',
+    );
+    _isAuthenticated = true;
+    _isInitialized = true; // Mark as initialized immediately for testing
+    _loadAuthState(); // Load saved auth state
+  }
+
+  // Load saved authentication state
+  Future<void> _loadAuthState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isAuth = prefs.getBool('isAuthenticated') ?? false;
+      final userEmail = prefs.getString('userEmail');
+      final userUid = prefs.getString('userUid');
+      final userDisplayName = prefs.getString('userDisplayName');
+
+      if (isAuth && userEmail != null && userUid != null) {
+        _currentUser = MockUser(
+          uid: userUid,
+          email: userEmail,
+          displayName: userDisplayName,
+        );
+        _isAuthenticated = true;
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error loading auth state: $e');
+    } finally {
+      _isInitialized = true;
+      notifyListeners();
+    }
+  }
+
+  // Save authentication state
+  Future<void> _saveAuthState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_isAuthenticated && _currentUser != null) {
+        await prefs.setBool('isAuthenticated', true);
+        await prefs.setString('userEmail', _currentUser!.email);
+        await prefs.setString('userUid', _currentUser!.uid);
+        await prefs.setString(
+            'userDisplayName', _currentUser!.displayName ?? '');
+      } else {
+        await prefs.setBool('isAuthenticated', false);
+        await prefs.remove('userEmail');
+        await prefs.remove('userUid');
+        await prefs.remove('userDisplayName');
+      }
+    } catch (e) {
+      print('Error saving auth state: $e');
+    }
   }
 
   // Mock sign in with email and password
@@ -52,6 +111,7 @@ class AuthService extends ChangeNotifier {
     );
     _isAuthenticated = true;
     notifyListeners();
+    await _saveAuthState(); // Save auth state after successful login
 
     return MockUserCredential(user: _currentUser!);
   }
@@ -72,6 +132,7 @@ class AuthService extends ChangeNotifier {
     );
     _isAuthenticated = true;
     notifyListeners();
+    await _saveAuthState(); // Save auth state after successful signup
 
     return MockUserCredential(user: _currentUser!);
   }
@@ -82,6 +143,7 @@ class AuthService extends ChangeNotifier {
     _currentUser = null;
     _isAuthenticated = false;
     notifyListeners();
+    await _saveAuthState(); // Save auth state after sign out
   }
 
   // Mock password reset
