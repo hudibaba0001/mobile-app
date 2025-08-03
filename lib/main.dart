@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'firebase_options.dart';
 import 'config/app_router.dart';
 import 'config/app_theme.dart';
@@ -19,6 +20,9 @@ import 'services/admin_api_service.dart';
 import 'viewmodels/analytics_view_model.dart';
 
 void main() async {
+  // Add this line to use "clean" URLs
+  usePathUrlStrategy();
+
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase

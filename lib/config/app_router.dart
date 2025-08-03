@@ -42,6 +42,27 @@ class AppRouter {
     },
     routes: [
       GoRoute(
+        path: '/simple-test',
+        name: 'simple-test',
+        builder: (context, state) => Scaffold(
+          appBar: AppBar(
+            title: const Text('SIMPLE TEST'),
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+          ),
+          body: const Center(
+            child: Text(
+              'SIMPLE TEST ROUTE WORKS!',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+            ),
+          ),
+        ),
+      ),
+      GoRoute(
         path: analyticsPath,
         name: analyticsName,
         builder: (context, state) => Scaffold(
