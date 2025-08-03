@@ -25,19 +25,15 @@ class MockUserCredential {
 // Mock auth service
 class AuthService extends ChangeNotifier {
   MockUser? _currentUser;
-  bool _isAuthenticated = true; // Start authenticated for testing
+  bool _isAuthenticated = false; // Start unauthenticated for proper security
 
   MockUser? get currentUser => _currentUser;
   bool get isAuthenticated => _isAuthenticated;
 
-  // Initialize with a mock authenticated user for testing
+  // Initialize with no authenticated user for proper security
   AuthService() {
-    _currentUser = MockUser(
-      uid: 'mock-admin-user-id',
-      email: 'admin@kviktime.se',
-      displayName: 'Admin User',
-    );
-    _isAuthenticated = true;
+    _currentUser = null;
+    _isAuthenticated = false;
   }
 
   // Mock sign in with email and password

@@ -7,14 +7,15 @@ export const validateFirebaseIdToken = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No valid authorization header' });
+    res.status(401).json({ error: 'No valid authorization header' });
+    return;
   }
 
-  const idToken = req.headers.authorization.split('Bearer ')[1];
+  const idToken = authHeader.split('Bearer ')[1];
 
   try {
     const decodedToken = await admin.auth().verifyIdToken(idToken);

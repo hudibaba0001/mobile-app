@@ -17,13 +17,14 @@ const app = express();
 
 // Middleware
 app.use(helmet());
-app.use(cors({ 
+app.use(cors({
   origin: [
     'https://app-kviktime-se.web.app',
     'https://kviktime-9ee5f.web.app',
     'http://localhost:3000',
     'http://localhost:5000',
-    'http://localhost:8080'
+    'http://localhost:8080',
+    'http://localhost:8081' // Added for new Flutter web port
   ],
   credentials: true
 }));
@@ -33,16 +34,16 @@ app.use(express.json());
 app.get('/health', (_req: Request, res: Response) => res.status(200).json({ status: 'ok' }));
 
 // Test endpoint (no auth required)
-app.get('/test', (_req: Request, res: Response) => res.status(200).json({ 
-  message: 'Backend is working with optional fields fix!', 
+app.get('/test', (_req: Request, res: Response) => res.status(200).json({
+  message: 'Backend is working with optional fields fix!',
   timestamp: new Date().toISOString(),
   project: 'kviktime-9ee5f',
   region: 'europe-west3'
 }));
 
 // Root endpoint (no auth required)
-app.get('/', (_req: Request, res: Response) => res.status(200).json({ 
-  message: 'KvikTime API is running!', 
+app.get('/', (_req: Request, res: Response) => res.status(200).json({
+  message: 'KvikTime API is running!',
   endpoints: {
     health: '/health',
     test: '/test',

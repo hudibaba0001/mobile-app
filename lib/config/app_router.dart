@@ -36,12 +36,6 @@ class AppRouter {
       final authService = context.read<AuthService>();
       final isAuthenticated = authService.isAuthenticated;
       final isLoggingIn = state.matchedLocation == loginPath;
-      final isAnalytics = state.matchedLocation == analyticsPath;
-
-      // Allow analytics access without authentication for testing
-      if (isAnalytics) {
-        return null;
-      }
 
       if (!isAuthenticated && !isLoggingIn) {
         return loginPath;
@@ -62,6 +56,11 @@ class AppRouter {
         },
       ),
       GoRoute(
+        path: analyticsPath,
+        name: analyticsName,
+        builder: (context, state) => const AnalyticsScreen(),
+      ),
+      GoRoute(
         path: homePath,
         name: homeName,
         builder: (context, state) => const UnifiedHomeScreen(),
@@ -80,11 +79,6 @@ class AppRouter {
         path: adminUsersPath,
         name: adminUsersName,
         builder: (context, state) => const AdminUsersScreen(),
-      ),
-      GoRoute(
-        path: analyticsPath,
-        name: analyticsName,
-        builder: (context, state) => const AnalyticsScreen(),
       ),
       GoRoute(
         path: contractSettingsPath,
