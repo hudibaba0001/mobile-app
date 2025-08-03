@@ -37,11 +37,13 @@ void main() async {
   final repositoryProvider = RepositoryProvider();
   await repositoryProvider.initialize();
 
-  runApp(const MyApp());
+  runApp(MyApp(repositoryProvider: repositoryProvider));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final RepositoryProvider repositoryProvider;
+  
+  const MyApp({super.key, required this.repositoryProvider});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +54,7 @@ class MyApp extends StatelessWidget {
 
         // Repository Provider
         Provider<RepositoryProvider>(
-          create: (_) => RepositoryProvider(),
+          create: (_) => repositoryProvider,
         ),
 
         // Existing providers

@@ -305,7 +305,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
             ],
           );
-        }).toList(),
+        }).toList().cast<BarChartGroupData>(),
       ),
     );
   }
