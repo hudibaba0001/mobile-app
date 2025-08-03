@@ -16,6 +16,10 @@ import 'providers/travel_provider.dart';
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
 import 'repositories/repository_provider.dart';
+import 'repositories/travel_repository.dart';
+import 'repositories/work_repository.dart';
+import 'repositories/contract_repository.dart';
+import 'repositories/leave_repository.dart';
 import 'services/admin_api_service.dart';
 import 'viewmodels/analytics_view_model.dart';
 
@@ -37,22 +41,59 @@ void main() async {
   final repositoryProvider = RepositoryProvider();
   await repositoryProvider.initialize();
 
-  runApp(const MyApp());
+  // Initialize auth service
+  final authService = AuthService();
+  await authService.initialize();
+
+  runApp(
+      MyApp(repositoryProvider: repositoryProvider, authService: authService));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final RepositoryProvider repositoryProvider;
+  final AuthService authService;
+
+  const MyApp(
+      {super.key, required this.repositoryProvider, required this.authService});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Auth Service
-        ChangeNotifierProvider(create: (_) => AuthService()),
+        // Auth Service (using the initialized instance)
+        ChangeNotifierProvider<AuthService>.value(
+          value: authService,
+        ),
 
-        // Repository Provider
-        Provider<RepositoryProvider>(
-          create: (_) => RepositoryProvider(),
+        // Repository Provider (using the initialized instance)
+        Provider<RepositoryProvider>.value(
+          value: repositoryProvider,
+        ),
+
+        // Individual Repositories
+        ProxyProvider<RepositoryProvider, TravelRepository>(
+          create: (context) =>
+              context.read<RepositoryProvider>().travelRepository,
+          update: (context, repositoryProvider, previous) =>
+              repositoryProvider.travelRepository,
+        ),
+        ProxyProvider<RepositoryProvider, WorkRepository>(
+          create: (context) =>
+              context.read<RepositoryProvider>().workRepository,
+          update: (context, repositoryProvider, previous) =>
+              repositoryProvider.workRepository,
+        ),
+        ProxyProvider<RepositoryProvider, ContractRepository>(
+          create: (context) =>
+              context.read<RepositoryProvider>().contractRepository,
+          update: (context, repositoryProvider, previous) =>
+              repositoryProvider.contractRepository,
+        ),
+        ProxyProvider<RepositoryProvider, LeaveRepository>(
+          create: (context) =>
+              context.read<RepositoryProvider>().leaveRepository,
+          update: (context, repositoryProvider, previous) =>
+              repositoryProvider.leaveRepository,
         ),
 
         // Existing providers

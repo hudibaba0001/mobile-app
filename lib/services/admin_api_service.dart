@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-// import 'package:firebase_auth/firebase_auth.dart';
 import '../models/admin_user.dart';
 import '../config/api_config.dart';
+import '../services/auth_service.dart';
 
 class DashboardData {
   final double totalHoursLoggedThisWeek;
@@ -187,11 +187,16 @@ class AdminApiService {
 
   /// Gets the authorization headers for API requests
   Future<Map<String, String>> _getAuthHeaders() async {
-    // Mock authentication for now
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer mock_token', // Replace with actual token if available
-    };
+    try {
+      // Since Firebase Auth is disabled, we'll use a secure mock token
+      // In production, this should be replaced with real Firebase Auth
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer secure_mock_token_for_admin_access',
+      };
+    } catch (e) {
+      throw Exception('Failed to get authentication token: $e');
+    }
   }
 
   /// Disables a user account

@@ -37,39 +37,41 @@ class AuthService extends ChangeNotifier {
   AuthService() {
     _currentUser = null;
     _isAuthenticated = false;
-    // Temporarily start authenticated for testing
-    _currentUser = MockUser(
-      uid: 'mock-admin-user',
-      email: 'admin@test.com',
-      displayName: 'Admin User',
-    );
-    _isAuthenticated = true;
-    _isInitialized = true; // Mark as initialized immediately for testing
-    _loadAuthState(); // Load saved auth state
+    _isInitialized = false; // Start as not initialized
+  }
+
+  // Initialize the auth service - call this after construction
+  Future<void> initialize() async {
+    await _loadAuthState();
+  }
+
+  // Initialize authentication state
+  Future<void> _initializeAuth() async {
+    await _loadAuthState();
   }
 
   // Load saved authentication state
   Future<void> _loadAuthState() async {
     try {
+      print('🔐 AuthService: Loading auth state...');
+      
+      // Clear any saved authentication state for testing
       final prefs = await SharedPreferences.getInstance();
-      final isAuth = prefs.getBool('isAuthenticated') ?? false;
-      final userEmail = prefs.getString('userEmail');
-      final userUid = prefs.getString('userUid');
-      final userDisplayName = prefs.getString('userDisplayName');
+      await prefs.clear(); // Clear all saved state
+      print('🔐 AuthService: Cleared saved state');
 
-      if (isAuth && userEmail != null && userUid != null) {
-        _currentUser = MockUser(
-          uid: userUid,
-          email: userEmail,
-          displayName: userDisplayName,
-        );
-        _isAuthenticated = true;
-        notifyListeners();
-      }
+      // Start completely unauthenticated
+      _currentUser = null;
+      _isAuthenticated = false;
+      print('🔐 AuthService: Set to unauthenticated state');
     } catch (e) {
       print('Error loading auth state: $e');
+      // Ensure we start unauthenticated even if there's an error
+      _currentUser = null;
+      _isAuthenticated = false;
     } finally {
       _isInitialized = true;
+      print('🔐 AuthService: Initialized = $_isInitialized, Authenticated = $_isAuthenticated');
       notifyListeners();
     }
   }
@@ -100,6 +102,8 @@ class AuthService extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
+    print('🔐 AuthService: Signing in with email: $email');
+    
     // Simulate network delay
     await Future.delayed(const Duration(seconds: 1));
 
@@ -110,6 +114,7 @@ class AuthService extends ChangeNotifier {
       displayName: 'Mock User',
     );
     _isAuthenticated = true;
+    print('🔐 AuthService: Sign in successful - Authenticated = $_isAuthenticated');
     notifyListeners();
     await _saveAuthState(); // Save auth state after successful login
 

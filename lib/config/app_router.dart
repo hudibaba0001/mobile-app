@@ -37,10 +37,16 @@ class AppRouter {
       final isAuthenticated = authService.isAuthenticated;
       final isInitialized = authService.isInitialized;
       final isLoggingIn = state.matchedLocation == loginPath;
+      final isAnalyticsRoute = state.matchedLocation == analyticsPath;
 
       // Wait for AuthService to be initialized
       if (!isInitialized) {
         return null; // Don't redirect yet
+      }
+
+      // Protect analytics route - require authentication
+      if (isAnalyticsRoute && !isAuthenticated) {
+        return loginPath;
       }
 
       if (!isAuthenticated && !isLoggingIn) {

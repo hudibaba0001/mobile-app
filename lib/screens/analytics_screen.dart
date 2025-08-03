@@ -94,7 +94,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _buildKPICards(data) {
+  Widget _buildKPICards(DashboardData data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,7 +180,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _buildChartsSection(data) {
+  Widget _buildChartsSection(DashboardData data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -243,14 +243,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _buildDailyTrendsChart(trends) {
+  Widget _buildDailyTrendsChart(List<DailyTrend> trends) {
+    if (trends.isEmpty) {
+      return const Center(child: Text('No data available'));
+    }
+
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: trends.isNotEmpty
-            ? trends.map((t) => t.totalHours).reduce((a, b) => a > b ? a : b) *
-                1.2
-            : 10,
+        maxY: trends.map((t) => t.totalHours).reduce((a, b) => a > b ? a : b) *
+            1.2,
         barTouchData: BarTouchData(enabled: false),
         titlesData: FlTitlesData(
           show: true,
@@ -288,7 +290,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ),
         ),
         borderData: FlBorderData(show: false),
-        barGroups: trends.asMap().entries.map((entry) {
+        barGroups: trends.asMap().entries.map<BarChartGroupData>((entry) {
           final index = entry.key;
           final trend = entry.value;
           return BarChartGroupData(
@@ -310,7 +312,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _buildUserDistributionChart(distribution) {
+  Widget _buildUserDistributionChart(List<UserDistribution> distribution) {
     if (distribution.isEmpty) {
       return const Center(child: Text('No data available'));
     }
@@ -321,7 +323,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         borderData: FlBorderData(show: false),
         sectionsSpace: 2,
         centerSpaceRadius: 40,
-        sections: distribution.map((user) {
+        sections: distribution.map<PieChartSectionData>((user) {
           return PieChartSectionData(
             color: _getColorForIndex(distribution.indexOf(user)),
             value: user.percentage,
