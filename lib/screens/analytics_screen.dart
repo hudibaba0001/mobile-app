@@ -17,7 +17,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     super.initState();
     // Fetch initial data when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AnalyticsViewModel>().fetchDashboardData();
+      try {
+        context.read<AnalyticsViewModel>().fetchDashboardData();
+      } catch (e) {
+        print('Error fetching dashboard data: $e');
+      }
     });
   }
 
@@ -82,11 +86,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   // Filters Section
                   _buildFiltersSection(viewModel),
                   const SizedBox(height: 24),
-                  
+
                   // KPI Cards
                   _buildKPICards(data),
                   const SizedBox(height: 24),
-                  
+
                   // Charts Section
                   _buildChartsSection(data),
                 ],
@@ -108,8 +112,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             Text(
               'Filters',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -203,9 +207,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Text('All Users'),
             ),
             ...data.availableUsers.map((user) => DropdownMenuItem<String>(
-              value: user.userId,
-              child: Text(user.userName),
-            )),
+                  value: user.userId,
+                  child: Text(user.userName),
+                )),
           ],
           onChanged: (value) => viewModel.setSelectedUser(value),
         ),
@@ -220,8 +224,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         Text(
           'Key Performance Indicators',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 16),
         GridView.count(
@@ -278,8 +282,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   child: Text(
                     title,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -289,9 +293,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             Text(
               value,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
             ),
           ],
         ),
@@ -306,11 +310,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         Text(
           'Charts & Trends',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 16),
-        
+
         // Daily Trends Chart
         Card(
           child: Padding(
@@ -321,8 +325,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 Text(
                   '7-Day Daily Trends',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
@@ -333,9 +337,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
           ),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // User Distribution Chart
         Card(
           child: Padding(
@@ -346,8 +350,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 Text(
                   'User Distribution',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
@@ -366,8 +370,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: trends.isNotEmpty 
-            ? trends.map((t) => t.totalHours).reduce((a, b) => a > b ? a : b) * 1.2
+        maxY: trends.isNotEmpty
+            ? trends.map((t) => t.totalHours).reduce((a, b) => a > b ? a : b) *
+                1.2
             : 10,
         barTouchData: BarTouchData(enabled: false),
         titlesData: FlTitlesData(
@@ -488,7 +493,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return '${date.month}/${date.day}';
   }
 
-  Future<void> _selectDateRange(BuildContext context, AnalyticsViewModel viewModel) async {
+  Future<void> _selectDateRange(
+      BuildContext context, AnalyticsViewModel viewModel) async {
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
@@ -502,4 +508,4 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       viewModel.setDateRange(picked.start, picked.end);
     }
   }
-} 
+}
