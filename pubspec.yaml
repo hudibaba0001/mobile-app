@@ -50,7 +50,7 @@ dependencies:
   url_launcher: ^6.3.1
   # Firebase dependencies (compatible versions)
   firebase_core: ^2.24.2
-  # firebase_auth: ^4.15.3  # Temporarily disabled due to web compatibility issues
+  firebase_auth: ^4.15.3
   cloud_firestore: ^4.13.6
   # firebase_storage: ^11.6.5  # Removed due to compatibility issues
   # Stripe dependencies

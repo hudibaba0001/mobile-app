@@ -188,11 +188,19 @@ class AdminApiService {
   /// Gets the authorization headers for API requests
   Future<Map<String, String>> _getAuthHeaders() async {
     try {
-      // Since Firebase Auth is disabled, we'll use a secure mock token
-      // In production, this should be replaced with real Firebase Auth
+      final authService = AuthService();
+      final user = authService.currentUser;
+      
+      if (user == null) {
+        throw Exception('No authenticated user found');
+      }
+      
+      // Get the ID token from Firebase Auth
+      final token = await user.getIdToken();
+      
       return {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer secure_mock_token_for_admin_access',
+        'Authorization': 'Bearer $token',
       };
     } catch (e) {
       throw Exception('Failed to get authentication token: $e');

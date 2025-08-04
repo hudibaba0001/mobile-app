@@ -3,6 +3,15 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 
+// Extend the Request interface to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: admin.auth.DecodedIdToken;
+    }
+  }
+}
+
 export const validateFirebaseIdToken = async (
   req: Request,
   res: Response,
@@ -31,18 +40,24 @@ export const requireAdmin = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   const user = req.user;
   
   if (!user) {
+    console.error('requireAdmin: No user found in request');
     res.status(403).json({ error: 'Unauthenticated request' });
     return;
   }
 
-  if (!user.admin) {
-    res.status(403).json({ error: 'Insufficient privileges' });
+  // Check for admin custom claim
+  const isAdmin = (user as any).admin === true;
+  
+  if (!isAdmin) {
+    console.error(`requireAdmin: User ${user.uid} (${user.email}) lacks admin privileges`);
+    res.status(403).json({ error: 'Insufficient privileges - Admin access required' });
     return;
   }
 
+  console.log(`requireAdmin: User ${user.uid} (${user.email}) granted admin access`);
   next();
 };
