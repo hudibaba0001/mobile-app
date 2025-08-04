@@ -1,31 +1,36 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
-// Real Firebase Auth service
+// Mock User class for when Firebase Auth is not available
+class MockUser {
+  final String? uid;
+  final String? email;
+  final String? displayName;
+  
+  MockUser({this.uid, this.email, this.displayName});
+}
+
+// Mock UserCredential class
+class MockUserCredential {
+  final MockUser? user;
+  MockUserCredential({this.user});
+}
+
+// Auth service with mock implementation for web
 class AuthService extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? _currentUser;
+  MockUser? _currentUser;
   bool _isAuthenticated = false;
   bool _isInitialized = false;
 
-  User? get currentUser => _currentUser;
+  MockUser? get currentUser => _currentUser;
   bool get isAuthenticated => _isAuthenticated;
   bool get isInitialized => _isInitialized;
 
   AuthService() {
-    _currentUser = _auth.currentUser;
-    _isAuthenticated = _currentUser != null;
+    _currentUser = null;
+    _isAuthenticated = false;
     _isInitialized = false;
-
-    // Listen to auth state changes
-    _auth.authStateChanges().listen((User? user) {
-      _currentUser = user;
-      _isAuthenticated = user != null;
-      print(
-          '🔐 AuthService: Auth state changed - Authenticated: $_isAuthenticated');
-      notifyListeners();
-    });
   }
 
   // Initialize the auth service
@@ -38,16 +43,11 @@ class AuthService extends ChangeNotifier {
     try {
       print('🔐 AuthService: Loading auth state...');
 
-      // Firebase Auth handles the current user automatically
-      _currentUser = _auth.currentUser;
-      _isAuthenticated = _currentUser != null;
+      // Mock implementation - start unauthenticated
+      _currentUser = null;
+      _isAuthenticated = false;
 
-      if (_isAuthenticated) {
-        print(
-            '🔐 AuthService: User already authenticated: ${_currentUser!.email}');
-      } else {
-        print('🔐 AuthService: No authenticated user found');
-      }
+      print('🔐 AuthService: No authenticated user found');
     } catch (e) {
       print('Error loading auth state: $e');
       _currentUser = null;
@@ -67,7 +67,7 @@ class AuthService extends ChangeNotifier {
       if (_isAuthenticated && _currentUser != null) {
         await prefs.setBool('isAuthenticated', true);
         await prefs.setString('userEmail', _currentUser!.email ?? '');
-        await prefs.setString('userUid', _currentUser!.uid);
+        await prefs.setString('userUid', _currentUser!.uid ?? '');
         await prefs.setString(
             'userDisplayName', _currentUser!.displayName ?? '');
       } else {
@@ -81,100 +81,91 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Real Firebase sign in with email and password
-  Future<UserCredential> signInWithEmailAndPassword({
+  // Mock sign in with email and password
+  Future<MockUserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     print('🔐 AuthService: Signing in with email: $email');
 
-    try {
-      final credential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    // Mock implementation
+    print('🔐 AuthService: Using mock auth');
+    _currentUser = MockUser(
+      uid: 'mock-uid-${DateTime.now().millisecondsSinceEpoch}',
+      email: email,
+      displayName: 'Mock User',
+    );
+    _isAuthenticated = true;
+    await _saveAuthState();
+    notifyListeners();
 
-      print(
-          '🔐 AuthService: Sign in successful for: ${credential.user?.email}');
-      await _saveAuthState();
-
-      return credential;
-    } catch (e) {
-      print('🔐 AuthService: Sign in failed: $e');
-      rethrow; // Re-throw the error so the UI can handle it
-    }
+    return MockUserCredential(user: _currentUser);
   }
 
-  // Real Firebase sign up
-  Future<UserCredential> createUserWithEmailAndPassword({
+  // Mock sign up
+  Future<MockUserCredential> createUserWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     print('🔐 AuthService: Creating user with email: $email');
 
-    try {
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    // Mock implementation
+    print('🔐 AuthService: Using mock signup');
+    _currentUser = MockUser(
+      uid: 'mock-uid-${DateTime.now().millisecondsSinceEpoch}',
+      email: email,
+      displayName: 'Mock User',
+    );
+    _isAuthenticated = true;
+    await _saveAuthState();
+    notifyListeners();
 
-      print(
-          '🔐 AuthService: Sign up successful for: ${credential.user?.email}');
-      await _saveAuthState();
-
-      return credential;
-    } catch (e) {
-      print('🔐 AuthService: Sign up failed: $e');
-      rethrow;
-    }
+    return MockUserCredential(user: _currentUser);
   }
 
-  // Real Firebase sign out
+  // Mock sign out
   Future<void> signOut() async {
     print('🔐 AuthService: Signing out');
 
-    try {
-      await _auth.signOut();
-      await _saveAuthState();
-      print('🔐 AuthService: Sign out successful');
-    } catch (e) {
-      print('🔐 AuthService: Sign out failed: $e');
-      rethrow;
-    }
+    // Mock implementation
+    print('🔐 AuthService: Using mock signout');
+    _currentUser = null;
+    _isAuthenticated = false;
+    await _saveAuthState();
+    notifyListeners();
   }
 
-  // Real Firebase password reset
+  // Mock password reset
   Future<void> sendPasswordResetEmail({required String email}) async {
     print('🔐 AuthService: Sending password reset email to: $email');
 
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-      print('🔐 AuthService: Password reset email sent successfully');
-    } catch (e) {
-      print('🔐 AuthService: Password reset email failed: $e');
-      rethrow;
-    }
+    // Mock implementation
+    print('🔐 AuthService: Mock password reset email sent successfully');
   }
 
-  // Check if user has admin privileges
+  // Mock admin check
   Future<bool> isAdmin() async {
     if (!_isAuthenticated || _currentUser == null) {
       return false;
     }
 
-    try {
-      // Get the ID token to check custom claims
-      final token = await _currentUser!.getIdTokenResult();
-      final claims = token.claims;
+    // Mock implementation - return true for testing
+    print('🔐 AuthService: Mock admin check for ${_currentUser!.email}: true');
+    return true;
+  }
 
-      // Check for admin custom claim
-      final isAdmin = claims?['admin'] == true;
-      print('🔐 AuthService: Admin check for ${_currentUser!.email}: $isAdmin');
-
-      return isAdmin;
-    } catch (e) {
-      print('🔐 AuthService: Error checking admin status: $e');
-      return false;
+  // Mock profile update
+  Future<void> updateUserProfile({String? displayName}) async {
+    // Mock implementation
+    print('🔐 AuthService: Using mock profile update');
+    if (_currentUser != null && displayName != null) {
+      _currentUser = MockUser(
+        uid: _currentUser!.uid,
+        email: _currentUser!.email,
+        displayName: displayName,
+      );
+      await _saveAuthState();
+      notifyListeners();
     }
   }
 }

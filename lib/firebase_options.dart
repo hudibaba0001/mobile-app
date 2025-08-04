@@ -25,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -47,29 +41,45 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyA2hoClGmnBzuOE5s3_ZVZAKsehTJq8So8',
-    appId: '1:591378163668:web:2b6eff9623d72722b65841',
-    messagingSenderId: '591378163668',
-    projectId: 'time-app-8cd2d',
-    authDomain: 'time-app-8cd2d.firebaseapp.com',
-    storageBucket: 'time-app-8cd2d.firebasestorage.app',
-    measurementId: 'G-WRHP0CSJKS',
+    apiKey: 'AIzaSyDkTfV_l8Um_66jRugu4KvaZhPXf8UeUT4',
+    appId: '1:1011662335499:web:b1690b31c0d6840107610e',
+    messagingSenderId: '1011662335499',
+    projectId: 'kviktime-9ee5f',
+    authDomain: 'kviktime-9ee5f.firebaseapp.com',
+    storageBucket: 'kviktime-9ee5f.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCPBtmWkR2L3bk-9-T5vdKOVuCpVaXXpgs',
-    appId: '1:591378163668:android:7b17765c212ad1cab65841',
-    messagingSenderId: '591378163668',
-    projectId: 'time-app-8cd2d',
-    storageBucket: 'time-app-8cd2d.firebasestorage.app',
+    apiKey: 'AIzaSyDkTfV_l8Um_66jRugu4KvaZhPXf8UeUT4',
+    appId: '1:1011662335499:android:b1690b31c0d6840107610e',
+    messagingSenderId: '1011662335499',
+    projectId: 'kviktime-9ee5f',
+    storageBucket: 'kviktime-9ee5f.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDrRbyBvJDrEn8IQPlaBXa4MfeHneH9rAY',
-    appId: '1:591378163668:ios:f76cbbbe2c6cf6e1b65841',
-    messagingSenderId: '591378163668',
-    projectId: 'time-app-8cd2d',
-    storageBucket: 'time-app-8cd2d.firebasestorage.app',
-    iosBundleId: 'se.kviltime.logger',
+    apiKey: 'AIzaSyDkTfV_l8Um_66jRugu4KvaZhPXf8UeUT4',
+    appId: '1:1011662335499:ios:b1690b31c0d6840107610e',
+    messagingSenderId: '1011662335499',
+    projectId: 'kviktime-9ee5f',
+    storageBucket: 'kviktime-9ee5f.firebasestorage.app',
+    iosBundleId: 'se.kviktime.app',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDkTfV_l8Um_66jRugu4KvaZhPXf8UeUT4',
+    appId: '1:1011662335499:macos:b1690b31c0d6840107610e',
+    messagingSenderId: '1011662335499',
+    projectId: 'kviktime-9ee5f',
+    storageBucket: 'kviktime-9ee5f.firebasestorage.app',
+    iosBundleId: 'se.kviktime.app',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyDkTfV_l8Um_66jRugu4KvaZhPXf8UeUT4',
+    appId: '1:1011662335499:windows:b1690b31c0d6840107610e',
+    messagingSenderId: '1011662335499',
+    projectId: 'kviktime-9ee5f',
+    storageBucket: 'kviktime-9ee5f.firebasestorage.app',
   );
 }

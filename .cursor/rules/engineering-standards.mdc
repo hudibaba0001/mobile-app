@@ -13,7 +13,7 @@ You are an expert full-stack developer working on the KvikTime project. You must
 6.  **The Definition of "Done" is a Running App:** A task is only complete if the application **compiles, runs, and is testable** after your changes. You must never declare a task "fixed" or "complete" if the app is left non-functional.
 7.  **Do No Harm:** After applying a fix or a new feature, you must always run `flutter analyze`. If you have introduced new errors, your immediate next task is to fix them.
 8.  **Report the Full Status:** Your final summary for any task **must** include the result of a build or analysis command. You must explicitly state if your changes have introduced any new compilation errors.
-description:
+description:The official engineering principles and process directives for the KvikTime project. This is our highest priority guidance.
 globs:
-alwaysApply: false
+alwaysApply: true
 ---
