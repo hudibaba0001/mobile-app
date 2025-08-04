@@ -7,8 +7,13 @@ class MockUser {
   final String? uid;
   final String? email;
   final String? displayName;
-  
+
   MockUser({this.uid, this.email, this.displayName});
+
+  // Mock method to simulate Firebase Auth getIdToken
+  Future<String> getIdToken() async {
+    return 'mock-token-${DateTime.now().millisecondsSinceEpoch}';
+  }
 }
 
 // Mock UserCredential class
@@ -88,18 +93,22 @@ class AuthService extends ChangeNotifier {
   }) async {
     print('🔐 AuthService: Signing in with email: $email');
 
-    // Mock implementation
-    print('🔐 AuthService: Using mock auth');
-    _currentUser = MockUser(
-      uid: 'mock-uid-${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      displayName: 'Mock User',
-    );
-    _isAuthenticated = true;
-    await _saveAuthState();
-    notifyListeners();
-
-    return MockUserCredential(user: _currentUser);
+    // SECURITY: Only allow specific test credentials
+    if (email == 'admin@test.com' && password == 'password123') {
+      print('🔐 AuthService: Valid test credentials accepted');
+      _currentUser = MockUser(
+        uid: 'mock-admin-uid',
+        email: email,
+        displayName: 'Test Admin User',
+      );
+      _isAuthenticated = true;
+      await _saveAuthState();
+      notifyListeners();
+      return MockUserCredential(user: _currentUser);
+    } else {
+      print('🔐 AuthService: Invalid credentials rejected');
+      throw Exception('Invalid email or password');
+    }
   }
 
   // Mock sign up
@@ -109,18 +118,22 @@ class AuthService extends ChangeNotifier {
   }) async {
     print('🔐 AuthService: Creating user with email: $email');
 
-    // Mock implementation
-    print('🔐 AuthService: Using mock signup');
-    _currentUser = MockUser(
-      uid: 'mock-uid-${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      displayName: 'Mock User',
-    );
-    _isAuthenticated = true;
-    await _saveAuthState();
-    notifyListeners();
-
-    return MockUserCredential(user: _currentUser);
+    // SECURITY: Only allow specific test user creation
+    if (email == 'test@example.com' && password == 'testpass123') {
+      print('🔐 AuthService: Valid test user creation accepted');
+      _currentUser = MockUser(
+        uid: 'mock-test-uid',
+        email: email,
+        displayName: 'Test User',
+      );
+      _isAuthenticated = true;
+      await _saveAuthState();
+      notifyListeners();
+      return MockUserCredential(user: _currentUser);
+    } else {
+      print('🔐 AuthService: User creation rejected');
+      throw Exception('User creation not allowed with these credentials');
+    }
   }
 
   // Mock sign out
