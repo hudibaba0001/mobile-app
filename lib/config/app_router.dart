@@ -67,11 +67,7 @@ class AppRouter {
       return null;
     },
     routes: [
-      GoRoute(
-        path: analyticsPath,
-        name: analyticsName,
-        builder: (context, state) => const AnalyticsScreen(),
-      ),
+      // Login route (outside shell)
       GoRoute(
         path: loginPath,
         name: loginName,
@@ -80,35 +76,51 @@ class AppRouter {
           return LoginScreen(initialEmail: email);
         },
       ),
+      // Analytics route (outside shell - admin only)
       GoRoute(
-        path: homePath,
-        name: homeName,
-        builder: (context, state) => const UnifiedHomeScreen(),
+        path: analyticsPath,
+        name: analyticsName,
+        builder: (context, state) => const AnalyticsScreen(),
       ),
-      GoRoute(
-        path: settingsPath,
-        name: settingsName,
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: reportsPath,
-        name: reportsName,
-        builder: (context, state) => const ReportsScreen(),
-      ),
-      GoRoute(
-        path: adminUsersPath,
-        name: adminUsersName,
-        builder: (context, state) => const AdminUsersScreen(),
-      ),
-      GoRoute(
-        path: contractSettingsPath,
-        name: contractSettingsName,
-        builder: (context, state) => const ContractSettingsScreen(),
-      ),
-      GoRoute(
-        path: profilePath,
-        name: profileName,
-        builder: (context, state) => const ProfileScreen(),
+      // Main app shell with bottom navigation
+      ShellRoute(
+        builder: (context, state, child) {
+          // This will be the shell that contains the bottom navigation
+          // For now, we'll use the UnifiedHomeScreen as the shell
+          return child;
+        },
+        routes: [
+          GoRoute(
+            path: homePath,
+            name: homeName,
+            builder: (context, state) => const UnifiedHomeScreen(),
+          ),
+          GoRoute(
+            path: settingsPath,
+            name: settingsName,
+            builder: (context, state) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: reportsPath,
+            name: reportsName,
+            builder: (context, state) => const ReportsScreen(),
+          ),
+          GoRoute(
+            path: contractSettingsPath,
+            name: contractSettingsName,
+            builder: (context, state) => const ContractSettingsScreen(),
+          ),
+          GoRoute(
+            path: profilePath,
+            name: profileName,
+            builder: (context, state) => const ProfileScreen(),
+          ),
+          GoRoute(
+            path: adminUsersPath,
+            name: adminUsersName,
+            builder: (context, state) => const AdminUsersScreen(),
+          ),
+        ],
       ),
     ],
   );

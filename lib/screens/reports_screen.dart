@@ -56,13 +56,14 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Select Report Period',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      'Select Report Period',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
@@ -445,7 +446,7 @@ class _ReportsScreenState extends State<ReportsScreen> with TickerProviderStateM
   }
 
   Widget _buildDailyTrendsChart(List<DailyTrend> trends) {
-    return Container(
+    return SizedBox(
       height: 200,
       child: Center(
         child: Text(
