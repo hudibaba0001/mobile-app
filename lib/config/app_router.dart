@@ -32,7 +32,7 @@ class AppRouter {
 
   static final router = GoRouter(
     initialLocation: homePath,
-    redirect: (context, state) {
+    redirect: (context, state) async {
       final authService = context.read<AuthService>();
       final isAuthenticated = authService.isAuthenticated;
       final isInitialized = authService.isInitialized;
@@ -44,9 +44,17 @@ class AppRouter {
         return null; // Don't redirect yet
       }
 
-      // Protect analytics route - require authentication
-      if (isAnalyticsRoute && !isAuthenticated) {
-        return loginPath;
+      // Protect analytics route - require authentication AND admin privileges
+      if (isAnalyticsRoute) {
+        if (!isAuthenticated) {
+          return loginPath;
+        }
+        // Check if user is admin
+        final isAdmin = await authService.isAdmin();
+        if (!isAdmin) {
+          // Redirect non-admin users to home page
+          return homePath;
+        }
       }
 
       if (!isAuthenticated && !isLoggingIn) {

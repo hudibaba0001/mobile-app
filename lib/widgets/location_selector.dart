@@ -398,12 +398,14 @@ class _LocationSelectorState extends State<LocationSelector> {
     final name = await _showSaveLocationDialog(address);
     if (name != null && name.isNotEmpty) {
       final newLocation = Location(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
         address: address,
+        createdAt: DateTime.now(),
       );
       
-      final success = await locationProvider.addLocation(newLocation);
-      if (success && mounted) {
+      await locationProvider.addLocation(newLocation);
+      if (mounted) {
         _selectLocation(newLocation);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

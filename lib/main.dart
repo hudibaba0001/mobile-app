@@ -30,9 +30,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
+  print('🔥 Firebase: Starting initialization...');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  print('🔥 Firebase: Initialization completed successfully');
+  print('🔥 Firebase: Current platform options: ${DefaultFirebaseOptions.currentPlatform}');
 
   // Initialize Stripe
   await StripeService.initialize();

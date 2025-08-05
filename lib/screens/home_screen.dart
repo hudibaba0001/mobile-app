@@ -5,9 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../providers/travel_provider.dart';
 import '../providers/location_provider.dart';
 import '../providers/app_state_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/quick_entry_form.dart';
 import '../widgets/travel_entry_card.dart';
-import '../models/travel_time_entry.dart';
+import '../models/entry.dart';
 import '../utils/constants.dart';
 import '../services/auth_service.dart';
 
@@ -36,7 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: _buildAppBar(context),
       body: Consumer3<TravelProvider, LocationProvider, AppStateProvider>(
-        builder: (context, travelProvider, locationProvider, appStateProvider, _) {
+        builder:
+            (context, travelProvider, locationProvider, appStateProvider, _) {
           if (travelProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -53,16 +55,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // Dashboard Summary Cards
                   _buildSummarySection(travelProvider, locationProvider),
-                  
+
                   // Quick Entry Section
                   _buildQuickEntrySection(),
-                  
+
                   // Recent Entries Section
                   _buildRecentEntriesSection(travelProvider),
-                  
+
                   // Quick Actions Section
                   _buildQuickActionsSection(),
-                  
+
                   const SizedBox(height: AppConstants.largePadding),
                 ],
               ),
@@ -80,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   AppBar _buildAppBar(BuildContext context) {
     final theme = Theme.of(context);
-    final themeProvider = Provider.of<AppStateProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final user = FirebaseAuth.instance.currentUser;
 
     return AppBar(
@@ -90,7 +92,8 @@ class _HomeScreenState extends State<HomeScreen> {
         // User email display
         if (user?.email != null)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
             child: Center(
               child: Text(
                 user!.email!,
@@ -100,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-        
+
         // Theme toggle
         IconButton(
           icon: Icon(
@@ -112,21 +115,21 @@ class _HomeScreenState extends State<HomeScreen> {
             themeProvider.toggleTheme();
           },
         ),
-        
+
         // Search Entries
         IconButton(
           icon: const Icon(Icons.search),
           onPressed: () => context.go('/travel-entries'),
           tooltip: 'Search Entries',
         ),
-        
+
         // Reports
         IconButton(
           icon: const Icon(Icons.analytics_outlined),
           onPressed: () => context.go('/reports'),
           tooltip: 'Reports',
         ),
-        
+
         // More options menu (includes sign out)
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
@@ -152,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               );
-              
+
               if (confirmed == true) {
                 try {
                   await context.read<AuthService>().signOut();
@@ -189,16 +192,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSummarySection(TravelProvider travelProvider, LocationProvider locationProvider) {
+  Widget _buildSummarySection(
+      TravelProvider travelProvider, LocationProvider locationProvider) {
     final entries = travelProvider.entries;
     final thisWeekEntries = entries.where((entry) {
       final now = DateTime.now();
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
       return entry.date.isAfter(weekStart);
     }).toList();
-    
-    final totalMinutesThisWeek = thisWeekEntries.fold<int>(0, (sum, entry) => sum + entry.minutes);
-    final avgMinutesThisWeek = thisWeekEntries.isNotEmpty ? totalMinutesThisWeek / thisWeekEntries.length : 0;
+
+    final totalMinutesThisWeek =
+        thisWeekEntries.fold<int>(0, (sum, entry) => sum + entry.minutes);
+    final avgMinutesThisWeek = thisWeekEntries.isNotEmpty
+        ? totalMinutesThisWeek / thisWeekEntries.length
+        : 0;
 
     return Container(
       padding: const EdgeInsets.all(AppConstants.defaultPadding),
@@ -208,8 +215,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             'This Week\'s Summary',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: AppConstants.defaultPadding),
           Row(
@@ -264,7 +271,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSummaryCard(BuildContext context, String title, String value, IconData icon, Color color) {
+  Widget _buildSummaryCard(BuildContext context, String title, String value,
+      IconData icon, Color color) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
@@ -278,9 +286,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
               ],
             ),
@@ -288,9 +296,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               value,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
             ),
           ],
         ),
@@ -317,8 +325,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'Quick Entry',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ],
               ),
@@ -326,7 +334,8 @@ class _HomeScreenState extends State<HomeScreen> {
               QuickEntryForm(
                 onSuccess: () {
                   // Refresh the entries list
-                  Provider.of<TravelProvider>(context, listen: false).refreshEntries();
+                  Provider.of<TravelProvider>(context, listen: false)
+                      .refreshEntries();
                 },
               ),
             ],
@@ -338,7 +347,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildRecentEntriesSection(TravelProvider travelProvider) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
+      margin:
+          const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -348,8 +358,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'Recent Entries',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               TextButton.icon(
                 onPressed: () => context.go('/travel-entries'),
@@ -359,7 +369,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: AppConstants.defaultPadding),
-          
           if (travelProvider.entries.isEmpty)
             Card(
               child: Padding(
@@ -375,15 +384,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       'No travel entries yet',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                            color: Colors.grey[600],
+                          ),
                     ),
                     const SizedBox(height: AppConstants.smallPadding),
                     Text(
                       'Use the quick entry form above to log your first trip',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[500],
-                      ),
+                            color: Colors.grey[500],
+                          ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -392,14 +401,15 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           else
             // Show recent entries (limit to 5)
-            ...travelProvider.entries.take(5).map((entry) => 
-              TravelEntryCard(
-                entry: entry,
-                onEdit: () => _editEntry(context, entry),
-                onDelete: () => _showDeleteConfirmation(context, entry, travelProvider),
-                onTap: () => _showEntryDetails(context, entry),
-              ),
-            ),
+            ...travelProvider.entries.take(5).map(
+                  (entry) => TravelEntryCard(
+                    entry: entry,
+                    onEdit: () => _editEntry(context, entry),
+                    onDelete: () =>
+                        _showDeleteConfirmation(context, entry, travelProvider),
+                    onTap: () => _showEntryDetails(context, entry),
+                  ),
+                ),
         ],
       ),
     );
@@ -414,8 +424,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             'Quick Actions',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: AppConstants.defaultPadding),
           Row(
@@ -470,15 +480,15 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
+                      color: Colors.grey[600],
+                    ),
               ),
             ],
           ),
@@ -519,8 +529,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'Quick Entry',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const Spacer(),
                   IconButton(
@@ -533,7 +543,8 @@ class _HomeScreenState extends State<HomeScreen> {
               QuickEntryForm(
                 onSuccess: () {
                   Navigator.of(context).pop();
-                  Provider.of<TravelProvider>(context, listen: false).refreshEntries();
+                  Provider.of<TravelProvider>(context, listen: false)
+                      .refreshEntries();
                 },
                 onCancel: () {
                   Navigator.of(context).pop();
@@ -546,14 +557,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _editEntry(BuildContext context, TravelTimeEntry entry) {
+  void _editEntry(BuildContext context, Entry entry) {
     // Navigate to edit screen or show edit dialog
     // For now, we'll show a simple dialog
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Entry'),
-        content: const Text('Edit functionality will be implemented in the travel entries screen.'),
+        content: const Text(
+            'Edit functionality will be implemented in the travel entries screen.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -571,7 +583,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showEntryDetails(BuildContext context, TravelTimeEntry entry) {
+  void _showEntryDetails(BuildContext context, Entry entry) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -586,7 +598,8 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             onDelete: () {
               Navigator.of(context).pop();
-              _showDeleteConfirmation(context, entry, Provider.of<TravelProvider>(context, listen: false));
+              _showDeleteConfirmation(context, entry,
+                  Provider.of<TravelProvider>(context, listen: false));
             },
           ),
         ),
@@ -596,14 +609,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showDeleteConfirmation(
     BuildContext context,
-    TravelTimeEntry entry,
+    Entry entry,
     TravelProvider travelProvider,
   ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Entry'),
-        content: Text('Are you sure you want to delete the trip from ${entry.departure} to ${entry.arrival}?'),
+        content: Text(
+            'Are you sure you want to delete the trip from ${entry.from ?? 'Unknown'} to ${entry.to ?? 'Unknown'}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -623,7 +637,8 @@ class _HomeScreenState extends State<HomeScreen> {
               } else if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(travelProvider.lastError?.message ?? 'Failed to delete entry'),
+                    content: Text(
+                        travelProvider.lastError ?? 'Failed to delete entry'),
                     backgroundColor: Colors.red,
                   ),
                 );

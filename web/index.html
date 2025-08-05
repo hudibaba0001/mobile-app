@@ -35,11 +35,13 @@
 </head>
 <body>
   <!-- Firebase JavaScript SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script>
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
     // Your web app's Firebase configuration
-    var firebaseConfig = {
+    const firebaseConfig = {
       apiKey: "AIzaSyDkTfV_l8Um_66jRugu4KvaZhPXf8UeUT4",
       authDomain: "kviktime-9ee5f.firebaseapp.com",
       projectId: "kviktime-9ee5f",
@@ -47,8 +49,13 @@
       messagingSenderId: "1011662335499",
       appId: "1:1011662335499:web:b1690b31c0d6840107610e"
     };
+
     // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    
+    console.log('🔥 Firebase Web: Initialized successfully');
+    console.log('🔥 Firebase Web: Auth instance created');
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>

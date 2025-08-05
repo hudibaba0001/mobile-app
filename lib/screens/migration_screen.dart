@@ -19,7 +19,7 @@ class _MigrationScreenState extends State<MigrationScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Logo fade-in animation
     _logoController = AnimationController(
       duration: const Duration(milliseconds: 800),
@@ -32,7 +32,7 @@ class _MigrationScreenState extends State<MigrationScreen>
       parent: _logoController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     // Progress indicator animation
     _progressController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -45,7 +45,7 @@ class _MigrationScreenState extends State<MigrationScreen>
       parent: _progressController,
       curve: Curves.easeInOutCubic,
     ));
-    
+
     // Start animations
     _logoController.forward();
     Future.delayed(const Duration(milliseconds: 400), () {
@@ -64,7 +64,7 @@ class _MigrationScreenState extends State<MigrationScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -86,7 +86,7 @@ class _MigrationScreenState extends State<MigrationScreen>
               children: [
                 // Top spacing
                 const Spacer(flex: 2),
-                
+
                 // App Logo Section
                 AnimatedBuilder(
                   animation: _logoAnimation,
@@ -100,25 +100,25 @@ class _MigrationScreenState extends State<MigrationScreen>
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 64),
-                
+
                 // Progress Indicator Section
                 AnimatedBuilder(
                   animation: _progressAnimation,
                   builder: (context, child) {
                     return Opacity(
                       opacity: _progressAnimation.value,
-                      child: Transform.translateY(
+                      child: Transform.translate(
                         offset: Offset(0, 20 * (1 - _progressAnimation.value)),
                         child: _buildProgressSection(context),
                       ),
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 48),
-                
+
                 // Migration Status Text
                 Consumer<AppStateProvider>(
                   builder: (context, appState, child) {
@@ -128,12 +128,12 @@ class _MigrationScreenState extends State<MigrationScreen>
                     );
                   },
                 ),
-                
+
                 const Spacer(flex: 3),
-                
+
                 // Footer
                 _buildFooter(context),
-                
+
                 const SizedBox(height: 24),
               ],
             ),
@@ -146,7 +146,7 @@ class _MigrationScreenState extends State<MigrationScreen>
   Widget _buildAppLogo(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       elevation: 8,
       shadowColor: colorScheme.primary.withOpacity(0.3),
@@ -193,7 +193,7 @@ class _MigrationScreenState extends State<MigrationScreen>
   Widget _buildProgressSection(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       elevation: 4,
       shadowColor: colorScheme.shadow.withOpacity(0.1),
@@ -240,12 +240,12 @@ class _MigrationScreenState extends State<MigrationScreen>
   Widget _buildStatusText(BuildContext context, AppStateProvider appState) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     // Mock migration status - replace with actual migration state
     String statusMessage = _getMigrationStatusMessage(appState);
     Color statusColor = _getStatusColor(colorScheme, appState);
     IconData statusIcon = _getStatusIcon(appState);
-    
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -284,7 +284,7 @@ class _MigrationScreenState extends State<MigrationScreen>
   Widget _buildFooter(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Column(
       children: [
         Text(
@@ -309,7 +309,7 @@ class _MigrationScreenState extends State<MigrationScreen>
     // Mock implementation - replace with actual migration logic
     final now = DateTime.now();
     final seconds = now.second % 10;
-    
+
     if (seconds < 3) {
       return 'Initializing migration...';
     } else if (seconds < 6) {
@@ -325,7 +325,7 @@ class _MigrationScreenState extends State<MigrationScreen>
     // Mock implementation - replace with actual migration state
     final now = DateTime.now();
     final seconds = now.second % 10;
-    
+
     if (seconds < 8) {
       return colorScheme.primary;
     } else {
@@ -337,7 +337,7 @@ class _MigrationScreenState extends State<MigrationScreen>
     // Mock implementation - replace with actual migration state
     final now = DateTime.now();
     final seconds = now.second % 10;
-    
+
     if (seconds < 3) {
       return Icons.hourglass_empty_rounded;
     } else if (seconds < 6) {

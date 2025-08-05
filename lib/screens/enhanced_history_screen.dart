@@ -5,7 +5,6 @@ import '../models/entry.dart';
 import '../providers/entry_provider.dart';
 import '../services/entry_service.dart';
 
-enum EntryType { travel, work, all }
 enum DateRange { today, yesterday, lastWeek, custom }
 
 class EnhancedHistoryScreen extends StatefulWidget {
@@ -16,11 +15,12 @@ class EnhancedHistoryScreen extends StatefulWidget {
 }
 
 class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
-  final ValueNotifier<EntryType> _selectedTypeNotifier = ValueNotifier(EntryType.all);
-  final ValueNotifier<DateRange> _selectedDateRangeNotifier = ValueNotifier(DateRange.today);
+  final ValueNotifier<EntryType?> _selectedTypeNotifier = ValueNotifier(null);
+  final ValueNotifier<DateRange> _selectedDateRangeNotifier =
+      ValueNotifier(DateRange.today);
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
+
   DateTimeRange? _customDateRange;
   bool _isLoadingMore = false;
 
@@ -28,7 +28,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    
+
     // Load initial entries
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<EntryProvider>().loadEntries();
@@ -45,20 +45,21 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
       _loadMoreEntries();
     }
   }
 
   Future<void> _loadMoreEntries() async {
     if (_isLoadingMore) return;
-    
+
     setState(() {
       _isLoadingMore = true;
     });
 
     try {
-      await EntryService.getMoreEntries();
+      await EntryService().getMoreEntries();
     } finally {
       setState(() {
         _isLoadingMore = false;
@@ -101,20 +102,20 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
               children: [
                 // Entry Type Segmented Control
                 _buildSegmentedControl(context),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Date Range Filter Chips
                 _buildDateRangeChips(context),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Search Field
                 _buildSearchField(context),
               ],
             ),
           ),
-          
+
           // Entry List
           Expanded(
             child: _buildEntryList(context),
@@ -128,7 +129,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return ValueListenableBuilder<EntryType>(
+    return ValueListenableBuilder<EntryType?>(
       valueListenable: _selectedTypeNotifier,
       builder: (context, selectedType, child) {
         return Container(
@@ -160,7 +161,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                 child: _buildSegmentButton(
                   context,
                   'All',
-                  EntryType.all,
+                  null,
                   Icons.list_alt_rounded,
                   selectedType,
                 ),
@@ -175,9 +176,9 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
   Widget _buildSegmentButton(
     BuildContext context,
     String label,
-    EntryType type,
+    EntryType? type,
     IconData icon,
-    EntryType selectedType,
+    EntryType? selectedType,
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -185,7 +186,8 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
 
     return Semantics(
       label: '$label entries filter',
-      hint: isSelected ? 'Currently selected' : 'Tap to filter by $label entries',
+      hint:
+          isSelected ? 'Currently selected' : 'Tap to filter by $label entries',
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -203,13 +205,17 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                 Icon(
                   icon,
                   size: 20,
-                  color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                  color: isSelected
+                      ? colorScheme.onPrimary
+                      : colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   label,
                   style: theme.textTheme.labelLarge?.copyWith(
-                    color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                    color: isSelected
+                        ? colorScheme.onPrimary
+                        : colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -231,11 +237,14 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
             children: [
               _buildDateChip(context, 'Today', DateRange.today, selectedRange),
               const SizedBox(width: 8),
-              _buildDateChip(context, 'Yesterday', DateRange.yesterday, selectedRange),
+              _buildDateChip(
+                  context, 'Yesterday', DateRange.yesterday, selectedRange),
               const SizedBox(width: 8),
-              _buildDateChip(context, 'Last 7 Days', DateRange.lastWeek, selectedRange),
+              _buildDateChip(
+                  context, 'Last 7 Days', DateRange.lastWeek, selectedRange),
               const SizedBox(width: 8),
-              _buildDateChip(context, 'Custom', DateRange.custom, selectedRange),
+              _buildDateChip(
+                  context, 'Custom', DateRange.custom, selectedRange),
             ],
           ),
         );
@@ -257,7 +266,8 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
       label: Text(
         label,
         style: theme.textTheme.labelMedium?.copyWith(
-          color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+          color:
+              isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -322,10 +332,11 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
       onChanged: (value) {
         // Trigger search filtering
         context.read<EntryProvider>().filterEntries(
-          searchQuery: value,
-          entryType: _selectedTypeNotifier.value,
-          dateRange: _getDateRangeFilter(),
-        );
+              searchQuery: value,
+              selectedType: _selectedTypeNotifier.value,
+              startDate: _getDateRangeFilter()?.start,
+              endDate: _getDateRangeFilter()?.end,
+            );
       },
     );
   }
@@ -339,7 +350,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
       child: Consumer<EntryProvider>(
         builder: (context, entryProvider, child) {
           final entries = entryProvider.filteredEntries;
-          
+
           if (entries.isEmpty && !entryProvider.isLoading) {
             return _buildEmptyState(context);
           }
@@ -352,7 +363,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
               if (index == entries.length) {
                 return _buildLoadingIndicator(context);
               }
-              
+
               final entry = entries[index];
               return _buildEntryCard(context, entry);
             },
@@ -392,13 +403,14 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                 isWorkEntry
                     ? Icons.work_outline_rounded
                     : Icons.directions_car_rounded,
-                color: isWorkEntry ? colorScheme.secondary : colorScheme.primary,
+                color:
+                    isWorkEntry ? colorScheme.secondary : colorScheme.primary,
                 size: 24,
               ),
             ),
-            
+
             const SizedBox(width: 16),
-            
+
             // Entry Details
             Expanded(
               child: Column(
@@ -425,9 +437,11 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          _formatDuration(entry.duration),
+                          _formatDuration(entry.totalDuration),
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: isWorkEntry ? colorScheme.secondary : colorScheme.primary,
+                            color: isWorkEntry
+                                ? colorScheme.secondary
+                                : colorScheme.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -451,7 +465,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                 ],
               ),
             ),
-            
+
             // More Menu
             IconButton(
               onPressed: () => _showEntryMenu(context, entry),
@@ -505,7 +519,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
 
   Widget _buildLoadingIndicator(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Center(
@@ -523,17 +537,18 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
       lastDate: DateTime.now(),
       initialDateRange: _customDateRange,
     );
-    
+
     if (picked != null) {
       setState(() {
         _customDateRange = picked;
       });
       // Apply custom date range filter
       context.read<EntryProvider>().filterEntries(
-        searchQuery: _searchController.text,
-        entryType: _selectedTypeNotifier.value,
-        dateRange: picked,
-      );
+            searchQuery: _searchController.text,
+            selectedType: _selectedTypeNotifier.value,
+            startDate: picked.start,
+            endDate: picked.end,
+          );
     }
   }
 
@@ -605,7 +620,8 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
         final yesterday = DateTime.now().subtract(const Duration(days: 1));
         return DateTimeRange(
           start: DateTime(yesterday.year, yesterday.month, yesterday.day),
-          end: DateTime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59),
+          end: DateTime(
+              yesterday.year, yesterday.month, yesterday.day, 23, 59, 59),
         );
       case DateRange.lastWeek:
         final now = DateTime.now();
@@ -621,7 +637,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
   String _formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     } else {

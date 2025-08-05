@@ -1,128 +1,86 @@
 import 'package:hive/hive.dart';
-import '../models/travel_time_entry.dart';
+import '../models/travel_entry.dart';
 import '../utils/constants.dart';
 import 'travel_repository.dart';
 
 class HiveTravelRepository implements TravelRepository {
-  Box<TravelTimeEntry>? _box;
+  Box<TravelEntry>? _box;
 
-  Future<Box<TravelTimeEntry>> _getBox() async {
+  Future<Box<TravelEntry>> _getBox() async {
     if (_box == null || !_box!.isOpen) {
-      _box = await Hive.openBox<TravelTimeEntry>(AppConstants.travelEntriesBox);
+      _box = await Hive.openBox<TravelEntry>('travel_entries');
     }
     return _box!;
   }
 
-  @override
-  Future<List<TravelTimeEntry>> getAllEntries() async {
-    final box = await _getBox();
-    final entries = box.values.toList();
-    // Sort by date descending (newest first)
-    entries.sort((a, b) => b.date.compareTo(a.date));
-    return entries;
+  Future<void> initialize() async {
+    await _getBox();
   }
 
   @override
-  Future<List<TravelTimeEntry>> getEntriesInDateRange(
+  List<TravelEntry> getAllForUser(String userId) {
+    final box = _box;
+    if (box == null) return [];
+    
+    return box.values
+        .where((entry) => entry.userId == userId)
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  @override
+  List<TravelEntry> getForUserInRange(
+    String userId,
     DateTime start,
     DateTime end,
-  ) async {
-    final allEntries = await getAllEntries();
-    return allEntries.where((entry) {
-      return entry.date.isAfter(start.subtract(const Duration(days: 1))) &&
-          entry.date.isBefore(end.add(const Duration(days: 1)));
-    }).toList();
+  ) {
+    final box = _box;
+    if (box == null) return [];
+    
+    return box.values
+        .where((entry) =>
+            entry.userId == userId &&
+            entry.date.isAfter(start.subtract(const Duration(days: 1))) &&
+            entry.date.isBefore(end.add(const Duration(days: 1))))
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   @override
-  Future<void> addEntry(TravelTimeEntry entry) async {
+  Future<TravelEntry> add(TravelEntry entry) async {
     final box = await _getBox();
-    await box.add(entry);
+    final newEntry = entry.copyWith(
+      id: entry.id,
+      updatedAt: DateTime.now(),
+    );
+    await box.put(newEntry.id, newEntry);
+    return newEntry;
   }
 
   @override
-  Future<void> updateEntry(TravelTimeEntry entry) async {
+  Future<TravelEntry> update(TravelEntry entry) async {
     final box = await _getBox();
-    final index = box.values.toList().indexWhere((e) => e.id == entry.id);
-    if (index != -1) {
-      await box.putAt(index, entry);
-    } else {
-      throw Exception('Entry not found for update');
-    }
+    final updatedEntry = entry.copyWith(
+      updatedAt: DateTime.now(),
+    );
+    await box.put(entry.id, updatedEntry);
+    return updatedEntry;
   }
 
   @override
-  Future<void> deleteEntry(String id) async {
+  Future<void> delete(String id) async {
     final box = await _getBox();
-    final entries = box.values.toList();
-    for (int i = 0; i < entries.length; i++) {
-      if (entries[i].id == id) {
-        await box.deleteAt(i);
-        return;
-      }
-    }
-    throw Exception('Entry not found for deletion');
+    await box.delete(id);
   }
 
   @override
-  Future<List<TravelTimeEntry>> searchEntries(String query) async {
-    if (query.trim().isEmpty) {
-      return getAllEntries();
-    }
-
-    final allEntries = await getAllEntries();
-    final lowercaseQuery = query.toLowerCase();
-
-    return allEntries.where((entry) {
-      return entry.departure.toLowerCase().contains(lowercaseQuery) ||
-          entry.arrival.toLowerCase().contains(lowercaseQuery) ||
-          (entry.info?.toLowerCase().contains(lowercaseQuery) ?? false);
-    }).toList();
+  int getTotalMinutesInRange(String userId, DateTime start, DateTime end) {
+    return getForUserInRange(userId, start, end)
+        .fold(0, (sum, entry) => sum + entry.travelMinutes);
   }
 
   @override
-  Future<TravelTimeEntry?> getEntryById(String id) async {
-    final box = await _getBox();
-    final entries = box.values.toList();
-    try {
-      return entries.firstWhere((entry) => entry.id == id);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  @override
-  Future<List<String>> getRecentRoutes({int limit = 5}) async {
-    final entries = await getAllEntries();
-    final routes = <String>{};
-
-    for (final entry in entries) {
-      final route = '${entry.departure} → ${entry.arrival}';
-      routes.add(route);
-      if (routes.length >= limit) break;
-    }
-
-    return routes.toList();
-  }
-
-  // Helper method to get entries count
-  Future<int> getEntriesCount() async {
-    final box = await _getBox();
-    return box.length;
-  }
-
-  // Helper method to get total minutes
-  Future<int> getTotalMinutes() async {
-    final entries = await getAllEntries();
-    return entries.fold<int>(0, (sum, entry) => sum + entry.minutes);
-  }
-
-  // Helper method to get entries by location
-  Future<List<TravelTimeEntry>> getEntriesByLocation(String locationId) async {
-    final allEntries = await getAllEntries();
-    return allEntries.where((entry) {
-      return entry.departureLocationId == locationId ||
-          entry.arrivalLocationId == locationId;
-    }).toList();
+  Future<void> close() async {
+    await _box?.close();
   }
 }

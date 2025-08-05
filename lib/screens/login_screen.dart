@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../services/auth_service.dart';
 import '../config/app_router.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
@@ -20,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  String _errorMessage = '';
 
   @override
   void initState() {
@@ -38,68 +38,162 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signIn() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
 
-    setState(() {
-      _isLoading = true;
-    });
+      try {
+        print(
+            '🔐 LoginScreen: Attempting sign in with email: ${_emailController.text}');
 
-    try {
-      final authService = context.read<AuthService>();
-      await authService.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-
-      if (mounted) {
-        context.goNamed('home');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: Colors.red,
-          ),
+        final authService = Provider.of<AuthService>(context, listen: false);
+        await authService.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+
+        print('🔐 LoginScreen: Sign in successful');
+
+        if (mounted) {
+          context.go(AppRouter.homePath);
+        }
+      } catch (e) {
+        print('🔐 LoginScreen: Sign in failed with error: $e');
+
+        String errorMessage = 'An error occurred during sign in.';
+
+        if (e.toString().contains('invalid-credential')) {
+          errorMessage =
+              'Invalid email or password. Please check your credentials and try again.';
+        } else if (e.toString().contains('user-not-found')) {
+          errorMessage =
+              'No account found with this email address. Please create an account first.';
+        } else if (e.toString().contains('wrong-password')) {
+          errorMessage = 'Incorrect password. Please try again.';
+        } else if (e.toString().contains('too-many-requests')) {
+          errorMessage = 'Too many failed attempts. Please try again later.';
+        } else if (e.toString().contains('network')) {
+          errorMessage =
+              'Network error. Please check your internet connection.';
+        }
+
+        if (mounted) {
+          setState(() {
+            _errorMessage = errorMessage;
+          });
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
 
   Future<void> _launchCreateAccountUrl() async {
-    const url = 'https://app-kviktime-se.web.app/create-account';
-    final uri = Uri.parse(url);
-
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          _showUrlError();
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        _showUrlError();
-      }
+    // For development, show a dialog to create account locally
+    if (mounted) {
+      _showCreateAccountDialog();
     }
   }
 
-  void _showUrlError() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-            'Could not open account creation page. Please try again.'),
-        backgroundColor: Theme.of(context).colorScheme.error,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  void _showCreateAccountDialog() {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final nameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create Development Account'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                hintText: 'Enter your email',
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(
+                labelText: 'Password',
+                hintText: 'Enter your password',
+              ),
+              obscureText: true,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Display Name (Optional)',
+                hintText: 'Enter your name',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailController.text.trim();
+              final password = passwordController.text;
+              final name = nameController.text.trim();
+
+              if (email.isEmpty || password.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please fill in all required fields'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              try {
+                final authService =
+                    Provider.of<AuthService>(context, listen: false);
+                await authService.createAccountForDevelopment(
+                  email: email,
+                  password: password,
+                  displayName: name.isNotEmpty ? name : null,
+                );
+
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'Account created successfully! You can now sign in with $email'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Account creation failed: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Create Account'),
+          ),
+        ],
       ),
     );
   }
@@ -282,6 +376,39 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 24),
+
+                          // Error Message
+                          if (_errorMessage.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              margin: const EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.red.withOpacity(0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.error_outline,
+                                    color: Colors.red,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _errorMessage,
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
 
                           // Sign In Button
                           ElevatedButton(

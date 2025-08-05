@@ -22,13 +22,20 @@ class AuthService extends ChangeNotifier {
     _auth.authStateChanges().listen((User? user) {
       _currentUser = user;
       _isAuthenticated = user != null;
-      print('🔐 AuthService: Auth state changed - Authenticated: $_isAuthenticated');
+      print(
+          '🔐 AuthService: Auth state changed - Authenticated: $_isAuthenticated');
       notifyListeners();
     });
   }
 
   // Initialize the auth service
   Future<void> initialize() async {
+    print('🔐 AuthService: Starting initialization...');
+    print('🔐 AuthService: Firebase Auth instance: $_auth');
+    print('🔐 AuthService: Firebase Auth app: ${_auth.app}');
+    print('🔐 AuthService: Firebase Auth app name: ${_auth.app.name}');
+    print('🔐 AuthService: Firebase Auth app options: ${_auth.app.options}');
+
     await _loadAuthState();
   }
 
@@ -42,7 +49,8 @@ class AuthService extends ChangeNotifier {
       _isAuthenticated = _currentUser != null;
 
       if (_isAuthenticated) {
-        print('🔐 AuthService: User already authenticated: ${_currentUser!.email}');
+        print(
+            '🔐 AuthService: User already authenticated: ${_currentUser!.email}');
       } else {
         print('🔐 AuthService: No authenticated user found');
       }
@@ -52,7 +60,8 @@ class AuthService extends ChangeNotifier {
       _isAuthenticated = false;
     } finally {
       _isInitialized = true;
-      print('🔐 AuthService: Initialized = $_isInitialized, Authenticated = $_isAuthenticated');
+      print(
+          '🔐 AuthService: Initialized = $_isInitialized, Authenticated = $_isAuthenticated');
       notifyListeners();
     }
   }
@@ -65,7 +74,8 @@ class AuthService extends ChangeNotifier {
         await prefs.setBool('isAuthenticated', true);
         await prefs.setString('userEmail', _currentUser!.email ?? '');
         await prefs.setString('userUid', _currentUser!.uid);
-        await prefs.setString('userDisplayName', _currentUser!.displayName ?? '');
+        await prefs.setString(
+            'userDisplayName', _currentUser!.displayName ?? '');
       } else {
         await prefs.setBool('isAuthenticated', false);
         await prefs.remove('userEmail');
@@ -83,19 +93,37 @@ class AuthService extends ChangeNotifier {
     required String password,
   }) async {
     print('🔐 AuthService: Signing in with email: $email');
+    print('🔐 AuthService: Firebase Auth instance: $_auth');
+    print(
+        '🔐 AuthService: Current user before sign in: ${_auth.currentUser?.email}');
 
     try {
+      print(
+          '🔐 AuthService: Calling Firebase Auth signInWithEmailAndPassword...');
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      print('🔐 AuthService: Sign in successful for: ${credential.user?.email}');
+      print(
+          '🔐 AuthService: Sign in successful for: ${credential.user?.email}');
       await _saveAuthState();
 
       return credential;
     } catch (e) {
-      print('🔐 AuthService: Sign in failed: $e');
+      print('🔐 AuthService: Sign in failed with error: $e');
+      print('🔐 AuthService: Error type: ${e.runtimeType}');
+      print('🔐 AuthService: Error toString: ${e.toString()}');
+
+      // Log more details about the error
+      if (e is FirebaseAuthException) {
+        print('🔐 AuthService: Firebase Auth Exception Code: ${e.code}');
+        print('🔐 AuthService: Firebase Auth Exception Message: ${e.message}');
+        print('🔐 AuthService: Firebase Auth Exception Email: ${e.email}');
+        print(
+            '🔐 AuthService: Firebase Auth Exception TenantId: ${e.tenantId}');
+      }
+
       rethrow; // Re-throw the error so the UI can handle it
     }
   }
@@ -113,7 +141,8 @@ class AuthService extends ChangeNotifier {
         password: password,
       );
 
-      print('🔐 AuthService: Sign up successful for: ${credential.user?.email}');
+      print(
+          '🔐 AuthService: Sign up successful for: ${credential.user?.email}');
       await _saveAuthState();
 
       return credential;
@@ -183,6 +212,35 @@ class AuthService extends ChangeNotifier {
       print('🔐 AuthService: Profile updated successfully');
     } catch (e) {
       print('🔐 AuthService: Profile update failed: $e');
+      rethrow;
+    }
+  }
+
+  // Temporary method for development - create account without backend API
+  Future<UserCredential> createAccountForDevelopment({
+    required String email,
+    required String password,
+    String? displayName,
+  }) async {
+    print('🔐 AuthService: Creating development account for: $email');
+
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Update display name if provided
+      if (displayName != null && credential.user != null) {
+        await credential.user!.updateDisplayName(displayName);
+      }
+
+      print('🔐 AuthService: Development account created successfully: ${credential.user?.email}');
+      await _saveAuthState();
+
+      return credential;
+    } catch (e) {
+      print('🔐 AuthService: Development account creation failed: $e');
       rethrow;
     }
   }

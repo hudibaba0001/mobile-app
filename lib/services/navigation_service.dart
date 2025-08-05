@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../config/app_router.dart';
+import '../services/auth_service.dart'; // Added import for AuthService
 
 class NavigationService {
   static final NavigationService _instance = NavigationService._internal();
@@ -9,32 +11,33 @@ class NavigationService {
 
   /// Navigate to home screen
   static void goHome(BuildContext context) {
-    context.go(AppRouter.home);
+    context.go(AppRouter.homePath);
   }
 
   /// Navigate to travel entries screen
   static void goToTravelEntries(BuildContext context) {
-    context.go(AppRouter.travelEntries);
+    context.go(AppRouter.reportsPath); // Use reports for now
   }
 
   /// Navigate to locations screen
   static void goToLocations(BuildContext context) {
-    context.go(AppRouter.locations);
+    context.go(AppRouter.settingsPath); // Use settings for now
   }
 
   /// Navigate to reports screen
   static void goToReports(BuildContext context) {
-    context.go(AppRouter.reports);
+    context.go(AppRouter.reportsPath);
   }
 
   /// Navigate to settings screen
   static void goToSettings(BuildContext context) {
-    context.go(AppRouter.settings);
+    context.go(AppRouter.settingsPath);
   }
 
   /// Navigate to edit entry screen
   static void goToEditEntry(BuildContext context, String entryId) {
-    context.go('${AppRouter.editEntry}/$entryId');
+    context.go(
+        '${AppRouter.reportsPath}/edit/$entryId'); // Use reports path for now
   }
 
   /// Go back to previous screen
@@ -43,7 +46,7 @@ class NavigationService {
       context.pop();
     } else {
       // If can't pop, go to home
-      context.go(AppRouter.home);
+      context.go(AppRouter.homePath);
     }
   }
 
@@ -69,7 +72,8 @@ class NavigationService {
   }
 
   /// Navigate with parameters
-  static void goWithParams(BuildContext context, String route, Map<String, String> params) {
+  static void goWithParams(
+      BuildContext context, String route, Map<String, String> params) {
     final uri = Uri(path: route, queryParameters: params);
     context.go(uri.toString());
   }
@@ -112,6 +116,8 @@ class NavigationService {
 
   /// Show bottom sheet with navigation options
   static void showNavigationSheet(BuildContext context) {
+    final authService = context.read<AuthService>();
+    
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -119,11 +125,6 @@ class NavigationService {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Navigate to',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.home),
               title: const Text('Home'),
@@ -133,7 +134,7 @@ class NavigationService {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.list),
+              leading: const Icon(Icons.directions_car),
               title: const Text('Travel Entries'),
               onTap: () {
                 Navigator.pop(context);
@@ -154,6 +155,24 @@ class NavigationService {
               onTap: () {
                 Navigator.pop(context);
                 goToReports(context);
+              },
+            ),
+            // Admin-only analytics option
+            FutureBuilder<bool>(
+              future: authService.isAdmin(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data == true) {
+                  return ListTile(
+                    leading: const Icon(Icons.admin_panel_settings),
+                    title: const Text('Analytics Dashboard'),
+                    subtitle: const Text('Admin Only'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      AppRouter.goToAnalytics(context);
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
               },
             ),
             ListTile(
@@ -189,7 +208,8 @@ extension NavigationExtension on BuildContext {
   void goToSettings() => NavigationService.goToSettings(this);
 
   /// Navigate to edit entry
-  void goToEditEntry(String entryId) => NavigationService.goToEditEntry(this, entryId);
+  void goToEditEntry(String entryId) =>
+      NavigationService.goToEditEntry(this, entryId);
 
   /// Go back
   void goBack() => NavigationService.goBack(this);
@@ -255,7 +275,7 @@ class BreadcrumbItem {
 
 /// Navigation state manager
 class NavigationState extends ChangeNotifier {
-  String _currentRoute = AppRouter.home;
+  String _currentRoute = AppRouter.homePath;
   final List<String> _navigationHistory = [];
 
   String get currentRoute => _currentRoute;

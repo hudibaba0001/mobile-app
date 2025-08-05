@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:intl/intl.dart';
-import '../models/travel_time_entry.dart';
+import '../models/entry.dart';
+import '../models/travel_entry.dart';
 import '../repositories/travel_repository.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/retry_helper.dart';
-import '../utils/data_validator.dart';
 
 class ImportService {
   final TravelRepository _travelRepository;
@@ -34,8 +34,9 @@ class ImportService {
     }
 
     final content = await file.readAsString();
-    final lines = content.split('\n').where((line) => line.trim().isNotEmpty).toList();
-    
+    final lines =
+        content.split('\n').where((line) => line.trim().isNotEmpty).toList();
+
     if (lines.isEmpty) {
       throw ErrorHandler.handleValidationError('Import file is empty');
     }
@@ -43,7 +44,8 @@ class ImportService {
     // Validate header
     final header = lines.first.toLowerCase();
     if (!_isValidCSVHeader(header)) {
-      throw ErrorHandler.handleValidationError('Invalid CSV format. Expected header: ${AppConstants.csvHeader}');
+      throw ErrorHandler.handleValidationError(
+          'Invalid CSV format. Expected header: ${AppConstants.csvHeader}');
     }
 
     final result = ImportResult();
@@ -51,16 +53,29 @@ class ImportService {
 
     for (int i = 0; i < dataLines.length; i++) {
       try {
-        final entry = _parseCSVLine(dataLines[i], i + 2); // +2 for header and 0-based index
-        
-        // Validate entry
-        final validationErrors = DataValidator.validateTravelEntry(entry);
-        if (validationErrors.isNotEmpty) {
-          result.addError(i + 2, validationErrors.first.message);
+        final entry = _parseCSVLine(
+            dataLines[i], i + 2); // +2 for header and 0-based index
+
+        // Basic validation
+        if (!entry.isValidTravel) {
+          result.addError(i + 2, 'Invalid travel entry data');
           continue;
         }
 
-        await _travelRepository.addEntry(entry);
+        // Convert Entry to TravelEntry for storage
+        final travelEntry = TravelEntry(
+          id: entry.id,
+          userId: entry.userId,
+          date: entry.date,
+          fromLocation: entry.from ?? '',
+          toLocation: entry.to ?? '',
+          travelMinutes: entry.minutes,
+          remarks: entry.notes ?? '',
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt,
+        );
+
+        await _travelRepository.add(travelEntry);
         result.successCount++;
       } catch (error) {
         result.addError(i + 2, error.toString());
@@ -72,18 +87,17 @@ class ImportService {
   }
 
   bool _isValidCSVHeader(String header) {
-    final expectedFields = AppConstants.csvHeader.toLowerCase().split(',');
     final actualFields = header.split(',').map((f) => f.trim()).toList();
-    
+
     // Check if all required fields are present (order doesn't matter)
     final requiredFields = ['date', 'departure', 'arrival', 'minutes'];
-    return requiredFields.every((field) => 
-        actualFields.any((actual) => actual.contains(field)));
+    return requiredFields
+        .every((field) => actualFields.any((actual) => actual.contains(field)));
   }
 
-  TravelTimeEntry _parseCSVLine(String line, int lineNumber) {
+  Entry _parseCSVLine(String line, int lineNumber) {
     final fields = _parseCSVFields(line);
-    
+
     if (fields.length < 4) {
       throw Exception('Invalid CSV format: insufficient fields');
     }
@@ -93,14 +107,18 @@ class ImportService {
       final departure = fields[1].trim();
       final arrival = fields[2].trim();
       final minutes = int.parse(fields[3].trim());
-      final info = fields.length > 4 && fields[4].trim().isNotEmpty ? fields[4].trim() : null;
+      final info = fields.length > 4 && fields[4].trim().isNotEmpty
+          ? fields[4].trim()
+          : null;
 
-      return TravelTimeEntry(
+      return Entry(
+        userId: 'imported_user', // TODO: Get from auth service
+        type: EntryType.travel,
         date: date,
-        departure: departure,
-        arrival: arrival,
-        minutes: minutes,
-        info: info,
+        from: departure,
+        to: arrival,
+        travelMinutes: minutes,
+        notes: info,
       );
     } catch (error) {
       throw Exception('Error parsing line $lineNumber: $error');
@@ -111,10 +129,10 @@ class ImportService {
     final fields = <String>[];
     final buffer = StringBuffer();
     bool inQuotes = false;
-    
+
     for (int i = 0; i < line.length; i++) {
       final char = line[i];
-      
+
       if (char == '"') {
         if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
           // Escaped quote
@@ -132,16 +150,16 @@ class ImportService {
         buffer.write(char);
       }
     }
-    
+
     // Add last field
     fields.add(buffer.toString());
-    
+
     return fields;
   }
 
   DateTime _parseDate(String dateStr) {
     final cleanDateStr = dateStr.trim();
-    
+
     // Try different date formats
     final formats = [
       'yyyy-MM-dd',
@@ -151,7 +169,7 @@ class ImportService {
       'dd-MM-yyyy',
       'MM-dd-yyyy',
     ];
-    
+
     for (final format in formats) {
       try {
         return DateFormat(format).parse(cleanDateStr);
@@ -159,7 +177,7 @@ class ImportService {
         // Try next format
       }
     }
-    
+
     throw Exception('Unable to parse date: $cleanDateStr');
   }
 
@@ -187,7 +205,8 @@ class ImportService {
 
     // Validate JSON structure
     if (!data.containsKey('entries')) {
-      throw ErrorHandler.handleValidationError('Invalid JSON format: missing entries');
+      throw ErrorHandler.handleValidationError(
+          'Invalid JSON format: missing entries');
     }
 
     final result = ImportResult();
@@ -197,15 +216,27 @@ class ImportService {
       try {
         final entryData = entries[i] as Map<String, dynamic>;
         final entry = _parseJSONEntry(entryData);
-        
-        // Validate entry
-        final validationErrors = DataValidator.validateTravelEntry(entry);
-        if (validationErrors.isNotEmpty) {
-          result.addError(i + 1, validationErrors.first.message);
+
+        // Basic validation
+        if (!entry.isValidTravel) {
+          result.addError(i + 1, 'Invalid travel entry data');
           continue;
         }
 
-        await _travelRepository.addEntry(entry);
+        // Convert Entry to TravelEntry for storage
+        final travelEntry = TravelEntry(
+          id: entry.id,
+          userId: entry.userId,
+          date: entry.date,
+          fromLocation: entry.from ?? '',
+          toLocation: entry.to ?? '',
+          travelMinutes: entry.minutes,
+          remarks: entry.notes ?? '',
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt,
+        );
+
+        await _travelRepository.add(travelEntry);
         result.successCount++;
       } catch (error) {
         result.addError(i + 1, error.toString());
@@ -216,18 +247,20 @@ class ImportService {
     return result;
   }
 
-  TravelTimeEntry _parseJSONEntry(Map<String, dynamic> data) {
-    return TravelTimeEntry(
-      id: data['id'] as String? ?? '',
+  Entry _parseJSONEntry(Map<String, dynamic> data) {
+    return Entry(
+      id: data['id'] as String?,
+      userId: data['userId'] as String? ?? 'imported_user',
+      type: EntryType.travel,
       date: DateTime.parse(data['date'] as String),
-      departure: data['departure'] as String,
-      arrival: data['arrival'] as String,
-      minutes: data['minutes'] as int,
-      info: data['info'] as String?,
-      createdAt: data['createdAt'] != null 
+      from: data['departure'] as String? ?? data['from'] as String?,
+      to: data['arrival'] as String? ?? data['to'] as String?,
+      travelMinutes: data['minutes'] as int? ?? data['travelMinutes'] as int?,
+      notes: data['info'] as String? ?? data['notes'] as String?,
+      createdAt: data['createdAt'] != null
           ? DateTime.parse(data['createdAt'] as String)
           : null,
-      updatedAt: data['updatedAt'] != null 
+      updatedAt: data['updatedAt'] != null
           ? DateTime.parse(data['updatedAt'] as String)
           : null,
     );
@@ -246,7 +279,8 @@ class ImportService {
     }
   }
 
-  Future<ImportValidationResult> _validateImportFileInternal(String filePath) async {
+  Future<ImportValidationResult> _validateImportFileInternal(
+      String filePath) async {
     final file = File(filePath);
     final result = ImportValidationResult();
 
@@ -263,14 +297,15 @@ class ImportService {
       return result;
     }
 
-    if (fileSize > 10 * 1024 * 1024) { // 10MB limit
+    if (fileSize > 10 * 1024 * 1024) {
+      // 10MB limit
       result.isValid = false;
       result.errors.add('File is too large (maximum 10MB)');
       return result;
     }
 
     final extension = filePath.toLowerCase().split('.').last;
-    
+
     try {
       if (extension == 'csv') {
         await _validateCSVFile(file, result);
@@ -278,7 +313,8 @@ class ImportService {
         await _validateJSONFile(file, result);
       } else {
         result.isValid = false;
-        result.errors.add('Unsupported file format. Only CSV and JSON are supported.');
+        result.errors
+            .add('Unsupported file format. Only CSV and JSON are supported.');
       }
     } catch (error) {
       result.isValid = false;
@@ -288,10 +324,12 @@ class ImportService {
     return result;
   }
 
-  Future<void> _validateCSVFile(File file, ImportValidationResult result) async {
+  Future<void> _validateCSVFile(
+      File file, ImportValidationResult result) async {
     final content = await file.readAsString();
-    final lines = content.split('\n').where((line) => line.trim().isNotEmpty).toList();
-    
+    final lines =
+        content.split('\n').where((line) => line.trim().isNotEmpty).toList();
+
     if (lines.isEmpty) {
       result.errors.add('CSV file is empty');
       return;
@@ -299,11 +337,12 @@ class ImportService {
 
     // Validate header
     if (!_isValidCSVHeader(lines.first)) {
-      result.errors.add('Invalid CSV header. Expected: ${AppConstants.csvHeader}');
+      result.errors
+          .add('Invalid CSV header. Expected: ${AppConstants.csvHeader}');
     }
 
     result.estimatedRecords = lines.length - 1; // Exclude header
-    
+
     // Sample validation (check first few rows)
     final sampleSize = lines.length > 6 ? 5 : lines.length - 1;
     for (int i = 1; i <= sampleSize; i++) {
@@ -317,12 +356,13 @@ class ImportService {
     result.isValid = result.errors.isEmpty;
   }
 
-  Future<void> _validateJSONFile(File file, ImportValidationResult result) async {
+  Future<void> _validateJSONFile(
+      File file, ImportValidationResult result) async {
     final content = await file.readAsString();
-    
+
     try {
       final data = jsonDecode(content) as Map<String, dynamic>;
-      
+
       if (!data.containsKey('entries')) {
         result.errors.add('JSON file missing required "entries" field');
         return;
@@ -348,7 +388,8 @@ class ImportService {
   }
 
   /// Get import preview
-  Future<ImportPreview> getImportPreview(String filePath, {int maxRows = 5}) async {
+  Future<ImportPreview> getImportPreview(String filePath,
+      {int maxRows = 5}) async {
     try {
       return await RetryHelper.executeWithRetry(
         () async => _getImportPreviewInternal(filePath, maxRows),
@@ -360,7 +401,8 @@ class ImportService {
     }
   }
 
-  Future<ImportPreview> _getImportPreviewInternal(String filePath, int maxRows) async {
+  Future<ImportPreview> _getImportPreviewInternal(
+      String filePath, int maxRows) async {
     final file = File(filePath);
     final preview = ImportPreview();
 
@@ -369,7 +411,7 @@ class ImportService {
     }
 
     final extension = filePath.toLowerCase().split('.').last;
-    
+
     if (extension == 'csv') {
       await _generateCSVPreview(file, preview, maxRows);
     } else if (extension == 'json') {
@@ -381,10 +423,12 @@ class ImportService {
     return preview;
   }
 
-  Future<void> _generateCSVPreview(File file, ImportPreview preview, int maxRows) async {
+  Future<void> _generateCSVPreview(
+      File file, ImportPreview preview, int maxRows) async {
     final content = await file.readAsString();
-    final lines = content.split('\n').where((line) => line.trim().isNotEmpty).toList();
-    
+    final lines =
+        content.split('\n').where((line) => line.trim().isNotEmpty).toList();
+
     if (lines.isEmpty) return;
 
     preview.headers = _parseCSVFields(lines.first);
@@ -396,23 +440,26 @@ class ImportService {
     }
   }
 
-  Future<void> _generateJSONPreview(File file, ImportPreview preview, int maxRows) async {
+  Future<void> _generateJSONPreview(
+      File file, ImportPreview preview, int maxRows) async {
     final content = await file.readAsString();
     final data = jsonDecode(content) as Map<String, dynamic>;
-    
+
     if (!data.containsKey('entries')) return;
 
     final entries = data['entries'] as List<dynamic>;
     preview.totalRows = entries.length;
-    
+
     if (entries.isNotEmpty) {
       final firstEntry = entries.first as Map<String, dynamic>;
       preview.headers = firstEntry.keys.toList();
-      
+
       final sampleEntries = entries.take(maxRows).toList();
       for (final entry in sampleEntries) {
         final entryMap = entry as Map<String, dynamic>;
-        preview.sampleRows.add(preview.headers.map((key) => entryMap[key]?.toString() ?? '').toList());
+        preview.sampleRows.add(preview.headers
+            .map((key) => entryMap[key]?.toString() ?? '')
+            .toList());
       }
     }
   }

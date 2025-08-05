@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../models/travel_summary.dart';
-import '../repositories/repository_provider.dart';
 
 class TravelProvider extends ChangeNotifier {
   List<Entry> _entries = [];

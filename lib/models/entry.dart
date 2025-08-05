@@ -17,7 +17,12 @@ enum EntryType {
 @HiveType(typeId: 7)
 class Shift extends HiveObject {
   // Static values for enum-like behavior
-  static const List<String> values = ['morning', 'afternoon', 'evening', 'night'];
+  static const List<String> values = [
+    'morning',
+    'afternoon',
+    'evening',
+    'night'
+  ];
   @HiveField(0)
   final DateTime start;
 
@@ -145,8 +150,8 @@ class Entry extends HiveObject {
     this.journeyId,
     this.segmentOrder,
     this.totalSegments,
-  }) : id = id ?? const Uuid().v4(),
-       createdAt = createdAt ?? DateTime.now();
+  })  : id = id ?? const Uuid().v4(),
+        createdAt = createdAt ?? DateTime.now();
 
   // Computed getters
   double get workHours {
@@ -163,8 +168,8 @@ class Entry extends HiveObject {
   /// Duration for travel entries
   Duration get travelDuration =>
       type == EntryType.travel && travelMinutes != null
-      ? Duration(minutes: travelMinutes!)
-      : Duration.zero;
+          ? Duration(minutes: travelMinutes!)
+          : Duration.zero;
 
   /// Duration for work entries (sum of all shifts)
   Duration get workDuration {
@@ -298,8 +303,8 @@ class Entry extends HiveObject {
       travelMinutes: data['travelMinutes'],
       shifts: data['shifts'] != null
           ? (data['shifts'] as List)
-                .map((s) => Shift.fromFirestore(s as Map<String, dynamic>))
-                .toList()
+              .map((s) => Shift.fromFirestore(s as Map<String, dynamic>))
+              .toList()
           : null,
       date: (data['date'] as Timestamp).toDate(),
       notes: data['notes'],
@@ -326,8 +331,8 @@ class Entry extends HiveObject {
       travelMinutes: data['travelMinutes'],
       shifts: data['shifts'] != null
           ? (data['shifts'] as List)
-                .map((s) => Shift.fromFirestore(s as Map<String, dynamic>))
-                .toList()
+              .map((s) => Shift.fromFirestore(s as Map<String, dynamic>))
+              .toList()
           : null,
       date: (data['date'] as Timestamp).toDate(),
       notes: data['notes'],

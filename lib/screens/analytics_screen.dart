@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
 import '../viewmodels/analytics_view_model.dart';
 import '../services/admin_api_service.dart';
+import '../services/auth_service.dart';
+import '../config/app_router.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -12,20 +15,78 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
+  bool _isAdmin = false;
+  bool _isCheckingAdmin = true;
+
   @override
   void initState() {
     super.initState();
+    _checkAdminStatus();
     // Load mock data for testing
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AnalyticsViewModel>().loadMockData();
     });
   }
 
+  Future<void> _checkAdminStatus() async {
+    final authService = context.read<AuthService>();
+    final isAdmin = await authService.isAdmin();
+    if (mounted) {
+      setState(() {
+        _isAdmin = isAdmin;
+        _isCheckingAdmin = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Show loading while checking admin status
+    if (_isCheckingAdmin) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Redirect non-admin users
+    if (!_isAdmin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Access denied. Admin privileges required.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        context.go(AppRouter.homePath);
+      });
+      return const Scaffold(
+        body: Center(child: Text('Access denied. Redirecting...')),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Analytics Dashboard'),
+        title: Row(
+          children: [
+            const Text('Analytics Dashboard'),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.orange,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'ADMIN',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
         elevation: 0,
@@ -290,24 +351,29 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ),
         ),
         borderData: FlBorderData(show: false),
-        barGroups: trends.asMap().entries.map<BarChartGroupData>((entry) {
-          final index = entry.key;
-          final trend = entry.value;
-          return BarChartGroupData(
-            x: index,
-            barRods: [
-              BarChartRodData(
-                toY: trend.totalHours,
-                color: Theme.of(context).colorScheme.primary,
-                width: 20,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(4),
-                  topRight: Radius.circular(4),
-                ),
-              ),
-            ],
-          );
-        }).toList().cast<BarChartGroupData>(),
+        barGroups: trends
+            .asMap()
+            .entries
+            .map<BarChartGroupData>((entry) {
+              final index = entry.key;
+              final trend = entry.value;
+              return BarChartGroupData(
+                x: index,
+                barRods: [
+                  BarChartRodData(
+                    toY: trend.totalHours,
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 20,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(4),
+                      topRight: Radius.circular(4),
+                    ),
+                  ),
+                ],
+              );
+            })
+            .toList()
+            .cast<BarChartGroupData>(),
       ),
     );
   }

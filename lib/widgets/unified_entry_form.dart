@@ -39,6 +39,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   // Work-specific fields
   String? _workLocation;
   Shift? _shift;
+  
+  // Get current user ID (you'll need to get this from your auth service)
+  String get _currentUserId => 'current_user_id'; // TODO: Get from auth service
 
   bool _isLoading = false;
 
@@ -245,18 +248,21 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
         const SizedBox(height: 12),
         LocationSelector(
-          label: 'From',
-          value: _departureLocation,
-          onChanged: (location) =>
+          labelText: 'From',
+          hintText: 'Enter departure location',
+          initialValue: _departureLocation,
+          onLocationSelected: (location) =>
               setState(() => _departureLocation = location),
-          icon: Icons.my_location,
+          prefixIcon: Icons.my_location,
         ),
         const SizedBox(height: 12),
         LocationSelector(
-          label: 'To',
-          value: _arrivalLocation,
-          onChanged: (location) => setState(() => _arrivalLocation = location),
-          icon: Icons.location_on,
+          labelText: 'To',
+          hintText: 'Enter arrival location',
+          initialValue: _arrivalLocation,
+          onLocationSelected: (location) =>
+              setState(() => _arrivalLocation = location),
+          prefixIcon: Icons.location_on,
         ),
       ],
     );
@@ -274,10 +280,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
         const SizedBox(height: 12),
         LocationSelector(
-          label: 'Location',
-          value: _workLocation,
-          onChanged: (location) => setState(() => _workLocation = location),
-          icon: Icons.work,
+          labelText: 'Location',
+          hintText: 'Enter work location',
+          initialValue: _workLocation,
+          onLocationSelected: (location) =>
+              setState(() => _workLocation = location),
+          prefixIcon: Icons.work,
         ),
       ],
     );
@@ -367,21 +375,33 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ),
         ),
         const SizedBox(height: 12),
-        DropdownButtonFormField<Shift>(
-          value: _shift,
-          decoration: const InputDecoration(
-            labelText: 'Shift',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.schedule),
-          ),
-          items: Shift.values.map((shift) {
-            return DropdownMenuItem(
-              value: shift,
-              child: Text(_getShiftDisplayName(shift)),
-            );
-          }).toList(),
-          onChanged: (shift) => setState(() => _shift = shift),
-        ),
+                 DropdownButtonFormField<String>(
+           value: _shift?.description,
+           decoration: const InputDecoration(
+             labelText: 'Shift',
+             border: OutlineInputBorder(),
+             prefixIcon: Icon(Icons.schedule),
+           ),
+           items: Shift.values.map((shiftType) {
+             return DropdownMenuItem(
+               value: shiftType,
+               child: Text(_getShiftDisplayName(shiftType)),
+             );
+           }).toList(),
+           onChanged: (shiftType) {
+             if (shiftType != null) {
+               // Create a basic shift for the selected type
+               final now = DateTime.now();
+               final shift = Shift(
+                 start: now,
+                 end: now.add(const Duration(hours: 8)),
+                 description: shiftType,
+                 location: _workLocation,
+               );
+               setState(() => _shift = shift);
+             }
+           },
+         ),
         const SizedBox(height: 20),
       ],
     );
@@ -509,27 +529,22 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         _startTime.minute,
       );
 
-      final entry = Entry(
-        id:
-            widget.existingEntry?.id ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
-        type: widget.entryType,
-        date: entryDateTime,
-        minutes: _durationMinutes,
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
-        departureLocation: widget.entryType == EntryType.travel
-            ? _departureLocation
-            : null,
-        arrivalLocation: widget.entryType == EntryType.travel
-            ? _arrivalLocation
-            : null,
-        workLocation: widget.entryType == EntryType.work ? _workLocation : null,
-        shift: widget.entryType == EntryType.work ? _shift : null,
-        createdAt: widget.existingEntry?.createdAt ?? DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+             final entry = Entry(
+         id: widget.existingEntry?.id ??
+             DateTime.now().millisecondsSinceEpoch.toString(),
+         userId: _currentUserId,
+         type: widget.entryType,
+         date: entryDateTime,
+         from: widget.entryType == EntryType.travel ? _departureLocation : null,
+         to: widget.entryType == EntryType.travel ? _arrivalLocation : null,
+         travelMinutes: widget.entryType == EntryType.travel ? _durationMinutes : null,
+         shifts: widget.entryType == EntryType.work && _shift != null ? [_shift!] : null,
+         notes: _notesController.text.trim().isEmpty
+             ? null
+             : _notesController.text.trim(),
+         createdAt: widget.existingEntry?.createdAt ?? DateTime.now(),
+         updatedAt: DateTime.now(),
+       );
 
       if (widget.existingEntry != null) {
         await entryProvider.updateEntry(entry);
@@ -577,16 +592,18 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     }
   }
 
-  String _getShiftDisplayName(Shift shift) {
-    switch (shift) {
-      case Shift.morning:
+  String _getShiftDisplayName(String shiftType) {
+    switch (shiftType) {
+      case 'morning':
         return 'Morning Shift';
-      case Shift.afternoon:
+      case 'afternoon':
         return 'Afternoon Shift';
-      case Shift.evening:
+      case 'evening':
         return 'Evening Shift';
-      case Shift.night:
+      case 'night':
         return 'Night Shift';
+      default:
+        return 'Unknown Shift';
     }
   }
 }

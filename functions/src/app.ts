@@ -24,7 +24,8 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:5000',
     'http://localhost:8080',
-    'http://localhost:8081' // Added for new Flutter web port
+    'http://localhost:8081',
+    'http://localhost:8082' // Added for current Flutter web port
   ],
   credentials: true
 }));

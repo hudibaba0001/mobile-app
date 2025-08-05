@@ -21,21 +21,16 @@ class TravelEntry extends BaseModel {
   final String remarks;
 
   TravelEntry({
-    required String id,
-    required String userId,
+    required super.id,
+    required super.userId,
     required this.date,
     required this.fromLocation,
     required this.toLocation,
     required this.travelMinutes,
     this.remarks = '',
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : super(
-          id: id,
-          userId: userId,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-        );
+    super.createdAt,
+    super.updatedAt,
+  });
 
   TravelEntry copyWith({
     String? id,

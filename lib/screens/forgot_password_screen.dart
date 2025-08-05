@@ -93,7 +93,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    fillColor:
+                        colorScheme.surfaceContainerHighest.withOpacity(0.3),
                   ),
                   validator: _validateEmail,
                   onFieldSubmitted: (_) => _handleResetPassword(),
@@ -107,7 +108,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: FilledButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
-                    disabledBackgroundColor: colorScheme.surfaceContainerHighest,
+                    disabledBackgroundColor:
+                        colorScheme.surfaceContainerHighest,
                     disabledForegroundColor: colorScheme.onSurfaceVariant,
                     minimumSize: const Size.fromHeight(48),
                     shape: RoundedRectangleBorder(
@@ -168,8 +170,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     try {
       await context.read<AuthService>().sendPasswordResetEmail(
-        _emailController.text.trim(),
-      );
+            email: _emailController.text.trim(),
+          );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -183,7 +185,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
           ),
         );
-        AppRouter.goBackOrHome(context);
+        AppRouter.goToLogin(context);
       }
     } catch (e) {
       if (mounted) {

@@ -1,8 +1,9 @@
 // functions/src/index.ts
 
-import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 import app from './app';
 
-export const api = functions
-  .region('europe-west3')
-  .https.onRequest(app);
+export const api = onRequest(
+  { region: 'europe-west3' },
+  app
+);

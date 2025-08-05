@@ -62,4 +62,9 @@ class TravelRepository {
   Future<void> close() async {
     await _box.close();
   }
+
+  /// Initialize the repository (for Hive-based implementations)
+  Future<void> initialize() async {
+    // Default implementation does nothing
+  }
 }

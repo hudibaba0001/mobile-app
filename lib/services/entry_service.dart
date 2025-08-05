@@ -21,4 +21,8 @@ class EntryService {
   Future<void> deleteEntry(String id) async {
     // TODO: Implement actual data deletion
   }
-} 
+
+  Future<void> getMoreEntries() async {
+    // TODO: Implement pagination for loading more entries
+  }
+}

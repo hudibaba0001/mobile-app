@@ -1,4 +1,5 @@
-import '../models/travel_time_entry.dart';
+import '../models/entry.dart';
+import '../models/travel_entry.dart';
 import '../models/travel_summary.dart';
 import '../repositories/travel_repository.dart';
 import '../repositories/location_repository.dart';
@@ -13,11 +14,12 @@ class TravelService {
   TravelService({
     required TravelRepository travelRepository,
     required LocationRepository locationRepository,
-  }) : _travelRepository = travelRepository,
-       _locationRepository = locationRepository;
+  })  : _travelRepository = travelRepository,
+        _locationRepository = locationRepository;
 
   /// Generate travel summary for a date range
-  Future<TravelSummary> generateSummary(DateTime startDate, DateTime endDate) async {
+  Future<TravelSummary> generateSummary(
+      DateTime startDate, DateTime endDate) async {
     try {
       return await RetryHelper.executeWithRetry(
         () async => _generateSummaryInternal(startDate, endDate),
@@ -29,9 +31,13 @@ class TravelService {
     }
   }
 
-  Future<TravelSummary> _generateSummaryInternal(DateTime startDate, DateTime endDate) async {
-    final entries = await _travelRepository.getEntriesInDateRange(startDate, endDate);
-    
+  Future<TravelSummary> _generateSummaryInternal(
+      DateTime startDate, DateTime endDate) async {
+    // Note: This method needs a userId parameter, but we'll use a placeholder for now
+    final userId = 'current_user'; // TODO: Get from auth service
+    final entries =
+        _travelRepository.getForUserInRange(userId, startDate, endDate);
+
     if (entries.isEmpty) {
       return TravelSummary(
         totalEntries: 0,
@@ -42,17 +48,20 @@ class TravelService {
       );
     }
 
-    final totalMinutes = entries.fold(0, (sum, entry) => sum + entry.minutes);
+    final totalMinutes =
+        entries.fold(0, (sum, entry) => sum + entry.travelMinutes);
     final locationFrequency = <String, int>{};
 
     // Count location frequency
     for (final entry in entries) {
-      final route = '${entry.departure} → ${entry.arrival}';
+      final route = '${entry.fromLocation} → ${entry.toLocation}';
       locationFrequency[route] = (locationFrequency[route] ?? 0) + 1;
-      
+
       // Also count individual locations
-      locationFrequency[entry.departure] = (locationFrequency[entry.departure] ?? 0) + 1;
-      locationFrequency[entry.arrival] = (locationFrequency[entry.arrival] ?? 0) + 1;
+      locationFrequency[entry.fromLocation] =
+          (locationFrequency[entry.fromLocation] ?? 0) + 1;
+      locationFrequency[entry.toLocation] =
+          (locationFrequency[entry.toLocation] ?? 0) + 1;
     }
 
     return TravelSummary(
@@ -78,12 +87,15 @@ class TravelService {
   }
 
   Future<List<String>> _getSuggestedRoutesInternal(int limit) async {
-    final recentEntries = await _travelRepository.getAllEntries();
+    // Note: This method needs a userId parameter, but we'll use a placeholder for now
+    final userId = 'current_user'; // TODO: Get from auth service
+    final recentEntries = _travelRepository.getAllForUser(userId);
     final routeFrequency = <String, int>{};
 
     // Count route frequency
-    for (final entry in recentEntries.take(50)) { // Look at last 50 entries
-      final route = '${entry.departure} → ${entry.arrival}';
+    for (final entry in recentEntries.take(50)) {
+      // Look at last 50 entries
+      final route = '${entry.fromLocation} → ${entry.toLocation}';
       routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
     }
 
@@ -95,7 +107,7 @@ class TravelService {
   }
 
   /// Export travel entries to CSV format
-  Future<String> exportToCSV(List<TravelTimeEntry> entries) async {
+  Future<String> exportToCSV(List<Entry> entries) async {
     try {
       return await RetryHelper.executeWithRetry(
         () async => _exportToCSVInternal(entries),
@@ -107,25 +119,30 @@ class TravelService {
     }
   }
 
-  Future<String> _exportToCSVInternal(List<TravelTimeEntry> entries) async {
+  Future<String> _exportToCSVInternal(List<Entry> entries) async {
     final buffer = StringBuffer();
-    
+
     // Add header
     buffer.writeln(AppConstants.csvHeader);
-    
+
     // Add data rows
     for (final entry in entries) {
-      final row = [
-        _escapeCsvField(entry.date.toIso8601String().split('T')[0]), // Date only
-        _escapeCsvField(entry.departure),
-        _escapeCsvField(entry.arrival),
-        entry.minutes.toString(),
-        _escapeCsvField(entry.info ?? ''),
-        _escapeCsvField(entry.createdAt.toIso8601String()),
-      ];
-      buffer.writeln(row.join(','));
+      if (entry.type == EntryType.travel &&
+          entry.from != null &&
+          entry.to != null) {
+        final row = [
+          _escapeCsvField(
+              entry.date.toIso8601String().split('T')[0]), // Date only
+          _escapeCsvField(entry.from!),
+          _escapeCsvField(entry.to!),
+          entry.minutes.toString(),
+          _escapeCsvField(entry.notes ?? ''),
+          _escapeCsvField(entry.createdAt.toIso8601String()),
+        ];
+        buffer.writeln(row.join(','));
+      }
     }
-    
+
     return buffer.toString();
   }
 
@@ -150,8 +167,10 @@ class TravelService {
   }
 
   Future<Map<String, dynamic>> _getTravelStatisticsInternal() async {
-    final allEntries = await _travelRepository.getAllEntries();
-    
+    // Note: This method needs a userId parameter, but we'll use a placeholder for now
+    final userId = 'current_user'; // TODO: Get from auth service
+    final allEntries = _travelRepository.getAllForUser(userId);
+
     if (allEntries.isEmpty) {
       return {
         'totalEntries': 0,
@@ -166,23 +185,24 @@ class TravelService {
       };
     }
 
-    final totalMinutes = allEntries.fold(0, (sum, entry) => sum + entry.minutes);
-    final minutes = allEntries.map((e) => e.minutes).toList()..sort();
-    
+    final totalMinutes =
+        allEntries.fold(0, (sum, entry) => sum + entry.travelMinutes);
+    final minutes = allEntries.map((e) => e.travelMinutes).toList()..sort();
+
     // Calculate date range
     final dates = allEntries.map((e) => e.date).toList()..sort();
     final daysDifference = dates.last.difference(dates.first).inDays + 1;
-    
+
     // Find most frequent route
     final routeFrequency = <String, int>{};
     for (final entry in allEntries) {
-      final route = '${entry.departure} → ${entry.arrival}';
+      final route = '${entry.fromLocation} → ${entry.toLocation}';
       routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
     }
-    
-    final mostFrequentRoute = routeFrequency.entries
-        .reduce((a, b) => a.value > b.value ? a : b)
-        .key;
+
+    final mostFrequentRoute = routeFrequency.isNotEmpty
+        ? routeFrequency.entries.reduce((a, b) => a.value > b.value ? a : b).key
+        : 'None';
 
     return {
       'totalEntries': allEntries.length,
@@ -212,8 +232,11 @@ class TravelService {
 
   Future<Map<String, dynamic>> _getRecentPatternsInternal(int days) async {
     final cutoffDate = DateTime.now().subtract(Duration(days: days));
-    final recentEntries = await _travelRepository.getEntriesInDateRange(cutoffDate, DateTime.now());
-    
+    // Note: This method needs a userId parameter, but we'll use a placeholder for now
+    final userId = 'current_user'; // TODO: Get from auth service
+    final recentEntries = _travelRepository.getForUserInRange(
+        userId, cutoffDate, DateTime.now());
+
     if (recentEntries.isEmpty) {
       return {
         'commonDepartures': <String>[],
@@ -231,12 +254,12 @@ class TravelService {
     final dayOfWeekCounts = <int, int>{};
 
     for (final entry in recentEntries) {
-      departures[entry.departure] = (departures[entry.departure] ?? 0) + 1;
-      arrivals[entry.arrival] = (arrivals[entry.arrival] ?? 0) + 1;
-      
-      final route = '${entry.departure} → ${entry.arrival}';
+      departures[entry.fromLocation] = (departures[entry.fromLocation] ?? 0) + 1;
+      arrivals[entry.toLocation] = (arrivals[entry.toLocation] ?? 0) + 1;
+
+      final route = '${entry.fromLocation} → ${entry.toLocation}';
       routes[route] = (routes[route] ?? 0) + 1;
-      
+
       final dayOfWeek = entry.date.weekday;
       dayOfWeekCounts[dayOfWeek] = (dayOfWeekCounts[dayOfWeek] ?? 0) + 1;
     }
@@ -245,15 +268,26 @@ class TravelService {
     final topDepartures = _getTopItems(departures, 5);
     final topArrivals = _getTopItems(arrivals, 5);
     final topRoutes = _getTopItems(routes, 5);
-    
+
     // Get peak travel days
     final peakDays = dayOfWeekCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    
-    final dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    final peakDayNames = peakDays.take(3).map((e) => dayNames[e.key - 1]).toList();
 
-    final averageTripTime = recentEntries.fold(0, (sum, entry) => sum + entry.minutes) / recentEntries.length;
+    final dayNames = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
+    final peakDayNames =
+        peakDays.take(3).map((e) => dayNames[e.key - 1]).toList();
+
+    final averageTripTime =
+        recentEntries.fold(0, (sum, entry) => sum + entry.travelMinutes) /
+            recentEntries.length;
 
     return {
       'commonDepartures': topDepartures,
@@ -271,7 +305,7 @@ class TravelService {
   }
 
   /// Validate and save travel entry
-  Future<void> saveTravelEntry(TravelTimeEntry entry) async {
+  Future<void> saveTravelEntry(Entry entry) async {
     try {
       await RetryHelper.executeWithRetry(
         () async => _saveTravelEntryInternal(entry),
@@ -283,23 +317,32 @@ class TravelService {
     }
   }
 
-  Future<void> _saveTravelEntryInternal(TravelTimeEntry entry) async {
-    await _travelRepository.addEntry(entry);
+  Future<void> _saveTravelEntryInternal(Entry entry) async {
+    // Convert Entry to TravelEntry for storage
+    final travelEntry = TravelEntry(
+      id: entry.id,
+      userId: entry.userId,
+      date: entry.date,
+      fromLocation: entry.from ?? '',
+      toLocation: entry.to ?? '',
+      travelMinutes: entry.minutes,
+      remarks: entry.notes ?? '',
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+    );
     
+    await _travelRepository.add(travelEntry);
+
     // Update location usage counts if locations are linked
-    if (entry.departureLocationId != null) {
-      await _locationRepository.incrementUsageCount(entry.departureLocationId!);
-    }
-    if (entry.arrivalLocationId != null) {
-      await _locationRepository.incrementUsageCount(entry.arrivalLocationId!);
-    }
+    // Note: This would need location IDs, but we don't have them in the current model
+    // TODO: Implement location linking when location system is ready
   }
 
   /// Update travel entry
-  Future<void> updateTravelEntry(TravelTimeEntry entry) async {
+  Future<void> updateTravelEntry(Entry entry) async {
     try {
       await RetryHelper.executeWithRetry(
-        () async => _travelRepository.updateEntry(entry),
+        () async => _updateTravelEntryInternal(entry),
         shouldRetry: RetryHelper.shouldRetryStorageError,
       );
     } catch (error, stackTrace) {
@@ -308,11 +351,28 @@ class TravelService {
     }
   }
 
+  Future<void> _updateTravelEntryInternal(Entry entry) async {
+    // Convert Entry to TravelEntry for storage
+    final travelEntry = TravelEntry(
+      id: entry.id,
+      userId: entry.userId,
+      date: entry.date,
+      fromLocation: entry.from ?? '',
+      toLocation: entry.to ?? '',
+      travelMinutes: entry.minutes,
+      remarks: entry.notes ?? '',
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+    );
+    
+    await _travelRepository.update(travelEntry);
+  }
+
   /// Delete travel entry
   Future<void> deleteTravelEntry(String entryId) async {
     try {
       await RetryHelper.executeWithRetry(
-        () async => _travelRepository.deleteEntry(entryId),
+        () async => _travelRepository.delete(entryId),
         shouldRetry: RetryHelper.shouldRetryStorageError,
       );
     } catch (error, stackTrace) {
@@ -322,15 +382,50 @@ class TravelService {
   }
 
   /// Search travel entries
-  Future<List<TravelTimeEntry>> searchEntries(String query) async {
+  Future<List<Entry>> searchEntries(String query) async {
     try {
       return await RetryHelper.executeWithRetry(
-        () async => _travelRepository.searchEntries(query),
+        () async => _searchEntriesInternal(query),
         shouldRetry: RetryHelper.shouldRetryStorageError,
       );
     } catch (error, stackTrace) {
       final appError = ErrorHandler.handleStorageError(error, stackTrace);
       throw appError;
     }
+  }
+
+  Future<List<Entry>> _searchEntriesInternal(String query) async {
+    // Note: This method needs a userId parameter, but we'll use a placeholder for now
+    final userId = 'current_user'; // TODO: Get from auth service
+    final allEntries = _travelRepository.getAllForUser(userId);
+    
+    // Simple search implementation
+    final lowercaseQuery = query.toLowerCase();
+    final results = <Entry>[];
+    
+    for (final travelEntry in allEntries) {
+      // Convert TravelEntry to Entry for consistency
+      final entry = Entry(
+        id: travelEntry.id,
+        userId: travelEntry.userId,
+        type: EntryType.travel,
+        from: travelEntry.fromLocation,
+        to: travelEntry.toLocation,
+        travelMinutes: travelEntry.travelMinutes,
+        date: travelEntry.date,
+        notes: travelEntry.remarks,
+        createdAt: travelEntry.createdAt,
+        updatedAt: travelEntry.updatedAt,
+      );
+      
+      // Search in departure, arrival, and notes
+      if (travelEntry.fromLocation.toLowerCase().contains(lowercaseQuery) ||
+          travelEntry.toLocation.toLowerCase().contains(lowercaseQuery) ||
+          travelEntry.remarks.toLowerCase().contains(lowercaseQuery)) {
+        results.add(entry);
+      }
+    }
+    
+    return results;
   }
 }

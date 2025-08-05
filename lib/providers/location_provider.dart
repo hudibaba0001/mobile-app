@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../location.dart';
+import '../models/location.dart';
 import '../utils/constants.dart';
 
 class LocationProvider extends ChangeNotifier {
@@ -81,6 +81,57 @@ class LocationProvider extends ChangeNotifier {
   List<Location> get mostUsedLocations {
     // For now, return all locations. In the future, we can track usage
     return _locations;
+  }
+
+  /// Get address suggestions for search
+  List<String> getAddressSuggestions(String query, {int limit = 5}) {
+    if (query.isEmpty) return [];
+    
+    final suggestions = <String>{};
+    for (final location in _locations) {
+      if (location.address.toLowerCase().contains(query.toLowerCase())) {
+        suggestions.add(location.address);
+        if (suggestions.length >= limit) break;
+      }
+    }
+    return suggestions.toList();
+  }
+
+  /// Get recently added locations
+  List<Location> getRecentlyAddedLocations({int limit = 5}) {
+    final sortedLocations = List<Location>.from(_locations);
+    sortedLocations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return sortedLocations.take(limit).toList();
+  }
+
+  /// Toggle favorite status for a location
+  Future<void> toggleFavorite(String locationId) async {
+    try {
+      final box = Hive.box<Location>(AppConstants.locationsBox);
+      final location = box.values.firstWhere((loc) => loc.id == locationId);
+      final updatedLocation = location.copyWith(isFavorite: !location.isFavorite);
+      await box.put(locationId, updatedLocation);
+      await refreshLocations();
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to toggle favorite: $e';
+      });
+    }
+  }
+
+  /// Increment usage count for a location
+  Future<void> incrementUsageCount(String locationId) async {
+    try {
+      final box = Hive.box<Location>(AppConstants.locationsBox);
+      final location = box.values.firstWhere((loc) => loc.id == locationId);
+      final updatedLocation = location.copyWith(usageCount: location.usageCount + 1);
+      await box.put(locationId, updatedLocation);
+      await refreshLocations();
+    } catch (e) {
+      setState(() {
+        _error = 'Failed to increment usage count: $e';
+      });
+    }
   }
 
   void setState(VoidCallback fn) {

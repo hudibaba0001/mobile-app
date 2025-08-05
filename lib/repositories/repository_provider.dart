@@ -8,6 +8,7 @@ import '../models/contract_settings.dart';
 import '../models/leave_entry.dart';
 import '../location.dart';
 import 'travel_repository.dart';
+import 'hive_travel_repository.dart';
 import 'work_repository.dart';
 import 'contract_repository.dart';
 import 'leave_repository.dart';
@@ -58,7 +59,8 @@ class RepositoryProvider {
     final locationsBox = await Hive.openBox<Location>(_locationsBoxName);
 
     // Initialize repositories
-    travelRepository = TravelRepository(travelBox);
+    travelRepository = HiveTravelRepository();
+    await travelRepository.initialize();
     workRepository = WorkRepository(workBox);
     contractRepository = ContractRepository(contractBox);
     leaveRepository = LeaveRepository(leaveBox);
