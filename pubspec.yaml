@@ -52,7 +52,7 @@ dependencies:
   firebase_core: ^3.15.2
   firebase_auth: ^5.7.0
   cloud_firestore: ^5.6.12
-  # firebase_storage: ^11.6.5  # Removed due to compatibility issues
+  firebase_storage: ^12.4.10
   # Stripe dependencies
   flutter_stripe: ^11.5.0
   # Web plugins for URL strategy
