@@ -16,6 +16,8 @@ enum EntryType {
 /// Shift model for work entries
 @HiveType(typeId: 7)
 class Shift extends HiveObject {
+  // Static values for enum-like behavior
+  static const List<String> values = ['morning', 'afternoon', 'evening', 'night'];
   @HiveField(0)
   final DateTime start;
 
@@ -202,6 +204,25 @@ class Entry extends HiveObject {
 
   /// Check if this is a work entry
   bool get isWork => type == EntryType.work;
+
+  // Additional getters for compatibility
+  /// Get minutes for travel entries
+  int get minutes => travelMinutes ?? 0;
+
+  /// Get description (notes)
+  String? get description => notes;
+
+  /// Get departure location for travel entries
+  String? get departureLocation => from;
+
+  /// Get arrival location for travel entries
+  String? get arrivalLocation => to;
+
+  /// Get work location (for work entries)
+  String? get workLocation => shifts?.firstOrNull?.location;
+
+  /// Get shift information
+  Shift? get shift => shifts?.firstOrNull;
 
   /// Validation for travel entries
   bool get isValidTravel {
