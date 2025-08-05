@@ -19,6 +19,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -33,6 +34,22 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <!-- Firebase JavaScript SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+      apiKey: "AIzaSyDkTfV_l8Um_66jRugu4KvaZhPXf8UeUT4",
+      authDomain: "kviktime-9ee5f.firebaseapp.com",
+      projectId: "kviktime-9ee5f",
+      storageBucket: "kviktime-9ee5f.firebasestorage.app",
+      messagingSenderId: "1011662335499",
+      appId: "1:1011662335499:web:b1690b31c0d6840107610e"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
