@@ -12,6 +12,7 @@ import 'providers/local_entry_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/travel_provider.dart';
+import 'providers/entry_provider.dart';
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
 import 'repositories/repository_provider.dart';
@@ -101,6 +102,13 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => TravelProvider()),
+        ChangeNotifierProxyProvider2<RepositoryProvider, AuthService,
+            EntryProvider>(
+          create: (context) => EntryProvider(
+              context.read<RepositoryProvider>(), context.read<AuthService>()),
+          update: (context, repositoryProvider, authService, previous) =>
+              previous ?? EntryProvider(repositoryProvider, authService),
+        ),
         // Services
         Provider(create: (_) => AdminApiService()),
         // ViewModels

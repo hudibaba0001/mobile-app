@@ -5,6 +5,8 @@ import '../config/app_router.dart';
 import '../models/travel_entry.dart';
 import '../models/work_entry.dart';
 import '../repositories/repository_provider.dart';
+import '../providers/entry_provider.dart';
+import '../services/auth_service.dart';
 
 /// Unified Home screen with navigation integration.
 /// Main entry point combining travel and work time tracking.
@@ -52,7 +54,15 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     try {
       final repositoryProvider =
           Provider.of<RepositoryProvider>(context, listen: false);
-      final userId = 'current_user'; // TODO: Get actual user ID
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final userId = authService.currentUser?.uid;
+
+      if (userId == null) {
+        setState(() {
+          _recentEntries = [];
+        });
+        return;
+      }
 
       print('Loading entries for user: $userId');
 
@@ -122,7 +132,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         context.push(AppRouter.homePath);
         break;
       case 1:
-        context.push(AppRouter.reportsPath);
+        context.push(AppRouter.historyPath);
         break;
       case 2:
         context.push(AppRouter.settingsPath);
@@ -141,23 +151,87 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Time Tracker'),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.timer_rounded,
+                color: colorScheme.primary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Time Tracker',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                  'Track your productivity',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
         elevation: 0,
-        backgroundColor: colorScheme.surface,
+        backgroundColor: Colors.transparent,
         foregroundColor: colorScheme.onSurface,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_outline),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: colorScheme.outline.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                Icons.person_outline_rounded,
+                color: colorScheme.onSurfaceVariant,
+                size: 20,
+              ),
+            ),
             onPressed: () => AppRouter.goToProfile(context),
             tooltip: 'Profile',
-            style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
           ),
+          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: colorScheme.outline.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                Icons.settings_rounded,
+                color: colorScheme.onSurfaceVariant,
+                size: 20,
+              ),
+            ),
             onPressed: () => AppRouter.goToSettings(context),
             tooltip: 'Settings',
-            style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
           ),
+          const SizedBox(width: 16),
         ],
       ),
       body: SingleChildScrollView(
@@ -183,36 +257,76 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showQuickEntry,
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Icon(Icons.add),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onTabTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: colorScheme.surface,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: colorScheme.onSurfaceVariant,
-        selectedLabelStyle: theme.textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w500,
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.primary.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        unselectedLabelStyle: theme.textTheme.labelMedium,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+        child: FloatingActionButton(
+          onPressed: _showQuickEntry,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          elevation: 0,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: const Icon(Icons.add, size: 28),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                _buildNavItem(
+                  context,
+                  icon: Icons.home_rounded,
+                  label: 'Home',
+                  isSelected: _selectedIndex == 0,
+                  onTap: () => _onTabTapped(0),
+                ),
+                _buildNavItem(
+                  context,
+                  icon: Icons.history_rounded,
+                  label: 'History',
+                  isSelected: _selectedIndex == 1,
+                  onTap: () => _onTabTapped(1),
+                ),
+                const SizedBox(width: 40), // Space for FAB
+                _buildNavItem(
+                  context,
+                  icon: Icons.settings_rounded,
+                  label: 'Settings',
+                  isSelected: _selectedIndex == 2,
+                  onTap: () => _onTabTapped(2),
+                ),
+                _buildNavItem(
+                  context,
+                  icon: Icons.assignment_rounded,
+                  label: 'Contract',
+                  isSelected: _selectedIndex == 3,
+                  onTap: () => _onTabTapped(3),
+                ),
+              ],
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: 'Contract',
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -230,31 +344,123 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             theme.colorScheme.primary.withOpacity(0.8),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Today\'s Total',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onPrimary.withOpacity(0.9),
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.timer_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Today\'s Total',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '7h 45m',
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 32,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            '7h 45m',
-            style: theme.textTheme.headlineLarge?.copyWith(
-              color: theme.colorScheme.onPrimary,
-              fontWeight: FontWeight.w700,
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Travel: 1h 30m • Work: 6h 15m',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onPrimary.withOpacity(0.8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.directions_car_rounded,
+                        color: Colors.white.withOpacity(0.8),
+                        size: 20,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '1h 30m',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'Travel',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: Colors.white.withOpacity(0.2),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.work_rounded,
+                        color: Colors.white.withOpacity(0.8),
+                        size: 20,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '6h 15m',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'Work',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -268,18 +474,18 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         Expanded(
           child: _buildActionCard(
             theme,
-            icon: Icons.directions_car,
+            icon: Icons.directions_car_rounded,
             title: 'Log Travel',
             subtitle: 'Track your commute',
             color: theme.colorScheme.primary,
             onTap: _startTravelEntry,
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         Expanded(
           child: _buildActionCard(
             theme,
-            icon: Icons.work,
+            icon: Icons.work_rounded,
             title: 'Log Work',
             subtitle: 'Track work hours',
             color: theme.colorScheme.secondary,
@@ -298,39 +504,81 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withOpacity(0.1),
+            color.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          height: 120,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 32, color: color),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            height: 140,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 24,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -404,40 +652,67 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Recent Entries',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            Icon(
+              Icons.history_rounded,
+              color: theme.colorScheme.primary,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Recent Entries',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () => AppRouter.goToHistory(context),
+              child: Text(
+                'View All',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         if (_recentEntries.isEmpty)
           Container(
-            padding: const EdgeInsets.all(24),
+            width: double.infinity,
+            padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.2),
+                width: 1,
+              ),
             ),
             child: Column(
               children: [
                 Icon(
-                  Icons.history,
+                  Icons.history_rounded,
                   size: 48,
-                  color: Colors.grey[400],
+                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Text(
                   'No entries yet',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.grey[600],
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Text(
-                  'Start logging your travel and work time to see them here',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[500],
+                  'Start tracking your time by logging travel or work entries',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -445,108 +720,198 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             ),
           )
         else
-          ..._recentEntries.map((entry) => _buildRecentEntry(theme, entry)),
+          ...(_recentEntries
+              .take(3)
+              .map((entry) => _buildRecentEntryCard(theme, entry))),
       ],
     );
   }
 
-  Widget _buildRecentEntry(ThemeData theme, _EntryData entry) {
-    final isWork = entry.type == 'work';
+  Widget _buildRecentEntryCard(ThemeData theme, _EntryData entry) {
+    final isTravel = entry.type == 'travel';
     final color =
-        isWork ? theme.colorScheme.secondary : theme.colorScheme.primary;
+        isTravel ? theme.colorScheme.primary : theme.colorScheme.secondary;
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(entry.icon, size: 20, color: color),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    entry.title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            // Navigate to edit entry
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    entry.subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                  child: Icon(
+                    entry.icon,
+                    color: color,
+                    size: 24,
                   ),
-                ],
-              ),
-            ),
-            Text(
-              entry.duration,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 8),
-            PopupMenuButton<String>(
-              icon: Icon(
-                Icons.more_vert,
-                color: theme.colorScheme.onSurfaceVariant,
-                size: 20,
-              ),
-              onSelected: (value) {
-                switch (value) {
-                  case 'edit':
-                    _editEntry(entry);
-                    break;
-                  case 'delete':
-                    _deleteEntry(entry);
-                    break;
-                }
-              },
-              itemBuilder: (BuildContext context) => [
-                PopupMenuItem<String>(
-                  value: 'edit',
-                  child: Row(
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.edit,
-                          size: 18, color: theme.colorScheme.primary),
-                      const SizedBox(width: 8),
-                      Text('Edit'),
+                      Text(
+                        entry.title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        entry.subtitle,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
                 ),
-                PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete,
-                          size: 18, color: theme.colorScheme.error),
-                      const SizedBox(width: 8),
-                      Text('Delete',
-                          style: TextStyle(color: theme.colorScheme.error)),
-                    ],
+                const SizedBox(width: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    entry.duration,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: theme.colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.edit_outlined,
+                            size: 18,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 12),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            size: 18,
+                            color: theme.colorScheme.error,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Delete',
+                            style: TextStyle(color: theme.colorScheme.error),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _editEntry(entry);
+                    } else if (value == 'delete') {
+                      _deleteEntry(context, entry);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                  size: 24,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1163,10 +1528,13 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                 print(
                                     'Trip data: from=${trip.fromController.text}, to=${trip.toController.text}, minutes=${trip.totalMinutes}');
 
+                                final authService = context.read<AuthService>();
+                                final userId = authService.currentUser?.uid;
+                                if (userId == null) return;
+
                                 final travelEntry = TravelEntry(
                                   id: '', // Will be generated by repository
-                                  userId:
-                                      'current_user', // TODO: Get actual user ID
+                                  userId: userId,
                                   date: DateTime.now(),
                                   fromLocation: trip.fromController.text.trim(),
                                   toLocation: trip.toController.text.trim(),
@@ -1970,10 +2338,13 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                 print('Total work minutes: $totalWorkMinutes');
 
                                 // Create work entry
+                                final authService = context.read<AuthService>();
+                                final userId = authService.currentUser?.uid;
+                                if (userId == null) return;
+
                                 final workEntry = WorkEntry(
                                   id: '', // Will be generated by repository
-                                  userId:
-                                      'current_user', // TODO: Get actual user ID
+                                  userId: userId,
                                   date: DateTime.now(),
                                   workMinutes: totalWorkMinutes,
                                   remarks: _notesController.text.trim(),

@@ -191,7 +191,16 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _selectedTypeNotifier.value = type,
+          onTap: () {
+            _selectedTypeNotifier.value = type;
+            // Apply filter to EntryProvider
+            context.read<EntryProvider>().filterEntries(
+                  selectedType: type,
+                  searchQuery: _searchController.text,
+                  startDate: _getDateRangeFilter()?.start,
+                  endDate: _getDateRangeFilter()?.end,
+                );
+          },
           borderRadius: BorderRadius.circular(8),
           child: Container(
             height: 48,
@@ -277,6 +286,13 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
         if (range == DateRange.custom) {
           await _showDateRangePicker(context);
         }
+        // Apply filter to EntryProvider
+        context.read<EntryProvider>().filterEntries(
+          selectedType: _selectedTypeNotifier.value,
+          searchQuery: _searchController.text,
+          startDate: _getDateRangeFilter()?.start,
+          endDate: _getDateRangeFilter()?.end,
+        );
       },
       backgroundColor: colorScheme.surface,
       selectedColor: colorScheme.primary,

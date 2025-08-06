@@ -17,18 +17,26 @@ const app = express();
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: [
-    'https://app-kviktime-se.web.app',
-    'https://kviktime-9ee5f.web.app',
-    'http://localhost:3000',
-    'http://localhost:5000',
-    'http://localhost:8080',
-    'http://localhost:8081',
-    'http://localhost:8082' // Added for current Flutter web port
-  ],
-  credentials: true
-}));
+// Define a whitelist of allowed domains for production
+const whitelist = ['https://app-kviktime-se.web.app', 'https://kviktime-9ee5f.web.app'];
+
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    // Allow from the whitelist or any localhost origin
+    if (whitelist.indexOf(origin) !== -1 || /localhost:\d+$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Health check endpoint (no auth required)

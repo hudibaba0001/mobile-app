@@ -10,12 +10,14 @@ import '../screens/admin_users_screen.dart';
 import '../screens/contract_settings_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/analytics_screen.dart';
+import '../screens/enhanced_history_screen.dart';
 
 class AppRouter {
   static const String loginPath = '/login';
   static const String homePath = '/';
   static const String settingsPath = '/settings';
   static const String reportsPath = '/reports';
+  static const String historyPath = '/history';
   static const String adminUsersPath = '/admin/users';
   static const String analyticsPath = '/analytics';
   static const String contractSettingsPath = '/settings/contract';
@@ -25,6 +27,7 @@ class AppRouter {
   static const String homeName = 'home';
   static const String settingsName = 'settings';
   static const String reportsName = 'reports';
+  static const String historyName = 'history';
   static const String adminUsersName = 'admin-users';
   static const String analyticsName = 'analytics';
   static const String contractSettingsName = 'contract-settings';
@@ -106,6 +109,11 @@ class AppRouter {
             builder: (context, state) => const ReportsScreen(),
           ),
           GoRoute(
+            path: historyPath,
+            name: historyName,
+            builder: (context, state) => const EnhancedHistoryScreen(),
+          ),
+          GoRoute(
             path: contractSettingsPath,
             name: contractSettingsName,
             builder: (context, state) => const ContractSettingsScreen(),
@@ -152,6 +160,7 @@ class AppRouter {
     if (location == loginPath) return loginName;
     if (location == settingsPath) return settingsName;
     if (location == reportsPath) return reportsName;
+    if (location == historyPath) return historyName;
     if (location == adminUsersPath) return adminUsersName;
     if (location == analyticsPath) return analyticsName;
     if (location == contractSettingsPath) return contractSettingsName;
@@ -159,7 +168,7 @@ class AppRouter {
     return homeName;
   }
 
-  static void goToHistory(BuildContext context) => context.goNamed(reportsName);
+  static void goToHistory(BuildContext context) => context.goNamed(historyName);
   static void goToEditEntry(BuildContext context,
       {required String entryId, required String entryType}) {
     // For now, just go to reports since edit entry screen was removed
@@ -173,6 +182,4 @@ class AppRouter {
       context.goNamed(homeName);
     }
   }
-
-  static const String historyName = 'history';
 }

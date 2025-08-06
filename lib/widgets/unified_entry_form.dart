@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
 import '../widgets/location_selector.dart';
+import 'package:flutter/foundation.dart';
 
 /// Unified entry form for both travel and work entries
 /// Provides appropriate fields based on entry type
@@ -39,7 +40,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   // Work-specific fields
   String? _workLocation;
   Shift? _shift;
-  
+
   // Get current user ID (you'll need to get this from your auth service)
   String get _currentUserId => 'current_user_id'; // TODO: Get from auth service
 
@@ -375,33 +376,33 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ),
         ),
         const SizedBox(height: 12),
-                 DropdownButtonFormField<String>(
-           value: _shift?.description,
-           decoration: const InputDecoration(
-             labelText: 'Shift',
-             border: OutlineInputBorder(),
-             prefixIcon: Icon(Icons.schedule),
-           ),
-           items: Shift.values.map((shiftType) {
-             return DropdownMenuItem(
-               value: shiftType,
-               child: Text(_getShiftDisplayName(shiftType)),
-             );
-           }).toList(),
-           onChanged: (shiftType) {
-             if (shiftType != null) {
-               // Create a basic shift for the selected type
-               final now = DateTime.now();
-               final shift = Shift(
-                 start: now,
-                 end: now.add(const Duration(hours: 8)),
-                 description: shiftType,
-                 location: _workLocation,
-               );
-               setState(() => _shift = shift);
-             }
-           },
-         ),
+        DropdownButtonFormField<String>(
+          value: _shift?.description,
+          decoration: const InputDecoration(
+            labelText: 'Shift',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.schedule),
+          ),
+          items: Shift.values.map((shiftType) {
+            return DropdownMenuItem(
+              value: shiftType,
+              child: Text(_getShiftDisplayName(shiftType)),
+            );
+          }).toList(),
+          onChanged: (shiftType) {
+            if (shiftType != null) {
+              // Create a basic shift for the selected type
+              final now = DateTime.now();
+              final shift = Shift(
+                start: now,
+                end: now.add(const Duration(hours: 8)),
+                description: shiftType,
+                location: _workLocation,
+              );
+              setState(() => _shift = shift);
+            }
+          },
+        ),
         const SizedBox(height: 20),
       ],
     );
@@ -529,27 +530,39 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         _startTime.minute,
       );
 
-             final entry = Entry(
-         id: widget.existingEntry?.id ??
-             DateTime.now().millisecondsSinceEpoch.toString(),
-         userId: _currentUserId,
-         type: widget.entryType,
-         date: entryDateTime,
-         from: widget.entryType == EntryType.travel ? _departureLocation : null,
-         to: widget.entryType == EntryType.travel ? _arrivalLocation : null,
-         travelMinutes: widget.entryType == EntryType.travel ? _durationMinutes : null,
-         shifts: widget.entryType == EntryType.work && _shift != null ? [_shift!] : null,
-         notes: _notesController.text.trim().isEmpty
-             ? null
-             : _notesController.text.trim(),
-         createdAt: widget.existingEntry?.createdAt ?? DateTime.now(),
-         updatedAt: DateTime.now(),
-       );
+      final entry = Entry(
+        id: widget.existingEntry?.id ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
+        userId: _currentUserId,
+        type: widget.entryType,
+        date: entryDateTime,
+        from: widget.entryType == EntryType.travel ? _departureLocation : null,
+        to: widget.entryType == EntryType.travel ? _arrivalLocation : null,
+        travelMinutes:
+            widget.entryType == EntryType.travel ? _durationMinutes : null,
+        shifts: widget.entryType == EntryType.work && _shift != null
+            ? [_shift!]
+            : null,
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
+        createdAt: widget.existingEntry?.createdAt ?? DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
       if (widget.existingEntry != null) {
         await entryProvider.updateEntry(entry);
       } else {
         await entryProvider.addEntry(entry);
+      }
+
+      if (kDebugMode) {
+        print('✅ UnifiedEntryForm: Saved ${entry.type} entry');
+        print('✅ UnifiedEntryForm: Entry ID: ${entry.id}');
+        print('✅ UnifiedEntryForm: Duration: ${entry.totalDuration}');
+        print('✅ UnifiedEntryForm: Work Duration: ${entry.workDuration}');
+        print('✅ UnifiedEntryForm: Travel Duration: ${entry.travelDuration}');
+        print('✅ UnifiedEntryForm: Shifts count: ${entry.shifts?.length ?? 0}');
       }
 
       if (mounted) {
