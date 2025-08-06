@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'firebase_options.dart';
 import 'config/app_router.dart';
@@ -30,49 +29,45 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  print('🔥 Firebase: Starting initialization...');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  print('🔥 Firebase: Initialization completed successfully');
-  print('🔥 Firebase: Current platform options: ${DefaultFirebaseOptions.currentPlatform}');
 
   // Initialize Stripe
   await StripeService.initialize();
 
-  // Initialize repositories
+  // Create and initialize RepositoryProvider
   final repositoryProvider = RepositoryProvider();
   await repositoryProvider.initialize();
 
-  // Initialize auth service
+  // Initialize AuthService
   final authService = AuthService();
   await authService.initialize();
 
   runApp(
-      MyApp(repositoryProvider: repositoryProvider, authService: authService));
+    MyApp(
+      repositoryProvider: repositoryProvider,
+      authService: authService,
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   final RepositoryProvider repositoryProvider;
   final AuthService authService;
 
-  const MyApp(
-      {super.key, required this.repositoryProvider, required this.authService});
+  const MyApp({
+    super.key,
+    required this.repositoryProvider,
+    required this.authService,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Auth Service (using the initialized instance)
-        ChangeNotifierProvider<AuthService>.value(
-          value: authService,
-        ),
-
-        // Repository Provider (using the initialized instance)
-        Provider<RepositoryProvider>.value(
-          value: repositoryProvider,
-        ),
-
+        ChangeNotifierProvider<AuthService>.value(value: authService),
+        Provider<RepositoryProvider>.value(value: repositoryProvider),
         // Individual Repositories
         ProxyProvider<RepositoryProvider, TravelRepository>(
           create: (context) =>
@@ -98,7 +93,6 @@ class MyApp extends StatelessWidget {
           update: (context, repositoryProvider, previous) =>
               repositoryProvider.leaveRepository,
         ),
-
         // Existing providers
         ChangeNotifierProvider(create: (_) => AppStateProvider()),
         ChangeNotifierProvider(create: (_) => ContractProvider()),
@@ -107,10 +101,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => TravelProvider()),
-
         // Services
         Provider(create: (_) => AdminApiService()),
-
         // ViewModels
         ChangeNotifierProxyProvider<AdminApiService, AnalyticsViewModel>(
           create: (context) =>

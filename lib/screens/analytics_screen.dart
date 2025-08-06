@@ -312,8 +312,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: trends.map((t) => t.totalHours).reduce((a, b) => a > b ? a : b) *
-            1.2,
+        maxY: trends.map((t) => t.totalHours).reduce((a, b) => a > b ? a : b) * 1.2,
         barTouchData: BarTouchData(enabled: false),
         titlesData: FlTitlesData(
           show: true,
@@ -351,29 +350,24 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ),
         ),
         borderData: FlBorderData(show: false),
-        barGroups: trends
-            .asMap()
-            .entries
-            .map<BarChartGroupData>((entry) {
-              final index = entry.key;
-              final trend = entry.value;
-              return BarChartGroupData(
-                x: index,
-                barRods: [
-                  BarChartRodData(
-                    toY: trend.totalHours,
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 20,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(4),
-                      topRight: Radius.circular(4),
-                    ),
-                  ),
-                ],
-              );
-            })
-            .toList()
-            .cast<BarChartGroupData>(),
+        barGroups: trends.asMap().entries.map((entry) {
+          final index = entry.key;
+          final trend = entry.value;
+          return BarChartGroupData(
+            x: index,
+            barRods: [
+              BarChartRodData(
+                toY: trend.totalHours,
+                color: Theme.of(context).colorScheme.primary,
+                width: 20,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(4),
+                  topRight: Radius.circular(4),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
