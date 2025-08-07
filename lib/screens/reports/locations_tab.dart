@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
 
 class LocationsTab extends StatelessWidget {
@@ -107,11 +108,33 @@ class LocationsTab extends StatelessWidget {
       );
     }
 
-    // TODO: Replace with proper chart widget
-    return CustomPaint(
-      painter: _LocationDistributionPainter(
-        locations: locations,
-        baseColor: theme.colorScheme.primary,
+    return PieChart(
+      PieChartData(
+        sections: locations.asMap().entries.map((entry) {
+          final index = entry.key;
+          final location = entry.value;
+          final percentage = (location.value.totalMinutes / totalMinutes * 100).toStringAsFixed(1);
+          
+          return PieChartSectionData(
+            value: location.value.totalMinutes.toDouble(),
+            color: theme.colorScheme.primary.withOpacity(1 - (index * 0.15)),
+            title: '$percentage%',
+            radius: 60,
+            titleStyle: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+            badgeWidget: _buildLocationBadge(
+              theme,
+              location.key,
+              location.value.totalVisits,
+            ),
+            badgePositionPercentageOffset: 1.2,
+          );
+        }).toList(),
+        sectionsSpace: 2,
+        centerSpaceRadius: 40,
+        startDegreeOffset: -90,
       ),
     );
   }
@@ -239,49 +262,49 @@ class LocationsTab extends StatelessWidget {
   }
 }
 
-class _LocationDistributionPainter extends CustomPainter {
-  final List<MapEntry<String, LocationAnalytics>> locations;
-  final Color baseColor;
-
-  _LocationDistributionPainter({
-    required this.locations,
-    required this.baseColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (locations.isEmpty) return;
-
-    final totalMinutes = locations.fold<int>(
-      0,
-      (sum, entry) => sum + entry.value.totalMinutes,
+  Widget _buildLocationBadge(
+    ThemeData theme,
+    String name,
+    int visits,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            name,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            '$visits visits',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
-    if (totalMinutes == 0) return;
-
-    var startAngle = -1.5708; // Start at top (-90 degrees)
-    final radius = size.width < size.height ? size.width / 3 : size.height / 3;
-    final center = Offset(size.width / 2, size.height / 2);
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    for (var i = 0; i < locations.length; i++) {
-      final entry = locations[i];
-      final sweepAngle =
-          2 * 3.14159 * (entry.value.totalMinutes / totalMinutes);
-
-      final paint = Paint()
-        ..color = baseColor.withOpacity(1 - (i * 0.2))
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 24
-        ..strokeCap = StrokeCap.round;
-
-      canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
-      startAngle += sweepAngle;
-    }
   }
-
-  @override
-  bool shouldRepaint(covariant _LocationDistributionPainter oldDelegate) {
-    return locations != oldDelegate.locations ||
-        baseColor != oldDelegate.baseColor;
-  }
-}

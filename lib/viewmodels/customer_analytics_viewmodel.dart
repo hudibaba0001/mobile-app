@@ -78,7 +78,15 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
           workEntries.fold(0, (sum, entry) => sum + entry.workMinutes);
       _totalEntries = travelEntries.length + workEntries.length;
 
-      // TODO: Calculate contract completion from ContractSettings
+      // Calculate contract completion
+  final contractSettings = _repository.contractRepository.getSettings();
+  if (contractSettings != null) {
+    final targetMinutes = contractSettings.targetHours * 60;
+    final totalMinutes = _totalWorkMinutes + _totalTravelMinutes;
+    _contractCompletion = targetMinutes > 0 ? totalMinutes / targetMinutes : 0.0;
+  } else {
+    _contractCompletion = 0.0;
+  }
 
       // Calculate daily trends
       _calculateDailyTrends(travelEntries, workEntries);

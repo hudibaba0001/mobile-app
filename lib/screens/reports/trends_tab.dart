@@ -167,12 +167,125 @@ class TrendsTab extends StatelessWidget {
       );
     }
 
-    // TODO: Replace with proper chart widget
-    return CustomPaint(
-      painter: _DailyActivityPainter(
-        trends: viewModel.dailyTrends,
-        travelColor: theme.colorScheme.tertiary,
-        workColor: theme.colorScheme.error,
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: viewModel.dailyTrends.fold<double>(
+          0,
+          (max, trend) => trend.totalMinutes > max ? trend.totalMinutes.toDouble() : max,
+        ),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            tooltipBgColor: theme.colorScheme.surface,
+            tooltipRoundedRadius: 8,
+            tooltipBorder: BorderSide(
+              color: theme.colorScheme.outline.withOpacity(0.2),
+            ),
+            tooltipPadding: const EdgeInsets.all(12),
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final trend = viewModel.dailyTrends[groupIndex];
+              final minutes = rodIndex == 0 ? trend.travelMinutes : trend.workMinutes;
+              final hours = minutes ~/ 60;
+              final remainingMinutes = minutes % 60;
+              return BarTooltipItem(
+                '${hours}h ${remainingMinutes}m',
+                theme.textTheme.bodyMedium!.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              );
+            },
+          ),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              getTitlesWidget: (value, meta) {
+                if (value < 0 || value >= viewModel.dailyTrends.length) {
+                  return const SizedBox();
+                }
+                final date = viewModel.dailyTrends[value.toInt()].date;
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  child: Text(
+                    '${date.day}/${date.month}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) {
+                final hours = value ~/ 60;
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  child: Text(
+                    '${hours}h',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: 120, // 2-hour intervals
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: theme.colorScheme.outline.withOpacity(0.1),
+            strokeWidth: 1,
+          ),
+        ),
+        borderData: FlBorderData(
+          show: false,
+        ),
+        barGroups: viewModel.dailyTrends.asMap().entries.map((entry) {
+          final index = entry.key;
+          final trend = entry.value;
+          return BarChartGroupData(
+            x: index,
+            groupVertically: true,
+            barRods: [
+              BarChartRodData(
+                toY: trend.travelMinutes.toDouble(),
+                color: theme.colorScheme.tertiary,
+                width: 8,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(4),
+                  topRight: Radius.circular(4),
+                ),
+              ),
+              BarChartRodData(
+                toY: trend.workMinutes.toDouble(),
+                color: theme.colorScheme.error,
+                width: 8,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(4),
+                  topRight: Radius.circular(4),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -330,71 +443,4 @@ class TrendsTab extends StatelessWidget {
   }
 }
 
-class _DailyActivityPainter extends CustomPainter {
-  final List<DailyTrend> trends;
-  final Color travelColor;
-  final Color workColor;
 
-  _DailyActivityPainter({
-    required this.trends,
-    required this.travelColor,
-    required this.workColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (trends.isEmpty) return;
-
-    final maxMinutes = trends.fold<int>(
-      0,
-      (max, trend) => trend.totalMinutes > max ? trend.totalMinutes : max,
-    );
-    if (maxMinutes == 0) return;
-
-    final barWidth = size.width / (trends.length * 2);
-    final spacing = barWidth;
-    final maxHeight = size.height - 20;
-
-    for (var i = 0; i < trends.length; i++) {
-      final trend = trends[i];
-      final x = i * (barWidth + spacing);
-
-      // Travel bar
-      if (trend.travelMinutes > 0) {
-        final travelHeight = (trend.travelMinutes / maxMinutes) * maxHeight;
-        final travelRect = Rect.fromLTWH(
-          x,
-          size.height - travelHeight,
-          barWidth,
-          travelHeight,
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(travelRect, const Radius.circular(4)),
-          Paint()..color = travelColor,
-        );
-      }
-
-      // Work bar
-      if (trend.workMinutes > 0) {
-        final workHeight = (trend.workMinutes / maxMinutes) * maxHeight;
-        final workRect = Rect.fromLTWH(
-          x + barWidth + (spacing / 2),
-          size.height - workHeight,
-          barWidth,
-          workHeight,
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(workRect, const Radius.circular(4)),
-          Paint()..color = workColor,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DailyActivityPainter oldDelegate) {
-    return trends != oldDelegate.trends ||
-        travelColor != oldDelegate.travelColor ||
-        workColor != oldDelegate.workColor;
-  }
-}

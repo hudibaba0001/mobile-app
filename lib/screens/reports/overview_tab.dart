@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
 
 class OverviewTab extends StatelessWidget {
@@ -230,13 +231,33 @@ class OverviewTab extends StatelessWidget {
       );
     }
 
-    // TODO: Replace with proper chart widget
-    return CustomPaint(
-      painter: _DistributionPainter(
-        travelRatio: viewModel.totalTravelMinutes / total,
-        workRatio: viewModel.totalWorkMinutes / total,
-        travelColor: theme.colorScheme.tertiary,
-        workColor: theme.colorScheme.error,
+    return PieChart(
+      PieChartData(
+        sections: [
+          PieChartSectionData(
+            value: viewModel.totalTravelMinutes.toDouble(),
+            color: theme.colorScheme.tertiary,
+            title: '${((viewModel.totalTravelMinutes / total) * 100).toStringAsFixed(1)}%',
+            radius: 60,
+            titleStyle: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          PieChartSectionData(
+            value: viewModel.totalWorkMinutes.toDouble(),
+            color: theme.colorScheme.error,
+            title: '${((viewModel.totalWorkMinutes / total) * 100).toStringAsFixed(1)}%',
+            radius: 60,
+            titleStyle: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+        sectionsSpace: 2,
+        centerSpaceRadius: 40,
+        startDegreeOffset: -90,
       ),
     );
   }
@@ -275,61 +296,4 @@ class OverviewTab extends StatelessWidget {
   }
 }
 
-class _DistributionPainter extends CustomPainter {
-  final double travelRatio;
-  final double workRatio;
-  final Color travelColor;
-  final Color workColor;
 
-  _DistributionPainter({
-    required this.travelRatio,
-    required this.workRatio,
-    required this.travelColor,
-    required this.workColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width < size.height ? size.width / 3 : size.height / 3;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    // Draw travel arc
-    final travelPaint = Paint()
-      ..color = travelColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 24
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      rect,
-      -1.5708, // Start at top (-90 degrees)
-      2 * 3.14159 * travelRatio, // Travel portion
-      false,
-      travelPaint,
-    );
-
-    // Draw work arc
-    final workPaint = Paint()
-      ..color = workColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 24
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      rect,
-      -1.5708 + (2 * 3.14159 * travelRatio), // Start after travel
-      2 * 3.14159 * workRatio, // Work portion
-      false,
-      workPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _DistributionPainter oldDelegate) {
-    return travelRatio != oldDelegate.travelRatio ||
-        workRatio != oldDelegate.workRatio ||
-        travelColor != oldDelegate.travelColor ||
-        workColor != oldDelegate.workColor;
-  }
-}
