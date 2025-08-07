@@ -29,6 +29,13 @@ class _LocationsScreenState extends State<LocationsScreen> {
     super.dispose();
   }
 
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   void _addLocation() {
     if (_nameController.text.isNotEmpty && _addressController.text.isNotEmpty) {
       final newLocation = Location(
@@ -38,21 +45,15 @@ class _LocationsScreenState extends State<LocationsScreen> {
       _locationsBox.add(newLocation);
       _nameController.clear();
       _addressController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Location added!')),
-      );
+      _showSnackBar('Location added!');
     } else {
-       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter both name and address.')),
-      );
+      _showSnackBar('Please enter both name and address.');
     }
   }
 
   void _deleteLocation(int index) {
     _locationsBox.deleteAt(index);
-     ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Location deleted!')),
-      );
+    _showSnackBar('Location deleted!');
   }
 
   @override

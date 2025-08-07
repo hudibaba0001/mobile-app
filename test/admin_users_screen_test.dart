@@ -61,7 +61,7 @@ void main() {
   testWidgets('disable button calls disableUser', (WidgetTester tester) async {
     when(mockAdminApiService.fetchUsers()).thenAnswer((_) async => mockUsers);
     when(mockAdminApiService.disableUser(any)).thenAnswer((_) async {
-      return null;
+      return;
     });
 
     await tester.pumpWidget(createTestWidget());
@@ -88,7 +88,7 @@ void main() {
   testWidgets('enable button calls enableUser', (WidgetTester tester) async {
     when(mockAdminApiService.fetchUsers()).thenAnswer((_) async => mockUsers);
     when(mockAdminApiService.enableUser(any)).thenAnswer((_) async {
-      return null;
+      return;
     });
 
     await tester.pumpWidget(createTestWidget());
@@ -115,7 +115,7 @@ void main() {
   testWidgets('delete confirmation dialog appears correctly', (WidgetTester tester) async {
     when(mockAdminApiService.fetchUsers()).thenAnswer((_) async => mockUsers);
     when(mockAdminApiService.deleteUser(any)).thenAnswer((_) async {
-      return null;
+      return;
     });
 
     await tester.pumpWidget(createTestWidget());

@@ -76,7 +76,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
 
   Future<void> _loadRecentRoutes() async {
     final entryProvider = context.read<EntryProvider>();
-    final recentEntries = await entryProvider.getRecentEntries(limit: 5);
+    final recentEntries = entryProvider.getRecentEntries(limit: 5);
     
     final routes = <String>{};
     for (final entry in recentEntries) {

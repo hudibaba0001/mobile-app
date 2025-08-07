@@ -101,7 +101,7 @@ void main() {
 
     test('disableUser success path', () async {
       when(mockAdminApiService.disableUser('user1')).thenAnswer((_) async {
-        return null;
+        return;
       });
 
       final success = await viewModel.disableUser(mockUsers[0]);
@@ -114,7 +114,7 @@ void main() {
 
     test('enableUser success path', () async {
       when(mockAdminApiService.enableUser('user2')).thenAnswer((_) async {
-        return null;
+        return;
       });
 
       final success = await viewModel.enableUser(mockUsers[1]);
@@ -127,7 +127,7 @@ void main() {
 
     test('deleteUser success path', () async {
       when(mockAdminApiService.deleteUser('user1')).thenAnswer((_) async {
-        return null;
+        return;
       });
 
       final success = await viewModel.deleteUser(mockUsers[0]);

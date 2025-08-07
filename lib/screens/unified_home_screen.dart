@@ -287,56 +287,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           child: const Icon(Icons.add, size: 28),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                _buildNavItem(
-                  context,
-                  icon: Icons.home_rounded,
-                  label: 'Home',
-                  isSelected: _selectedIndex == 0,
-                  onTap: () => _onTabTapped(0),
-                ),
-                _buildNavItem(
-                  context,
-                  icon: Icons.history_rounded,
-                  label: 'History',
-                  isSelected: _selectedIndex == 1,
-                  onTap: () => _onTabTapped(1),
-                ),
-                const SizedBox(width: 40), // Space for FAB
-                _buildNavItem(
-                  context,
-                  icon: Icons.settings_rounded,
-                  label: 'Settings',
-                  isSelected: _selectedIndex == 2,
-                  onTap: () => _onTabTapped(2),
-                ),
-                _buildNavItem(
-                  context,
-                  icon: Icons.assignment_rounded,
-                  label: 'Contract',
-                  isSelected: _selectedIndex == 3,
-                  onTap: () => _onTabTapped(3),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      // bottomNavigationBar removed; global nav from AppScaffold is used
     );
   }
 

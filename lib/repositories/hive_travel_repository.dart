@@ -13,6 +13,7 @@ class HiveTravelRepository implements TravelRepository {
     return _box!;
   }
 
+  @override
   Future<void> initialize() async {
     await _getBox();
   }
