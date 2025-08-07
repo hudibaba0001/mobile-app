@@ -108,13 +108,19 @@ class LocationsTab extends StatelessWidget {
       );
     }
 
+    final totalMinutes = locations.fold<int>(
+      0,
+      (sum, entry) => sum + entry.value.totalMinutes,
+    );
+
     return PieChart(
       PieChartData(
         sections: locations.asMap().entries.map((entry) {
           final index = entry.key;
           final location = entry.value;
-          final percentage = (location.value.totalMinutes / totalMinutes * 100).toStringAsFixed(1);
-          
+          final percentage = (location.value.totalMinutes / totalMinutes * 100)
+              .toStringAsFixed(1);
+
           return PieChartSectionData(
             value: location.value.totalMinutes.toDouble(),
             color: theme.colorScheme.primary.withOpacity(1 - (index * 0.15)),
@@ -262,49 +268,49 @@ class LocationsTab extends StatelessWidget {
   }
 }
 
-  Widget _buildLocationBadge(
-    ThemeData theme,
-    String name,
-    int visits,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
+Widget _buildLocationBadge(
+  ThemeData theme,
+  String name,
+  int visits,
+) {
+  return Container(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 8,
+      vertical: 4,
+    ),
+    decoration: BoxDecoration(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: theme.colorScheme.outline.withOpacity(0.2),
       ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
+      boxShadow: [
+        BoxShadow(
+          color: theme.colorScheme.shadow.withOpacity(0.1),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+      ],
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          name,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            name,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        Text(
+          '$visits visits',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
-          Text(
-            '$visits visits',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}

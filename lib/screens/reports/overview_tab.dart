@@ -237,7 +237,8 @@ class OverviewTab extends StatelessWidget {
           PieChartSectionData(
             value: viewModel.totalTravelMinutes.toDouble(),
             color: theme.colorScheme.tertiary,
-            title: '${((viewModel.totalTravelMinutes / total) * 100).toStringAsFixed(1)}%',
+            title:
+                '${((viewModel.totalTravelMinutes / total) * 100).toStringAsFixed(1)}%',
             radius: 60,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onPrimary,
@@ -247,7 +248,8 @@ class OverviewTab extends StatelessWidget {
           PieChartSectionData(
             value: viewModel.totalWorkMinutes.toDouble(),
             color: theme.colorScheme.error,
-            title: '${((viewModel.totalWorkMinutes / total) * 100).toStringAsFixed(1)}%',
+            title:
+                '${((viewModel.totalWorkMinutes / total) * 100).toStringAsFixed(1)}%',
             radius: 60,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onPrimary,
@@ -295,5 +297,3 @@ class OverviewTab extends StatelessWidget {
     return '$hours:${remainingMinutes.toString().padLeft(2, '0')}';
   }
 }
-
-
