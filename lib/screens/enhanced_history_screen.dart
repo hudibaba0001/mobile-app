@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
 import '../services/entry_service.dart';
+import '../widgets/app_bar_wrapper.dart';
 
 enum DateRange { today, yesterday, lastWeek, custom }
 
@@ -74,24 +75,9 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        title: Text(
-          'History',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: false,
+      appBar: const AppBarWrapper(
+        title: 'History',
+        showBackButton: false,
       ),
       body: Column(
         children: [
@@ -288,11 +274,11 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
         }
         // Apply filter to EntryProvider
         context.read<EntryProvider>().filterEntries(
-          selectedType: _selectedTypeNotifier.value,
-          searchQuery: _searchController.text,
-          startDate: _getDateRangeFilter()?.start,
-          endDate: _getDateRangeFilter()?.end,
-        );
+              selectedType: _selectedTypeNotifier.value,
+              searchQuery: _searchController.text,
+              startDate: _getDateRangeFilter()?.start,
+              endDate: _getDateRangeFilter()?.end,
+            );
       },
       backgroundColor: colorScheme.surface,
       selectedColor: colorScheme.primary,

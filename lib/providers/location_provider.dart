@@ -32,8 +32,9 @@ class LocationProvider extends ChangeNotifier {
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('Error loading locations: $e');
       _updateState(() {
-        _error = 'Failed to load locations: $e';
+        _error = 'Unable to load your locations. Please try again.';
         _isLoading = false;
       });
     }
@@ -45,8 +46,9 @@ class LocationProvider extends ChangeNotifier {
       await _repository.add(location);
       await refreshLocations();
     } catch (e) {
+      debugPrint('Error adding location: $e');
       _updateState(() {
-        _error = 'Failed to add location: $e';
+        _error = 'Unable to add the location. Please try again.';
       });
     }
   }
@@ -57,8 +59,9 @@ class LocationProvider extends ChangeNotifier {
       await _repository.delete(location);
       await refreshLocations();
     } catch (e) {
+      debugPrint('Error deleting location: $e');
       _updateState(() {
-        _error = 'Failed to delete location: $e';
+        _error = 'Unable to delete the location. Please try again.';
       });
     }
   }
@@ -69,8 +72,9 @@ class LocationProvider extends ChangeNotifier {
       await _repository.update(location);
       await refreshLocations();
     } catch (e) {
+      debugPrint('Error updating location: $e');
       _updateState(() {
-        _error = 'Failed to update location: $e';
+        _error = 'Unable to update the location. Please try again.';
       });
     }
   }
@@ -118,11 +122,12 @@ class LocationProvider extends ChangeNotifier {
   }
 
   /// Get autocomplete suggestions for a location query
-  List<AutocompleteSuggestion> getAutocompleteSuggestions(String query, {int limit = 5}) {
+  List<AutocompleteSuggestion> getAutocompleteSuggestions(String query,
+      {int limit = 5}) {
     if (query.trim().isEmpty) {
       // Return recent and favorite locations when no query
       final suggestions = <AutocompleteSuggestion>[];
-      
+
       // Add favorites first
       for (final location in getFavoriteLocations()) {
         suggestions.add(AutocompleteSuggestion(
@@ -132,7 +137,7 @@ class LocationProvider extends ChangeNotifier {
           location: location,
         ));
       }
-      
+
       // Add recent locations
       for (final location in getRecentLocations()) {
         if (!suggestions.any((s) => s.location?.id == location.id)) {
@@ -144,13 +149,13 @@ class LocationProvider extends ChangeNotifier {
           ));
         }
       }
-      
+
       return suggestions.take(limit).toList();
     }
 
     final suggestions = <AutocompleteSuggestion>[];
     final lowercaseQuery = query.toLowerCase();
-    
+
     // First, add exact matches from saved locations
     for (final location in _locations) {
       if (location.name.toLowerCase() == lowercaseQuery ||
@@ -163,7 +168,7 @@ class LocationProvider extends ChangeNotifier {
         ));
       }
     }
-    
+
     // Then add partial matches from saved locations
     for (final location in _locations) {
       if (location.name.toLowerCase().contains(lowercaseQuery) ||
@@ -178,10 +183,10 @@ class LocationProvider extends ChangeNotifier {
         }
       }
     }
-    
+
     // Finally, add the raw input as a custom suggestion if it doesn't match any saved location
-    if (!suggestions.any((s) => 
-        s.text.toLowerCase() == lowercaseQuery || 
+    if (!suggestions.any((s) =>
+        s.text.toLowerCase() == lowercaseQuery ||
         s.subtitle.toLowerCase() == lowercaseQuery)) {
       suggestions.add(AutocompleteSuggestion(
         text: query,
@@ -189,7 +194,7 @@ class LocationProvider extends ChangeNotifier {
         type: SuggestionType.custom,
       ));
     }
-    
+
     return suggestions.take(limit).toList();
   }
 
@@ -210,8 +215,9 @@ class LocationProvider extends ChangeNotifier {
       await _repository.update(updatedLocation);
       await refreshLocations();
     } catch (e) {
+      debugPrint('Error toggling favorite: $e');
       _updateState(() {
-        _error = 'Failed to toggle favorite: $e';
+        _error = 'Unable to update favorite status. Please try again.';
       });
     }
   }
@@ -226,8 +232,9 @@ class LocationProvider extends ChangeNotifier {
       await _repository.update(updatedLocation);
       await refreshLocations();
     } catch (e) {
+      debugPrint('Error incrementing usage count: $e');
       _updateState(() {
-        _error = 'Failed to increment usage count: $e';
+        _error = 'Unable to update location usage. Please try again.';
       });
     }
   }

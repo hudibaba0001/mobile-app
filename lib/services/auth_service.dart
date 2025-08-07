@@ -22,19 +22,19 @@ class AuthService extends ChangeNotifier {
     _auth.authStateChanges().listen((User? user) {
       _currentUser = user;
       _isAuthenticated = user != null;
-      print(
-          '🔐 AuthService: Auth state changed - Authenticated: $_isAuthenticated');
+      debugPrint(
+          'AuthService: Auth state changed - Authenticated: $_isAuthenticated');
       notifyListeners();
     });
   }
 
   // Initialize the auth service
   Future<void> initialize() async {
-    print('🔐 AuthService: Starting initialization...');
-    print('🔐 AuthService: Firebase Auth instance: $_auth');
-    print('🔐 AuthService: Firebase Auth app: ${_auth.app}');
-    print('🔐 AuthService: Firebase Auth app name: ${_auth.app.name}');
-    print('🔐 AuthService: Firebase Auth app options: ${_auth.app.options}');
+    debugPrint('AuthService: Starting initialization...');
+    debugPrint('AuthService: Firebase Auth instance: $_auth');
+    debugPrint('AuthService: Firebase Auth app: ${_auth.app}');
+    debugPrint('AuthService: Firebase Auth app name: ${_auth.app.name}');
+    debugPrint('AuthService: Firebase Auth app options: ${_auth.app.options}');
 
     await _loadAuthState();
   }
@@ -42,26 +42,26 @@ class AuthService extends ChangeNotifier {
   // Load saved authentication state
   Future<void> _loadAuthState() async {
     try {
-      print('🔐 AuthService: Loading auth state...');
+      debugPrint('AuthService: Loading auth state...');
 
       // Firebase Auth handles the current user automatically
       _currentUser = _auth.currentUser;
       _isAuthenticated = _currentUser != null;
 
       if (_isAuthenticated) {
-        print(
-            '🔐 AuthService: User already authenticated: ${_currentUser!.email}');
+        debugPrint(
+            'AuthService: User already authenticated: ${_currentUser!.email}');
       } else {
-        print('🔐 AuthService: No authenticated user found');
+        debugPrint('AuthService: No authenticated user found');
       }
     } catch (e) {
-      print('Error loading auth state: $e');
+      debugPrint('AuthService: Error loading auth state: $e');
       _currentUser = null;
       _isAuthenticated = false;
     } finally {
       _isInitialized = true;
-      print(
-          '🔐 AuthService: Initialized = $_isInitialized, Authenticated = $_isAuthenticated');
+      debugPrint(
+          'AuthService: Initialized = $_isInitialized, Authenticated = $_isAuthenticated');
       notifyListeners();
     }
   }
@@ -83,7 +83,7 @@ class AuthService extends ChangeNotifier {
         await prefs.remove('userDisplayName');
       }
     } catch (e) {
-      print('Error saving auth state: $e');
+      debugPrint('AuthService: Error saving auth state: $e');
     }
   }
 
@@ -92,39 +92,42 @@ class AuthService extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    print('🔐 AuthService: Signing in with email: $email');
-    print('🔐 AuthService: Firebase Auth instance: $_auth');
-    print(
-        '🔐 AuthService: Current user before sign in: ${_auth.currentUser?.email}');
+    debugPrint('AuthService: Attempting sign in for email: $email');
 
     try {
-      print(
-          '🔐 AuthService: Calling Firebase Auth signInWithEmailAndPassword...');
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      print(
-          '🔐 AuthService: Sign in successful for: ${credential.user?.email}');
+      debugPrint(
+          'AuthService: Sign in successful for: ${credential.user?.email}');
       await _saveAuthState();
 
       return credential;
     } catch (e) {
-      print('🔐 AuthService: Sign in failed with error: $e');
-      print('🔐 AuthService: Error type: ${e.runtimeType}');
-      print('🔐 AuthService: Error toString: ${e.toString()}');
+      debugPrint('AuthService: Sign in failed');
 
-      // Log more details about the error
       if (e is FirebaseAuthException) {
-        print('🔐 AuthService: Firebase Auth Exception Code: ${e.code}');
-        print('🔐 AuthService: Firebase Auth Exception Message: ${e.message}');
-        print('🔐 AuthService: Firebase Auth Exception Email: ${e.email}');
-        print(
-            '🔐 AuthService: Firebase Auth Exception TenantId: ${e.tenantId}');
+        debugPrint('AuthService: Error code: ${e.code}');
+
+        // Translate Firebase errors to user-friendly messages
+        switch (e.code) {
+          case 'user-not-found':
+            throw Exception('No account found with this email address.');
+          case 'wrong-password':
+            throw Exception('Incorrect password. Please try again.');
+          case 'invalid-email':
+            throw Exception('Invalid email address format.');
+          case 'user-disabled':
+            throw Exception(
+                'This account has been disabled. Please contact support.');
+          default:
+            throw Exception('Unable to sign in. Please try again later.');
+        }
       }
 
-      rethrow; // Re-throw the error so the UI can handle it
+      throw Exception('Unable to sign in. Please try again later.');
     }
   }
 
@@ -133,7 +136,7 @@ class AuthService extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    print('🔐 AuthService: Creating user with email: $email');
+    debugPrint('AuthService: Creating new account for email: $email');
 
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
@@ -141,41 +144,77 @@ class AuthService extends ChangeNotifier {
         password: password,
       );
 
-      print(
-          '🔐 AuthService: Sign up successful for: ${credential.user?.email}');
+      debugPrint(
+          'AuthService: Account created successfully for: ${credential.user?.email}');
       await _saveAuthState();
 
       return credential;
     } catch (e) {
-      print('🔐 AuthService: Sign up failed: $e');
-      rethrow;
+      debugPrint('AuthService: Account creation failed');
+
+      if (e is FirebaseAuthException) {
+        debugPrint('AuthService: Error code: ${e.code}');
+
+        switch (e.code) {
+          case 'email-already-in-use':
+            throw Exception(
+                'An account already exists with this email address.');
+          case 'invalid-email':
+            throw Exception('Invalid email address format.');
+          case 'operation-not-allowed':
+            throw Exception('Account creation is currently disabled.');
+          case 'weak-password':
+            throw Exception('Please choose a stronger password.');
+          default:
+            throw Exception(
+                'Unable to create account. Please try again later.');
+        }
+      }
+
+      throw Exception('Unable to create account. Please try again later.');
     }
   }
 
   // Real Firebase sign out
   Future<void> signOut() async {
-    print('🔐 AuthService: Signing out');
+    debugPrint('AuthService: Signing out user');
 
     try {
       await _auth.signOut();
       await _saveAuthState();
-      print('🔐 AuthService: Sign out successful');
+      debugPrint('AuthService: Sign out successful');
     } catch (e) {
-      print('🔐 AuthService: Sign out failed: $e');
-      rethrow;
+      debugPrint('AuthService: Sign out failed: $e');
+      throw Exception('Unable to sign out. Please try again later.');
     }
   }
 
   // Real Firebase password reset
   Future<void> sendPasswordResetEmail({required String email}) async {
-    print('🔐 AuthService: Sending password reset email to: $email');
+    debugPrint('AuthService: Sending password reset email');
 
     try {
       await _auth.sendPasswordResetEmail(email: email);
-      print('🔐 AuthService: Password reset email sent successfully');
+      debugPrint('AuthService: Password reset email sent successfully');
     } catch (e) {
-      print('🔐 AuthService: Password reset email failed: $e');
-      rethrow;
+      debugPrint('AuthService: Password reset failed');
+
+      if (e is FirebaseAuthException) {
+        debugPrint('AuthService: Error code: ${e.code}');
+
+        switch (e.code) {
+          case 'user-not-found':
+            throw Exception('No account found with this email address.');
+          case 'invalid-email':
+            throw Exception('Invalid email address format.');
+          default:
+            throw Exception(
+                'Unable to send password reset email. Please try again later.');
+        }
+      }
+
+      throw Exception(
+          'Unable to send password reset email. Please try again later.');
     }
   }
 
@@ -192,11 +231,11 @@ class AuthService extends ChangeNotifier {
 
       // Check for admin custom claim
       final isAdmin = claims?['admin'] == true;
-      print('🔐 AuthService: Admin check for ${_currentUser!.email}: $isAdmin');
+      debugPrint('AuthService: Admin check result: $isAdmin');
 
       return isAdmin;
     } catch (e) {
-      print('🔐 AuthService: Error checking admin status: $e');
+      debugPrint('AuthService: Error checking admin status: $e');
       return false;
     }
   }
@@ -209,10 +248,10 @@ class AuthService extends ChangeNotifier {
 
     try {
       await _currentUser!.updateDisplayName(displayName);
-      print('🔐 AuthService: Profile updated successfully');
+      debugPrint('AuthService: Profile updated successfully');
     } catch (e) {
-      print('🔐 AuthService: Profile update failed: $e');
-      rethrow;
+      debugPrint('AuthService: Profile update failed: $e');
+      throw Exception('Unable to update profile. Please try again later.');
     }
   }
 
@@ -222,7 +261,7 @@ class AuthService extends ChangeNotifier {
     required String password,
     String? displayName,
   }) async {
-    print('🔐 AuthService: Creating development account for: $email');
+    debugPrint('AuthService: Creating development account');
 
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
@@ -235,13 +274,33 @@ class AuthService extends ChangeNotifier {
         await credential.user!.updateDisplayName(displayName);
       }
 
-      print('🔐 AuthService: Development account created successfully: ${credential.user?.email}');
+      debugPrint('AuthService: Development account created successfully');
       await _saveAuthState();
 
       return credential;
     } catch (e) {
-      print('🔐 AuthService: Development account creation failed: $e');
-      rethrow;
+      debugPrint('AuthService: Development account creation failed');
+
+      if (e is FirebaseAuthException) {
+        debugPrint('AuthService: Error code: ${e.code}');
+
+        switch (e.code) {
+          case 'email-already-in-use':
+            throw Exception(
+                'An account already exists with this email address.');
+          case 'invalid-email':
+            throw Exception('Invalid email address format.');
+          case 'operation-not-allowed':
+            throw Exception('Account creation is currently disabled.');
+          case 'weak-password':
+            throw Exception('Please choose a stronger password.');
+          default:
+            throw Exception(
+                'Unable to create account. Please try again later.');
+        }
+      }
+
+      throw Exception('Unable to create account. Please try again later.');
     }
   }
 }

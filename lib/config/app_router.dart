@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../widgets/app_scaffold.dart';
 import '../screens/login_screen.dart';
 import '../screens/unified_home_screen.dart';
 import '../screens/settings_screen.dart';
@@ -94,9 +95,10 @@ class AppRouter {
       // Main app shell with bottom navigation
       ShellRoute(
         builder: (context, state, child) {
-          // This will be the shell that contains the bottom navigation
-          // For now, we'll use the UnifiedHomeScreen as the shell
-          return child;
+          return AppScaffold(
+            currentPath: state.matchedLocation,
+            child: child,
+          );
         },
         routes: [
           GoRoute(
@@ -201,6 +203,17 @@ class AppRouter {
   }
 
   static void goBackOrHome(BuildContext context) {
+    final currentRoute = getCurrentRouteName(context);
+
+    // If we're on a main tab (home, history, settings), go home instead of exiting
+    if ([homeName, historyName, settingsName].contains(currentRoute)) {
+      if (currentRoute != homeName) {
+        context.goNamed(homeName);
+      }
+      return;
+    }
+
+    // For other screens, try to go back, fallback to home
     if (context.canPop()) {
       context.pop();
     } else {

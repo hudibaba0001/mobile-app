@@ -105,15 +105,11 @@ class EntryProvider extends ChangeNotifier {
       _filteredEntries = _entries;
       _error = null;
 
-      if (kDebugMode) {
-        print(
-            '✅ EntryProvider: Loaded ${_entries.length} entries (${travelEntries.length} travel, ${workEntries.length} work)');
-      }
+      debugPrint(
+          'EntryProvider: Loaded ${_entries.length} entries (${travelEntries.length} travel, ${workEntries.length} work)');
     } catch (e) {
-      _error = e.toString();
-      if (kDebugMode) {
-        print('❌ EntryProvider: Error loading entries: $e');
-      }
+      debugPrint('EntryProvider: Error loading entries: $e');
+      _error = 'Unable to load your entries. Please try again.';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -162,15 +158,11 @@ class EntryProvider extends ChangeNotifier {
       _applyFilters();
       notifyListeners();
 
-      if (kDebugMode) {
-        print(
-            '✅ EntryProvider: Added ${entry.type} entry with ID: ${entry.id}');
-      }
+      debugPrint(
+          'EntryProvider: Added ${entry.type} entry with ID: ${entry.id}');
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ EntryProvider: Error adding entry: $e');
-      }
-      rethrow;
+      debugPrint('EntryProvider: Error adding entry: $e');
+      throw Exception('Unable to add entry. Please try again.');
     }
   }
 
@@ -219,15 +211,11 @@ class EntryProvider extends ChangeNotifier {
         notifyListeners();
       }
 
-      if (kDebugMode) {
-        print(
-            '✅ EntryProvider: Updated ${entry.type} entry with ID: ${entry.id}');
-      }
+      debugPrint(
+          'EntryProvider: Updated ${entry.type} entry with ID: ${entry.id}');
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ EntryProvider: Error updating entry: $e');
-      }
-      rethrow;
+      debugPrint('EntryProvider: Error updating entry: $e');
+      throw Exception('Unable to update entry. Please try again.');
     }
   }
 
@@ -247,14 +235,10 @@ class EntryProvider extends ChangeNotifier {
       _applyFilters();
       notifyListeners();
 
-      if (kDebugMode) {
-        print('✅ EntryProvider: Deleted ${entry.type} entry with ID: $id');
-      }
+      debugPrint('EntryProvider: Deleted ${entry.type} entry with ID: $id');
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ EntryProvider: Error deleting entry: $e');
-      }
-      rethrow;
+      debugPrint('EntryProvider: Error deleting entry: $e');
+      throw Exception('Unable to delete entry. Please try again.');
     }
   }
 
