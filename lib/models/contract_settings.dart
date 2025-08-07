@@ -45,6 +45,11 @@ class ContractSettings extends HiveObject {
     return (monthlyHours * 60 * (contractPercentage / 100)).round();
   }
 
+  /// Get target hours (monthly hours adjusted by contract percentage)
+  double get targetHours {
+    return monthlyHours * (contractPercentage / 100);
+  }
+
   ContractSettings copyWith({
     String? id,
     int? monthlyHours,

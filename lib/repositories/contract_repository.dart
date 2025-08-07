@@ -4,6 +4,7 @@ import '../models/contract_settings.dart';
 abstract class ContractRepository {
   ContractSettings? getSettings();
   Future<void> saveSettings(ContractSettings settings);
+  Future<void> close();
 }
 
 class HiveContractRepository implements ContractRepository {
@@ -23,5 +24,9 @@ class HiveContractRepository implements ContractRepository {
   @override
   Future<void> saveSettings(ContractSettings settings) async {
     await _box.put('settings', settings);
+  }
+
+  Future<void> close() async {
+    await _box.close();
   }
 }

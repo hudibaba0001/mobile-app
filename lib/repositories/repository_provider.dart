@@ -64,7 +64,7 @@ class RepositoryProvider {
     travelRepository = HiveTravelRepository();
     await travelRepository.initialize();
     workRepository = WorkRepository(workBox);
-    contractRepository = ContractRepository(contractBox);
+    contractRepository = HiveContractRepository(contractBox);
     leaveRepository = LeaveRepository(leaveBox);
     locationRepository = LocationRepository(locationBox);
   }
