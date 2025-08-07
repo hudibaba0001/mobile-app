@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
 
 class TrendsTab extends StatelessWidget {
