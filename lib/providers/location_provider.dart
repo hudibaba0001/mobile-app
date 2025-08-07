@@ -1,12 +1,17 @@
 import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import '../models/location.dart';
-import '../utils/constants.dart';
+import '../models/autocomplete_suggestion.dart';
+import '../repositories/location_repository.dart';
 
 class LocationProvider extends ChangeNotifier {
+  final LocationRepository _repository;
   List<Location> _locations = [];
   bool _isLoading = false;
   String? _error;
+
+  LocationProvider(this._repository) {
+    refreshLocations();
+  }
 
   List<Location> get locations => _locations;
   bool get isLoading => _isLoading;
@@ -15,20 +20,19 @@ class LocationProvider extends ChangeNotifier {
   /// Refresh locations from Hive storage
   Future<void> refreshLocations() async {
     try {
-      setState(() {
+      _updateState(() {
         _isLoading = true;
         _error = null;
       });
 
-      final box = Hive.box<Location>(AppConstants.locationsBox);
-      final locations = box.values.toList();
-      
-      setState(() {
+      final locations = _repository.getAll();
+
+      _updateState(() {
         _locations = locations;
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
+      _updateState(() {
         _error = 'Failed to load locations: $e';
         _isLoading = false;
       });
@@ -38,25 +42,35 @@ class LocationProvider extends ChangeNotifier {
   /// Add a new location
   Future<void> addLocation(Location location) async {
     try {
-      final box = Hive.box<Location>(AppConstants.locationsBox);
-      await box.add(location);
+      await _repository.add(location);
       await refreshLocations();
     } catch (e) {
-      setState(() {
+      _updateState(() {
         _error = 'Failed to add location: $e';
       });
     }
   }
 
-  /// Delete a location by index
-  Future<void> deleteLocation(int index) async {
+  /// Delete a location
+  Future<void> deleteLocation(Location location) async {
     try {
-      final box = Hive.box<Location>(AppConstants.locationsBox);
-      await box.deleteAt(index);
+      await _repository.delete(location);
       await refreshLocations();
     } catch (e) {
-      setState(() {
+      _updateState(() {
         _error = 'Failed to delete location: $e';
+      });
+    }
+  }
+
+  /// Update a location
+  Future<void> updateLocation(Location location) async {
+    try {
+      await _repository.update(location);
+      await refreshLocations();
+    } catch (e) {
+      _updateState(() {
+        _error = 'Failed to update location: $e';
       });
     }
   }
@@ -64,37 +78,119 @@ class LocationProvider extends ChangeNotifier {
   /// Get locations by name (for search/filtering)
   List<Location> getLocationsByName(String query) {
     if (query.isEmpty) return _locations;
-    
-    return _locations.where((location) =>
-        location.name.toLowerCase().contains(query.toLowerCase()) ||
-        location.address.toLowerCase().contains(query.toLowerCase())
-    ).toList();
+
+    return _locations
+        .where((location) =>
+            location.name.toLowerCase().contains(query.toLowerCase()) ||
+            location.address.toLowerCase().contains(query.toLowerCase()))
+        .toList();
   }
 
   /// Get favorite locations
-  List<Location> get favoriteLocations {
-    // For now, return all locations. In the future, we can add a favorite field to Location model
-    return _locations;
+  List<Location> getFavoriteLocations() {
+    return _locations.where((location) => location.isFavorite).toList();
   }
 
-  /// Get most used locations (for analytics)
-  List<Location> get mostUsedLocations {
-    // For now, return all locations. In the future, we can track usage
-    return _locations;
+  /// Get most used locations
+  List<Location> getMostUsedLocations({int limit = 5}) {
+    final sortedLocations = List<Location>.from(_locations);
+    sortedLocations.sort((a, b) => b.usageCount.compareTo(a.usageCount));
+    return sortedLocations.take(limit).toList();
   }
 
-  /// Get address suggestions for search
-  List<String> getAddressSuggestions(String query, {int limit = 5}) {
-    if (query.isEmpty) return [];
+  /// Get recent locations based on usage
+  List<Location> getRecentLocations({int limit = 5}) {
+    final usedLocations =
+        _locations.where((loc) => loc.usageCount > 0).toList();
+    usedLocations.sort((a, b) => b.usageCount.compareTo(a.usageCount));
+    return usedLocations.take(limit).toList();
+  }
+
+  /// Search locations by name or address
+  List<Location> searchLocations(String query) {
+    if (query.trim().isEmpty) return [];
+
+    final lowercaseQuery = query.toLowerCase();
+    return _locations.where((location) {
+      return location.name.toLowerCase().contains(lowercaseQuery) ||
+          location.address.toLowerCase().contains(lowercaseQuery);
+    }).toList();
+  }
+
+  /// Get autocomplete suggestions for a location query
+  List<AutocompleteSuggestion> getAutocompleteSuggestions(String query, {int limit = 5}) {
+    if (query.trim().isEmpty) {
+      // Return recent and favorite locations when no query
+      final suggestions = <AutocompleteSuggestion>[];
+      
+      // Add favorites first
+      for (final location in getFavoriteLocations()) {
+        suggestions.add(AutocompleteSuggestion(
+          text: location.name,
+          subtitle: location.address,
+          type: SuggestionType.favorite,
+          location: location,
+        ));
+      }
+      
+      // Add recent locations
+      for (final location in getRecentLocations()) {
+        if (!suggestions.any((s) => s.location?.id == location.id)) {
+          suggestions.add(AutocompleteSuggestion(
+            text: location.name,
+            subtitle: location.address,
+            type: SuggestionType.recent,
+            location: location,
+          ));
+        }
+      }
+      
+      return suggestions.take(limit).toList();
+    }
+
+    final suggestions = <AutocompleteSuggestion>[];
+    final lowercaseQuery = query.toLowerCase();
     
-    final suggestions = <String>{};
+    // First, add exact matches from saved locations
     for (final location in _locations) {
-      if (location.address.toLowerCase().contains(query.toLowerCase())) {
-        suggestions.add(location.address);
-        if (suggestions.length >= limit) break;
+      if (location.name.toLowerCase() == lowercaseQuery ||
+          location.address.toLowerCase() == lowercaseQuery) {
+        suggestions.add(AutocompleteSuggestion(
+          text: location.name,
+          subtitle: location.address,
+          type: SuggestionType.saved,
+          location: location,
+        ));
       }
     }
-    return suggestions.toList();
+    
+    // Then add partial matches from saved locations
+    for (final location in _locations) {
+      if (location.name.toLowerCase().contains(lowercaseQuery) ||
+          location.address.toLowerCase().contains(lowercaseQuery)) {
+        if (!suggestions.any((s) => s.location?.id == location.id)) {
+          suggestions.add(AutocompleteSuggestion(
+            text: location.name,
+            subtitle: location.address,
+            type: SuggestionType.saved,
+            location: location,
+          ));
+        }
+      }
+    }
+    
+    // Finally, add the raw input as a custom suggestion if it doesn't match any saved location
+    if (!suggestions.any((s) => 
+        s.text.toLowerCase() == lowercaseQuery || 
+        s.subtitle.toLowerCase() == lowercaseQuery)) {
+      suggestions.add(AutocompleteSuggestion(
+        text: query,
+        subtitle: 'Custom location',
+        type: SuggestionType.custom,
+      ));
+    }
+    
+    return suggestions.take(limit).toList();
   }
 
   /// Get recently added locations
@@ -107,13 +203,14 @@ class LocationProvider extends ChangeNotifier {
   /// Toggle favorite status for a location
   Future<void> toggleFavorite(String locationId) async {
     try {
-      final box = Hive.box<Location>(AppConstants.locationsBox);
-      final location = box.values.firstWhere((loc) => loc.id == locationId);
-      final updatedLocation = location.copyWith(isFavorite: !location.isFavorite);
-      await box.put(locationId, updatedLocation);
+      final location =
+          _repository.getAll().firstWhere((loc) => loc.id == locationId);
+      final updatedLocation =
+          location.copyWith(isFavorite: !location.isFavorite);
+      await _repository.update(updatedLocation);
       await refreshLocations();
     } catch (e) {
-      setState(() {
+      _updateState(() {
         _error = 'Failed to toggle favorite: $e';
       });
     }
@@ -122,20 +219,22 @@ class LocationProvider extends ChangeNotifier {
   /// Increment usage count for a location
   Future<void> incrementUsageCount(String locationId) async {
     try {
-      final box = Hive.box<Location>(AppConstants.locationsBox);
-      final location = box.values.firstWhere((loc) => loc.id == locationId);
-      final updatedLocation = location.copyWith(usageCount: location.usageCount + 1);
-      await box.put(locationId, updatedLocation);
+      final location =
+          _repository.getAll().firstWhere((loc) => loc.id == locationId);
+      final updatedLocation =
+          location.copyWith(usageCount: location.usageCount + 1);
+      await _repository.update(updatedLocation);
       await refreshLocations();
     } catch (e) {
-      setState(() {
+      _updateState(() {
         _error = 'Failed to increment usage count: $e';
       });
     }
   }
 
-  void setState(VoidCallback fn) {
+  // Helper method to update state and notify listeners
+  void _updateState(VoidCallback fn) {
     fn();
     notifyListeners();
   }
-} 
+}

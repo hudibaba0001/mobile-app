@@ -4,9 +4,18 @@ import 'package:go_router/go_router.dart';
 import '../config/app_router.dart';
 import '../models/travel_entry.dart';
 import '../models/work_entry.dart';
+import '../models/autocomplete_suggestion.dart';
 import '../repositories/repository_provider.dart';
 import '../providers/entry_provider.dart';
+import '../providers/location_provider.dart';
 import '../services/auth_service.dart';
+
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1)}';
+  }
+}
 
 /// Unified Home screen with navigation integration.
 /// Main entry point combining travel and work time tracking.
@@ -871,6 +880,69 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
+  void _editEntry(_EntryData entry) {
+    AppRouter.goToEditEntry(
+      context,
+      entryId: entry.id,
+      entryType: entry.type,
+    );
+  }
+
+  Future<void> _deleteEntry(BuildContext context, _EntryData entry) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Entry'),
+        content:
+            Text('Are you sure you want to delete this ${entry.type} entry?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final entryProvider = context.read<EntryProvider>();
+
+        // Delete the entry by ID
+        await entryProvider.deleteEntry(entry.id);
+
+        // Reload recent entries
+        _loadRecentEntries();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('${entry.type.capitalize()} entry deleted successfully'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete entry: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   Widget _buildNavItem(
     BuildContext context, {
     required IconData icon,
@@ -993,78 +1065,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       },
     );
   }
-
-  void _editEntry(_EntryData entry) {
-    // Navigate to edit entry screen with the specific entry data
-    AppRouter.goToEditEntry(context, entryId: entry.id, entryType: entry.type);
-  }
-
-  void _deleteEntry(_EntryData entry) {
-    // Show confirmation dialog before deleting
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Entry'),
-          content: Text(
-              'Are you sure you want to delete this ${entry.type} entry? This action cannot be undone.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _performDelete(entry);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _performDelete(_EntryData entry) async {
-    try {
-      final repositoryProvider =
-          Provider.of<RepositoryProvider>(context, listen: false);
-
-      if (entry.type == 'travel') {
-        await repositoryProvider.travelRepository.delete(entry.id);
-      } else if (entry.type == 'work') {
-        await repositoryProvider.workRepository.delete(entry.id);
-      }
-
-      // Refresh the recent entries list
-      _loadRecentEntries();
-
-      // Show success message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                '${entry.type[0].toUpperCase() + entry.type.substring(1)} entry deleted successfully'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-          ),
-        );
-      }
-    } catch (e) {
-      // Show error message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete entry: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    }
-  }
 }
 
 class _EntryData {
@@ -1095,6 +1095,183 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _totalHoursController = TextEditingController();
   final TextEditingController _totalMinutesController = TextEditingController();
+  
+  OverlayEntry? _overlayEntry;
+  final LayerLink _layerLink = LayerLink();
+  
+  void _showSuggestions(
+    ThemeData theme,
+    TextEditingController controller,
+    List<AutocompleteSuggestion> suggestions,
+  ) {
+    _overlayEntry?.remove();
+    
+    final renderBox = context.findRenderObject() as RenderBox;
+    final size = renderBox.size;
+    
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width - 48, // Account for dialog padding
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: const Offset(0.0, 60.0), // Below the text field
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: 200,
+                maxWidth: size.width - 48,
+              ),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: suggestions.length,
+                itemBuilder: (context, index) {
+                  final suggestion = suggestions[index];
+                  return InkWell(
+                    onTap: () {
+                      controller.text = suggestion.text;
+                      if (suggestion.location != null) {
+                        context.read<LocationProvider>().incrementUsageCount(suggestion.location!.id);
+                      }
+                      _overlayEntry?.remove();
+                      _overlayEntry = null;
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _getSuggestionIcon(suggestion.type),
+                            size: 20,
+                            color: _getSuggestionColor(theme, suggestion.type),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  suggestion.text,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                                Text(
+                                  suggestion.subtitle,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+  
+  IconData _getSuggestionIcon(SuggestionType type) {
+    switch (type) {
+      case SuggestionType.favorite:
+        return Icons.star_rounded;
+      case SuggestionType.recent:
+        return Icons.history_rounded;
+      case SuggestionType.saved:
+        return Icons.location_on_rounded;
+      case SuggestionType.custom:
+        return Icons.add_location_alt_rounded;
+    }
+  }
+  
+  Color _getSuggestionColor(ThemeData theme, SuggestionType type) {
+    switch (type) {
+      case SuggestionType.favorite:
+        return Colors.amber;
+      case SuggestionType.recent:
+        return theme.colorScheme.secondary;
+      case SuggestionType.saved:
+        return theme.colorScheme.primary;
+      case SuggestionType.custom:
+        return theme.colorScheme.tertiary;
+    }
+  }
+  
+  Widget _buildLocationField(
+    ThemeData theme, {
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(
+            icon,
+            color: iconColor,
+            size: 20,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: iconColor,
+              width: 2,
+            ),
+          ),
+        ),
+        onChanged: (value) {
+          final locationProvider = context.read<LocationProvider>();
+          final suggestions = locationProvider.getAutocompleteSuggestions(value);
+          
+          if (suggestions.isNotEmpty) {
+            _showSuggestions(theme, controller, suggestions);
+          } else {
+            _overlayEntry?.remove();
+            _overlayEntry = null;
+          }
+        },
+        onTap: () {
+          final locationProvider = context.read<LocationProvider>();
+          final suggestions = locationProvider.getAutocompleteSuggestions('');
+          
+          if (suggestions.isNotEmpty) {
+            _showSuggestions(theme, controller, suggestions);
+          }
+        },
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -1520,8 +1697,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                 final repositoryProvider =
                                     Provider.of<RepositoryProvider>(context,
                                         listen: false);
-                                print(
-                                    'Repository provider obtained: ${repositoryProvider != null}');
+                                print('Repository provider obtained');
 
                                 // Create travel entry from the first trip (for now, we'll save each trip as a separate entry)
                                 final trip = _trips.first;
@@ -1707,52 +1883,24 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
           const SizedBox(height: 16),
 
           // From field
-          TextField(
+          _buildLocationField(
+            theme,
             controller: trip.fromController,
-            decoration: InputDecoration(
-              labelText: 'From',
-              hintText: 'Starting location',
-              prefixIcon: Icon(
-                Icons.location_on_outlined,
-                color: theme.colorScheme.primary,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.primary,
-                  width: 2,
-                ),
-              ),
-            ),
-            onChanged: (_) => setState(() {}),
+            label: 'From',
+            hint: 'Enter starting location',
+            icon: Icons.location_on_outlined,
+            iconColor: theme.colorScheme.primary,
           ),
           const SizedBox(height: 12),
 
           // To field
-          TextField(
+          _buildLocationField(
+            theme,
             controller: trip.toController,
-            decoration: InputDecoration(
-              labelText: 'To',
-              hintText: 'Destination',
-              prefixIcon: Icon(
-                Icons.location_on,
-                color: theme.colorScheme.secondary,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.secondary,
-                  width: 2,
-                ),
-              ),
-            ),
-            onChanged: (_) => setState(() {}),
+            label: 'To',
+            hint: 'Enter destination',
+            icon: Icons.location_on,
+            iconColor: theme.colorScheme.secondary,
           ),
           const SizedBox(height: 12),
 
@@ -1880,6 +2028,13 @@ class _TripData {
         hoursController = TextEditingController(),
         minutesController = TextEditingController();
 
+  void dispose() {
+    fromController.dispose();
+    toController.dispose();
+    hoursController.dispose();
+    minutesController.dispose();
+  }
+
   bool get isValid {
     final from = fromController.text.trim();
     final to = toController.text.trim();
@@ -1906,6 +2061,9 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _totalHoursController = TextEditingController();
   final TextEditingController _totalMinutesController = TextEditingController();
+  
+  OverlayEntry? _overlayEntry;
+  final LayerLink _layerLink = LayerLink();
 
   @override
   void initState() {
@@ -1916,10 +2074,188 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
 
   @override
   void dispose() {
+    _overlayEntry?.remove();
     _notesController.dispose();
     _totalHoursController.dispose();
     _totalMinutesController.dispose();
+    for (final shift in _shifts) {
+      shift.dispose();
+    }
     super.dispose();
+  }
+  
+  void _showSuggestions(
+    ThemeData theme,
+    TextEditingController controller,
+    List<AutocompleteSuggestion> suggestions,
+  ) {
+    _overlayEntry?.remove();
+    
+    final renderBox = context.findRenderObject() as RenderBox;
+    final size = renderBox.size;
+    
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width - 48, // Account for dialog padding
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: const Offset(0.0, 60.0), // Below the text field
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: 200,
+                maxWidth: size.width - 48,
+              ),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: suggestions.length,
+                itemBuilder: (context, index) {
+                  final suggestion = suggestions[index];
+                  return InkWell(
+                    onTap: () {
+                      controller.text = suggestion.text;
+                      if (suggestion.location != null) {
+                        context.read<LocationProvider>().incrementUsageCount(suggestion.location!.id);
+                      }
+                      _overlayEntry?.remove();
+                      _overlayEntry = null;
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _getSuggestionIcon(suggestion.type),
+                            size: 20,
+                            color: _getSuggestionColor(theme, suggestion.type),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  suggestion.text,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                                Text(
+                                  suggestion.subtitle,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+  
+  IconData _getSuggestionIcon(SuggestionType type) {
+    switch (type) {
+      case SuggestionType.favorite:
+        return Icons.star_rounded;
+      case SuggestionType.recent:
+        return Icons.history_rounded;
+      case SuggestionType.saved:
+        return Icons.location_on_rounded;
+      case SuggestionType.custom:
+        return Icons.add_location_alt_rounded;
+    }
+  }
+  
+  Color _getSuggestionColor(ThemeData theme, SuggestionType type) {
+    switch (type) {
+      case SuggestionType.favorite:
+        return Colors.amber;
+      case SuggestionType.recent:
+        return theme.colorScheme.secondary;
+      case SuggestionType.saved:
+        return theme.colorScheme.primary;
+      case SuggestionType.custom:
+        return theme.colorScheme.tertiary;
+    }
+  }
+  
+  Widget _buildLocationField(
+    ThemeData theme, {
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(
+            icon,
+            color: iconColor,
+            size: 20,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: iconColor,
+              width: 2,
+            ),
+          ),
+        ),
+        onChanged: (value) {
+          final locationProvider = context.read<LocationProvider>();
+          final suggestions = locationProvider.getAutocompleteSuggestions(value);
+          
+          if (suggestions.isNotEmpty) {
+            _showSuggestions(theme, controller, suggestions);
+          } else {
+            _overlayEntry?.remove();
+            _overlayEntry = null;
+          }
+        },
+        onTap: () {
+          final locationProvider = context.read<LocationProvider>();
+          final suggestions = locationProvider.getAutocompleteSuggestions('');
+          
+          if (suggestions.isNotEmpty) {
+            _showSuggestions(theme, controller, suggestions);
+          }
+        },
+      ),
+    );
   }
 
   void _addShift() {
@@ -2325,8 +2661,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                 final repositoryProvider =
                                     Provider.of<RepositoryProvider>(context,
                                         listen: false);
-                                print(
-                                    'Repository provider obtained: ${repositoryProvider != null}');
+                                print('Repository provider obtained');
 
                                 // Calculate total work minutes from all shifts
                                 int totalWorkMinutes = 0;
@@ -2677,6 +3012,11 @@ class _ShiftData {
   _ShiftData()
       : startTimeController = TextEditingController(),
         endTimeController = TextEditingController();
+
+  void dispose() {
+    startTimeController.dispose();
+    endTimeController.dispose();
+  }
 
   bool get isValid {
     final startTime = startTimeController.text.trim();

@@ -7,7 +7,7 @@ class HiveLocationRepository {
 
   Future<Box<Location>> _getBox() async {
     if (_box == null || !_box!.isOpen) {
-      _box = await Hive.openBox<Location>(AppConstants.locationsBox);
+      _box = Hive.box<Location>(AppConstants.locationsBox);
     }
     return _box!;
   }
@@ -102,4 +102,4 @@ class HiveLocationRepository {
   Future<void> close() async {
     await _box?.close();
   }
-} 
+}

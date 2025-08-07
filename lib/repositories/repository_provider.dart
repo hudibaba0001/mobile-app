@@ -1,30 +1,32 @@
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/constants.dart';
 import '../models/travel_entry.dart';
 import '../models/work_entry.dart';
 import '../models/contract_settings.dart';
 import '../models/leave_entry.dart';
-import '../location.dart';
+import '../models/location.dart';
 import 'travel_repository.dart';
 import 'hive_travel_repository.dart';
 import 'work_repository.dart';
 import 'contract_repository.dart';
 import 'leave_repository.dart';
+import 'location_repository.dart';
 
 class RepositoryProvider {
   late final TravelRepository travelRepository;
   late final WorkRepository workRepository;
   late final ContractRepository contractRepository;
   late final LeaveRepository leaveRepository;
+  late final LocationRepository locationRepository;
 
   static const _travelBoxName = 'travel_entries';
   static const _workBoxName = 'work_entries';
   static const _contractBoxName = 'contract_settings';
   static const _leaveBoxName = 'leave_entries';
   static const _appSettingsBoxName = 'app_settings';
-  static const _locationsBoxName = 'locationsBox';
+  static const _locationsBoxName = AppConstants.locationsBox;
 
   /// Initialize all repositories
   Future<void> initialize() async {
@@ -51,12 +53,12 @@ class RepositoryProvider {
     Hive.registerAdapter(LocationAdapter());
 
     // Open boxes
-    final travelBox = await Hive.openBox<TravelEntry>(_travelBoxName);
+    await Hive.openBox<TravelEntry>(_travelBoxName);
     final workBox = await Hive.openBox<WorkEntry>(_workBoxName);
     final contractBox = await Hive.openBox<ContractSettings>(_contractBoxName);
     final leaveBox = await Hive.openBox<LeaveEntry>(_leaveBoxName);
-    final appSettingsBox = await Hive.openBox(_appSettingsBoxName);
-    final locationsBox = await Hive.openBox<Location>(_locationsBoxName);
+    await Hive.openBox(_appSettingsBoxName);
+    final locationBox = await Hive.openBox<Location>(_locationsBoxName);
 
     // Initialize repositories
     travelRepository = HiveTravelRepository();
@@ -64,6 +66,7 @@ class RepositoryProvider {
     workRepository = WorkRepository(workBox);
     contractRepository = ContractRepository(contractBox);
     leaveRepository = LeaveRepository(leaveBox);
+    locationRepository = LocationRepository(locationBox);
   }
 
   /// Close all repositories

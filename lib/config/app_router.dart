@@ -11,6 +11,8 @@ import '../screens/contract_settings_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/analytics_screen.dart';
 import '../screens/enhanced_history_screen.dart';
+import '../screens/edit_entry_screen.dart';
+import '../screens/manage_locations_screen.dart';
 
 class AppRouter {
   static const String loginPath = '/login';
@@ -22,6 +24,8 @@ class AppRouter {
   static const String analyticsPath = '/analytics';
   static const String contractSettingsPath = '/settings/contract';
   static const String profilePath = '/profile';
+  static const String editEntryPath = '/edit-entry';
+  static const String manageLocationsPath = '/manage-locations';
 
   static const String loginName = 'login';
   static const String homeName = 'home';
@@ -32,6 +36,8 @@ class AppRouter {
   static const String analyticsName = 'analytics';
   static const String contractSettingsName = 'contract-settings';
   static const String profileName = 'profile';
+  static const String editEntryName = 'edit-entry';
+  static const String manageLocationsName = 'manage-locations';
 
   static final router = GoRouter(
     initialLocation: homePath,
@@ -128,6 +134,23 @@ class AppRouter {
             name: adminUsersName,
             builder: (context, state) => const AdminUsersScreen(),
           ),
+          GoRoute(
+            path: editEntryPath,
+            name: editEntryName,
+            builder: (context, state) {
+              final entryId = state.uri.queryParameters['id'] ?? '';
+              final entryType = state.uri.queryParameters['type'];
+              return EditEntryScreen(
+                entryId: entryId,
+                entryType: entryType,
+              );
+            },
+          ),
+          GoRoute(
+            path: manageLocationsPath,
+            name: manageLocationsName,
+            builder: (context, state) => const ManageLocationsScreen(),
+          ),
         ],
       ),
     ],
@@ -171,8 +194,10 @@ class AppRouter {
   static void goToHistory(BuildContext context) => context.goNamed(historyName);
   static void goToEditEntry(BuildContext context,
       {required String entryId, required String entryType}) {
-    // For now, just go to reports since edit entry screen was removed
-    context.goNamed(reportsName);
+    context.goNamed(editEntryName, queryParameters: {
+      'id': entryId,
+      'type': entryType,
+    });
   }
 
   static void goBackOrHome(BuildContext context) {
@@ -181,5 +206,9 @@ class AppRouter {
     } else {
       context.goNamed(homeName);
     }
+  }
+
+  static void goToManageLocations(BuildContext context) {
+    context.goNamed(manageLocationsName);
   }
 }
