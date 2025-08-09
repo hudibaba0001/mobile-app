@@ -22,37 +22,26 @@ class AppBarWrapper extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async {
-        if (!canPop) return false;
-        if (onBackPressed != null) {
-          onBackPressed!();
-          return false;
-        }
-        AppRouter.goBackOrHome(context);
-        return false;
-      },
-      child: AppBar(
-        title: Text(
-          title,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+    return AppBar(
+      title: Text(
+        title,
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w600,
         ),
-        leading: showBackButton && (context.canPop() || onBackPressed != null)
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  if (onBackPressed != null) {
-                    onBackPressed!();
-                  } else {
-                    AppRouter.goBackOrHome(context);
-                  }
-                },
-              )
-            : null,
-        actions: actions,
       ),
+      leading: showBackButton && (context.canPop() || onBackPressed != null)
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (onBackPressed != null) {
+                  onBackPressed!();
+                } else {
+                  AppRouter.goBackOrHome(context);
+                }
+              },
+            )
+          : null,
+      actions: actions,
     );
   }
 

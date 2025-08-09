@@ -20,18 +20,18 @@ class EditEntryScreen extends StatefulWidget {
 
 class _EditEntryScreenState extends State<EditEntryScreen> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Entry type
   late EntryType _currentEntryType;
-  
+
   // Travel form data - now supports multiple travel entries
   final List<_TravelEntry> _travelEntries = [];
   final _travelNotesController = TextEditingController();
-  
+
   // Work form data
   final List<_Shift> _shifts = [];
   final _workNotesController = TextEditingController();
-  
+
   bool _isFormValid = false;
   bool _isSaving = false;
 
@@ -78,7 +78,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         _travelEntries[0].durationHoursController.text = '0';
         _travelEntries[0].durationMinutesController.text = '25';
       }
-      
+
       // Add a second travel entry to show multiple trips
       _addTravelEntry();
       if (_travelEntries.length > 1) {
@@ -87,7 +87,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         _travelEntries[1].durationHoursController.text = '0';
         _travelEntries[1].durationMinutesController.text = '15';
       }
-      
+
       _travelNotesController.text = 'Multiple trips throughout the day';
     } else {
       _addShift();
@@ -108,9 +108,11 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   void _validateForm() {
     setState(() {
       if (_currentEntryType == EntryType.travel) {
-        _isFormValid = _travelEntries.isNotEmpty && _travelEntries.every((entry) => entry.isValid);
+        _isFormValid = _travelEntries.isNotEmpty &&
+            _travelEntries.every((entry) => entry.isValid);
       } else {
-        _isFormValid = _shifts.isNotEmpty && _shifts.every((shift) => shift.isValid);
+        _isFormValid =
+            _shifts.isNotEmpty && _shifts.every((shift) => shift.isValid);
       }
     });
   }
@@ -170,17 +172,15 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     try {
       // TODO: Save via EntryProvider
       await Future.delayed(const Duration(seconds: 1)); // Simulate save
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Entry saved successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Use AppRouter for safer navigation
-        Navigator.of(context).pop();
-      }
+
+      if (!mounted) return;
+      // Defer navigation to next frame to avoid navigator operations during rebuild/dispose
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          // Return true to indicate success to the caller
+          context.pop(true);
+        }
+      });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -224,7 +224,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         children: [
           // Entry Type Toggle
           _buildEntryTypeToggle(theme),
-          
+
           // Form Content
           Expanded(
             child: Form(
@@ -237,7 +237,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               ),
             ),
           ),
-          
+
           // Bottom Save Bar
           _buildSaveBar(theme),
         ],
@@ -343,8 +343,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Travel Entries
-        ..._travelEntries.map((travelEntry) => _buildTravelEntryRow(theme, travelEntry)),
-        
+        ..._travelEntries
+            .map((travelEntry) => _buildTravelEntryRow(theme, travelEntry)),
+
         // Add Travel Entry Button
         Container(
           width: double.infinity,
@@ -367,7 +368,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             ),
           ),
         ),
-        
+
         _buildTextField(
           theme,
           'Notes',
@@ -385,7 +386,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       children: [
         // Shifts
         ..._shifts.map((shift) => _buildShiftRow(theme, shift)),
-        
+
         // Add Shift Button
         Container(
           width: double.infinity,
@@ -408,7 +409,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             ),
           ),
         ),
-        
+
         _buildTextField(
           theme,
           'Notes',
@@ -469,8 +470,6 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     );
   }
 
-
-
   Widget _buildTravelEntryRow(ThemeData theme, _TravelEntry travelEntry) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -518,7 +517,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // From and To fields
           Row(
             children: [
@@ -579,9 +578,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Duration fields
           Row(
             children: [
@@ -655,7 +654,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     Container(
                       height: 48,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withOpacity(0.3),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: theme.colorScheme.outline.withOpacity(0.5),
@@ -731,7 +731,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     TextFormField(
                       controller: shift.startTimeController,
                       readOnly: true,
-                      onTap: () => _selectTime(context, shift.startTimeController),
+                      onTap: () =>
+                          _selectTime(context, shift.startTimeController),
                       decoration: InputDecoration(
                         hintText: 'Select time',
                         suffixIcon: const Icon(Icons.access_time),
@@ -764,7 +765,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     TextFormField(
                       controller: shift.endTimeController,
                       readOnly: true,
-                      onTap: () => _selectTime(context, shift.endTimeController),
+                      onTap: () =>
+                          _selectTime(context, shift.endTimeController),
                       decoration: InputDecoration(
                         hintText: 'Select time',
                         suffixIcon: const Icon(Icons.access_time),
@@ -839,12 +841,13 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     );
   }
 
-  Future<void> _selectTime(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectTime(
+      BuildContext context, TextEditingController controller) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
-    
+
     if (picked != null) {
       controller.text = picked.format(context);
       _validateForm();
@@ -865,10 +868,10 @@ class _TravelEntry {
   _TravelEntry({
     required this.id,
     required this.onChanged,
-  }) : fromController = TextEditingController(),
-       toController = TextEditingController(),
-       durationHoursController = TextEditingController(),
-       durationMinutesController = TextEditingController() {
+  })  : fromController = TextEditingController(),
+        toController = TextEditingController(),
+        durationHoursController = TextEditingController(),
+        durationMinutesController = TextEditingController() {
     fromController.addListener(onChanged);
     toController.addListener(onChanged);
     durationHoursController.addListener(onChanged);
@@ -880,14 +883,14 @@ class _TravelEntry {
     final to = toController.text.trim();
     final hours = int.tryParse(durationHoursController.text) ?? 0;
     final minutes = int.tryParse(durationMinutesController.text) ?? 0;
-    
+
     return from.isNotEmpty && to.isNotEmpty && (hours > 0 || minutes > 0);
   }
 
   String get formattedDuration {
     final hours = int.tryParse(durationHoursController.text) ?? 0;
     final minutes = int.tryParse(durationMinutesController.text) ?? 0;
-    
+
     if (hours > 0 && minutes > 0) {
       return '${hours}h ${minutes}m';
     } else if (hours > 0) {
@@ -922,14 +925,15 @@ class _Shift {
   _Shift({
     required this.id,
     required this.onChanged,
-  }) : startTimeController = TextEditingController(),
-       endTimeController = TextEditingController() {
+  })  : startTimeController = TextEditingController(),
+        endTimeController = TextEditingController() {
     startTimeController.addListener(onChanged);
     endTimeController.addListener(onChanged);
   }
 
   bool get isValid {
-    return startTimeController.text.isNotEmpty && endTimeController.text.isNotEmpty;
+    return startTimeController.text.isNotEmpty &&
+        endTimeController.text.isNotEmpty;
   }
 
   void dispose() {
