@@ -103,12 +103,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => TravelProvider()),
-        ChangeNotifierProxyProvider<RepositoryProvider, LocationProvider>(
+        ChangeNotifierProvider<LocationProvider>(
           create: (context) => LocationProvider(
               context.read<RepositoryProvider>().locationRepository),
-          update: (context, repositoryProvider, previous) =>
-              previous ??
-              LocationProvider(repositoryProvider.locationRepository),
         ),
         ChangeNotifierProxyProvider2<RepositoryProvider, AuthService,
             EntryProvider>(

@@ -196,7 +196,8 @@ class AppRouter {
   static void goToHistory(BuildContext context) => context.goNamed(historyName);
   static void goToEditEntry(BuildContext context,
       {required String entryId, required String entryType}) {
-    context.goNamed(editEntryName, queryParameters: {
+    // Use push so the screen can pop back without GoError
+    context.pushNamed(editEntryName, queryParameters: {
       'id': entryId,
       'type': entryType,
     });
@@ -222,6 +223,7 @@ class AppRouter {
   }
 
   static void goToManageLocations(BuildContext context) {
-    context.goNamed(manageLocationsName);
+    // Use push so user can return with back
+    context.pushNamed(manageLocationsName);
   }
 }
