@@ -113,7 +113,8 @@ class AppRouter {
                 builder: (context, state) {
                   final entryId = state.uri.queryParameters['id'] ?? '';
                   final entryType = state.uri.queryParameters['type'];
-                  return EditEntryScreen(entryId: entryId, entryType: entryType);
+                  return EditEntryScreen(
+                      entryId: entryId, entryType: entryType);
                 },
               ),
               GoRoute(

@@ -1,3 +1,5 @@
+import '../widgets/unified_entry_form.dart';
+import '../models/entry.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -959,19 +961,63 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   void _showTravelEntryDialog() {
-    showDialog(
+    // Ensure types are available
+    // ignore: unused_local_variable
+    final _ = EntryType.travel;
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return _TravelEntryDialog();
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: UnifiedEntryForm(
+                entryType: EntryType.travel,
+                onSaved: () => Navigator.of(ctx).pop(),
+              ),
+            ),
+          ),
+        );
       },
     );
   }
 
   void _showWorkEntryDialog() {
-    showDialog(
+    // Ensure types are available
+    // ignore: unused_local_variable
+    final _ = EntryType.work;
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return _WorkEntryDialog();
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: UnifiedEntryForm(
+                entryType: EntryType.work,
+                onSaved: () => Navigator.of(ctx).pop(),
+              ),
+            ),
+          ),
+        );
       },
     );
   }
@@ -1037,8 +1083,24 @@ class _EntryData {
 }
 
 class _TravelEntryDialog extends StatefulWidget {
+  final bool enableSuggestions;
+
+  const _TravelEntryDialog({super.key, this.enableSuggestions = true});
+
   @override
   State<_TravelEntryDialog> createState() => _TravelEntryDialogState();
+}
+
+/// Public wrapper to allow tests to construct the dialog with
+/// `enableSuggestions: false` without referencing the private class.
+class TravelEntryDialog extends StatelessWidget {
+  final bool enableSuggestions;
+  const TravelEntryDialog({super.key, this.enableSuggestions = true});
+
+  @override
+  Widget build(BuildContext context) {
+    return _TravelEntryDialog(enableSuggestions: enableSuggestions);
+  }
 }
 
 class _TravelEntryDialogState extends State<_TravelEntryDialog> {
@@ -1046,20 +1108,20 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _totalHoursController = TextEditingController();
   final TextEditingController _totalMinutesController = TextEditingController();
-  
+
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
-  
+
   void _showSuggestions(
     ThemeData theme,
     TextEditingController controller,
     List<AutocompleteSuggestion> suggestions,
   ) {
     _overlayEntry?.remove();
-    
+
     final renderBox = context.findRenderObject() as RenderBox;
     final size = renderBox.size;
-    
+
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         width: size.width - 48, // Account for dialog padding
@@ -1092,7 +1154,9 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     onTap: () {
                       controller.text = suggestion.text;
                       if (suggestion.location != null) {
-                        context.read<LocationProvider>().incrementUsageCount(suggestion.location!.id);
+                        context
+                            .read<LocationProvider>()
+                            .incrementUsageCount(suggestion.location!.id);
                       }
                       _overlayEntry?.remove();
                       _overlayEntry = null;
@@ -1143,7 +1207,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
 
     Overlay.of(context).insert(_overlayEntry!);
   }
-  
+
   IconData _getSuggestionIcon(SuggestionType type) {
     switch (type) {
       case SuggestionType.favorite:
@@ -1156,7 +1220,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
         return Icons.add_location_alt_rounded;
     }
   }
-  
+
   Color _getSuggestionColor(ThemeData theme, SuggestionType type) {
     switch (type) {
       case SuggestionType.favorite:
@@ -1169,7 +1233,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
         return theme.colorScheme.tertiary;
     }
   }
-  
+
   Widget _buildLocationField(
     ThemeData theme, {
     required TextEditingController controller,
@@ -1178,6 +1242,36 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
     required IconData icon,
     required Color iconColor,
   }) {
+    if (!widget.enableSuggestions) {
+      // Suggestions disabled for tests: render a plain TextField without overlay plumbing
+      return TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(
+            icon,
+            color: iconColor,
+            size: 20,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: iconColor,
+              width: 2,
+            ),
+          ),
+        ),
+        onChanged: (_) {
+          // Trigger rebuild so _isValid() re-evaluates and enables the button
+          setState(() {});
+        },
+      );
+    }
+
     return CompositedTransformTarget(
       link: _layerLink,
       child: TextField(
@@ -1203,8 +1297,9 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
         ),
         onChanged: (value) {
           final locationProvider = context.read<LocationProvider>();
-          final suggestions = locationProvider.getAutocompleteSuggestions(value);
-          
+          final suggestions =
+              locationProvider.getAutocompleteSuggestions(value);
+
           if (suggestions.isNotEmpty) {
             _showSuggestions(theme, controller, suggestions);
           } else {
@@ -1215,7 +1310,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
         onTap: () {
           final locationProvider = context.read<LocationProvider>();
           final suggestions = locationProvider.getAutocompleteSuggestions('');
-          
+
           if (suggestions.isNotEmpty) {
             _showSuggestions(theme, controller, suggestions);
           }
@@ -2003,8 +2098,21 @@ class _TripData {
 }
 
 class _WorkEntryDialog extends StatefulWidget {
+  final bool enableSuggestions;
+  const _WorkEntryDialog({super.key, this.enableSuggestions = true});
+
   @override
   State<_WorkEntryDialog> createState() => _WorkEntryDialogState();
+}
+
+class WorkEntryDialog extends StatelessWidget {
+  final bool enableSuggestions;
+  const WorkEntryDialog({super.key, this.enableSuggestions = true});
+
+  @override
+  Widget build(BuildContext context) {
+    return _WorkEntryDialog(enableSuggestions: enableSuggestions);
+  }
 }
 
 class _WorkEntryDialogState extends State<_WorkEntryDialog> {
@@ -2012,7 +2120,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _totalHoursController = TextEditingController();
   final TextEditingController _totalMinutesController = TextEditingController();
-  
+
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
 
@@ -2034,17 +2142,17 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
     }
     super.dispose();
   }
-  
+
   void _showSuggestions(
     ThemeData theme,
     TextEditingController controller,
     List<AutocompleteSuggestion> suggestions,
   ) {
     _overlayEntry?.remove();
-    
+
     final renderBox = context.findRenderObject() as RenderBox;
     final size = renderBox.size;
-    
+
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         width: size.width - 48, // Account for dialog padding
@@ -2077,7 +2185,9 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     onTap: () {
                       controller.text = suggestion.text;
                       if (suggestion.location != null) {
-                        context.read<LocationProvider>().incrementUsageCount(suggestion.location!.id);
+                        context
+                            .read<LocationProvider>()
+                            .incrementUsageCount(suggestion.location!.id);
                       }
                       _overlayEntry?.remove();
                       _overlayEntry = null;
@@ -2128,7 +2238,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
 
     Overlay.of(context).insert(_overlayEntry!);
   }
-  
+
   IconData _getSuggestionIcon(SuggestionType type) {
     switch (type) {
       case SuggestionType.favorite:
@@ -2141,7 +2251,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
         return Icons.add_location_alt_rounded;
     }
   }
-  
+
   Color _getSuggestionColor(ThemeData theme, SuggestionType type) {
     switch (type) {
       case SuggestionType.favorite:
@@ -2154,7 +2264,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
         return theme.colorScheme.tertiary;
     }
   }
-  
+
   Widget _buildLocationField(
     ThemeData theme, {
     required TextEditingController controller,
@@ -2163,6 +2273,34 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
     required IconData icon,
     required Color iconColor,
   }) {
+    if (!widget.enableSuggestions) {
+      return TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(
+            icon,
+            color: iconColor,
+            size: 20,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: iconColor,
+              width: 2,
+            ),
+          ),
+        ),
+        onChanged: (_) {
+          setState(() {});
+        },
+      );
+    }
+
     return CompositedTransformTarget(
       link: _layerLink,
       child: TextField(
@@ -2188,8 +2326,9 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
         ),
         onChanged: (value) {
           final locationProvider = context.read<LocationProvider>();
-          final suggestions = locationProvider.getAutocompleteSuggestions(value);
-          
+          final suggestions =
+              locationProvider.getAutocompleteSuggestions(value);
+
           if (suggestions.isNotEmpty) {
             _showSuggestions(theme, controller, suggestions);
           } else {
@@ -2200,7 +2339,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
         onTap: () {
           final locationProvider = context.read<LocationProvider>();
           final suggestions = locationProvider.getAutocompleteSuggestions('');
-          
+
           if (suggestions.isNotEmpty) {
             _showSuggestions(theme, controller, suggestions);
           }

@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
 import '../config/app_router.dart';
-import '../widgets/app_bar_wrapper.dart';
+import '../widgets/standard_app_bar.dart';
 import '../providers/entry_provider.dart';
 import '../models/entry.dart';
 import '../models/travel_entry.dart';
@@ -167,10 +167,7 @@ class SettingsScreen extends StatelessWidget {
     final settingsProvider = context.watch<SettingsProvider>();
 
     return Scaffold(
-      appBar: const AppBarWrapper(
-        title: 'Settings',
-        showBackButton: false,
-      ),
+      appBar: const StandardAppBar(title: 'Settings'),
       body: ListView(
         children: [
           // Theme Settings

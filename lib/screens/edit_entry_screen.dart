@@ -210,16 +210,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Edit Entry'),
-        elevation: 0,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _cancelEdit,
-        ),
-      ),
+      appBar: AppBar(title: const Text('Edit Entry')),
       body: Column(
         children: [
           // Entry Type Toggle

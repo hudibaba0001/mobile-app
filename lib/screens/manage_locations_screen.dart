@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/location.dart';
 import '../providers/location_provider.dart';
-import '../widgets/app_bar_wrapper.dart';
+import '../widgets/standard_app_bar.dart';
 
 class ManageLocationsScreen extends StatefulWidget {
   const ManageLocationsScreen({super.key});
@@ -253,7 +253,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: const StandardAppBar(
+      appBar: StandardAppBar(
         title: 'Manage Locations',
         actions: [
           IconButton(

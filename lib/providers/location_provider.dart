@@ -198,6 +198,12 @@ class LocationProvider extends ChangeNotifier {
     return suggestions.take(limit).toList();
   }
 
+  // Backward-compatible alias used by some widgets/tests that expect raw strings
+  List<String> getAddressSuggestions(String query, {int limit = 5}) {
+    final suggestions = getAutocompleteSuggestions(query, limit: limit);
+    return suggestions.map((s) => s.text).toList();
+  }
+
   /// Get recently added locations
   List<Location> getRecentlyAddedLocations({int limit = 5}) {
     final sortedLocations = List<Location>.from(_locations);

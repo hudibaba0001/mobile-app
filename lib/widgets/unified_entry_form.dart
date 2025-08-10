@@ -95,10 +95,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     final isTravel = widget.entryType == EntryType.travel;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Form(
         key: _formKey,
@@ -114,19 +114,22 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   color: isTravel
                       ? theme.colorScheme.primary
                       : theme.colorScheme.secondary,
-                  size: 28,
+                  size: 24,
                 ),
                 const SizedBox(width: 12),
                 Text(
                   'Log ${isTravel ? 'Travel' : 'Work'} Entry',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.close),
+                  style: IconButton.styleFrom(
+                    backgroundColor: theme.colorScheme.surfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -439,13 +442,21 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         Expanded(
           child: OutlinedButton(
             onPressed: () => Navigator.of(context).pop(),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Cancel'),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: ElevatedButton(
+          child: FilledButton(
             onPressed: _isLoading ? null : _saveEntry,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: _isLoading
                 ? const SizedBox(
                     height: 20,

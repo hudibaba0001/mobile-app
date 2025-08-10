@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
 import '../services/entry_service.dart';
-import '../widgets/app_bar_wrapper.dart';
+import '../widgets/standard_app_bar.dart';
 
 enum DateRange { today, yesterday, lastWeek, custom }
 
@@ -75,10 +75,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: const AppBarWrapper(
-        title: 'History',
-        showBackButton: false,
-      ),
+      appBar: const StandardAppBar(title: 'History'),
       body: Column(
         children: [
           // Filter Controls
