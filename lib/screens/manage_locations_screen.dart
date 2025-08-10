@@ -253,9 +253,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBarWrapper(
+      appBar: const StandardAppBar(
         title: 'Manage Locations',
-        showBackButton: true,
         actions: [
           IconButton(
             onPressed: _showAddLocationDialog,

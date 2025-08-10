@@ -77,7 +77,7 @@ class AppRouter {
       return null;
     },
     routes: [
-      // Login route (outside shell)
+      // Login (outside shell)
       GoRoute(
         path: loginPath,
         name: loginName,
@@ -86,72 +86,80 @@ class AppRouter {
           return LoginScreen(initialEmail: email);
         },
       ),
-      // Analytics route (outside shell - admin only)
+
+      // Admin analytics (outside shell)
       GoRoute(
         path: analyticsPath,
         name: analyticsName,
         builder: (context, state) => const AnalyticsScreen(),
       ),
-      // Main app shell with bottom navigation
+
+      // Shell with bottom navigation for main tabs
       ShellRoute(
-        builder: (context, state, child) {
-          return AppScaffold(
-            currentPath: state.matchedLocation,
-            child: child,
-          );
-        },
+        builder: (context, state, child) => AppScaffold(
+          currentPath: state.matchedLocation,
+          child: child,
+        ),
         routes: [
+          // Home tab and its nested routes
           GoRoute(
             path: homePath,
             name: homeName,
             builder: (context, state) => const UnifiedHomeScreen(),
+            routes: [
+              GoRoute(
+                path: 'edit-entry',
+                name: editEntryName,
+                builder: (context, state) {
+                  final entryId = state.uri.queryParameters['id'] ?? '';
+                  final entryType = state.uri.queryParameters['type'];
+                  return EditEntryScreen(entryId: entryId, entryType: entryType);
+                },
+              ),
+              GoRoute(
+                path: 'manage-locations',
+                name: manageLocationsName,
+                builder: (context, state) => const ManageLocationsScreen(),
+              ),
+              GoRoute(
+                path: 'profile',
+                name: profileName,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+              GoRoute(
+                path: 'admin/users',
+                name: adminUsersName,
+                builder: (context, state) => const AdminUsersScreen(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: settingsPath,
-            name: settingsName,
-            builder: (context, state) => const SettingsScreen(),
-          ),
-          GoRoute(
-            path: reportsPath,
-            name: reportsName,
-            builder: (context, state) => const ReportsScreen(),
-          ),
+
+          // History tab
           GoRoute(
             path: historyPath,
             name: historyName,
             builder: (context, state) => const EnhancedHistoryScreen(),
           ),
+
+          // Reports tab
           GoRoute(
-            path: contractSettingsPath,
-            name: contractSettingsName,
-            builder: (context, state) => const ContractSettingsScreen(),
+            path: reportsPath,
+            name: reportsName,
+            builder: (context, state) => const ReportsScreen(),
           ),
+
+          // Settings tab and nested contract
           GoRoute(
-            path: profilePath,
-            name: profileName,
-            builder: (context, state) => const ProfileScreen(),
-          ),
-          GoRoute(
-            path: adminUsersPath,
-            name: adminUsersName,
-            builder: (context, state) => const AdminUsersScreen(),
-          ),
-          GoRoute(
-            path: editEntryPath,
-            name: editEntryName,
-            builder: (context, state) {
-              final entryId = state.uri.queryParameters['id'] ?? '';
-              final entryType = state.uri.queryParameters['type'];
-              return EditEntryScreen(
-                entryId: entryId,
-                entryType: entryType,
-              );
-            },
-          ),
-          GoRoute(
-            path: manageLocationsPath,
-            name: manageLocationsName,
-            builder: (context, state) => const ManageLocationsScreen(),
+            path: settingsPath,
+            name: settingsName,
+            builder: (context, state) => const SettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'contract',
+                name: contractSettingsName,
+                builder: (context, state) => const ContractSettingsScreen(),
+              ),
+            ],
           ),
         ],
       ),
