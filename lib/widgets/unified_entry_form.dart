@@ -107,14 +107,21 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     final isTravel = widget.entryType == EntryType.travel;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Form(
         key: _formKey,
-        child: Column(
+        child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -172,9 +179,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             // Action Buttons
             _buildActionButtons(theme),
 
-            // Bottom padding for keyboard
-            SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+            // End padding handled via container padding
           ],
+          ),
         ),
       ),
     );

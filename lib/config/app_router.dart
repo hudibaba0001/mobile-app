@@ -37,7 +37,7 @@ class AppRouter {
   static const String analyticsName = 'analytics';
   static const String contractSettingsName = 'contract-settings';
   static const String profileName = 'profile';
-  static const String editEntryName = 'edit-entry';
+  static const String editEntryName = 'editEntry';
   static const String manageLocationsName = 'manage-locations';
 
   static final router = GoRouter(

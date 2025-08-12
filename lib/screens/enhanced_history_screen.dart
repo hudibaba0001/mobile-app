@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
 import '../services/entry_service.dart';
 import '../widgets/standard_app_bar.dart';
+import '../widgets/unified_entry_form.dart';
 
 enum DateRange { today, yesterday, lastWeek, custom }
 
@@ -567,7 +569,23 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
               title: const Text('Edit Entry'),
               onTap: () {
                 Navigator.pop(context);
-                // Navigate to edit screen
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  builder: (ctx) => Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                    ),
+                    child: UnifiedEntryForm(
+                      entryType: entry.type,
+                      existingEntry: entry,
+                      onSaved: () => context.read<EntryProvider>().loadEntries(),
+                    ),
+                  ),
+                );
               },
             ),
             ListTile(
