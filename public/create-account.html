@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KvikTime - Create Account</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23667eea'/%3E%3Cpath d='M16 34c0-9.941 8.059-18 18-18 3.866 0 7 3.134 7 7s-3.134 7-7 7h-6v10' fill='none' stroke='white' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
     <script src="https://js.stripe.com/v3/"></script>
     <style>
+        html, body { -webkit-text-size-adjust: 100%; }
         * {
             margin: 0;
             padding: 0;
@@ -231,7 +233,29 @@
             border: 2px solid #e1e5e9;
             border-radius: 10px;
             background: white;
+            width: 100%;
+            min-height: 48px;
+            line-height: 1.2;
+            box-sizing: border-box;
         }
+
+        /* Ensure Stripe iframe scales and remains visible on mobile */
+        .StripeElement {
+            width: 100% !important;
+            min-height: 48px;
+            padding: 4px 0; /* inner iframe handles its own padding */
+            box-sizing: border-box;
+        }
+        .StripeElement--focus {
+            border-color: #667eea !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        }
+        .StripeElement--invalid {
+            border-color: #e74c3c !important;
+        }
+
+        /* Guard against flex/min-width clipping issues */
+        .form-group, .payment-section { width: 100%; min-width: 0; }
 
         #card-errors {
             color: #e74c3c;
@@ -328,20 +352,20 @@
         <form id="createAccountForm">
             <div class="form-group">
                 <label for="fullName">Full Name *</label>
-                <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
+                <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required autocomplete="name">
                 <div class="error-message" id="fullNameError"></div>
             </div>
 
             <div class="form-group">
                 <label for="email">Email Address *</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                <input type="email" id="email" name="email" placeholder="Enter your email address" required autocomplete="email">
                 <div class="error-message" id="emailError"></div>
             </div>
 
             <div class="form-group">
                 <label for="password">Password *</label>
                 <div class="password-toggle">
-                    <input type="password" id="password" name="password" placeholder="Create a password (min 6 characters)" required>
+                    <input type="password" id="password" name="password" placeholder="Create a password (min 6 characters)" required autocomplete="new-password">
                     <button type="button" onclick="togglePassword('password')">👁️</button>
                 </div>
                 <div class="error-message" id="passwordError"></div>
@@ -350,7 +374,7 @@
             <div class="form-group">
                 <label for="confirmPassword">Confirm Password *</label>
                 <div class="password-toggle">
-                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required autocomplete="new-password">
                     <button type="button" onclick="togglePassword('confirmPassword')">👁️</button>
                 </div>
                 <div class="error-message" id="confirmPasswordError"></div>
@@ -358,12 +382,12 @@
 
             <div class="form-group">
                 <label for="company">Company (Optional)</label>
-                <input type="text" id="company" name="company" placeholder="Enter your company name">
+                <input type="text" id="company" name="company" placeholder="Enter your company name" autocomplete="organization">
             </div>
 
             <div class="form-group">
                 <label for="phone">Phone Number (Optional)</label>
-                <input type="tel" id="phone" name="phone" placeholder="Enter your phone number">
+                <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" autocomplete="tel">
             </div>
 
                          <div class="payment-section">
