@@ -148,7 +148,7 @@ class WelcomeScreen extends StatelessWidget {
 
   /// Launch the sign up URL in external browser
   Future<void> _launchSignUpUrl(BuildContext context) async {
-    const url = 'https://signup.kviktime.se';
+    const url = 'https://www.app.kviktime.se/create-account';
     final uri = Uri.parse(url);
 
     try {

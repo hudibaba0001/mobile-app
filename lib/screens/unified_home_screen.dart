@@ -834,10 +834,54 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   void _editEntry(_EntryData entry) {
-    AppRouter.goToEditEntry(
-      context,
-      entryId: entry.id,
-      entryType: entry.type,
+    final entryProvider = context.read<EntryProvider>();
+    Entry? existing;
+    try {
+      existing = entryProvider.entries.firstWhere((e) => e.id == entry.id);
+    } catch (_) {
+      existing = null;
+    }
+
+    if (existing == null) {
+      // Attempt a reload then re-find
+      entryProvider.loadEntries().then((_) {
+        Entry? refreshed;
+        try {
+          refreshed = entryProvider.entries.firstWhere((e) => e.id == entry.id);
+        } catch (_) {
+          refreshed = null;
+        }
+        if (refreshed != null && mounted) {
+          _openEditBottomSheet(refreshed);
+        }
+      });
+    } else {
+      _openEditBottomSheet(existing);
+    }
+  }
+
+  void _openEditBottomSheet(Entry existing) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: UnifiedEntryForm(
+            entryType: existing.type,
+            existingEntry: existing,
+            onSaved: () {
+              _loadRecentEntries();
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -982,7 +1026,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
               child: UnifiedEntryForm(
                 entryType: EntryType.travel,
-                onSaved: () => Navigator.of(ctx).pop(),
               ),
             ),
           ),
@@ -1013,7 +1056,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
               child: UnifiedEntryForm(
                 entryType: EntryType.work,
-                onSaved: () => Navigator.of(ctx).pop(),
               ),
             ),
           ),
@@ -2955,40 +2997,54 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    InkWell(
-                      onTap: () =>
-                          _selectTime(context, shift.startTimeController, true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
+                    if (!widget.enableSuggestions)
+                      TextField(
+                        controller: shift.startTimeController,
+                        decoration: const InputDecoration(
+                          hintText: 'e.g. 9:00 AM',
+                          border: OutlineInputBorder(),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              size: 16,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                shift.startTimeController.text.isEmpty
-                                    ? 'Select time'
-                                    : shift.startTimeController.text,
-                                style: TextStyle(
-                                  color: shift.startTimeController.text.isEmpty
-                                      ? Colors.grey[500]
-                                      : Colors.grey[700],
+                        onChanged: (_) {
+                          _updateTotalDuration();
+                          setState(() {});
+                        },
+                      )
+                    else
+                      InkWell(
+                        onTap: () => _selectTime(
+                            context, shift.startTimeController, true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.access_time,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  shift.startTimeController.text.isEmpty
+                                      ? 'Select time'
+                                      : shift.startTimeController.text,
+                                  style: TextStyle(
+                                    color:
+                                        shift.startTimeController.text.isEmpty
+                                            ? Colors.grey[500]
+                                            : Colors.grey[700],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -3006,40 +3062,53 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    InkWell(
-                      onTap: () =>
-                          _selectTime(context, shift.endTimeController, false),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
+                    if (!widget.enableSuggestions)
+                      TextField(
+                        controller: shift.endTimeController,
+                        decoration: const InputDecoration(
+                          hintText: 'e.g. 5:30 PM',
+                          border: OutlineInputBorder(),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              size: 16,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                shift.endTimeController.text.isEmpty
-                                    ? 'Select time'
-                                    : shift.endTimeController.text,
-                                style: TextStyle(
-                                  color: shift.endTimeController.text.isEmpty
-                                      ? Colors.grey[500]
-                                      : Colors.grey[700],
+                        onChanged: (_) {
+                          _updateTotalDuration();
+                          setState(() {});
+                        },
+                      )
+                    else
+                      InkWell(
+                        onTap: () => _selectTime(
+                            context, shift.endTimeController, false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.access_time,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  shift.endTimeController.text.isEmpty
+                                      ? 'Select time'
+                                      : shift.endTimeController.text,
+                                  style: TextStyle(
+                                    color: shift.endTimeController.text.isEmpty
+                                        ? Colors.grey[500]
+                                        : Colors.grey[700],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

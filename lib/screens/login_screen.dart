@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import '../config/app_router.dart';
 import '../services/auth_service.dart';
@@ -95,9 +97,36 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _launchCreateAccountUrl() async {
-    // For development, show a dialog to create account locally
-    if (mounted) {
-      _showCreateAccountDialog();
+    const url = 'https://www.app.kviktime.se/create-account';
+    final uri = Uri.parse(url);
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        // Dev-only fallback to in-app dialog if external URL can't open
+        if (kDebugMode && mounted) {
+          _showCreateAccountDialog();
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open sign up page. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode && mounted) {
+        _showCreateAccountDialog();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open sign up page. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

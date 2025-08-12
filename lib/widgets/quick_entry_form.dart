@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/entry.dart';
 import '../models/location.dart';
 import '../providers/entry_provider.dart';
+import '../services/auth_service.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
 
@@ -64,27 +65,29 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     if (widget.initialEntry != null) {
       final entry = widget.initialEntry!;
       _selectedDate = entry.date;
-      _dateController.text = DateFormat(AppConstants.dateFormat).format(entry.date);
+      _dateController.text =
+          DateFormat(AppConstants.dateFormat).format(entry.date);
       _departureController.text = entry.from ?? '';
       _arrivalController.text = entry.to ?? '';
       _minutesController.text = entry.travelMinutes?.toString() ?? '';
       _infoController.text = entry.notes ?? '';
     } else {
-      _dateController.text = DateFormat(AppConstants.dateFormat).format(_selectedDate);
+      _dateController.text =
+          DateFormat(AppConstants.dateFormat).format(_selectedDate);
     }
   }
 
   Future<void> _loadRecentRoutes() async {
     final entryProvider = context.read<EntryProvider>();
     final recentEntries = entryProvider.getRecentEntries(limit: 5);
-    
+
     final routes = <String>{};
     for (final entry in recentEntries) {
       if (entry.from != null && entry.to != null) {
         routes.add('${entry.from} → ${entry.to}');
       }
     }
-    
+
     setState(() {
       _recentRoutes = routes.toList();
     });
@@ -101,7 +104,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        _dateController.text = DateFormat(AppConstants.dateFormat).format(picked);
+        _dateController.text =
+            DateFormat(AppConstants.dateFormat).format(picked);
       });
     }
   }
@@ -113,7 +117,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     setState(() {
       _departureController.text = _arrivalController.text;
       _selectedDepartureLocation = _selectedArrivalLocation;
-      
+
       _arrivalController.text = tempDeparture;
       _selectedArrivalLocation = tempDepartureLocation;
     });
@@ -135,15 +139,28 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     setState(() => _isLoading = true);
 
     try {
+      final auth = context.read<AuthService>();
+      final uid = auth.currentUser?.uid;
+      if (uid == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please sign in to add entries.')),
+          );
+        }
+        return;
+      }
+
       final entry = Entry(
         id: widget.initialEntry?.id,
-        userId: 'current_user', // TODO: Get from auth service
+        userId: uid,
         type: EntryType.travel,
         date: _selectedDate,
         from: _departureController.text.trim(),
         to: _arrivalController.text.trim(),
         travelMinutes: int.parse(_minutesController.text),
-        notes: _infoController.text.trim().isEmpty ? null : _infoController.text.trim(),
+        notes: _infoController.text.trim().isEmpty
+            ? null
+            : _infoController.text.trim(),
         createdAt: widget.initialEntry?.createdAt,
       );
 
@@ -159,11 +176,11 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       if (success && mounted) {
         _clearForm();
         widget.onSuccess?.call();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.initialEntry != null 
-                ? 'Travel entry updated!' 
+            content: Text(widget.initialEntry != null
+                ? 'Travel entry updated!'
                 : 'Travel entry added!'),
             backgroundColor: Colors.green,
           ),
@@ -171,7 +188,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to ${widget.initialEntry != null ? 'update' : 'save'} entry'),
+            content: Text(
+                'Failed to ${widget.initialEntry != null ? 'update' : 'save'} entry'),
             backgroundColor: Colors.red,
           ),
         );
@@ -194,7 +212,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
 
   void _clearForm() {
     _formKey.currentState?.reset();
-    _dateController.text = DateFormat(AppConstants.dateFormat).format(DateTime.now());
+    _dateController.text =
+        DateFormat(AppConstants.dateFormat).format(DateTime.now());
     _departureController.clear();
     _arrivalController.clear();
     _minutesController.clear();
@@ -231,7 +250,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: EdgeInsets.all(widget.isCompact ? 12 : AppConstants.defaultPadding),
+        padding:
+            EdgeInsets.all(widget.isCompact ? 12 : AppConstants.defaultPadding),
         child: Form(
           key: _formKey,
           child: Column(
@@ -242,11 +262,13 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                 Row(
                   children: [
                     Text(
-                      widget.initialEntry != null ? 'Edit Entry' : 'Quick Entry',
+                      widget.initialEntry != null
+                          ? 'Edit Entry'
+                          : 'Quick Entry',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const Spacer(),
-                    
+
                     // Multi-segment button (only for new entries)
                     if (widget.initialEntry == null) ...[
                       TextButton.icon(
@@ -259,7 +281,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       ),
                       const SizedBox(width: 8),
                     ],
-                    
+
                     if (widget.onCancel != null) ...[
                       IconButton(
                         onPressed: widget.onCancel,
@@ -287,23 +309,29 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                     ],
                   ],
                 ),
-                
+
                 // Recent routes chips
-                if (_recentRoutes.isNotEmpty && widget.initialEntry == null) ...[
+                if (_recentRoutes.isNotEmpty &&
+                    widget.initialEntry == null) ...[
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
-                    children: _recentRoutes.map((route) => ActionChip(
-                      label: Text(
-                        route,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      onPressed: () => _useRecentRoute(route),
-                      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    )).toList(),
+                    children: _recentRoutes
+                        .map((route) => ActionChip(
+                              label: Text(
+                                route,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              onPressed: () => _useRecentRoute(route),
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.1),
+                            ))
+                        .toList(),
                   ),
                 ],
-                
+
                 const SizedBox(height: AppConstants.defaultPadding),
               ],
 
@@ -317,10 +345,12 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                   prefixIcon: Icon(Icons.calendar_today),
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) => value?.isEmpty == true ? 'Please select a date' : null,
+                validator: (value) =>
+                    value?.isEmpty == true ? 'Please select a date' : null,
               ),
 
-              SizedBox(height: widget.isCompact ? 8 : AppConstants.defaultPadding),
+              SizedBox(
+                  height: widget.isCompact ? 8 : AppConstants.defaultPadding),
 
               // Location fields with swap button (vertical layout)
               Column(
@@ -335,9 +365,10 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       prefixIcon: Icon(Icons.my_location),
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) => Validators.validateRequired(value, 'Departure location'),
+                    validator: (value) => Validators.validateRequired(
+                        value, 'Departure location'),
                   ),
-                  
+
                   // Swap button (centered between fields)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -351,7 +382,10 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                             icon: const Icon(Icons.swap_vert),
                             tooltip: 'Swap locations',
                             style: IconButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.1),
                               padding: const EdgeInsets.all(8),
                             ),
                           ),
@@ -360,7 +394,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       ],
                     ),
                   ),
-                  
+
                   // To location
                   TextFormField(
                     controller: _arrivalController,
@@ -370,12 +404,14 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       prefixIcon: Icon(Icons.location_on),
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) => Validators.validateRequired(value, 'Arrival location'),
+                    validator: (value) =>
+                        Validators.validateRequired(value, 'Arrival location'),
                   ),
                 ],
               ),
 
-              SizedBox(height: widget.isCompact ? 8 : AppConstants.defaultPadding),
+              SizedBox(
+                  height: widget.isCompact ? 8 : AppConstants.defaultPadding),
 
               // Minutes field
               TextFormField(
@@ -390,7 +426,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                 validator: Validators.validateMinutes,
               ),
 
-              SizedBox(height: widget.isCompact ? 8 : AppConstants.defaultPadding),
+              SizedBox(
+                  height: widget.isCompact ? 8 : AppConstants.defaultPadding),
 
               // Info field
               TextFormField(
@@ -405,7 +442,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                 validator: Validators.validateInfo,
               ),
 
-              SizedBox(height: widget.isCompact ? 12 : AppConstants.largePadding),
+              SizedBox(
+                  height: widget.isCompact ? 12 : AppConstants.largePadding),
 
               // Action buttons
               Row(
@@ -420,27 +458,30 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                     ),
                     const SizedBox(width: 12),
                   ],
-                  
                   Expanded(
                     flex: widget.isCompact ? 1 : 2,
                     child: ElevatedButton.icon(
                       onPressed: _isLoading ? null : _submitForm,
-                      icon: _isLoading 
+                      icon: _isLoading
                           ? const SizedBox(
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Icon(widget.initialEntry != null ? Icons.save : Icons.add),
+                          : Icon(widget.initialEntry != null
+                              ? Icons.save
+                              : Icons.add),
                       label: Text(
-                        _isLoading 
-                            ? 'Saving...' 
-                            : widget.initialEntry != null 
-                                ? 'Update Entry' 
+                        _isLoading
+                            ? 'Saving...'
+                            : widget.initialEntry != null
+                                ? 'Update Entry'
                                 : 'Add Entry',
                       ),
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.all(widget.isCompact ? 12 : AppConstants.defaultPadding),
+                        padding: EdgeInsets.all(widget.isCompact
+                            ? 12
+                            : AppConstants.defaultPadding),
                       ),
                     ),
                   ),

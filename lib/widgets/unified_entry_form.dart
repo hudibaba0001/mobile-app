@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
 import '../widgets/location_selector.dart';
+import '../services/auth_service.dart';
 import 'package:flutter/foundation.dart';
 
 /// Unified entry form for both travel and work entries
@@ -41,8 +42,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   String? _workLocation;
   Shift? _shift;
 
-  // Get current user ID (you'll need to get this from your auth service)
-  String get _currentUserId => 'current_user_id'; // TODO: Get from auth service
+  String? get _currentUserId => context.read<AuthService>().currentUser?.uid;
 
   bool _isLoading = false;
 
@@ -64,22 +64,34 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         _departureLocation = entry.departureLocation;
         _arrivalLocation = entry.arrivalLocation;
       } else if (entry.type == EntryType.work) {
-        _workLocation = entry.workLocation;
-        _shift = entry.shift;
+        // Initialize work fields from first shift if present
+        final Shift? firstShift = entry.shift;
+        _workLocation = firstShift?.location ?? entry.workLocation;
+        if (firstShift != null) {
+          _selectedDate = DateTime(
+            firstShift.start.year,
+            firstShift.start.month,
+            firstShift.start.day,
+          );
+          _startTime = TimeOfDay.fromDateTime(firstShift.start);
+          _endTime = TimeOfDay.fromDateTime(firstShift.end);
+        }
       }
 
-      // Calculate end time from duration
-      final startDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _startTime.hour,
-        _startTime.minute,
-      );
-      final endDateTime = startDateTime.add(
-        Duration(minutes: _durationMinutes),
-      );
-      _endTime = TimeOfDay.fromDateTime(endDateTime);
+      // For travel, compute end time from duration if we have minutes
+      if (entry.type == EntryType.travel) {
+        final startDateTime = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _startTime.hour,
+          _startTime.minute,
+        );
+        final endDateTime = startDateTime.add(
+          Duration(minutes: _durationMinutes),
+        );
+        _endTime = TimeOfDay.fromDateTime(endDateTime);
+      }
     }
   }
 
@@ -136,7 +148,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             const SizedBox(height: 24),
 
             // Date and Time Section
-            _buildDateTimeSection(theme),
+            isTravel
+                ? _buildTravelDateAndTimesSection(theme)
+                : _buildWorkDateAndTimesSection(theme),
             const SizedBox(height: 20),
 
             // Location Section
@@ -144,8 +158,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             if (!isTravel) _buildWorkLocationSection(theme),
             const SizedBox(height: 20),
 
-            // Duration Section
-            _buildDurationSection(theme),
+            // Duration Section: for Travel only (manual minutes when no end time)
+            if (isTravel) _buildDurationSection(theme),
             const SizedBox(height: 20),
 
             // Work-specific fields
@@ -227,6 +241,222 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       const SizedBox(width: 8),
                       Text(
                         _startTime.format(context),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTravelDateAndTimesSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Date & Time',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: _selectDate,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: _selectStartTime,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.play_arrow,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _startTime.format(context),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: InkWell(
+                onTap: _selectEndTime,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.stop,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _endTime != null
+                            ? _endTime!.format(context)
+                            : 'End time',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWorkDateAndTimesSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Date & Time',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: _selectDate,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: _selectStartTime,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.play_arrow,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _startTime.format(context),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: InkWell(
+                onTap: _selectEndTime,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.stop,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _endTime != null
+                            ? _endTime!.format(context)
+                            : 'End time',
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
@@ -444,7 +674,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             onPressed: () => Navigator.of(context).pop(),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
             child: const Text('Cancel'),
           ),
@@ -455,7 +686,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             onPressed: _isLoading ? null : _saveEntry,
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
             child: _isLoading
                 ? const SizedBox(
@@ -492,6 +724,18 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     }
   }
 
+  Future<void> _selectEndTime() async {
+    final initial =
+        _endTime ?? _startTime.replacing(minute: (_startTime.minute + 30) % 60);
+    final time = await showTimePicker(
+      context: context,
+      initialTime: initial,
+    );
+    if (time != null) {
+      setState(() => _endTime = time);
+    }
+  }
+
   Future<void> _saveEntry() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -516,21 +760,31 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         );
         return;
       }
+      if (_endTime == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select an end time'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
     }
 
-    if (_durationMinutes <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid duration'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    // For Work: duration is derived from start/end; no manual minutes required
 
     setState(() => _isLoading = true);
 
     try {
+      if (_currentUserId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please sign in to save entries'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
       final entryProvider = Provider.of<EntryProvider>(context, listen: false);
 
       final entryDateTime = DateTime(
@@ -541,18 +795,59 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         _startTime.minute,
       );
 
+      // Compute travel minutes from start/end when available
+      int? computedTravelMinutes;
+      if (widget.entryType == EntryType.travel && _endTime != null) {
+        final entryStart = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _startTime.hour,
+          _startTime.minute,
+        );
+        final entryEnd = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _endTime!.hour,
+          _endTime!.minute,
+        );
+        final diff = entryEnd.difference(entryStart).inMinutes;
+        computedTravelMinutes = diff > 0 ? diff : 0;
+      }
+
       final entry = Entry(
         id: widget.existingEntry?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: _currentUserId,
+        userId: _currentUserId!,
         type: widget.entryType,
         date: entryDateTime,
         from: widget.entryType == EntryType.travel ? _departureLocation : null,
         to: widget.entryType == EntryType.travel ? _arrivalLocation : null,
-        travelMinutes:
-            widget.entryType == EntryType.travel ? _durationMinutes : null,
-        shifts: widget.entryType == EntryType.work && _shift != null
-            ? [_shift!]
+        travelMinutes: widget.entryType == EntryType.travel
+            ? (computedTravelMinutes ?? _durationMinutes)
+            : null,
+        shifts: widget.entryType == EntryType.work
+            ? [
+                Shift(
+                  start: DateTime(
+                    _selectedDate.year,
+                    _selectedDate.month,
+                    _selectedDate.day,
+                    _startTime.hour,
+                    _startTime.minute,
+                  ),
+                  end: DateTime(
+                    _selectedDate.year,
+                    _selectedDate.month,
+                    _selectedDate.day,
+                    _endTime!.hour,
+                    _endTime!.minute,
+                  ),
+                  description: _shift?.description,
+                  location: _workLocation,
+                ),
+              ]
             : null,
         notes: _notesController.text.trim().isEmpty
             ? null

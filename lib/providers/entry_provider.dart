@@ -221,21 +221,50 @@ class EntryProvider extends ChangeNotifier {
 
   Future<void> deleteEntry(String id) async {
     try {
-      // Find the entry to determine its type
-      final entry = _entries.firstWhere((e) => e.id == id);
+      Entry? entry;
+      try {
+        entry = _entries.firstWhere((e) => e.id == id);
+      } catch (_) {
+        entry = null;
+      }
 
-      if (entry.type == EntryType.travel) {
+      // Determine type by probing repositories if not found in memory
+      EntryType? entryType = entry?.type;
+      if (entryType == null) {
+        final travel = _repositoryProvider.travelRepository.getById(id);
+        if (travel != null) {
+          entryType = EntryType.travel;
+        } else {
+          final work = _repositoryProvider.workRepository.getById(id);
+          if (work != null) {
+            entryType = EntryType.work;
+          }
+        }
+      }
+
+      if (entryType == null) {
+        throw Exception('Entry not found');
+      }
+
+      if (entryType == EntryType.travel) {
         await _repositoryProvider.travelRepository.delete(id);
-      } else if (entry.type == EntryType.work) {
+      } else if (entryType == EntryType.work) {
         await _repositoryProvider.workRepository.delete(id);
       }
 
-      // Remove from local list
+      // Remove from local list if present
+      final before = _entries.length;
       _entries.removeWhere((e) => e.id == id);
-      _applyFilters();
-      notifyListeners();
+      final removed = _entries.length < before;
+      if (!removed) {
+        // If we didn't have it locally, refresh the list to keep UI in sync
+        await loadEntries();
+      } else {
+        _applyFilters();
+        notifyListeners();
+      }
 
-      debugPrint('EntryProvider: Deleted ${entry.type} entry with ID: $id');
+      debugPrint('EntryProvider: Deleted $entryType entry with ID: $id');
     } catch (e) {
       debugPrint('EntryProvider: Error deleting entry: $e');
       throw Exception('Unable to delete entry. Please try again.');

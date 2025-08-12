@@ -18,7 +18,12 @@ const app = express();
 // Middleware
 app.use(helmet());
 // Define a whitelist of allowed domains for production
-const whitelist = ['https://app-kviktime-se.web.app', 'https://kviktime-9ee5f.web.app'];
+const whitelist = [
+  'https://app-kviktime-se.web.app',
+  'https://kviktime-9ee5f.web.app',
+  'https://www.app.kviktime.se',
+  'https://app.kviktime.se',
+];
 
 const corsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
@@ -37,6 +42,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+// Explicitly handle preflight for all routes
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Health check endpoint (no auth required)

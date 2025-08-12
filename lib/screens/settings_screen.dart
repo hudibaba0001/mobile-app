@@ -5,6 +5,7 @@ import '../providers/settings_provider.dart';
 import '../config/app_router.dart';
 import '../widgets/standard_app_bar.dart';
 import '../providers/entry_provider.dart';
+import '../services/auth_service.dart';
 import '../models/entry.dart';
 import '../models/travel_entry.dart';
 import '../models/work_entry.dart';
@@ -14,6 +15,16 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _addSampleData(BuildContext context) async {
     final entryProvider = context.read<EntryProvider>();
+    final auth = context.read<AuthService>();
+    final uid = auth.currentUser?.uid;
+    if (uid == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please sign in to add sample data.')),
+        );
+      }
+      return;
+    }
     final now = DateTime.now();
 
     // Sample locations
@@ -29,7 +40,7 @@ class SettingsScreen extends StatelessWidget {
     final workEntries = [
       WorkEntry(
         id: 'sample_work_1',
-        userId: 'current_user',
+        userId: uid,
         workMinutes: 480, // 8 hours
         date: now.subtract(const Duration(days: 1)),
         remarks: 'Regular work day',
@@ -38,7 +49,7 @@ class SettingsScreen extends StatelessWidget {
       ),
       WorkEntry(
         id: 'sample_work_2',
-        userId: 'current_user',
+        userId: uid,
         workMinutes: 540, // 9 hours
         date: now.subtract(const Duration(days: 3)),
         remarks: 'Extended day - project deadline',
@@ -47,7 +58,7 @@ class SettingsScreen extends StatelessWidget {
       ),
       WorkEntry(
         id: 'sample_work_3',
-        userId: 'current_user',
+        userId: uid,
         workMinutes: 420, // 7 hours
         date: now.subtract(const Duration(days: 5)),
         remarks: 'Short day - doctor appointment',
@@ -60,7 +71,7 @@ class SettingsScreen extends StatelessWidget {
     final travelEntries = [
       TravelEntry(
         id: 'sample_travel_1',
-        userId: 'current_user',
+        userId: uid,
         fromLocation: locations[0].$1, // Home
         toLocation: locations[1].$1, // Office
         travelMinutes: 45,
@@ -71,7 +82,7 @@ class SettingsScreen extends StatelessWidget {
       ),
       TravelEntry(
         id: 'sample_travel_2',
-        userId: 'current_user',
+        userId: uid,
         fromLocation: locations[1].$1, // Office
         toLocation: locations[2].$1, // Client Site
         travelMinutes: 30,
@@ -82,7 +93,7 @@ class SettingsScreen extends StatelessWidget {
       ),
       TravelEntry(
         id: 'sample_travel_3',
-        userId: 'current_user',
+        userId: uid,
         fromLocation: locations[2].$1, // Client Site
         toLocation: locations[0].$1, // Home
         travelMinutes: 60,
@@ -93,7 +104,7 @@ class SettingsScreen extends StatelessWidget {
       ),
       TravelEntry(
         id: 'sample_travel_4',
-        userId: 'current_user',
+        userId: uid,
         fromLocation: locations[0].$1, // Home
         toLocation: locations[3].$1, // Gym
         travelMinutes: 20,

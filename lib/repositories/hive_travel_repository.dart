@@ -51,7 +51,7 @@ class HiveTravelRepository implements TravelRepository {
   Future<TravelEntry> add(TravelEntry entry) async {
     final box = await _getBox();
     final newEntry = entry.copyWith(
-      id: entry.id,
+      id: entry.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : entry.id,
       updatedAt: DateTime.now(),
     );
     await box.put(newEntry.id, newEntry);
@@ -72,6 +72,13 @@ class HiveTravelRepository implements TravelRepository {
   Future<void> delete(String id) async {
     final box = await _getBox();
     await box.delete(id);
+  }
+
+  @override
+  TravelEntry? getById(String id) {
+    final box = _box;
+    if (box == null) return null;
+    return box.get(id);
   }
 
   @override

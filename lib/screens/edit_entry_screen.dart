@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../providers/entry_provider.dart';
+import '../models/entry.dart';
 
 /// Edit Entry screen for both travel and work entries.
 /// Features: Entry type switching, form validation, Material 3 theming.
@@ -23,6 +26,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   // Entry type
   late EntryType _currentEntryType;
+  DateTime? _originalDate;
+  DateTime? _originalCreatedAt;
 
   // Travel form data - now supports multiple travel entries
   final List<_TravelEntry> _travelEntries = [];
@@ -67,35 +72,61 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   }
 
   void _loadEntryData() {
-    // TODO: Load actual entry data from Provider
-    // For now, load demo data
+    final entryProvider = context.read<EntryProvider>();
+
+    Entry? existing;
+    for (final e in entryProvider.entries) {
+      if (e.id == widget.entryId) {
+        existing = e;
+        break;
+      }
+    }
+
+    if (existing != null) {
+      _originalDate = existing.date;
+      _originalCreatedAt = existing.createdAt;
+
+      if (existing.type == EntryType.travel) {
+        _currentEntryType = EntryType.travel;
+        _addTravelEntry();
+        if (_travelEntries.isNotEmpty) {
+          _travelEntries[0].fromController.text = existing.from ?? '';
+          _travelEntries[0].toController.text = existing.to ?? '';
+          final minutes = existing.travelMinutes ?? 0;
+          _travelEntries[0].durationHoursController.text =
+              (minutes ~/ 60).toString();
+          _travelEntries[0].durationMinutesController.text =
+              (minutes % 60).toString();
+        }
+        _travelNotesController.text = existing.notes ?? '';
+        _validateForm();
+        return;
+      } else if (existing.type == EntryType.work) {
+        _currentEntryType = EntryType.work;
+        _addShift();
+        if (_shifts.isNotEmpty) {
+          final firstShift = existing.shifts?.isNotEmpty == true
+              ? existing.shifts!.first
+              : null;
+          final start = firstShift?.start ?? existing.date;
+          final end =
+              firstShift?.end ?? existing.date.add(existing.workDuration);
+          _shifts[0].startTimeController.text =
+              _formatTimeOfDay(TimeOfDay.fromDateTime(start));
+          _shifts[0].endTimeController.text =
+              _formatTimeOfDay(TimeOfDay.fromDateTime(end));
+        }
+        _workNotesController.text = existing.notes ?? '';
+        _validateForm();
+        return;
+      }
+    }
+
+    // Fallback: initialize empty of requested type
     if (_currentEntryType == EntryType.travel) {
-      // Add sample travel entries to demonstrate multiple entries per day
       _addTravelEntry();
-      if (_travelEntries.isNotEmpty) {
-        _travelEntries[0].fromController.text = 'Home';
-        _travelEntries[0].toController.text = 'Office';
-        _travelEntries[0].durationHoursController.text = '0';
-        _travelEntries[0].durationMinutesController.text = '25';
-      }
-
-      // Add a second travel entry to show multiple trips
-      _addTravelEntry();
-      if (_travelEntries.length > 1) {
-        _travelEntries[1].fromController.text = 'Office';
-        _travelEntries[1].toController.text = 'Client Meeting';
-        _travelEntries[1].durationHoursController.text = '0';
-        _travelEntries[1].durationMinutesController.text = '15';
-      }
-
-      _travelNotesController.text = 'Multiple trips throughout the day';
     } else {
       _addShift();
-      if (_shifts.isNotEmpty) {
-        _shifts[0].startTimeController.text = '09:00';
-        _shifts[0].endTimeController.text = '17:00';
-      }
-      _workNotesController.text = 'Regular work day at the office';
     }
     _validateForm();
   }
@@ -170,8 +201,51 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     });
 
     try {
-      // TODO: Save via EntryProvider
-      await Future.delayed(const Duration(seconds: 1)); // Simulate save
+      // Build unified Entry and update via EntryProvider
+      if (_currentEntryType == EntryType.travel && _travelEntries.isNotEmpty) {
+        final t = _travelEntries.first;
+        final totalMinutes =
+            (int.tryParse(t.durationHoursController.text) ?? 0) * 60 +
+                (int.tryParse(t.durationMinutesController.text) ?? 0);
+
+        final entry = Entry(
+          id: widget.entryId,
+          userId: '', // userId is resolved inside EntryProvider via AuthService
+          type: EntryType.travel,
+          from: t.fromController.text.trim(),
+          to: t.toController.text.trim(),
+          travelMinutes: totalMinutes,
+          date: _originalDate ?? DateTime.now(),
+          notes: _travelNotesController.text.trim().isEmpty
+              ? null
+              : _travelNotesController.text.trim(),
+          createdAt: _originalCreatedAt ?? DateTime.now(),
+        );
+
+        await context.read<EntryProvider>().updateEntry(entry);
+      } else if (_currentEntryType == EntryType.work && _shifts.isNotEmpty) {
+        final s = _shifts.first;
+        final start = _parseTimeOfDay(s.startTimeController.text);
+        final end = _parseTimeOfDay(s.endTimeController.text);
+
+        final shift =
+            start != null && end != null ? Shift(start: start, end: end) : null;
+
+        final entry = Entry(
+          id: widget.entryId,
+          userId: '',
+          type: EntryType.work,
+          shifts: shift != null ? [shift] : [],
+          date: _originalDate ?? start ?? DateTime.now(),
+          notes: _workNotesController.text.trim().isEmpty
+              ? null
+              : _workNotesController.text.trim(),
+          createdAt: _originalCreatedAt ?? DateTime.now(),
+        );
+
+        // Ensure minutes reflected in shifts; EntryProvider will compute workMinutes
+        await context.read<EntryProvider>().updateEntry(entry);
+      }
 
       if (!mounted) return;
       // Defer navigation to next frame to avoid navigator operations during rebuild/dispose
@@ -197,6 +271,22 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         });
       }
     }
+  }
+
+  String _formatTimeOfDay(TimeOfDay tod) {
+    final h = tod.hour.toString().padLeft(2, '0');
+    final m = tod.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  DateTime? _parseTimeOfDay(String text) {
+    final parts = text.split(':');
+    if (parts.length != 2) return null;
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) return null;
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, h, m);
   }
 
   void _cancelEdit() {
@@ -845,8 +935,6 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     }
   }
 }
-
-enum EntryType { travel, work }
 
 class _TravelEntry {
   final String id;

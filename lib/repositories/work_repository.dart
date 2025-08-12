@@ -33,9 +33,15 @@ class WorkRepository {
 
   /// Add a new work entry
   Future<WorkEntry> add(WorkEntry entry) async {
-    final newEntry = entry.copyWith(id: _uuid.v4());
+    final assignedId = (entry.id.isEmpty) ? _uuid.v4() : entry.id;
+    final newEntry = entry.copyWith(id: assignedId);
     await _box.put(newEntry.id, newEntry);
     return newEntry;
+  }
+
+  /// Get an entry by ID
+  WorkEntry? getById(String id) {
+    return _box.get(id);
   }
 
   /// Update an existing work entry

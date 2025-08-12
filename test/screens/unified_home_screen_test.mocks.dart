@@ -695,6 +695,20 @@ class MockLocationProvider extends _i1.Mock implements _i18.LocationProvider {
       ) as List<_i20.AutocompleteSuggestion>);
 
   @override
+  List<String> getAddressSuggestions(
+    String? query, {
+    int? limit = 5,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAddressSuggestions,
+          [query],
+          {#limit: limit},
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
+
+  @override
   List<_i19.Location> getRecentlyAddedLocations({int? limit = 5}) =>
       (super.noSuchMethod(
         Invocation.method(

@@ -4,6 +4,8 @@ import '../models/travel_summary.dart';
 import '../repositories/travel_repository.dart';
 import '../repositories/location_repository.dart';
 import '../utils/constants.dart';
+import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
 import '../utils/error_handler.dart';
 import '../utils/retry_helper.dart';
 
@@ -33,8 +35,8 @@ class TravelService {
 
   Future<TravelSummary> _generateSummaryInternal(
       DateTime startDate, DateTime endDate) async {
-    // Note: This method needs a userId parameter, but we'll use a placeholder for now
-    final userId = 'current_user'; // TODO: Get from auth service
+    // Acquire user from a global provider if available
+    final userId = _currentUserId();
     final entries =
         _travelRepository.getForUserInRange(userId, startDate, endDate);
 
@@ -87,8 +89,7 @@ class TravelService {
   }
 
   Future<List<String>> _getSuggestedRoutesInternal(int limit) async {
-    // Note: This method needs a userId parameter, but we'll use a placeholder for now
-    final userId = 'current_user'; // TODO: Get from auth service
+    final userId = _currentUserId();
     final recentEntries = _travelRepository.getAllForUser(userId);
     final routeFrequency = <String, int>{};
 
@@ -167,8 +168,7 @@ class TravelService {
   }
 
   Future<Map<String, dynamic>> _getTravelStatisticsInternal() async {
-    // Note: This method needs a userId parameter, but we'll use a placeholder for now
-    final userId = 'current_user'; // TODO: Get from auth service
+    final userId = _currentUserId();
     final allEntries = _travelRepository.getAllForUser(userId);
 
     if (allEntries.isEmpty) {
@@ -232,10 +232,9 @@ class TravelService {
 
   Future<Map<String, dynamic>> _getRecentPatternsInternal(int days) async {
     final cutoffDate = DateTime.now().subtract(Duration(days: days));
-    // Note: This method needs a userId parameter, but we'll use a placeholder for now
-    final userId = 'current_user'; // TODO: Get from auth service
-    final recentEntries = _travelRepository.getForUserInRange(
-        userId, cutoffDate, DateTime.now());
+    final userId = _currentUserId();
+    final recentEntries =
+        _travelRepository.getForUserInRange(userId, cutoffDate, DateTime.now());
 
     if (recentEntries.isEmpty) {
       return {
@@ -254,7 +253,8 @@ class TravelService {
     final dayOfWeekCounts = <int, int>{};
 
     for (final entry in recentEntries) {
-      departures[entry.fromLocation] = (departures[entry.fromLocation] ?? 0) + 1;
+      departures[entry.fromLocation] =
+          (departures[entry.fromLocation] ?? 0) + 1;
       arrivals[entry.toLocation] = (arrivals[entry.toLocation] ?? 0) + 1;
 
       final route = '${entry.fromLocation} → ${entry.toLocation}';
@@ -330,7 +330,7 @@ class TravelService {
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
     );
-    
+
     await _travelRepository.add(travelEntry);
 
     // Update location usage counts if locations are linked
@@ -364,7 +364,7 @@ class TravelService {
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
     );
-    
+
     await _travelRepository.update(travelEntry);
   }
 
@@ -395,14 +395,13 @@ class TravelService {
   }
 
   Future<List<Entry>> _searchEntriesInternal(String query) async {
-    // Note: This method needs a userId parameter, but we'll use a placeholder for now
-    final userId = 'current_user'; // TODO: Get from auth service
+    final userId = _currentUserId();
     final allEntries = _travelRepository.getAllForUser(userId);
-    
+
     // Simple search implementation
     final lowercaseQuery = query.toLowerCase();
     final results = <Entry>[];
-    
+
     for (final travelEntry in allEntries) {
       // Convert TravelEntry to Entry for consistency
       final entry = Entry(
@@ -417,7 +416,7 @@ class TravelService {
         createdAt: travelEntry.createdAt,
         updatedAt: travelEntry.updatedAt,
       );
-      
+
       // Search in departure, arrival, and notes
       if (travelEntry.fromLocation.toLowerCase().contains(lowercaseQuery) ||
           travelEntry.toLocation.toLowerCase().contains(lowercaseQuery) ||
@@ -425,7 +424,22 @@ class TravelService {
         results.add(entry);
       }
     }
-    
+
     return results;
+  }
+
+  String _currentUserId() {
+    // This service isn’t a widget; prefer using a global/provider lookup pattern.
+    // For now, require that callers have set up a Provider scope and retrieve via
+    // Navigation or a service locator. Here we fall back to throwing if missing.
+    try {
+      final ctx = AppRouter.navigatorKey.currentContext;
+      if (ctx != null) {
+        final auth = ctx.read<AuthService>();
+        final uid = auth.currentUser?.uid;
+        if (uid != null) return uid;
+      }
+    } catch (_) {}
+    throw Exception('No authenticated user');
   }
 }
