@@ -122,65 +122,65 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
           child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                Icon(
-                  isTravel ? Icons.directions_car : Icons.work,
-                  color: isTravel
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.secondary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Log ${isTravel ? 'Travel' : 'Work'} Entry',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Icon(
+                    isTravel ? Icons.directions_car : Icons.work,
+                    color: isTravel
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.secondary,
+                    size: 24,
                   ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
-                  style: IconButton.styleFrom(
-                    backgroundColor: theme.colorScheme.surfaceVariant,
+                  const SizedBox(width: 12),
+                  Text(
+                    'Log ${isTravel ? 'Travel' : 'Work'} Entry',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                    style: IconButton.styleFrom(
+                      backgroundColor: theme.colorScheme.surfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
 
-            // Date and Time Section
-            isTravel
-                ? _buildTravelDateAndTimesSection(theme)
-                : _buildWorkDateAndTimesSection(theme),
-            const SizedBox(height: 20),
+              // Date and Time Section
+              isTravel
+                  ? _buildTravelDateAndTimesSection(theme)
+                  : _buildWorkDateAndTimesSection(theme),
+              const SizedBox(height: 20),
 
-            // Location Section
-            if (isTravel) _buildTravelLocationSection(theme),
-            if (!isTravel) _buildWorkLocationSection(theme),
-            const SizedBox(height: 20),
+              // Location Section
+              if (isTravel) _buildTravelLocationSection(theme),
+              if (!isTravel) _buildWorkLocationSection(theme),
+              const SizedBox(height: 20),
 
-            // Duration Section: for Travel only (manual minutes when no end time)
-            if (isTravel) _buildDurationSection(theme),
-            const SizedBox(height: 20),
+              // Duration Section: for Travel only (manual minutes when no end time)
+              if (isTravel) _buildDurationSection(theme),
+              const SizedBox(height: 20),
 
-            // Work-specific fields
-            if (!isTravel) _buildWorkSpecificFields(theme),
+              // Work-specific fields
+              if (!isTravel) _buildWorkSpecificFields(theme),
 
-            // Notes Section
-            _buildNotesSection(theme),
-            const SizedBox(height: 24),
+              // Notes Section
+              _buildNotesSection(theme),
+              const SizedBox(height: 24),
 
-            // Action Buttons
-            _buildActionButtons(theme),
+              // Action Buttons
+              _buildActionButtons(theme),
 
-            // End padding handled via container padding
-          ],
+              // End padding handled via container padding
+            ],
           ),
         ),
       ),
