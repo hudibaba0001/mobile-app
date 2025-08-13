@@ -37,7 +37,7 @@ class _LocationSelectorState extends State<LocationSelector> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final LayerLink _layerLink = LayerLink();
-  
+
   OverlayEntry? _overlayEntry;
   List<Location> _suggestions = [];
   List<String> _addressSuggestions = [];
@@ -62,7 +62,22 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   void _onFocusChanged() {
     if (_focusNode.hasFocus) {
-      _showSuggestions();
+      // Ensure suggestions are up to date when gaining focus
+      final query = _controller.text;
+      _updateSuggestions(query);
+      final trimmed = query.trim();
+      final hasContent = _suggestions.isNotEmpty ||
+          _addressSuggestions.isNotEmpty ||
+          (widget.showSaveOption &&
+              trimmed.isNotEmpty &&
+              !_isExistingLocation(trimmed));
+
+      if (hasContent) {
+        _showSuggestions();
+        _overlayEntry?.markNeedsBuild();
+      } else {
+        _removeOverlay();
+      }
     } else {
       // Delay hiding to allow for tap on suggestions
       Future.delayed(const Duration(milliseconds: 150), () {
@@ -76,10 +91,19 @@ class _LocationSelectorState extends State<LocationSelector> {
   void _onTextChanged() {
     final query = _controller.text;
     widget.onLocationSelected(query);
-    
-    if (query.isNotEmpty) {
-      _updateSuggestions(query);
+
+    _updateSuggestions(query);
+    final trimmed = query.trim();
+    final hasContent = _suggestions.isNotEmpty ||
+        _addressSuggestions.isNotEmpty ||
+        (widget.showSaveOption &&
+            trimmed.isNotEmpty &&
+            !_isExistingLocation(trimmed));
+
+    if (hasContent) {
       _showSuggestions();
+      // Refresh overlay contents when typing
+      _overlayEntry?.markNeedsBuild();
     } else {
       _selectedLocation = null;
       widget.onLocationObjectSelected?.call(null);
@@ -89,12 +113,12 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   void _updateSuggestions(String query) {
     final locationProvider = context.read<LocationProvider>();
-    
+
     // Get location suggestions
     _suggestions = locationProvider.locations.where((location) {
       final queryLower = query.toLowerCase();
       return location.name.toLowerCase().contains(queryLower) ||
-             location.address.toLowerCase().contains(queryLower);
+          location.address.toLowerCase().contains(queryLower);
     }).toList();
 
     // Sort suggestions
@@ -112,15 +136,19 @@ class _LocationSelectorState extends State<LocationSelector> {
     _suggestions = _suggestions.take(8).toList();
 
     // Get address suggestions from location provider
-    _addressSuggestions = locationProvider.getAddressSuggestions(query, limit: 3);
+    _addressSuggestions =
+        locationProvider.getAddressSuggestions(query, limit: 3);
   }
 
   void _showSuggestions() {
-    if (_isShowingOverlay) return;
-
-    _overlayEntry = _createOverlayEntry();
-    Overlay.of(context).insert(_overlayEntry!);
-    _isShowingOverlay = true;
+    if (_overlayEntry == null) {
+      _overlayEntry = _createOverlayEntry();
+      Overlay.of(context).insert(_overlayEntry!);
+      _isShowingOverlay = true;
+    } else {
+      // If already showing, just mark it to rebuild with latest suggestions
+      _overlayEntry!.markNeedsBuild();
+    }
   }
 
   void _removeOverlay() {
@@ -134,22 +162,19 @@ class _LocationSelectorState extends State<LocationSelector> {
   OverlayEntry _createOverlayEntry() {
     final RenderBox renderBox = context.findRenderObject() as RenderBox;
     final size = renderBox.size;
-    final offset = renderBox.localToGlobal(Offset.zero);
 
     return OverlayEntry(
-      builder: (context) => Positioned(
-        left: offset.dx,
-        top: offset.dy + size.height + 4,
-        width: size.width,
-        child: CompositedTransformFollower(
-          link: _layerLink,
-          showWhenUnlinked: false,
-          offset: Offset(0, size.height + 4),
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(8),
+      builder: (context) => CompositedTransformFollower(
+        link: _layerLink,
+        showWhenUnlinked: false,
+        offset: Offset(0, size.height + 4),
+        child: Material(
+          elevation: 4,
+          borderRadius: BorderRadius.circular(8),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 300),
             child: Container(
-              constraints: const BoxConstraints(maxHeight: 300),
+              width: size.width,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
@@ -170,7 +195,9 @@ class _LocationSelectorState extends State<LocationSelector> {
     final hasAddressSuggestions = _addressSuggestions.isNotEmpty;
     final currentText = _controller.text.trim();
 
-    if (!hasLocationSuggestions && !hasAddressSuggestions && currentText.isEmpty) {
+    if (!hasLocationSuggestions &&
+        !hasAddressSuggestions &&
+        currentText.isEmpty) {
       return _buildEmptyState();
     }
 
@@ -185,13 +212,14 @@ class _LocationSelectorState extends State<LocationSelector> {
             child: Text(
               'Saved Locations',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
           ..._suggestions.map((location) => _buildLocationTile(location)),
-          if (hasAddressSuggestions || (widget.showSaveOption && currentText.isNotEmpty))
+          if (hasAddressSuggestions ||
+              (widget.showSaveOption && currentText.isNotEmpty))
             const Divider(height: 1),
         ],
 
@@ -203,9 +231,9 @@ class _LocationSelectorState extends State<LocationSelector> {
               child: Text(
                 'Recent Addresses',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ),
           ..._addressSuggestions.map((address) => _buildAddressTile(address)),
@@ -214,7 +242,9 @@ class _LocationSelectorState extends State<LocationSelector> {
         ],
 
         // Save new location option
-        if (widget.showSaveOption && currentText.isNotEmpty && !_isExistingLocation(currentText))
+        if (widget.showSaveOption &&
+            currentText.isNotEmpty &&
+            !_isExistingLocation(currentText))
           _buildSaveLocationTile(currentText),
       ],
     );
@@ -222,7 +252,8 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   Widget _buildEmptyState() {
     final locationProvider = context.watch<LocationProvider>();
-    final recentLocations = locationProvider.getRecentlyAddedLocations(limit: 5);
+    final recentLocations =
+        locationProvider.getRecentlyAddedLocations(limit: 5);
 
     if (recentLocations.isEmpty) {
       return Padding(
@@ -259,9 +290,9 @@ class _LocationSelectorState extends State<LocationSelector> {
           child: Text(
             'Recent Locations',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
         ),
         ...recentLocations.map((location) => _buildLocationTile(location)),
@@ -274,13 +305,13 @@ class _LocationSelectorState extends State<LocationSelector> {
       dense: true,
       leading: CircleAvatar(
         radius: 16,
-        backgroundColor: location.isFavorite 
+        backgroundColor: location.isFavorite
             ? Colors.amber.withOpacity(0.2)
             : Theme.of(context).colorScheme.primary.withOpacity(0.1),
         child: Icon(
           location.isFavorite ? Icons.star : Icons.location_on,
           size: 16,
-          color: location.isFavorite 
+          color: location.isFavorite
               ? Colors.amber[700]
               : Theme.of(context).colorScheme.primary,
         ),
@@ -368,13 +399,13 @@ class _LocationSelectorState extends State<LocationSelector> {
       _selectedLocation = location;
       _controller.text = location.address;
     });
-    
+
     widget.onLocationSelected(location.address);
     widget.onLocationObjectSelected?.call(location);
-    
+
     // Increment usage count
     context.read<LocationProvider>().toggleFavorite(location.id);
-    
+
     _removeOverlay();
     _focusNode.unfocus();
   }
@@ -383,17 +414,17 @@ class _LocationSelectorState extends State<LocationSelector> {
     setState(() {
       _controller.text = address;
     });
-    
+
     widget.onLocationSelected(address);
     widget.onLocationObjectSelected?.call(null);
-    
+
     _removeOverlay();
     _focusNode.unfocus();
   }
 
   void _saveNewLocation(String address) async {
     final locationProvider = context.read<LocationProvider>();
-    
+
     // Show dialog to get location name
     final name = await _showSaveLocationDialog(address);
     if (name != null && name.isNotEmpty) {
@@ -403,7 +434,7 @@ class _LocationSelectorState extends State<LocationSelector> {
         address: address,
         createdAt: DateTime.now(),
       );
-      
+
       await locationProvider.addLocation(newLocation);
       if (mounted) {
         _selectLocation(newLocation);
@@ -419,7 +450,7 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   Future<String?> _showSaveLocationDialog(String address) async {
     final controller = TextEditingController();
-    
+
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -472,7 +503,8 @@ class _LocationSelectorState extends State<LocationSelector> {
         decoration: InputDecoration(
           labelText: widget.labelText,
           hintText: widget.hintText,
-          prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
+          prefixIcon:
+              widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
           suffixIcon: _controller.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear),

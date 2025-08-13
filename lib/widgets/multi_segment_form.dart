@@ -208,7 +208,6 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
         }
 
         final entry = Entry(
-          userId: 'current_user', // TODO: Get from auth service
           userId: uid,
           type: EntryType.travel, // Always travel for this form
           date: _selectedDate,

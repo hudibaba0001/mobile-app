@@ -1,4 +1,6 @@
 import '../widgets/unified_entry_form.dart';
+import '../widgets/entry_detail_sheet.dart';
+import 'dart:async';
 import '../models/entry.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,12 +34,20 @@ class UnifiedHomeScreen extends StatefulWidget {
 class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   int _selectedIndex = 0;
   List<_EntryData> _recentEntries = [];
+  bool _isLoadingRecent = false;
+  Timer? _recentLoadDebounce;
+
+  @override
+  void initState() {
+    super.initState();
+    // Debounce initial load to next frame
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadRecentEntries());
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateSelectedIndex();
-    _loadRecentEntries();
   }
 
   void _updateSelectedIndex() {
@@ -61,7 +71,17 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   void _loadRecentEntries() {
-    print('=== LOADING RECENT ENTRIES ===');
+    // Debounce frequent triggers to avoid UI stalls
+    _recentLoadDebounce?.cancel();
+    _recentLoadDebounce = Timer(const Duration(milliseconds: 150), () {
+      if (_isLoadingRecent) return;
+      _isLoadingRecent = true;
+      _loadRecentEntriesInternal();
+    });
+  }
+
+  void _loadRecentEntriesInternal() {
+    debugPrint('=== LOADING RECENT ENTRIES ===');
     try {
       final repositoryProvider =
           Provider.of<RepositoryProvider>(context, listen: false);
@@ -75,7 +95,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         return;
       }
 
-      print('Loading entries for user: $userId');
+      debugPrint('Loading entries for user: $userId');
 
       // Get recent travel entries
       final travelEntries =
@@ -83,8 +103,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       final workEntries =
           repositoryProvider.workRepository.getAllForUser(userId);
 
-      print('Found ${travelEntries.length} travel entries');
-      print('Found ${workEntries.length} work entries');
+      debugPrint('Found ${travelEntries.length} travel entries');
+      debugPrint('Found ${workEntries.length} work entries');
 
       // Combine and sort by date
       final allEntries = <_EntryData>[];
@@ -100,6 +120,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           duration:
               '${entry.travelMinutes ~/ 60}h ${entry.travelMinutes % 60}m',
           icon: Icons.directions_car,
+          date: entry.date,
         ));
       }
 
@@ -113,23 +134,21 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               '${entry.date.toString().split(' ')[0]} • ${entry.remarks.isNotEmpty ? entry.remarks : 'No remarks'}',
           duration: '${entry.workMinutes ~/ 60}h ${entry.workMinutes % 60}m',
           icon: Icons.work,
+          date: entry.date,
         ));
       }
 
-      // Sort by date (most recent first)
-      allEntries.sort((a, b) {
-        // Extract date from subtitle for sorting
-        final aDate = a.subtitle.split(' • ')[0];
-        final bDate = b.subtitle.split(' • ')[0];
-        return bDate.compareTo(aDate);
-      });
+      // Sort by real date (most recent first)
+      allEntries.sort((a, b) => b.date.compareTo(a.date));
 
       setState(() {
         _recentEntries = allEntries.take(10).toList();
       });
     } catch (e) {
       // If there's an error, keep the mock data
-      print('Error loading recent entries: $e');
+      debugPrint('Error loading recent entries: $e');
+    } finally {
+      _isLoadingRecent = false;
     }
   }
 
@@ -714,9 +733,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            // Navigate to edit entry
-          },
+          onTap: () => _openQuickView(entry),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -778,59 +795,50 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.edit_outlined,
-                            size: 18,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 12),
-                          Text('Edit'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_outline,
-                            size: 18,
-                            color: theme.colorScheme.error,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Delete',
-                            style: TextStyle(color: theme.colorScheme.error),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _editEntry(entry);
-                    } else if (value == 'delete') {
-                      _deleteEntry(context, entry);
-                    }
-                  },
-                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  void _openQuickView(_EntryData summary) {
+    final provider = context.read<EntryProvider>();
+    Entry? full;
+    try {
+      full = provider.entries.firstWhere((e) => e.id == summary.id);
+    } catch (_) {}
+    Future<void> ensureAndOpen() async {
+      if (full == null) {
+        await provider.loadEntries();
+        try {
+          full = provider.entries.firstWhere((e) => e.id == summary.id);
+        } catch (_) {}
+      }
+      if (!mounted || full == null) return;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (ctx) {
+          return Padding(
+            padding:
+                EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            child: EntryDetailSheet(
+              entry: full!,
+              onEdit: () => _editEntry(summary),
+              onDelete: () => _deleteEntry(context, summary),
+            ),
+          );
+        },
+      );
+    }
+
+    ensureAndOpen();
   }
 
   void _editEntry(_EntryData entry) {
@@ -1113,6 +1121,7 @@ class _EntryData {
   final String subtitle;
   final String duration;
   final IconData icon;
+  final DateTime date;
 
   _EntryData({
     required this.id,
@@ -1121,6 +1130,7 @@ class _EntryData {
     required this.subtitle,
     required this.duration,
     required this.icon,
+    required this.date,
   });
 }
 

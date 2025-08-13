@@ -1,6 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'lib/services/firebase_registration_helper.dart';
-import 'firebase_options.dart';
+import 'lib/firebase_options.dart';
 
 /// Simple script to create a Firebase account
 /// Run with: dart run create_account.dart

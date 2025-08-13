@@ -16,6 +16,7 @@ import '../screens/edit_entry_screen.dart';
 import '../screens/manage_locations_screen.dart';
 
 class AppRouter {
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   static const String loginPath = '/login';
   static const String homePath = '/';
   static const String settingsPath = '/settings';
@@ -41,6 +42,7 @@ class AppRouter {
   static const String manageLocationsName = 'manage-locations';
 
   static final router = GoRouter(
+    navigatorKey: navigatorKey,
     initialLocation: homePath,
     redirect: (context, state) async {
       final authService = context.read<AuthService>();

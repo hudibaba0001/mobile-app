@@ -5,6 +5,7 @@ import '../repositories/travel_repository.dart';
 import '../repositories/location_repository.dart';
 import '../utils/constants.dart';
 import '../services/auth_service.dart';
+import '../config/app_router.dart';
 import 'package:provider/provider.dart';
 import '../utils/error_handler.dart';
 import '../utils/retry_helper.dart';
@@ -435,7 +436,7 @@ class TravelService {
     try {
       final ctx = AppRouter.navigatorKey.currentContext;
       if (ctx != null) {
-        final auth = ctx.read<AuthService>();
+        final auth = Provider.of<AuthService>(ctx, listen: false);
         final uid = auth.currentUser?.uid;
         if (uid != null) return uid;
       }

@@ -39,8 +39,10 @@ class _LocationsScreenState extends State<LocationsScreen> {
   void _addLocation() {
     if (_nameController.text.isNotEmpty && _addressController.text.isNotEmpty) {
       final newLocation = Location(
+        id: DateTime.now().toIso8601String(),
         name: _nameController.text,
         address: _addressController.text,
+        createdAt: DateTime.now(),
       );
       _locationsBox.add(newLocation);
       _nameController.clear();
