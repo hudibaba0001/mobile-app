@@ -85,7 +85,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     try {
       final repositoryProvider =
           Provider.of<RepositoryProvider>(context, listen: false);
-      final authService = Provider.of<AuthService>(context, listen: false);
+      final authService = context.read<AuthService>();
       final userId = authService.currentUser?.uid;
 
       if (userId == null) {

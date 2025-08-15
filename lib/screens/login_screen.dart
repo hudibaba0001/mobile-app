@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
         print(
             '🔐 LoginScreen: Attempting sign in with email: ${_emailController.text}');
 
-        final authService = Provider.of<AuthService>(context, listen: false);
+        final authService = context.read<AuthService>();
         await authService.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -191,8 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
               }
 
               try {
-                final authService =
-                    Provider.of<AuthService>(context, listen: false);
+                final authService = context.read<AuthService>();
                 await authService.createAccountForDevelopment(
                   email: email,
                   password: password,

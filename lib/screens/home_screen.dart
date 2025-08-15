@@ -25,8 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TravelProvider>(context, listen: false).refreshEntries();
-      Provider.of<LocationProvider>(context, listen: false).refreshLocations();
+      context.read<TravelProvider>().refreshEntries();
+      context.read<LocationProvider>().refreshLocations();
     });
   }
 
@@ -82,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   AppBar _buildAppBar(BuildContext context) {
     final theme = Theme.of(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final themeProvider = context.watch<ThemeProvider>();
     final user = FirebaseAuth.instance.currentUser;
 
     return AppBar(
@@ -334,8 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
               QuickEntryForm(
                 onSuccess: () {
                   // Refresh the entries list
-                  Provider.of<TravelProvider>(context, listen: false)
-                      .refreshEntries();
+                  context.read<TravelProvider>().refreshEntries();
                 },
               ),
             ],
@@ -543,8 +542,7 @@ class _HomeScreenState extends State<HomeScreen> {
               QuickEntryForm(
                 onSuccess: () {
                   Navigator.of(context).pop();
-                  Provider.of<TravelProvider>(context, listen: false)
-                      .refreshEntries();
+                  context.read<TravelProvider>().refreshEntries();
                 },
                 onCancel: () {
                   Navigator.of(context).pop();
@@ -598,8 +596,8 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             onDelete: () {
               Navigator.of(context).pop();
-              _showDeleteConfirmation(context, entry,
-                  Provider.of<TravelProvider>(context, listen: false));
+              _showDeleteConfirmation(
+                  context, entry, context.read<TravelProvider>());
             },
           ),
         ),

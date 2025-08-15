@@ -353,11 +353,8 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
     setState(() => _isLoading = true);
 
     try {
-      final authService = Provider.of<DummyAuthService>(context, listen: false);
-      final entryProvider = Provider.of<LocalEntryProvider>(
-        context,
-        listen: false,
-      );
+      final authService = context.read<DummyAuthService>();
+      final entryProvider = context.read<LocalEntryProvider>();
 
       final hours = int.tryParse(_hoursController.text) ?? 0;
       final minutes = int.tryParse(_minutesController.text) ?? 0;

@@ -5,6 +5,7 @@ import '../providers/entry_provider.dart';
 import '../widgets/location_selector.dart';
 import '../services/auth_service.dart';
 import 'package:flutter/foundation.dart';
+import '../widgets/keyboard_aware_form_container.dart';
 
 /// Unified entry form for both travel and work entries
 /// Provides appropriate fields based on entry type
@@ -106,21 +107,15 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     final theme = Theme.of(context);
     final isTravel = widget.entryType == EntryType.travel;
 
-    return Container(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
+    return KeyboardAwareFormContainer(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Form(
+          key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -720,7 +715,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         );
         return;
       }
-      final entryProvider = Provider.of<EntryProvider>(context, listen: false);
+      final entryProvider = context.read<EntryProvider>();
 
       final entryDateTime = DateTime(
         _selectedDate.year,

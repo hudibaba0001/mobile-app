@@ -6,6 +6,7 @@ import '../providers/entry_provider.dart';
 import '../services/entry_service.dart';
 import '../widgets/standard_app_bar.dart';
 import '../widgets/unified_entry_form.dart';
+import '../widgets/entry_detail_sheet.dart';
 
 enum DateRange { today, yesterday, lastWeek, custom }
 
@@ -385,100 +386,138 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
         borderRadius: BorderRadius.circular(16),
       ),
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Leading Icon
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isWorkEntry
-                    ? colorScheme.secondary.withOpacity(0.1)
-                    : colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                isWorkEntry
-                    ? Icons.work_outline_rounded
-                    : Icons.directions_car_rounded,
-                color:
-                    isWorkEntry ? colorScheme.secondary : colorScheme.primary,
-                size: 24,
-              ),
-            ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _openQuickView(entry),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Leading Icon
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isWorkEntry
+                        ? colorScheme.secondary.withOpacity(0.1)
+                        : colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    isWorkEntry
+                        ? Icons.work_outline_rounded
+                        : Icons.directions_car_rounded,
+                    color: isWorkEntry
+                        ? colorScheme.secondary
+                        : colorScheme.primary,
+                    size: 24,
+                  ),
+                ),
 
-            const SizedBox(width: 16),
+                const SizedBox(width: 16),
 
-            // Entry Details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                // Entry Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          Text(
+                            isWorkEntry ? 'Work' : 'Travel',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isWorkEntry
+                                  ? colorScheme.secondary.withOpacity(0.1)
+                                  : colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              _formatDuration(entry.totalDuration),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: isWorkEntry
+                                    ? colorScheme.secondary
+                                    : colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
                       Text(
-                        isWorkEntry ? 'Work' : 'Travel',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                        entry.description ?? 'No description',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isWorkEntry
-                              ? colorScheme.secondary.withOpacity(0.1)
-                              : colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          _formatDuration(entry.totalDuration),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: isWorkEntry
-                                ? colorScheme.secondary
-                                : colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      const SizedBox(height: 2),
+                      Text(
+                        DateFormat('MMM dd, yyyy • h:mm a').format(entry.date),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    entry.description ?? 'No description',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    DateFormat('MMM dd, yyyy • h:mm a').format(entry.date),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
 
-            // More Menu
-            IconButton(
-              onPressed: () => _showEntryMenu(context, entry),
-              icon: Icon(
-                Icons.more_vert_rounded,
-                color: colorScheme.onSurfaceVariant,
-              ),
-              constraints: const BoxConstraints(
-                minWidth: 48,
-                minHeight: 48,
-              ),
-            ),
-          ],
+  void _openQuickView(Entry entry) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: EntryDetailSheet(
+            entry: entry,
+            onEdit: () => _openEditForm(entry),
+            onDelete: () => _showDeleteConfirmation(context, entry),
+          ),
+        );
+      },
+    );
+  }
+
+  void _openEditForm(Entry entry) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom,
+        ),
+        child: UnifiedEntryForm(
+          entryType: entry.type,
+          existingEntry: entry,
+          onSaved: () => context.read<EntryProvider>().loadEntries(),
         ),
       ),
     );
@@ -550,55 +589,6 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
             endDate: picked.end,
           );
     }
-  }
-
-  void _showEntryMenu(BuildContext context, Entry entry) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit_rounded),
-              title: const Text('Edit Entry'),
-              onTap: () {
-                Navigator.pop(context);
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  builder: (ctx) => Padding(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(ctx).viewInsets.bottom,
-                    ),
-                    child: UnifiedEntryForm(
-                      entryType: entry.type,
-                      existingEntry: entry,
-                      onSaved: () => context.read<EntryProvider>().loadEntries(),
-                    ),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_rounded),
-              title: const Text('Delete Entry'),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteConfirmation(context, entry);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   void _showDeleteConfirmation(BuildContext context, Entry entry) {

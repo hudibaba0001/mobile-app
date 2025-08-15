@@ -404,7 +404,7 @@ class _LocationSelectorState extends State<LocationSelector> {
     widget.onLocationObjectSelected?.call(location);
 
     // Increment usage count
-    context.read<LocationProvider>().toggleFavorite(location.id);
+    context.read<LocationProvider>().incrementUsageCount(location.id);
 
     _removeOverlay();
     _focusNode.unfocus();

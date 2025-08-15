@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../repositories/repository_provider.dart';
-import '../services/auth_service.dart';
 import '../viewmodels/customer_analytics_viewmodel.dart';
-import 'reports/overview_tab.dart';
-import 'reports/trends_tab.dart';
-import 'reports/locations_tab.dart';
-import 'reports/date_range_dialog.dart';
+import '../widgets/standard_app_bar.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -17,25 +12,12 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-  late final CustomerAnalyticsViewModel _viewModel;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-
-    // Initialize ViewModel
-    final userId = context.read<AuthService>().currentUser?.uid;
-    if (userId == null) {
-      // Handle error - user should be logged in to see this screen
-      return;
-    }
-
-    _viewModel = CustomerAnalyticsViewModel(
-      repository: context.read<RepositoryProvider>(),
-      userId: userId,
-    );
   }
 
   @override
@@ -44,154 +26,313 @@ class _ReportsScreenState extends State<ReportsScreen>
     super.dispose();
   }
 
-  void _showDateRangeDialog() async {
-    final result = await showDialog<(DateTime, DateTime)>(
-      context: context,
-      builder: (context) => DateRangeDialog(
-        initialStartDate: _viewModel.startDate,
-        initialEndDate: _viewModel.endDate,
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => CustomerAnalyticsViewModel(),
+      child: Scaffold(
+        appBar: StandardAppBar(
+          title: 'Reports & Analytics',
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                context.read<CustomerAnalyticsViewModel>().refreshData();
+              },
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Tab Bar
+            Container(
+              color: Theme.of(context).colorScheme.surface,
+              child: TabBar(
+                controller: _tabController,
+                labelColor: Theme.of(context).colorScheme.primary,
+                unselectedLabelColor:
+                    Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                indicatorColor: Theme.of(context).colorScheme.primary,
+                tabs: const [
+                  Tab(text: 'Overview'),
+                  Tab(text: 'Trends'),
+                  Tab(text: 'Locations'),
+                ],
+              ),
+            ),
+            // Tab Content
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: const [
+                  OverviewTab(),
+                  TrendsTab(),
+                  LocationsTab(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
-
-    if (result != null && mounted) {
-      final (start, end) = result;
-      await _viewModel.updateDateRange(start, end);
-    }
   }
+}
+
+class OverviewTab extends StatelessWidget {
+  const OverviewTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final viewModel = context.watch<CustomerAnalyticsViewModel>();
+    final overviewData = viewModel.overviewData;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.insights_rounded,
-                color: colorScheme.primary,
-                size: 24,
-              ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // KPI Cards Section
+          const Text(
+            'Key Performance Indicators',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(width: 12),
-            Column(
+          ),
+          const SizedBox(height: 16),
+
+          // KPI Cards Grid
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+            children: [
+              _buildKPICard(
+                context,
+                'Total Hours',
+                '${overviewData['totalHours']}',
+                'hours',
+                Icons.access_time,
+                Colors.blue,
+              ),
+              _buildKPICard(
+                context,
+                'Total Earnings',
+                '\$${overviewData['totalEarnings'].toStringAsFixed(0)}',
+                'earned',
+                Icons.attach_money,
+                Colors.green,
+              ),
+              _buildKPICard(
+                context,
+                'Avg. Hourly Rate',
+                '\$${overviewData['averageHourlyRate'].toStringAsFixed(0)}',
+                'per hour',
+                Icons.trending_up,
+                Colors.orange,
+              ),
+              _buildKPICard(
+                context,
+                'Total Entries',
+                '${overviewData['totalEntries']}',
+                'entries',
+                Icons.list_alt,
+                Colors.purple,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 32),
+
+          // Quick Insights Section
+          const Text(
+            'Quick Insights',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Quick Insights Cards
+          ...overviewData['quickInsights']
+              .map<Widget>(
+                (insight) => _buildQuickInsightCard(context, insight),
+              )
+              .toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKPICard(
+    BuildContext context,
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const Spacer(),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickInsightCard(
+      BuildContext context, Map<String, dynamic> insight) {
+    Color trendColor;
+    IconData trendIcon;
+
+    switch (insight['trend']) {
+      case 'positive':
+        trendColor = Colors.green;
+        trendIcon = Icons.trending_up;
+        break;
+      case 'negative':
+        trendColor = Colors.red;
+        trendIcon = Icons.trending_down;
+        break;
+      default:
+        trendColor = Colors.grey;
+        trendIcon = Icons.remove;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: trendColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              insight['icon'],
+              style: const TextStyle(fontSize: 20),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Reports & Analytics',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurface,
+                  insight['title'],
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  'Track your productivity',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  insight['description'],
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.7),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-        actions: [
-          // Date Range Filter Button
-          IconButton(
-            onPressed: _showDateRangeDialog,
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colorScheme.outline.withOpacity(0.2),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                Icons.date_range_rounded,
-                color: colorScheme.primary,
-                size: 20,
-              ),
-            ),
-            tooltip: 'Filter by date',
           ),
-          const SizedBox(width: 16),
+          Icon(trendIcon, color: trendColor, size: 20),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelStyle: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: theme.textTheme.titleSmall,
-          tabs: const [
-            Tab(text: 'Overview'),
-            Tab(text: 'Trends'),
-            Tab(text: 'Locations'),
-          ],
-        ),
       ),
-      body: ChangeNotifierProvider.value(
-        value: _viewModel,
-        child: Consumer<CustomerAnalyticsViewModel>(
-          builder: (context, viewModel, child) {
-            if (viewModel.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+    );
+  }
+}
 
-            if (viewModel.error != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline_rounded,
-                      size: 48,
-                      color: colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Failed to load analytics',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      viewModel.error!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton.tonal(
-                      onPressed: () => _viewModel.loadData(),
-                      child: const Text('Try Again'),
-                    ),
-                  ],
-                ),
-              );
-            }
+class TrendsTab extends StatelessWidget {
+  const TrendsTab({super.key});
 
-            return TabBarView(
-              controller: _tabController,
-              children: const [
-                OverviewTab(),
-                TrendsTab(),
-                LocationsTab(),
-              ],
-            );
-          },
-        ),
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        'Trends Tab - Coming Soon',
+        style: TextStyle(fontSize: 18),
+      ),
+    );
+  }
+}
+
+class LocationsTab extends StatelessWidget {
+  const LocationsTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        'Locations Tab - Coming Soon',
+        style: TextStyle(fontSize: 18),
       ),
     );
   }
