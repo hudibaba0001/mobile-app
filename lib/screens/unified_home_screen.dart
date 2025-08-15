@@ -98,10 +98,18 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       debugPrint('Loading entries for user: $userId');
 
       // Get recent travel entries
-      final travelEntries =
-          repositoryProvider.travelRepository.getAllForUser(userId);
-      final workEntries =
-          repositoryProvider.workRepository.getAllForUser(userId);
+      final travelRepo = repositoryProvider.travelRepository;
+      final workRepo = repositoryProvider.workRepository;
+      
+      List<TravelEntry> travelEntries = [];
+      List<WorkEntry> workEntries = [];
+      
+      if (travelRepo != null) {
+        travelEntries = travelRepo.getAllForUser(userId);
+      }
+      if (workRepo != null) {
+        workEntries = workRepo.getAllForUser(userId);
+      }
 
       debugPrint('Found ${travelEntries.length} travel entries');
       debugPrint('Found ${workEntries.length} work entries');
@@ -1824,10 +1832,14 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                 // Save to repository
                                 print(
                                     'Attempting to save to travel repository...');
-                                await repositoryProvider.travelRepository
-                                    .add(travelEntry);
-                                print(
-                                    'Successfully saved to travel repository!');
+                                final travelRepo = repositoryProvider.travelRepository;
+                                if (travelRepo != null) {
+                                  await travelRepo.add(travelEntry);
+                                  print(
+                                      'Successfully saved to travel repository!');
+                                } else {
+                                  throw Exception('Travel repository not available');
+                                }
 
                                 Navigator.of(context).pop();
 
@@ -2835,9 +2847,13 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                 // Save to repository
                                 print(
                                     'Attempting to save to work repository...');
-                                await repositoryProvider.workRepository
-                                    .add(workEntry);
-                                print('Successfully saved to work repository!');
+                                final workRepo = repositoryProvider.workRepository;
+                                if (workRepo != null) {
+                                  await workRepo.add(workEntry);
+                                  print('Successfully saved to work repository!');
+                                } else {
+                                  throw Exception('Work repository not available');
+                                }
 
                                 Navigator.of(context).pop();
 

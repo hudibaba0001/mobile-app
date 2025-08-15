@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../config/app_router.dart';
+import '../repositories/repository_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -153,7 +154,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _handleSignOut() async {
     try {
-      await context.read<AuthService>().signOut();
+      final authService = context.read<AuthService>();
+      final repositoryProvider = context.read<RepositoryProvider>();
+      await authService.signOutWithCleanup(() => repositoryProvider.dispose());
       if (mounted) {
         AppRouter.goToLogin(context);
       }

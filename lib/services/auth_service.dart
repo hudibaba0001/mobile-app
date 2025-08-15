@@ -189,6 +189,24 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  // Sign out with repository cleanup
+  Future<void> signOutWithCleanup(Future<void> Function() disposeRepositories) async {
+    debugPrint('AuthService: Signing out user with repository cleanup');
+
+    try {
+      await _auth.signOut();
+      await _saveAuthState();
+      
+      // Close all Hive boxes to clear previous user's data
+      await disposeRepositories();
+      
+      debugPrint('AuthService: Sign out with cleanup successful');
+    } catch (e) {
+      debugPrint('AuthService: Sign out with cleanup failed: $e');
+      throw Exception('Unable to sign out. Please try again later.');
+    }
+  }
+
   // Real Firebase password reset
   Future<void> sendPasswordResetEmail({required String email}) async {
     debugPrint('AuthService: Sending password reset email');

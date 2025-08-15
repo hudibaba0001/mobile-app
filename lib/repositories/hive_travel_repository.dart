@@ -4,26 +4,18 @@ import '../utils/constants.dart';
 import 'travel_repository.dart';
 
 class HiveTravelRepository implements TravelRepository {
-  Box<TravelEntry>? _box;
+  final Box<TravelEntry> _box;
 
-  Future<Box<TravelEntry>> _getBox() async {
-    if (_box == null || !_box!.isOpen) {
-      _box = await Hive.openBox<TravelEntry>('travel_entries');
-    }
-    return _box!;
-  }
+  HiveTravelRepository(this._box);
 
   @override
   Future<void> initialize() async {
-    await _getBox();
+    // Box is already provided in constructor, no need to open
   }
 
   @override
   List<TravelEntry> getAllForUser(String userId) {
-    final box = _box;
-    if (box == null) return [];
-    
-    return box.values
+    return _box.values
         .where((entry) => entry.userId == userId)
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
@@ -35,10 +27,7 @@ class HiveTravelRepository implements TravelRepository {
     DateTime start,
     DateTime end,
   ) {
-    final box = _box;
-    if (box == null) return [];
-    
-    return box.values
+    return _box.values
         .where((entry) =>
             entry.userId == userId &&
             entry.date.isAfter(start.subtract(const Duration(days: 1))) &&
@@ -49,36 +38,31 @@ class HiveTravelRepository implements TravelRepository {
 
   @override
   Future<TravelEntry> add(TravelEntry entry) async {
-    final box = await _getBox();
     final newEntry = entry.copyWith(
       id: entry.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : entry.id,
       updatedAt: DateTime.now(),
     );
-    await box.put(newEntry.id, newEntry);
+    await _box.put(newEntry.id, newEntry);
     return newEntry;
   }
 
   @override
   Future<TravelEntry> update(TravelEntry entry) async {
-    final box = await _getBox();
     final updatedEntry = entry.copyWith(
       updatedAt: DateTime.now(),
     );
-    await box.put(entry.id, updatedEntry);
+    await _box.put(entry.id, updatedEntry);
     return updatedEntry;
   }
 
   @override
   Future<void> delete(String id) async {
-    final box = await _getBox();
-    await box.delete(id);
+    await _box.delete(id);
   }
 
   @override
   TravelEntry? getById(String id) {
-    final box = _box;
-    if (box == null) return null;
-    return box.get(id);
+    return _box.get(id);
   }
 
   @override
@@ -89,6 +73,6 @@ class HiveTravelRepository implements TravelRepository {
 
   @override
   Future<void> close() async {
-    await _box?.close();
+    // Box is managed by RepositoryProvider, don't close here
   }
 }

@@ -42,13 +42,37 @@ class EntryProvider extends ChangeNotifier {
         return;
       }
 
-      // Load travel entries
-      final travelEntries =
-          _repositoryProvider.travelRepository.getAllForUser(userId);
+      // Check if repositories are initialized
+      if (_repositoryProvider.currentUserId != userId) {
+        debugPrint('EntryProvider: Repositories not initialized for user $userId, skipping load');
+        _entries = [];
+        _filteredEntries = [];
+        _error = null;
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
 
-      // Load work entries
-      final workEntries =
-          _repositoryProvider.workRepository.getAllForUser(userId);
+      // Load travel entries
+      List<TravelEntry> travelEntries = [];
+      List<WorkEntry> workEntries = [];
+
+      try {
+        final travelRepo = _repositoryProvider.travelRepository;
+        final workRepo = _repositoryProvider.workRepository;
+        
+        if (travelRepo != null) {
+          travelEntries = travelRepo.getAllForUser(userId);
+        }
+        if (workRepo != null) {
+          workEntries = workRepo.getAllForUser(userId);
+        }
+      } catch (e) {
+        debugPrint('EntryProvider: Error accessing repositories: $e');
+        // Return empty lists if repositories are not ready
+        travelEntries = [];
+        workEntries = [];
+      }
 
       // Convert to unified Entry objects
       final allEntries = <Entry>[];
@@ -102,14 +126,11 @@ class EntryProvider extends ChangeNotifier {
       allEntries.sort((a, b) => b.date.compareTo(a.date));
 
       _entries = allEntries;
-      _filteredEntries = _entries;
+      _filteredEntries = List.from(_entries);
       _error = null;
-
-      debugPrint(
-          'EntryProvider: Loaded ${_entries.length} entries (${travelEntries.length} travel, ${workEntries.length} work)');
     } catch (e) {
-      debugPrint('EntryProvider: Error loading entries: $e');
-      _error = 'Unable to load your entries. Please try again.';
+      debugPrint('Error loading entries: $e');
+      _error = 'Unable to load entries. Please try again.';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -136,7 +157,12 @@ class EntryProvider extends ChangeNotifier {
           createdAt: entry.createdAt,
           updatedAt: entry.updatedAt,
         );
-        await _repositoryProvider.travelRepository.add(travelEntry);
+        final travelRepo = _repositoryProvider.travelRepository;
+        if (travelRepo != null) {
+          await travelRepo.add(travelEntry);
+        } else {
+          throw Exception('Travel repository not available');
+        }
       } else if (entry.type == EntryType.work) {
         // Save work entry to repository
         final workEntry = WorkEntry(
@@ -150,7 +176,12 @@ class EntryProvider extends ChangeNotifier {
           createdAt: entry.createdAt,
           updatedAt: entry.updatedAt,
         );
-        await _repositoryProvider.workRepository.add(workEntry);
+        final workRepo = _repositoryProvider.workRepository;
+        if (workRepo != null) {
+          await workRepo.add(workEntry);
+        } else {
+          throw Exception('Work repository not available');
+        }
       }
 
       // Add to local list and refresh
@@ -186,7 +217,12 @@ class EntryProvider extends ChangeNotifier {
           createdAt: entry.createdAt,
           updatedAt: entry.updatedAt,
         );
-        await _repositoryProvider.travelRepository.update(travelEntry);
+        final travelRepo = _repositoryProvider.travelRepository;
+        if (travelRepo != null) {
+          await travelRepo.update(travelEntry);
+        } else {
+          throw Exception('Travel repository not available');
+        }
       } else if (entry.type == EntryType.work) {
         // Update work entry in repository
         final workEntry = WorkEntry(
@@ -200,7 +236,12 @@ class EntryProvider extends ChangeNotifier {
           createdAt: entry.createdAt,
           updatedAt: entry.updatedAt,
         );
-        await _repositoryProvider.workRepository.update(workEntry);
+        final workRepo = _repositoryProvider.workRepository;
+        if (workRepo != null) {
+          await workRepo.update(workEntry);
+        } else {
+          throw Exception('Work repository not available');
+        }
       }
 
       // Update local list
@@ -231,11 +272,18 @@ class EntryProvider extends ChangeNotifier {
       // Determine type by probing repositories if not found in memory
       EntryType? entryType = entry?.type;
       if (entryType == null) {
-        final travel = _repositoryProvider.travelRepository.getById(id);
-        if (travel != null) {
-          entryType = EntryType.travel;
-        } else {
-          final work = _repositoryProvider.workRepository.getById(id);
+        final travelRepo = _repositoryProvider.travelRepository;
+        final workRepo = _repositoryProvider.workRepository;
+        
+        if (travelRepo != null) {
+          final travel = travelRepo.getById(id);
+          if (travel != null) {
+            entryType = EntryType.travel;
+          }
+        }
+        
+        if (entryType == null && workRepo != null) {
+          final work = workRepo.getById(id);
           if (work != null) {
             entryType = EntryType.work;
           }
@@ -247,9 +295,19 @@ class EntryProvider extends ChangeNotifier {
       }
 
       if (entryType == EntryType.travel) {
-        await _repositoryProvider.travelRepository.delete(id);
+        final travelRepo = _repositoryProvider.travelRepository;
+        if (travelRepo != null) {
+          await travelRepo.delete(id);
+        } else {
+          throw Exception('Travel repository not available');
+        }
       } else if (entryType == EntryType.work) {
-        await _repositoryProvider.workRepository.delete(id);
+        final workRepo = _repositoryProvider.workRepository;
+        if (workRepo != null) {
+          await workRepo.delete(id);
+        } else {
+          throw Exception('Work repository not available');
+        }
       }
 
       // Remove from local list if present

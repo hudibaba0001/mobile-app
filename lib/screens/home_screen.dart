@@ -11,6 +11,7 @@ import '../widgets/travel_entry_card.dart';
 import '../models/entry.dart';
 import '../utils/constants.dart';
 import '../services/auth_service.dart';
+import '../repositories/repository_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -158,7 +159,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
               if (confirmed == true) {
                 try {
-                  await context.read<AuthService>().signOut();
+                  final authService = context.read<AuthService>();
+                  final repositoryProvider = context.read<RepositoryProvider>();
+                  await authService
+                      .signOutWithCleanup(() => repositoryProvider.dispose());
                   if (mounted) {
                     context.go('/');
                   }

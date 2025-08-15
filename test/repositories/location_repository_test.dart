@@ -15,8 +15,9 @@ void main() {
     });
 
     setUp(() async {
-      testBox = await Hive.openBox<Location>('test_${AppConstants.locationsBox}');
-      repository = HiveLocationRepository();
+      testBox =
+          await Hive.openBox<Location>('test_${AppConstants.locationsBox}');
+      repository = HiveLocationRepository(testBox);
     });
 
     tearDown(() async {
@@ -26,8 +27,10 @@ void main() {
 
     test('should add and retrieve location', () async {
       final location = Location(
+        id: 'test-1',
         name: 'Test Location',
         address: '123 Test Street, Test City',
+        createdAt: DateTime.now(),
       );
 
       await repository.addLocation(location);
@@ -42,12 +45,14 @@ void main() {
 
     test('should update existing location', () async {
       final location = Location(
+        id: 'test-2',
         name: 'Original Name',
         address: 'Original Address',
+        createdAt: DateTime.now(),
       );
 
       await repository.addLocation(location);
-      
+
       final updatedLocation = location.copyWith(
         name: 'Updated Name',
         usageCount: 5,
@@ -59,15 +64,18 @@ void main() {
 
       expect(locations.length, 1);
       expect(locations.first.name, 'Updated Name');
-      expect(locations.first.address, 'Original Address'); // Should remain unchanged
+      expect(locations.first.address,
+          'Original Address'); // Should remain unchanged
       expect(locations.first.usageCount, 5);
       expect(locations.first.isFavorite, true);
     });
 
     test('should delete location by id', () async {
       final location = Location(
+        id: 'test-3',
         name: 'Test Location',
         address: 'Test Address',
+        createdAt: DateTime.now(),
       );
 
       await repository.addLocation(location);
@@ -79,9 +87,21 @@ void main() {
 
     test('should search locations by query', () async {
       final locations = [
-        Location(name: 'Stockholm Central', address: 'Central Station, Stockholm'),
-        Location(name: 'Gothenburg Office', address: 'Business District, Gothenburg'),
-        Location(name: 'Home', address: 'Residential Area, Stockholm'),
+        Location(
+            id: 'test-4',
+            name: 'Stockholm Central',
+            address: 'Central Station, Stockholm',
+            createdAt: DateTime.now()),
+        Location(
+            id: 'test-5',
+            name: 'Gothenburg Office',
+            address: 'Business District, Gothenburg',
+            createdAt: DateTime.now()),
+        Location(
+            id: 'test-6',
+            name: 'Home',
+            address: 'Residential Area, Stockholm',
+            createdAt: DateTime.now()),
       ];
 
       for (final location in locations) {
@@ -109,14 +129,15 @@ void main() {
       );
 
       await repository.addLocation(location);
-      
+
       await repository.incrementUsageCount(location.id);
-      
+
       final updatedLocation = await repository.getLocationById(location.id);
       expect(updatedLocation?.usageCount, 1);
 
       await repository.incrementUsageCount(location.id);
-      final againUpdatedLocation = await repository.getLocationById(location.id);
+      final againUpdatedLocation =
+          await repository.getLocationById(location.id);
       expect(againUpdatedLocation?.usageCount, 2);
     });
 
@@ -162,11 +183,13 @@ void main() {
 
       await repository.addLocation(location);
 
-      final foundLocation = await repository.findLocationByAddress('123 Unique Address, City');
+      final foundLocation =
+          await repository.findLocationByAddress('123 Unique Address, City');
       expect(foundLocation, isNotNull);
       expect(foundLocation?.name, 'Test Location');
 
-      final notFoundLocation = await repository.findLocationByAddress('Non-existent Address');
+      final notFoundLocation =
+          await repository.findLocationByAddress('Non-existent Address');
       expect(notFoundLocation, isNull);
     });
 
@@ -190,8 +213,10 @@ void main() {
 
     test('should get location suggestions', () async {
       final locations = [
-        Location(name: 'Stockholm Central', address: 'Central Station, Stockholm'),
-        Location(name: 'Stockholm Airport', address: 'Arlanda Airport, Stockholm'),
+        Location(
+            name: 'Stockholm Central', address: 'Central Station, Stockholm'),
+        Location(
+            name: 'Stockholm Airport', address: 'Arlanda Airport, Stockholm'),
         Location(name: 'Gothenburg', address: 'City Center, Gothenburg'),
       ];
 
@@ -199,7 +224,8 @@ void main() {
         await repository.addLocation(location);
       }
 
-      final suggestions = await repository.getLocationSuggestions('Stockholm', limit: 5);
+      final suggestions =
+          await repository.getLocationSuggestions('Stockholm', limit: 5);
       expect(suggestions.length, 2);
       expect(suggestions.every((s) => s.contains('Stockholm')), true);
     });

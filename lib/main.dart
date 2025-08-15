@@ -38,29 +38,22 @@ void main() async {
   // Initialize Stripe
   await StripeService.initialize();
 
-  // Create and initialize RepositoryProvider
-  final repositoryProvider = RepositoryProvider();
-  await repositoryProvider.initialize();
-
-  // Initialize AuthService
+  // Initialize AuthService first
   final authService = AuthService();
   await authService.initialize();
 
   runApp(
     MyApp(
-      repositoryProvider: repositoryProvider,
       authService: authService,
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final RepositoryProvider repositoryProvider;
   final AuthService authService;
 
   const MyApp({
     super.key,
-    required this.repositoryProvider,
     required this.authService,
   });
 
@@ -69,27 +62,59 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthService>.value(value: authService),
-        Provider<RepositoryProvider>.value(value: repositoryProvider),
-        // Individual Repositories
-        ProxyProvider<RepositoryProvider, TravelRepository>(
+        // RepositoryProvider will be managed by ProxyProvider
+        ProxyProvider<AuthService, RepositoryProvider>(
+          create: (context) => RepositoryProvider(),
+          update: (context, authService, repositoryProvider) {
+            debugPrint('RepositoryProvider ProxyProvider update called');
+            debugPrint('RepositoryProvider ProxyProvider - authService.isAuthenticated: ${authService.isAuthenticated}');
+            debugPrint('RepositoryProvider ProxyProvider - authService.currentUser: ${authService.currentUser?.uid}');
+            debugPrint('RepositoryProvider ProxyProvider - repositoryProvider?.currentUserId: ${repositoryProvider?.currentUserId}');
+            
+            // Initialize repository for current user if authenticated
+            if (authService.isAuthenticated && authService.currentUser != null) {
+              final userId = authService.currentUser!.uid;
+              debugPrint('RepositoryProvider ProxyProvider - User authenticated with ID: $userId');
+              
+              if (repositoryProvider?.currentUserId != userId) {
+                debugPrint('RepositoryProvider ProxyProvider - User changed, reinitializing repositories');
+                // User changed, reinitialize repositories
+                // Only dispose if we have a different user and the repository is actually initialized
+                if (repositoryProvider?.currentUserId != null && repositoryProvider?.currentUserId != '') {
+                  debugPrint('RepositoryProvider ProxyProvider - Calling dispose() before reinitializing');
+                  repositoryProvider?.dispose();
+                }
+                debugPrint('RepositoryProvider ProxyProvider - Calling initialize() for user: $userId');
+                repositoryProvider?.initialize(userId);
+              } else {
+                debugPrint('RepositoryProvider ProxyProvider - Same user, no reinitialization needed');
+              }
+            } else {
+              debugPrint('RepositoryProvider ProxyProvider - User not authenticated');
+            }
+            return repositoryProvider ?? RepositoryProvider();
+          },
+        ),
+        // Individual Repositories - these will be null until user is authenticated
+        ProxyProvider<RepositoryProvider, TravelRepository?>(
           create: (context) =>
               context.read<RepositoryProvider>().travelRepository,
           update: (context, repositoryProvider, previous) =>
               repositoryProvider.travelRepository,
         ),
-        ProxyProvider<RepositoryProvider, WorkRepository>(
+        ProxyProvider<RepositoryProvider, WorkRepository?>(
           create: (context) =>
               context.read<RepositoryProvider>().workRepository,
           update: (context, repositoryProvider, previous) =>
               repositoryProvider.workRepository,
         ),
-        ProxyProvider<RepositoryProvider, ContractRepository>(
+        ProxyProvider<RepositoryProvider, ContractRepository?>(
           create: (context) =>
               context.read<RepositoryProvider>().contractRepository,
           update: (context, repositoryProvider, previous) =>
               repositoryProvider.contractRepository,
         ),
-        ProxyProvider<RepositoryProvider, LeaveRepository>(
+        ProxyProvider<RepositoryProvider, LeaveRepository?>(
           create: (context) =>
               context.read<RepositoryProvider>().leaveRepository,
           update: (context, repositoryProvider, previous) =>
@@ -103,9 +128,16 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => TravelProvider()),
-        ChangeNotifierProvider<LocationProvider>(
-          create: (context) => LocationProvider(
-              context.read<RepositoryProvider>().locationRepository),
+        ChangeNotifierProxyProvider<RepositoryProvider, LocationProvider?>(
+          create: (context) {
+            final locationRepo =
+                context.read<RepositoryProvider>().locationRepository;
+            return locationRepo != null ? LocationProvider(locationRepo) : null;
+          },
+          update: (context, repositoryProvider, previous) {
+            final locationRepo = repositoryProvider.locationRepository;
+            return locationRepo != null ? LocationProvider(locationRepo) : null;
+          },
         ),
         ChangeNotifierProxyProvider2<RepositoryProvider, AuthService,
             EntryProvider>(
