@@ -12,6 +12,40 @@ class OverviewTab extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final viewModel = context.watch<CustomerAnalyticsViewModel>();
 
+    if (viewModel.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (viewModel.errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading data',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              viewModel.errorMessage!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final overviewData = viewModel.overviewData;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -24,9 +58,8 @@ class OverviewTab extends StatelessWidget {
                 icon: Icons.timer_rounded,
                 iconColor: colorScheme.primary,
                 iconBgColor: colorScheme.primary.withOpacity(0.1),
-                title: 'Total Time',
-                value: _formatMinutes(
-                    viewModel.totalTravelMinutes + viewModel.totalWorkMinutes),
+                title: 'Total Hours',
+                value: '${overviewData['totalHours'].toStringAsFixed(1)}h',
                 subtitle: 'All activities',
               ),
             ),
@@ -34,13 +67,12 @@ class OverviewTab extends StatelessWidget {
             Expanded(
               child: _buildSummaryCard(
                 theme,
-                icon: Icons.assignment_turned_in_rounded,
+                icon: Icons.assignment_rounded,
                 iconColor: colorScheme.secondary,
                 iconBgColor: colorScheme.secondary.withOpacity(0.1),
-                title: 'Contract',
-                value:
-                    '${(viewModel.contractCompletion * 100).toStringAsFixed(1)}%',
-                subtitle: 'Completion',
+                title: 'Total Entries',
+                value: '${overviewData['totalEntries']}',
+                subtitle: 'This period',
               ),
             ),
           ],
@@ -55,7 +87,7 @@ class OverviewTab extends StatelessWidget {
                 iconColor: colorScheme.tertiary,
                 iconBgColor: colorScheme.tertiary.withOpacity(0.1),
                 title: 'Travel Time',
-                value: _formatMinutes(viewModel.totalTravelMinutes),
+                value: _formatMinutes(overviewData['totalTravelMinutes']),
                 subtitle: 'Total commute',
               ),
             ),
@@ -67,11 +99,25 @@ class OverviewTab extends StatelessWidget {
                 iconColor: colorScheme.error,
                 iconBgColor: colorScheme.error.withOpacity(0.1),
                 title: 'Work Time',
-                value: _formatMinutes(viewModel.totalWorkMinutes),
+                value: _formatMinutes(overviewData['totalWorkMinutes']),
                 subtitle: 'Total work',
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 24),
+
+        // Quick Insights
+        Text(
+          'Quick Insights',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ...(overviewData['quickInsights'] as List<Map<String, dynamic>>).map(
+          (insight) => _buildInsightCard(theme, insight),
         ),
         const SizedBox(height: 24),
 
@@ -98,7 +144,7 @@ class OverviewTab extends StatelessWidget {
             child: Column(
               children: [
                 Expanded(
-                  child: _buildDistributionChart(theme, viewModel),
+                  child: _buildDistributionChart(theme, overviewData),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -201,11 +247,12 @@ class OverviewTab extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             value,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
               color: theme.colorScheme.onSurface,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             subtitle,
             style: theme.textTheme.bodySmall?.copyWith(
@@ -217,15 +264,85 @@ class OverviewTab extends StatelessWidget {
     );
   }
 
+  Widget _buildInsightCard(ThemeData theme, Map<String, dynamic> insight) {
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              insight['icon'] as String,
+              style: const TextStyle(fontSize: 24),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  insight['title'] as String,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  insight['description'] as String,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            insight['trend'] == 'positive'
+                ? Icons.trending_up
+                : insight['trend'] == 'negative'
+                    ? Icons.trending_down
+                    : Icons.trending_flat,
+            color: insight['trend'] == 'positive'
+                ? Colors.green
+                : insight['trend'] == 'negative'
+                    ? Colors.red
+                    : Colors.grey,
+            size: 20,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDistributionChart(
-      ThemeData theme, CustomerAnalyticsViewModel viewModel) {
-    final total = viewModel.totalTravelMinutes + viewModel.totalWorkMinutes;
-    if (total == 0) {
+      ThemeData theme, Map<String, dynamic> overviewData) {
+    final colorScheme = theme.colorScheme;
+    final workMinutes = overviewData['totalWorkMinutes'] as int;
+    final travelMinutes = overviewData['totalTravelMinutes'] as int;
+    final totalMinutes = workMinutes + travelMinutes;
+
+    if (totalMinutes == 0) {
       return Center(
         child: Text(
-          'No data for selected period',
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          'No data available',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       );
@@ -235,31 +352,34 @@ class OverviewTab extends StatelessWidget {
       PieChartData(
         sections: [
           PieChartSectionData(
-            value: viewModel.totalTravelMinutes.toDouble(),
-            color: theme.colorScheme.tertiary,
+            value: workMinutes.toDouble(),
             title:
-                '${((viewModel.totalTravelMinutes / total) * 100).toStringAsFixed(1)}%',
+                '${((workMinutes / totalMinutes) * 100).toStringAsFixed(1)}%',
+            color: colorScheme.error,
             radius: 60,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onPrimary,
-              fontWeight: FontWeight.w600,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ) ??
+                const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
           ),
           PieChartSectionData(
-            value: viewModel.totalWorkMinutes.toDouble(),
-            color: theme.colorScheme.error,
+            value: travelMinutes.toDouble(),
             title:
-                '${((viewModel.totalWorkMinutes / total) * 100).toStringAsFixed(1)}%',
+                '${((travelMinutes / totalMinutes) * 100).toStringAsFixed(1)}%',
+            color: colorScheme.tertiary,
             radius: 60,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onPrimary,
-              fontWeight: FontWeight.w600,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ) ??
+                const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ],
-        sectionsSpace: 2,
         centerSpaceRadius: 40,
-        startDegreeOffset: -90,
+        sectionsSpace: 2,
       ),
     );
   }
@@ -294,6 +414,13 @@ class OverviewTab extends StatelessWidget {
   String _formatMinutes(int minutes) {
     final hours = minutes ~/ 60;
     final remainingMinutes = minutes % 60;
-    return '$hours:${remainingMinutes.toString().padLeft(2, '0')}';
+
+    if (hours > 0) {
+      return remainingMinutes > 0
+          ? '${hours}h ${remainingMinutes}m'
+          : '${hours}h';
+    } else {
+      return '${remainingMinutes}m';
+    }
   }
 }

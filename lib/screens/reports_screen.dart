@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../viewmodels/customer_analytics_viewmodel.dart';
 import '../widgets/standard_app_bar.dart';
+import '../widgets/export_dialog.dart';
+import '../services/export_service.dart';
+import '../models/entry.dart';
+import '../models/travel_entry.dart';
+import '../models/work_entry.dart';
+import '../repositories/repository_provider.dart';
+import '../services/auth_service.dart';
+import 'reports/date_range_dialog.dart';
+import 'reports/overview_tab.dart';
+import 'reports/trends_tab.dart';
+import 'reports/locations_tab.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -26,16 +38,229 @@ class _ReportsScreenState extends State<ReportsScreen>
     super.dispose();
   }
 
+  Future<void> _showExportDialog(BuildContext context) async {
+    // Get all entries from repositories
+    final entries = await _getAllEntries();
+
+    if (entries.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No data available for export')),
+      );
+      return;
+    }
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => ExportDialog(
+        entries: entries,
+        initialStartDate: null, // Will be set by user in dialog
+        initialEndDate: null, // Will be set by user in dialog
+      ),
+    );
+
+    if (result != null) {
+      await _performExport(result);
+    }
+  }
+
+  Future<List<Entry>> _getAllEntries() async {
+    try {
+      final repositoryProvider = context.read<RepositoryProvider>();
+      final authService = context.read<AuthService>();
+      final userId = authService.currentUser?.uid;
+
+      if (userId == null) {
+        return [];
+      }
+
+      // Get travel entries
+      List<TravelEntry> travelEntries = [];
+      List<WorkEntry> workEntries = [];
+
+      final travelRepo = repositoryProvider.travelRepository;
+      final workRepo = repositoryProvider.workRepository;
+
+      if (travelRepo != null) {
+        travelEntries = travelRepo.getAllForUser(userId);
+      }
+      if (workRepo != null) {
+        workEntries = workRepo.getAllForUser(userId);
+      }
+
+      // Convert to unified Entry objects
+      final allEntries = <Entry>[];
+
+      // Convert travel entries
+      for (final travelEntry in travelEntries) {
+        allEntries.add(Entry(
+          id: travelEntry.id,
+          userId: travelEntry.userId,
+          type: EntryType.travel,
+          from: travelEntry.fromLocation,
+          to: travelEntry.toLocation,
+          travelMinutes: travelEntry.travelMinutes,
+          date: travelEntry.date,
+          notes: travelEntry.remarks,
+          createdAt: travelEntry.createdAt,
+          updatedAt: travelEntry.updatedAt,
+        ));
+      }
+
+      // Convert work entries
+      for (final workEntry in workEntries) {
+        // Convert workMinutes to a Shift object
+        final List<Shift> shifts = workEntry.workMinutes > 0
+            ? [
+                Shift(
+                  start: workEntry.date,
+                  end: workEntry.date
+                      .add(Duration(minutes: workEntry.workMinutes)),
+                  description: workEntry.remarks.isNotEmpty
+                      ? workEntry.remarks
+                      : 'Work Session',
+                  location: 'Work Location', // Default location
+                ),
+              ]
+            : [];
+
+        allEntries.add(Entry(
+          id: workEntry.id,
+          userId: workEntry.userId,
+          type: EntryType.work,
+          shifts: shifts,
+          date: workEntry.date,
+          notes: workEntry.remarks,
+          createdAt: workEntry.createdAt,
+          updatedAt: workEntry.updatedAt,
+        ));
+      }
+
+      // Sort by date (most recent first)
+      allEntries.sort((a, b) => b.date.compareTo(a.date));
+
+      return allEntries;
+    } catch (e) {
+      debugPrint('Error getting entries for export: $e');
+      return [];
+    }
+  }
+
+  Future<void> _showDateRangeDialog(BuildContext context) async {
+    final viewModel = context.read<CustomerAnalyticsViewModel>();
+    final initialStartDate = viewModel.startDate ?? DateTime.now().subtract(const Duration(days: 30));
+    final initialEndDate = viewModel.endDate ?? DateTime.now();
+
+    final result = await showDialog<(DateTime, DateTime)>(
+      context: context,
+      builder: (context) => DateRangeDialog(
+        initialStartDate: initialStartDate,
+        initialEndDate: initialEndDate,
+      ),
+    );
+
+    if (result != null) {
+      viewModel.setDateRange(result.$1, result.$2);
+    }
+  }
+
+  Future<void> _performExport(Map<String, dynamic> exportConfig) async {
+    try {
+      final entries = exportConfig['entries'] as List<Entry>;
+      final fileName = exportConfig['fileName'] as String;
+      final startDate = exportConfig['startDate'] as DateTime?;
+      final endDate = exportConfig['endDate'] as DateTime?;
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Generating export...'),
+            ],
+          ),
+        ),
+      );
+
+      // Generate CSV file
+      final filePath = await ExportService.exportEntriesToCSV(
+        entries: entries,
+        fileName: fileName,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      // Share the file
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        text: 'Time Tracker Export - $fileName',
+      );
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Export completed successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => CustomerAnalyticsViewModel(),
+      create: (context) {
+        final viewModel = CustomerAnalyticsViewModel();
+        final repositoryProvider = context.read<RepositoryProvider>();
+        final authService = context.read<AuthService>();
+        final userId = authService.currentUser?.uid;
+        viewModel.initialize(
+          repositoryProvider.workRepository,
+          repositoryProvider.travelRepository,
+          userId: userId,
+        );
+        return viewModel;
+      },
       child: Scaffold(
         appBar: StandardAppBar(
           title: 'Reports & Analytics',
           actions: [
             IconButton(
+              icon: const Icon(Icons.date_range),
+              tooltip: 'Filter by Date',
+              onPressed: () => _showDateRangeDialog(context),
+            ),
+            IconButton(
+              icon: const Icon(Icons.file_download),
+              tooltip: 'Export Data',
+              onPressed: () => _showExportDialog(context),
+            ),
+            IconButton(
               icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh Data',
               onPressed: () {
                 context.read<CustomerAnalyticsViewModel>().refreshData();
               },
@@ -73,266 +298,6 @@ class _ReportsScreenState extends State<ReportsScreen>
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class OverviewTab extends StatelessWidget {
-  const OverviewTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final viewModel = context.watch<CustomerAnalyticsViewModel>();
-    final overviewData = viewModel.overviewData;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // KPI Cards Section
-          const Text(
-            'Key Performance Indicators',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // KPI Cards Grid
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.2,
-            children: [
-              _buildKPICard(
-                context,
-                'Total Hours',
-                '${overviewData['totalHours']}',
-                'hours',
-                Icons.access_time,
-                Colors.blue,
-              ),
-              _buildKPICard(
-                context,
-                'Total Earnings',
-                '\$${overviewData['totalEarnings'].toStringAsFixed(0)}',
-                'earned',
-                Icons.attach_money,
-                Colors.green,
-              ),
-              _buildKPICard(
-                context,
-                'Avg. Hourly Rate',
-                '\$${overviewData['averageHourlyRate'].toStringAsFixed(0)}',
-                'per hour',
-                Icons.trending_up,
-                Colors.orange,
-              ),
-              _buildKPICard(
-                context,
-                'Total Entries',
-                '${overviewData['totalEntries']}',
-                'entries',
-                Icons.list_alt,
-                Colors.purple,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-
-          // Quick Insights Section
-          const Text(
-            'Quick Insights',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Quick Insights Cards
-          ...overviewData['quickInsights']
-              .map<Widget>(
-                (insight) => _buildQuickInsightCard(context, insight),
-              )
-              .toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKPICard(
-    BuildContext context,
-    String title,
-    String value,
-    String subtitle,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              const Spacer(),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-            ),
-          ),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickInsightCard(
-      BuildContext context, Map<String, dynamic> insight) {
-    Color trendColor;
-    IconData trendIcon;
-
-    switch (insight['trend']) {
-      case 'positive':
-        trendColor = Colors.green;
-        trendIcon = Icons.trending_up;
-        break;
-      case 'negative':
-        trendColor = Colors.red;
-        trendIcon = Icons.trending_down;
-        break;
-      default:
-        trendColor = Colors.grey;
-        trendIcon = Icons.remove;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: trendColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              insight['icon'],
-              style: const TextStyle(fontSize: 20),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  insight['title'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  insight['description'],
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(trendIcon, color: trendColor, size: 20),
-        ],
-      ),
-    );
-  }
-}
-
-class TrendsTab extends StatelessWidget {
-  const TrendsTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Trends Tab - Coming Soon',
-        style: TextStyle(fontSize: 18),
-      ),
-    );
-  }
-}
-
-class LocationsTab extends StatelessWidget {
-  const LocationsTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Locations Tab - Coming Soon',
-        style: TextStyle(fontSize: 18),
       ),
     );
   }

@@ -31,9 +31,9 @@ class AppScaffold extends StatelessWidget {
             label: 'History',
           ),
           NavigationDestination(
-            icon: Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment),
-            label: 'Contract',
+            icon: Icon(Icons.analytics_outlined),
+            selectedIcon: Icon(Icons.analytics),
+            label: 'Reports',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
@@ -47,7 +47,7 @@ class AppScaffold extends StatelessWidget {
 
   int _calculateSelectedIndex(String currentPath) {
     if (currentPath.startsWith(AppRouter.historyPath)) return 1;
-    if (currentPath.startsWith(AppRouter.contractSettingsPath)) return 2;
+    if (currentPath.startsWith(AppRouter.reportsPath)) return 2;
     if (currentPath.startsWith(AppRouter.settingsPath)) return 3;
     return 0; // Home is default
   }
@@ -61,7 +61,7 @@ class AppScaffold extends StatelessWidget {
         context.go(AppRouter.historyPath);
         break;
       case 2:
-        context.go(AppRouter.contractSettingsPath);
+        context.go(AppRouter.reportsPath);
         break;
       case 3:
         context.go(AppRouter.settingsPath);

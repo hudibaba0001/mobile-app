@@ -12,8 +12,39 @@ class LocationsTab extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final viewModel = context.watch<CustomerAnalyticsViewModel>();
 
-    final locations = viewModel.locationAnalytics.entries.toList()
-      ..sort((a, b) => b.value.totalMinutes.compareTo(a.value.totalMinutes));
+    if (viewModel.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (viewModel.errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading data',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              viewModel.errorMessage!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final locationsData = viewModel.locationsData;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -38,7 +69,7 @@ class LocationsTab extends StatelessWidget {
                 color: colorScheme.outline.withOpacity(0.2),
               ),
             ),
-            child: _buildLocationDistributionChart(theme, locations),
+            child: _buildLocationDistributionChart(theme, locationsData),
           ),
         ),
         const SizedBox(height: 24),
@@ -52,7 +83,7 @@ class LocationsTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        if (locations.isEmpty)
+        if (locationsData.isEmpty)
           Center(
             child: Column(
               children: [
@@ -70,7 +101,7 @@ class LocationsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'No travel entries found for the selected period',
+                  'No entries found for the selected period',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                   ),
@@ -80,237 +111,196 @@ class LocationsTab extends StatelessWidget {
             ),
           )
         else
-          ...locations.map((entry) => _buildLocationCard(
-                theme,
-                name: entry.key,
-                analytics: entry.value,
-                totalTime: locations.fold<int>(
-                  0,
-                  (sum, e) => sum + e.value.totalMinutes,
-                ),
-              )),
+          ...locationsData.map((location) => _buildLocationCard(theme, location)),
       ],
     );
   }
 
   Widget _buildLocationDistributionChart(
     ThemeData theme,
-    List<MapEntry<String, LocationAnalytics>> locations,
+    List<Map<String, dynamic>> locations,
   ) {
     if (locations.isEmpty) {
       return Center(
         child: Text(
-          'No data for selected period',
-          style: theme.textTheme.bodyLarge?.copyWith(
+          'No location data available',
+          style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       );
     }
 
-    final totalMinutes = locations.fold<int>(
-      0,
-      (sum, entry) => sum + entry.value.totalMinutes,
-    );
-
     return PieChart(
       PieChartData(
-        sections: locations.asMap().entries.map((entry) {
-          final index = entry.key;
-          final location = entry.value;
-          final percentage = (location.value.totalMinutes / totalMinutes * 100)
-              .toStringAsFixed(1);
-
+        sections: locations.map((location) {
           return PieChartSectionData(
-            value: location.value.totalMinutes.toDouble(),
-            color: theme.colorScheme.primary.withOpacity(1 - (index * 0.15)),
-            title: '$percentage%',
+            value: location['totalHours'] as double,
+            title: '${location['percentage'].toStringAsFixed(1)}%',
+            color: Color(location['color'] as int),
             radius: 60,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-            badgeWidget: _buildLocationBadge(
-              theme,
-              location.key,
-              location.value.totalVisits,
-            ),
-            badgePositionPercentageOffset: 1.2,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           );
         }).toList(),
-        sectionsSpace: 2,
         centerSpaceRadius: 40,
-        startDegreeOffset: -90,
+        sectionsSpace: 2,
       ),
     );
   }
 
-  Widget _buildLocationCard(
-    ThemeData theme, {
-    required String name,
-    required LocationAnalytics analytics,
-    required int totalTime,
-  }) {
+  Widget _buildLocationCard(ThemeData theme, Map<String, dynamic> location) {
     final colorScheme = theme.colorScheme;
-    final percentage = totalTime > 0
-        ? (analytics.totalMinutes / totalTime * 100).toStringAsFixed(1)
-        : '0.0';
+    final name = location['name'] as String;
+    final totalHours = location['totalHours'] as double;
+    final totalEarnings = location['totalEarnings'] as double;
+    final percentage = location['percentage'] as double;
+    final workMinutes = location['workMinutes'] as int;
+    final travelMinutes = location['travelMinutes'] as int;
+    final color = Color(location['color'] as int);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: colorScheme.outline.withOpacity(0.2),
-          ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(0.2),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              Text(
+                '${percentage.toStringAsFixed(1)}%',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildLocationStat(
+                  theme,
+                  icon: Icons.timer_rounded,
+                  label: 'Total Hours',
+                  value: '${totalHours.toStringAsFixed(1)}h',
+                  color: colorScheme.primary,
+                ),
+              ),
+              Expanded(
+                child: _buildLocationStat(
+                  theme,
+                  icon: Icons.attach_money_rounded,
+                  label: 'Earnings',
+                  value: '\$${totalEarnings.toStringAsFixed(0)}',
+                  color: colorScheme.secondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildLocationStat(
+                  theme,
+                  icon: Icons.work_rounded,
+                  label: 'Work Time',
+                  value: _formatMinutes(workMinutes),
+                  color: colorScheme.error,
+                ),
+              ),
+              Expanded(
+                child: _buildLocationStat(
+                  theme,
+                  icon: Icons.directions_car_rounded,
+                  label: 'Travel Time',
+                  value: _formatMinutes(travelMinutes),
+                  color: colorScheme.tertiary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationStat(
+    ThemeData theme, {
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: color,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.location_on_rounded,
-                      color: colorScheme.primary,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        Text(
-                          '${analytics.totalVisits} visits',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '$percentage%',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: totalTime > 0 ? analytics.totalMinutes / totalTime : 0,
-                  backgroundColor: colorScheme.primary.withOpacity(0.1),
-                  color: colorScheme.primary,
-                  minHeight: 8,
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Total Time',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  Text(
-                    _formatMinutes(analytics.totalMinutes),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ],
+              Text(
+                value,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 
   String _formatMinutes(int minutes) {
     final hours = minutes ~/ 60;
     final remainingMinutes = minutes % 60;
-    return '$hours:${remainingMinutes.toString().padLeft(2, '0')}';
+    
+    if (hours > 0) {
+      return remainingMinutes > 0 ? '${hours}h ${remainingMinutes}m' : '${hours}h';
+    } else {
+      return '${remainingMinutes}m';
+    }
   }
-}
-
-Widget _buildLocationBadge(
-  ThemeData theme,
-  String name,
-  int visits,
-) {
-  return Container(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 8,
-      vertical: 4,
-    ),
-    decoration: BoxDecoration(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(
-        color: theme.colorScheme.outline.withOpacity(0.2),
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: theme.colorScheme.shadow.withOpacity(0.1),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          name,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface,
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        Text(
-          '$visits visits',
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    ),
-  );
 }

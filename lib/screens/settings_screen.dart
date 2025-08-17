@@ -214,6 +214,15 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => AppRouter.goToManageLocations(context),
           ),
 
+          // Contract Settings
+          ListTile(
+            leading: const Icon(Icons.assignment_outlined),
+            title: const Text('Contract Settings'),
+            subtitle: const Text('Configure your work contract and rates'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => AppRouter.goToContractSettings(context),
+          ),
+
           // Developer Options (only in debug mode)
           if (kDebugMode) ...[
             const Divider(),
