@@ -339,7 +339,7 @@ class TrendsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${totalHours.toStringAsFixed(1)}h total • \$${earnings.toStringAsFixed(0)} earned',
+                  '${totalHours.toStringAsFixed(1)}h total',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
