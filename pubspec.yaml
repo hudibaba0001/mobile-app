@@ -45,6 +45,7 @@ dependencies:
   share_plus: ^11.0.0
   shared_preferences: ^2.2.2
   csv: ^5.1.1
+  excel: ^2.1.0
   http: ^0.13.6
   # Charts
   fl_chart: ^0.65.0

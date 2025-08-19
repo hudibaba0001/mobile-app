@@ -145,9 +145,10 @@ class _ReportsScreenState extends State<ReportsScreen>
     }
   }
 
-  Future<void> _showDateRangeDialog(BuildContext context) async {
-    final viewModel = context.read<CustomerAnalyticsViewModel>();
-    final initialStartDate = viewModel.startDate ?? DateTime.now().subtract(const Duration(days: 30));
+  Future<void> _showDateRangeDialog(
+      BuildContext context, CustomerAnalyticsViewModel viewModel) async {
+    final initialStartDate = viewModel.startDate ??
+        DateTime.now().subtract(const Duration(days: 30));
     final initialEndDate = viewModel.endDate ?? DateTime.now();
 
     final result = await showDialog<(DateTime, DateTime)>(
@@ -169,29 +170,40 @@ class _ReportsScreenState extends State<ReportsScreen>
       final fileName = exportConfig['fileName'] as String;
       final startDate = exportConfig['startDate'] as DateTime?;
       final endDate = exportConfig['endDate'] as DateTime?;
+      final format = exportConfig['format'] as String? ?? 'excel';
 
       // Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const AlertDialog(
+        builder: (context) => AlertDialog(
           content: Row(
             children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 16),
-              Text('Generating export...'),
+              const CircularProgressIndicator(),
+              const SizedBox(width: 16),
+              Text('Generating ${format.toUpperCase()} export...'),
             ],
           ),
         ),
       );
 
-      // Generate CSV file
-      final filePath = await ExportService.exportEntriesToCSV(
-        entries: entries,
-        fileName: fileName,
-        startDate: startDate,
-        endDate: endDate,
-      );
+      // Generate file based on format
+      String filePath;
+      if (format == 'excel') {
+        filePath = await ExportService.exportEntriesToExcel(
+          entries: entries,
+          fileName: fileName,
+          startDate: startDate,
+          endDate: endDate,
+        );
+      } else {
+        filePath = await ExportService.exportEntriesToCSV(
+          entries: entries,
+          fileName: fileName,
+          startDate: startDate,
+          endDate: endDate,
+        );
+      }
 
       // Close loading dialog
       Navigator.of(context).pop();
@@ -205,8 +217,9 @@ class _ReportsScreenState extends State<ReportsScreen>
       // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Export completed successfully!'),
+          SnackBar(
+            content:
+                Text('${format.toUpperCase()} export completed successfully!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -244,61 +257,74 @@ class _ReportsScreenState extends State<ReportsScreen>
         );
         return viewModel;
       },
-      child: Scaffold(
-        appBar: StandardAppBar(
-          title: 'Reports & Analytics',
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.date_range),
-              tooltip: 'Filter by Date',
-              onPressed: () => _showDateRangeDialog(context),
-            ),
-            IconButton(
-              icon: const Icon(Icons.file_download),
-              tooltip: 'Export Data',
-              onPressed: () => _showExportDialog(context),
-            ),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              tooltip: 'Refresh Data',
-              onPressed: () {
-                context.read<CustomerAnalyticsViewModel>().refreshData();
-              },
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            // Tab Bar
-            Container(
-              color: Theme.of(context).colorScheme.surface,
-              child: TabBar(
-                controller: _tabController,
-                labelColor: Theme.of(context).colorScheme.primary,
-                unselectedLabelColor:
-                    Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                indicatorColor: Theme.of(context).colorScheme.primary,
-                tabs: const [
-                  Tab(text: 'Overview'),
-                  Tab(text: 'Trends'),
-                  Tab(text: 'Locations'),
-                ],
+      builder: (context, child) {
+        final viewModel = context.watch<CustomerAnalyticsViewModel>();
+
+        return Scaffold(
+          appBar: StandardAppBar(
+            title: 'Reports & Analytics',
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.date_range,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                tooltip: 'Filter by Date',
+                onPressed: () => _showDateRangeDialog(context, viewModel),
               ),
-            ),
-            // Tab Content
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: const [
-                  OverviewTab(),
-                  TrendsTab(),
-                  LocationsTab(),
-                ],
+              IconButton(
+                icon: Icon(
+                  Icons.file_download,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                tooltip: 'Export Data',
+                onPressed: () => _showExportDialog(context),
               ),
-            ),
-          ],
-        ),
-      ),
+              IconButton(
+                icon: Icon(
+                  Icons.refresh,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                tooltip: 'Refresh Data',
+                onPressed: () {
+                  viewModel.refreshData();
+                },
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              // Tab Bar
+              Container(
+                color: Theme.of(context).colorScheme.surface,
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: Theme.of(context).colorScheme.primary,
+                  unselectedLabelColor:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  indicatorColor: Theme.of(context).colorScheme.primary,
+                  tabs: const [
+                    Tab(text: 'Overview'),
+                    Tab(text: 'Trends'),
+                    Tab(text: 'Locations'),
+                  ],
+                ),
+              ),
+              // Tab Content
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: const [
+                    OverviewTab(),
+                    TrendsTab(),
+                    LocationsTab(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

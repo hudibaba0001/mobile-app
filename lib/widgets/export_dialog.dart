@@ -24,6 +24,7 @@ class _ExportDialogState extends State<ExportDialog> {
   String _customFileName = '';
   bool _includeAllData = true;
   bool _isExporting = false;
+  String _exportFormat = 'excel'; // 'excel' or 'csv'
 
   @override
   void initState() {
@@ -109,6 +110,42 @@ class _ExportDialogState extends State<ExportDialog> {
 
             const SizedBox(height: 24),
 
+            // Export Format Section
+            const Text(
+              'Export Format',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Export Format Selection
+            RadioListTile<String>(
+              title: const Text('Excel (.xlsx)'),
+              subtitle: const Text('Professional format with formatting'),
+              value: 'excel',
+              groupValue: _exportFormat,
+              onChanged: (value) {
+                setState(() {
+                  _exportFormat = value!;
+                });
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('CSV (.csv)'),
+              subtitle: const Text('Simple text format'),
+              value: 'csv',
+              groupValue: _exportFormat,
+              onChanged: (value) {
+                setState(() {
+                  _exportFormat = value!;
+                });
+              },
+            ),
+
+            const SizedBox(height: 16),
+
             // Filename Section
             const Text(
               'Export Options',
@@ -137,7 +174,7 @@ class _ExportDialogState extends State<ExportDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -259,6 +296,7 @@ class _ExportDialogState extends State<ExportDialog> {
         'fileName': _customFileName.trim(),
         'startDate': _startDate,
         'endDate': _endDate,
+        'format': _exportFormat,
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

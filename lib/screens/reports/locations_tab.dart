@@ -111,7 +111,8 @@ class LocationsTab extends StatelessWidget {
             ),
           )
         else
-          ...locationsData.map((location) => _buildLocationCard(theme, location)),
+          ...locationsData
+              .map((location) => _buildLocationCard(theme, location)),
       ],
     );
   }
@@ -140,9 +141,11 @@ class LocationsTab extends StatelessWidget {
             color: Color(location['color'] as int),
             radius: 60,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ) ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ) ??
+                const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
           );
         }).toList(),
         centerSpaceRadius: 40,
@@ -155,7 +158,6 @@ class LocationsTab extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final name = location['name'] as String;
     final totalHours = location['totalHours'] as double;
-    final totalEarnings = location['totalEarnings'] as double;
     final percentage = location['percentage'] as double;
     final workMinutes = location['workMinutes'] as int;
     final travelMinutes = location['travelMinutes'] as int;
@@ -218,9 +220,9 @@ class LocationsTab extends StatelessWidget {
               Expanded(
                 child: _buildLocationStat(
                   theme,
-                  icon: Icons.attach_money_rounded,
-                  label: 'Earnings',
-                  value: '\$${totalEarnings.toStringAsFixed(0)}',
+                  icon: Icons.assignment_rounded,
+                  label: 'Entries',
+                  value: '${workMinutes + travelMinutes}',
                   color: colorScheme.secondary,
                 ),
               ),
@@ -296,9 +298,11 @@ class LocationsTab extends StatelessWidget {
   String _formatMinutes(int minutes) {
     final hours = minutes ~/ 60;
     final remainingMinutes = minutes % 60;
-    
+
     if (hours > 0) {
-      return remainingMinutes > 0 ? '${hours}h ${remainingMinutes}m' : '${hours}h';
+      return remainingMinutes > 0
+          ? '${hours}h ${remainingMinutes}m'
+          : '${hours}h';
     } else {
       return '${remainingMinutes}m';
     }

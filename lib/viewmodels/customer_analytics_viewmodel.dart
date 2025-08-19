@@ -216,12 +216,16 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
 
     for (final entry in workEntries) {
       final weekDay = entry.date.weekday - 1;
-      weeklyHours[weekDay] += entry.workMinutes / 60.0;
+      if (weekDay >= 0 && weekDay < 7) {
+        weeklyHours[weekDay] += entry.workMinutes / 60.0;
+      }
     }
 
     for (final entry in travelEntries) {
       final weekDay = entry.date.weekday - 1;
-      weeklyHours[weekDay] += entry.travelMinutes / 60.0;
+      if (weekDay >= 0 && weekDay < 7) {
+        weeklyHours[weekDay] += entry.travelMinutes / 60.0;
+      }
     }
 
     return weeklyHours;

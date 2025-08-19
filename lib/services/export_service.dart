@@ -1,12 +1,15 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:csv/csv.dart';
+import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/entry.dart';
 
 class ExportService {
   static const String _fileNamePrefix = 'time_tracker_export';
-  static const String _fileExtension = '.csv';
+  static const String _csvFileExtension = '.csv';
+  static const String _excelFileExtension = '.xlsx';
 
   /// Export entries to CSV file
   /// Returns the file path of the generated CSV
@@ -20,7 +23,7 @@ class ExportService {
       // Get the documents directory
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final fullFileName = '${fileName}_$timestamp$_fileExtension';
+      final fullFileName = '${fileName}_$timestamp$_csvFileExtension';
       final filePath = '${directory.path}/$fullFileName';
 
       // Create CSV data
@@ -34,6 +37,157 @@ class ExportService {
     } catch (e) {
       throw Exception('Failed to export data: $e');
     }
+  }
+
+  /// Export entries to Excel file
+  /// Returns the file path of the generated Excel file
+  static Future<String> exportEntriesToExcel({
+    required List<Entry> entries,
+    required String fileName,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      // Get the documents directory
+      final directory = await getApplicationDocumentsDirectory();
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final fullFileName = '${fileName}_$timestamp$_excelFileExtension';
+      final filePath = '${directory.path}/$fullFileName';
+
+      // Create Excel data
+      final excelData = await generateExcelReport(entries, startDate, endDate);
+
+      // Write to file
+      final file = File(filePath);
+      await file.writeAsBytes(excelData);
+
+      return filePath;
+    } catch (e) {
+      throw Exception('Failed to export data: $e');
+    }
+  }
+
+  /// Generate Excel report from entries
+  static Future<Uint8List> generateExcelReport(
+    List<Entry> entries,
+    DateTime? startDate,
+    DateTime? endDate,
+  ) async {
+    // Create a new Excel document
+    final excel = Excel.createExcel();
+    final sheet = excel['Time Tracker Report'];
+
+    // Define headers
+    final headers = [
+      'Entry ID',
+      'Type',
+      'Date',
+      'From',
+      'To',
+      'Duration (Hours)',
+      'Duration (Minutes)',
+      'Notes',
+      'Created At',
+      'Updated At',
+      'Journey ID',
+      'Segment Order',
+      'Total Segments',
+      'Work Hours',
+      'Shifts Count',
+      'Shift Details',
+    ];
+
+    // Write headers
+    for (int i = 0; i < headers.length; i++) {
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0))
+        ..value = headers[i]
+        ..cellStyle = CellStyle(
+          bold: true,
+          horizontalAlign: HorizontalAlign.Center,
+          backgroundColorHex: '#E0E0E0',
+        );
+    }
+
+    // Write data rows
+    for (int rowIndex = 0; rowIndex < entries.length; rowIndex++) {
+      final entry = entries[rowIndex];
+      final row = rowIndex + 1; // +1 because row 0 is headers
+
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
+        ..value = entry.id;
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row))
+        ..value = entry.type.name;
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row))
+        ..value = DateFormat('yyyy-MM-dd').format(entry.date);
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row))
+        ..value = entry.from ?? '';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row))
+        ..value = entry.to ?? '';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row))
+        ..value = entry.totalDuration.inHours;
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: row))
+        ..value = entry.totalDuration.inMinutes;
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: row))
+        ..value = entry.notes ?? '';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: row))
+        ..value = DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt);
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row))
+        ..value = entry.updatedAt != null
+            ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
+            : '';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: row))
+        ..value = entry.journeyId ?? '';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: row))
+        ..value = entry.segmentOrder?.toString() ?? '';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: row))
+        ..value = entry.totalSegments?.toString() ?? '';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: row))
+        ..value = entry.workHours;
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: row))
+        ..value = entry.shifts?.length.toString() ?? '0';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 15, rowIndex: row))
+        ..value = _formatShiftsForExcel(entry.shifts);
+    }
+
+    // Add summary section
+    final summaryRow = entries.length + 2;
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: summaryRow))
+      ..value = 'Export Summary'
+      ..cellStyle = CellStyle(
+        bold: true,
+        fontSize: 14,
+        backgroundColorHex: '#F0F0F0',
+      );
+
+    final summaryDataRow = summaryRow + 1;
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: summaryDataRow))
+      ..value = 'Total Entries: ${entries.length}';
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: summaryDataRow))
+      ..value = 'Travel Entries: ${entries.where((e) => e.type == EntryType.travel).length}';
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: summaryDataRow))
+      ..value = 'Work Entries: ${entries.where((e) => e.type == EntryType.work).length}';
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: summaryDataRow))
+      ..value = 'Total Hours: ${_calculateTotalHours(entries).toStringAsFixed(2)}';
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: summaryDataRow))
+      ..value = 'Date Range: ${_formatDateRange(startDate, endDate)}';
+
+    // Save the Excel file
+    return Uint8List.fromList(excel.save()!);
+  }
+
+  /// Format shifts for Excel export
+  static String _formatShiftsForExcel(List<Shift>? shifts) {
+    if (shifts == null || shifts.isEmpty) return '';
+
+    return shifts.map((shift) {
+      final start = DateFormat('HH:mm').format(shift.start);
+      final end = DateFormat('HH:mm').format(shift.end);
+      final duration = shift.duration.inMinutes;
+      final location = shift.location ?? '';
+      final description = shift.description ?? '';
+
+      return '$start-$end (${duration}m) $location $description'.trim();
+    }).join('; ');
   }
 
   /// Convert entries to CSV format
@@ -163,10 +317,12 @@ class ExportService {
   /// Format date range for CSV
   static String _formatDateRange(DateTime? startDate, DateTime? endDate) {
     if (startDate == null && endDate == null) return 'All time';
-    if (startDate == null)
+    if (startDate == null) {
       return 'Until ${DateFormat('yyyy-MM-dd').format(endDate!)}';
-    if (endDate == null)
+    }
+    if (endDate == null) {
       return 'From ${DateFormat('yyyy-MM-dd').format(startDate)}';
+    }
     return '${DateFormat('yyyy-MM-dd').format(startDate)} to ${DateFormat('yyyy-MM-dd').format(endDate)}';
   }
 
@@ -204,7 +360,7 @@ class ExportService {
       for (final file in files) {
         if (file is File &&
             file.path.contains(_fileNamePrefix) &&
-            file.path.endsWith(_fileExtension)) {
+            (file.path.endsWith(_csvFileExtension) || file.path.endsWith(_excelFileExtension))) {
           await file.delete();
         }
       }

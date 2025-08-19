@@ -42,7 +42,6 @@ class AppTheme {
       tertiary: accentOrange,
       tertiaryContainer: Color(0xFFFEF3C7),
       surface: Colors.white,
-      background: neutral50,
       error: errorRed,
       errorContainer: Color(0xFFFEE2E2),
       onPrimary: Colors.white,
@@ -53,7 +52,6 @@ class AppTheme {
       onTertiaryContainer: accentOrangeDark,
       onSurface: neutral900,
       onSurfaceVariant: neutral700,
-      onBackground: neutral900,
       onError: Colors.white,
       onErrorContainer: errorRed,
       outline: neutral300,
@@ -70,7 +68,7 @@ class AppTheme {
     textButtonTheme: _buildTextButtonTheme(),
     cardTheme: _buildCardTheme(),
     inputDecorationTheme: _buildInputDecorationTheme(),
-    appBarTheme: _buildAppBarTheme(),
+    appBarTheme: _buildAppBarTheme(neutral900),
     bottomNavigationBarTheme: _buildBottomNavigationBarTheme(),
     floatingActionButtonTheme: _buildFloatingActionButtonTheme(),
     dialogTheme: _buildDialogTheme(),
@@ -89,7 +87,6 @@ class AppTheme {
       tertiary: accentOrangeLight,
       tertiaryContainer: Color(0xFF92400E),
       surface: neutral900,
-      background: neutral900,
       error: Color(0xFFF87171),
       errorContainer: Color(0xFF7F1D1D),
       onPrimary: neutral900,
@@ -100,7 +97,6 @@ class AppTheme {
       onTertiaryContainer: accentOrangeLight,
       onSurface: neutral100,
       onSurfaceVariant: neutral200,
-      onBackground: neutral100,
       onError: neutral900,
       onErrorContainer: Color(0xFFFCA5A5),
       outline: neutral600,
@@ -117,7 +113,7 @@ class AppTheme {
     textButtonTheme: _buildTextButtonTheme(),
     cardTheme: _buildCardTheme(),
     inputDecorationTheme: _buildInputDecorationTheme(),
-    appBarTheme: _buildAppBarTheme(),
+    appBarTheme: _buildAppBarTheme(neutral100),
     bottomNavigationBarTheme: _buildBottomNavigationBarTheme(),
     floatingActionButtonTheme: _buildFloatingActionButtonTheme(),
     dialogTheme: _buildDialogTheme(),
@@ -323,17 +319,18 @@ class AppTheme {
   }
 
   // App Bar Theme
-  static AppBarTheme _buildAppBarTheme() {
-    return const AppBarTheme(
+  static AppBarTheme _buildAppBarTheme(Color foregroundColor) {
+    return AppBarTheme(
       elevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w700,
         letterSpacing: 0,
+        color: foregroundColor,
       ),
       backgroundColor: Colors.transparent,
-      foregroundColor: Colors.transparent,
+      foregroundColor: foregroundColor,
       surfaceTintColor: Colors.transparent,
     );
   }
@@ -343,8 +340,8 @@ class AppTheme {
     return const BottomNavigationBarThemeData(
       elevation: 8,
       backgroundColor: Colors.transparent,
-      selectedItemColor: Colors.transparent,
-      unselectedItemColor: Colors.transparent,
+      selectedItemColor: primaryBlue,
+      unselectedItemColor: neutral500,
       type: BottomNavigationBarType.fixed,
       selectedLabelStyle: TextStyle(
         fontSize: 12,

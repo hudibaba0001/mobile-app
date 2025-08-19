@@ -44,98 +44,15 @@ class TrendsTab extends StatelessWidget {
       );
     }
 
-    final trendsData = viewModel.trendsData;
+    try {
+      final trendsData = viewModel.trendsData;
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Monthly Comparison Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: colorScheme.outline.withOpacity(0.2),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Monthly Comparison',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildComparisonCard(
-                      theme,
-                      title: 'Current Month',
-                      value: '${trendsData['monthlyComparison']['currentMonth'].toStringAsFixed(1)}h',
-                      subtitle: 'Work Hours',
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildComparisonCard(
-                      theme,
-                      title: 'Previous Month',
-                      value: '${trendsData['monthlyComparison']['previousMonth'].toStringAsFixed(1)}h',
-                      subtitle: 'Work Hours',
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(
-                    trendsData['monthlyComparison']['percentageChange'] >= 0
-                        ? Icons.trending_up
-                        : Icons.trending_down,
-                    color: trendsData['monthlyComparison']['percentageChange'] >= 0
-                        ? Colors.green
-                        : Colors.red,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${trendsData['monthlyComparison']['percentageChange'].toStringAsFixed(1)}% ${trendsData['monthlyComparison']['percentageChange'] >= 0 ? 'increase' : 'decrease'}',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: trendsData['monthlyComparison']['percentageChange'] >= 0
-                          ? Colors.green
-                          : Colors.red,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-
-
-        const SizedBox(height: 24),
-
-        // Weekly Hours Chart
-        Text(
-          'Weekly Hours',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 16),
-        AspectRatio(
-          aspectRatio: 1.8,
-          child: Container(
-            padding: const EdgeInsets.all(24),
+      return ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Monthly Comparison Card
+          Container(
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
@@ -143,25 +60,150 @@ class TrendsTab extends StatelessWidget {
                 color: colorScheme.outline.withOpacity(0.2),
               ),
             ),
-            child: _buildWeeklyHoursChart(theme, trendsData['weeklyHours']),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Monthly Comparison',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildComparisonCard(
+                        theme,
+                        title: 'Current Month',
+                        value:
+                            '${(trendsData['monthlyComparison']?['currentMonth'] as double? ?? 0.0).toStringAsFixed(1)}h',
+                        subtitle: 'Work Hours',
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildComparisonCard(
+                        theme,
+                        title: 'Previous Month',
+                        value:
+                            '${(trendsData['monthlyComparison']?['previousMonth'] as double? ?? 0.0).toStringAsFixed(1)}h',
+                        subtitle: 'Work Hours',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(
+                      (trendsData['monthlyComparison']?['percentageChange']
+                                      as double? ??
+                                  0.0) >=
+                              0
+                          ? Icons.trending_up
+                          : Icons.trending_down,
+                      color: (trendsData['monthlyComparison']
+                                      ?['percentageChange'] as double? ??
+                                  0.0) >=
+                              0
+                          ? Colors.green
+                          : Colors.red,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${(trendsData['monthlyComparison']?['percentageChange'] as double? ?? 0.0).toStringAsFixed(1)}% ${(trendsData['monthlyComparison']?['percentageChange'] as double? ?? 0.0) >= 0 ? 'increase' : 'decrease'}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: (trendsData['monthlyComparison']
+                                        ?['percentageChange'] as double? ??
+                                    0.0) >=
+                                0
+                            ? Colors.green
+                            : Colors.red,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 24),
+          const SizedBox(height: 24),
 
-        // Daily Trends
-        Text(
-          'Daily Trends (Last 7 Days)',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurface,
+          const SizedBox(height: 24),
+
+          // Weekly Hours Chart
+          Text(
+            'Weekly Hours',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
           ),
+          const SizedBox(height: 16),
+          AspectRatio(
+            aspectRatio: 1.8,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+              child: _buildWeeklyHoursChart(
+                  theme,
+                  trendsData['weeklyHours'] as List<double>? ??
+                      List.filled(7, 0.0)),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Daily Trends
+          Text(
+            'Daily Trends (Last 7 Days)',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...(trendsData['dailyTrends'] as List<Map<String, dynamic>?>? ?? [])
+              .map(
+            (dayData) => _buildDailyTrendCard(theme, dayData),
+          ),
+        ],
+      );
+    } catch (e) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading trends data',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please try refreshing the page',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
-        ...(trendsData['dailyTrends'] as List<Map<String, dynamic>>).map((dayData) =>
-          _buildDailyTrendCard(theme, dayData),
-        ),
-      ],
-    );
+      );
+    }
   }
 
   Widget _buildComparisonCard(
@@ -173,7 +215,7 @@ class TrendsTab extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -204,12 +246,22 @@ class TrendsTab extends StatelessWidget {
     );
   }
 
-
-
   Widget _buildWeeklyHoursChart(ThemeData theme, List<double> weeklyHours) {
     final colorScheme = theme.colorScheme;
+
+    if (weeklyHours.isEmpty) {
+      return Center(
+        child: Text(
+          'No hours data available',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
     final maxHours = weeklyHours.reduce((a, b) => a > b ? a : b);
-    
+
     if (maxHours == 0) {
       return Center(
         child: Text(
@@ -271,7 +323,8 @@ class TrendsTab extends StatelessWidget {
                 toY: entry.value,
                 color: colorScheme.secondary,
                 width: 20,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(4)),
               ),
             ],
           );
@@ -291,14 +344,35 @@ class TrendsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildDailyTrendCard(ThemeData theme, Map<String, dynamic> dayData) {
+  Widget _buildDailyTrendCard(ThemeData theme, Map<String, dynamic>? dayData) {
     final colorScheme = theme.colorScheme;
-    final date = dayData['date'] as DateTime;
-    final workHours = dayData['workHours'] as double;
-    final travelHours = dayData['travelHours'] as double;
-    final totalHours = dayData['totalHours'] as double;
-    final earnings = dayData['earnings'] as double;
-    
+
+    // Handle null dayData
+    if (dayData == null) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        child: Text(
+          'No data available',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    final date = dayData['date'] as DateTime? ?? DateTime.now();
+    final workHours = (dayData['workHours'] as double?) ?? 0.0;
+    final travelHours = (dayData['travelHours'] as double?) ?? 0.0;
+    final totalHours = (dayData['totalHours'] as double?) ?? 0.0;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -373,16 +447,22 @@ class TrendsTab extends StatelessWidget {
 
   String _getDayAbbreviation(int weekday) {
     switch (weekday) {
-      case 1: return 'M';
-      case 2: return 'T';
-      case 3: return 'W';
-      case 4: return 'T';
-      case 5: return 'F';
-      case 6: return 'S';
-      case 7: return 'S';
-      default: return '?';
+      case 1:
+        return 'M';
+      case 2:
+        return 'T';
+      case 3:
+        return 'W';
+      case 4:
+        return 'T';
+      case 5:
+        return 'F';
+      case 6:
+        return 'S';
+      case 7:
+        return 'S';
+      default:
+        return '?';
     }
   }
 }
-
-
