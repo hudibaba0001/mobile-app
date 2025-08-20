@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:myapp/screens/unified_home_screen.dart';
-import 'package:myapp/services/auth_service.dart' as app_auth;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/repositories/repository_provider.dart';
 import 'package:myapp/repositories/work_repository.dart';

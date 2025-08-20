@@ -300,7 +300,15 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(title: const Text('Edit Entry')),
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+        title: const Text('Edit Entry'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+          tooltip: 'Back',
+        ),
+      ),
       body: Column(
         children: [
           // Entry Type Toggle
@@ -311,7 +319,12 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             child: Form(
               key: _formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  top: 24,
+                  bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
+                ),
                 child: _currentEntryType == EntryType.travel
                     ? _buildTravelForm(theme)
                     : _buildWorkForm(theme),

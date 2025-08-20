@@ -142,7 +142,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                     style: IconButton.styleFrom(
-                      backgroundColor: theme.colorScheme.surfaceVariant,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
                     ),
                   ),
                 ],

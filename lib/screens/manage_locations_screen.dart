@@ -514,7 +514,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
           decoration: BoxDecoration(
             color: location.isFavorite
                 ? colorScheme.primary.withOpacity(0.1)
-                : colorScheme.surfaceVariant,
+                : colorScheme.surfaceContainerHighest,
             shape: BoxShape.circle,
           ),
           child: Icon(

@@ -12,7 +12,6 @@ import 'hive_travel_repository.dart';
 import 'work_repository.dart';
 import 'contract_repository.dart';
 import 'leave_repository.dart';
-import 'location_repository.dart';
 import 'hive_location_repository.dart';
 
 class RepositoryProvider {

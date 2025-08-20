@@ -26,6 +26,7 @@ class HiveContractRepository implements ContractRepository {
     await _box.put('settings', settings);
   }
 
+  @override
   Future<void> close() async {
     await _box.close();
   }

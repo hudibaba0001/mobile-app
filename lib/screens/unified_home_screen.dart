@@ -1145,7 +1145,7 @@ class _EntryData {
 class _TravelEntryDialog extends StatefulWidget {
   final bool enableSuggestions;
 
-  const _TravelEntryDialog({super.key, this.enableSuggestions = true});
+  const _TravelEntryDialog({this.enableSuggestions = true});
 
   @override
   State<_TravelEntryDialog> createState() => _TravelEntryDialogState();
@@ -2163,7 +2163,7 @@ class _TripData {
 
 class _WorkEntryDialog extends StatefulWidget {
   final bool enableSuggestions;
-  const _WorkEntryDialog({super.key, this.enableSuggestions = true});
+  const _WorkEntryDialog({this.enableSuggestions = true});
 
   @override
   State<_WorkEntryDialog> createState() => _WorkEntryDialogState();

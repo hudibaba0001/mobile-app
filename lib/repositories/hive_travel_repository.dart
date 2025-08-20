@@ -1,6 +1,5 @@
 import 'package:hive/hive.dart';
 import '../models/travel_entry.dart';
-import '../utils/constants.dart';
 import 'travel_repository.dart';
 
 class HiveTravelRepository implements TravelRepository {

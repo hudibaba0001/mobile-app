@@ -294,6 +294,43 @@ class _ReportsScreenState extends State<ReportsScreen>
           ),
           body: Column(
             children: [
+              if (viewModel.usingServer)
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  color:
+                      Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                  child: Row(
+                    children: [
+                      Icon(Icons.cloud_done,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Server analytics',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                        ),
+                      ),
+                      if (viewModel.lastServerError != null)
+                        Tooltip(
+                          message: viewModel.lastServerError,
+                          child: Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               // Tab Bar
               Container(
                 color: Theme.of(context).colorScheme.surface,
