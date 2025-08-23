@@ -34,7 +34,7 @@ class AnalyticsApi {
       },
     );
     if (resp.statusCode == 401 || resp.statusCode == 403) {
-      throw _AuthError('Not authorized (admin only or invalid token)');
+      throw AuthException('Not authorized (admin only or invalid token)');
     }
     if (resp.statusCode < 200 || resp.statusCode >= 300) {
       throw StateError('Server error ${resp.statusCode}: ${resp.body}');
@@ -44,9 +44,9 @@ class AnalyticsApi {
   }
 }
 
-class _AuthError implements Exception {
+class AuthException implements Exception {
   final String message;
-  _AuthError(this.message);
+  AuthException(this.message);
   @override
   String toString() => message;
 }

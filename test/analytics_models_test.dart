@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kviktime/features/reports/analytics_models.dart';
+// Test-only import that re-exports the library from /lib without relying on the package name.
+import 'helpers/analytics_models_import.dart';
 
 void main() {
   test('ServerAnalytics.fromMap parses dashboard payload correctly', () {
@@ -23,8 +24,18 @@ void main() {
         },
       ],
       'userDistribution': [
-        {'userId': 'u1', 'userName': 'Alice', 'totalHours': 5.0, 'percentage': 40.0},
-        {'userId': 'u2', 'userName': 'Bob', 'totalHours': 7.5, 'percentage': 60.0},
+        {
+          'userId': 'u1',
+          'userName': 'Alice',
+          'totalHours': 5.0,
+          'percentage': 40.0
+        },
+        {
+          'userId': 'u2',
+          'userName': 'Bob',
+          'totalHours': 7.5,
+          'percentage': 60.0
+        },
       ]
     };
 

@@ -210,7 +210,11 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
       return true;
     } catch (e) {
       _server = null;
-      _lastServerError = e.toString();
+      if (e is AuthException) {
+        _lastServerError = 'Access denied. Please contact support.';
+      } else {
+        _lastServerError = e.toString();
+      }
       return false;
     }
   }
