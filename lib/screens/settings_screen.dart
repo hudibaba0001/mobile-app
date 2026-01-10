@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/settings_provider.dart';
 import '../config/app_router.dart';
+import '../config/external_links.dart';
 import '../widgets/standard_app_bar.dart';
 import '../providers/entry_provider.dart';
-import '../services/auth_service.dart';
+import '../providers/travel_provider.dart';
+import '../services/supabase_auth_service.dart';
 import '../models/entry.dart';
 import '../models/travel_entry.dart';
 import '../models/work_entry.dart';
@@ -15,8 +19,8 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _addSampleData(BuildContext context) async {
     final entryProvider = context.read<EntryProvider>();
-    final auth = context.read<AuthService>();
-    final uid = auth.currentUser?.uid;
+    final auth = context.read<SupabaseAuthService>();
+    final uid = auth.currentUser?.id;
     if (uid == null) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -173,6 +177,114 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _clearDemoData(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Demo Data'),
+        content: const Text(
+          'Are you sure you want to delete all demo/sample entries? This will only remove entries with IDs starting with "sample_".',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Clear Demo Data'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final entryProvider = context.read<EntryProvider>();
+        await entryProvider.clearDemoEntries();
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Demo data cleared successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to clear demo data: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _clearAllData(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear All Data'),
+        content: const Text(
+          'Are you sure you want to delete all entries? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete All'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final entryProvider = context.read<EntryProvider>();
+        final travelProvider = context.read<TravelProvider>();
+        
+        // Clear both providers
+        await Future.wait([
+          entryProvider.clearAllEntries(),
+          travelProvider.clearAllEntries(),
+        ]);
+        
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('All data cleared successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to clear data: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
@@ -223,6 +335,49 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => AppRouter.goToContractSettings(context),
           ),
 
+          // Absence Management
+          ListTile(
+            leading: const Icon(Icons.event_busy),
+            title: const Text('Absences'),
+            subtitle: const Text('Manage vacation, sick leave, and VAB'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(AppRouter.absenceManagementPath),
+          ),
+
+          // Manage Subscription
+          ListTile(
+            leading: const Icon(Icons.payment_outlined),
+            title: const Text('Manage Subscription'),
+            subtitle: const Text('Update payment method and subscription plan'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              try {
+                final url = Uri.parse(ExternalLinks.manageSubscriptionUrl);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Could not open subscription page'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to open subscription page: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+
           // Developer Options (only in debug mode)
           if (kDebugMode) ...[
             const Divider(),
@@ -242,9 +397,77 @@ class SettingsScreen extends StatelessWidget {
               subtitle: const Text('Create test entries from the last week'),
               onTap: () => _addSampleData(context),
             ),
+            ListTile(
+              leading: const Icon(Icons.cleaning_services, color: Colors.orange),
+              title: const Text('Clear Demo Data', style: TextStyle(color: Colors.orange)),
+              subtitle: const Text('Remove sample entries (IDs starting with "sample_")',
+                                style: TextStyle(color: Colors.orange)),
+              onTap: () => _clearDemoData(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_sweep, color: Colors.red),
+              title: const Text('Clear All Data', style: TextStyle(color: Colors.red)),
+              subtitle: const Text('Delete all entries (cannot be undone)', 
+                                style: TextStyle(color: Colors.red)),
+              onTap: () => _clearAllData(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.sync, color: Colors.blue),
+              title: const Text('Sync to Supabase', style: TextStyle(color: Colors.blue)),
+              subtitle: const Text('Manually sync local entries to Supabase cloud',
+                                style: TextStyle(color: Colors.blue)),
+              onTap: () => _syncToSupabase(context),
+            ),
           ],
         ],
       ),
     );
+  }
+
+  Future<void> _syncToSupabase(BuildContext context) async {
+    final entryProvider = context.read<EntryProvider>();
+    
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Syncing to Supabase...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      await entryProvider.syncLocalEntriesToSupabase();
+      
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Sync completed successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Sync failed: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
   }
 }

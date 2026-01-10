@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/auth_service.dart';
+import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -169,8 +169,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
 
     try {
-      await context.read<AuthService>().sendPasswordResetEmail(
-            email: _emailController.text.trim(),
+      await context.read<SupabaseAuthService>().sendPasswordResetEmail(
+            _emailController.text.trim(),
           );
 
       if (mounted) {

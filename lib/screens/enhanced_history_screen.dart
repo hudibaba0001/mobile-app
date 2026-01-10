@@ -32,9 +32,12 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
 
-    // Load initial entries
+    // Entries should already be loaded on app startup, but reload if empty
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<EntryProvider>().loadEntries();
+      final entryProvider = context.read<EntryProvider>();
+      if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+        entryProvider.loadEntries();
+      }
     });
   }
 
@@ -350,9 +353,30 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
       color: colorScheme.surfaceContainerHighest.withOpacity(0.1),
       child: Consumer<EntryProvider>(
         builder: (context, entryProvider, child) {
+          // Show loading indicator when loading entries
+          if (entryProvider.isLoading) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading entries...',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
           final entries = entryProvider.filteredEntries;
 
-          if (entries.isEmpty && !entryProvider.isLoading) {
+          if (entries.isEmpty) {
             return _buildEmptyState(context);
           }
 

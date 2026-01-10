@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/travel_provider.dart';
 import '../providers/location_provider.dart';
@@ -10,8 +10,8 @@ import '../widgets/quick_entry_form.dart';
 import '../widgets/travel_entry_card.dart';
 import '../models/entry.dart';
 import '../utils/constants.dart';
-import '../services/auth_service.dart';
 import '../repositories/repository_provider.dart';
+import '../services/supabase_auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
       appBar: _buildAppBar(context),
@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
   AppBar _buildAppBar(BuildContext context) {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
 
     return AppBar(
       title: const Text('Travel Time Tracker'),
@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               if (confirmed == true) {
                 try {
-                  final authService = context.read<AuthService>();
+                  final authService = context.read<SupabaseAuthService>();
                   final repositoryProvider = context.read<RepositoryProvider>();
                   await authService
                       .signOutWithCleanup(() => repositoryProvider.dispose());
@@ -206,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
 
     final totalMinutesThisWeek =
-        thisWeekEntries.fold<int>(0, (sum, entry) => sum + entry.minutes);
+        thisWeekEntries.fold<int>(0, (sum, entry) => sum + (entry.minutes ?? 0));
     final avgMinutesThisWeek = thisWeekEntries.isNotEmpty
         ? totalMinutesThisWeek / thisWeekEntries.length
         : 0;

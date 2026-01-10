@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
 import '../widgets/location_selector.dart';
-import '../services/auth_service.dart';
+import '../services/supabase_auth_service.dart';
+import '../services/map_service.dart';
 import 'package:flutter/foundation.dart';
 import '../widgets/keyboard_aware_form_container.dart';
 
@@ -43,9 +44,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   String? _workLocation;
   Shift? _shift;
 
-  String? get _currentUserId => context.read<AuthService>().currentUser?.uid;
+  String? get _currentUserId => context.read<SupabaseAuthService>().currentUser?.id;
 
   bool _isLoading = false;
+  bool _isCalculatingTravelTime = false;
+  String? _travelTimeError;
 
   @override
   void initState() {
@@ -57,13 +60,14 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     if (widget.existingEntry != null) {
       final entry = widget.existingEntry!;
       _selectedDate = entry.date;
-      _startTime = TimeOfDay.fromDateTime(entry.date);
-      _durationMinutes = entry.minutes;
+      _durationMinutes = entry.minutes ?? 0;
       _notesController.text = entry.notes ?? '';
 
       if (entry.type == EntryType.travel) {
         _departureLocation = entry.departureLocation;
         _arrivalLocation = entry.arrivalLocation;
+        // For travel entries, set start time to current time (not used for saving, just for display if needed)
+        _startTime = TimeOfDay.now();
       } else if (entry.type == EntryType.work) {
         // Initialize work fields from first shift if present
         final Shift? firstShift = entry.shift;
@@ -76,22 +80,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           );
           _startTime = TimeOfDay.fromDateTime(firstShift.start);
           _endTime = TimeOfDay.fromDateTime(firstShift.end);
+        } else {
+          _startTime = TimeOfDay.fromDateTime(entry.date);
         }
-      }
-
-      // For travel, compute end time from duration if we have minutes
-      if (entry.type == EntryType.travel) {
-        final startDateTime = DateTime(
-          _selectedDate.year,
-          _selectedDate.month,
-          _selectedDate.day,
-          _startTime.hour,
-          _startTime.minute,
-        );
-        final endDateTime = startDateTime.add(
-          Duration(minutes: _durationMinutes),
-        );
-        _endTime = TimeOfDay.fromDateTime(endDateTime);
+      } else {
+        _startTime = TimeOfDay.fromDateTime(entry.date);
       }
     }
   }
@@ -189,7 +182,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Date & Time',
+          'Date',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -217,68 +210,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       const SizedBox(width: 8),
                       Text(
                         '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: InkWell(
-                onTap: _selectStartTime,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.play_arrow,
-                        size: 20,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _startTime.format(context),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: InkWell(
-                onTap: _selectEndTime,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.stop,
-                        size: 20,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _endTime != null
-                            ? _endTime!.format(context)
-                            : 'End time',
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
@@ -415,8 +346,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           labelText: 'From',
           hintText: 'Enter departure location',
           initialValue: _departureLocation,
-          onLocationSelected: (location) =>
-              setState(() => _departureLocation = location),
+          onLocationSelected: (location) {
+            setState(() {
+              _departureLocation = location;
+              _travelTimeError = null; // Clear error when location changes
+            });
+          },
           prefixIcon: Icons.my_location,
         ),
         const SizedBox(height: 12),
@@ -424,12 +359,115 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           labelText: 'To',
           hintText: 'Enter arrival location',
           initialValue: _arrivalLocation,
-          onLocationSelected: (location) =>
-              setState(() => _arrivalLocation = location),
+          onLocationSelected: (location) {
+            setState(() {
+              _arrivalLocation = location;
+              _travelTimeError = null; // Clear error when location changes
+            });
+          },
           prefixIcon: Icons.location_on,
         ),
+        const SizedBox(height: 12),
+        // Calculate Travel Time Button
+        if (_departureLocation != null && 
+            _departureLocation!.isNotEmpty && 
+            _arrivalLocation != null && 
+            _arrivalLocation!.isNotEmpty)
+          OutlinedButton.icon(
+            onPressed: _isCalculatingTravelTime ? null : _calculateTravelTime,
+            icon: _isCalculatingTravelTime
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.directions_car),
+            label: Text(_isCalculatingTravelTime 
+                ? 'Calculating...' 
+                : 'Calculate Travel Time'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 48),
+            ),
+          ),
+        if (_travelTimeError != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _travelTimeError!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+        ],
       ],
     );
+  }
+
+  Future<void> _calculateTravelTime() async {
+    if (_departureLocation == null || 
+        _departureLocation!.isEmpty || 
+        _arrivalLocation == null || 
+        _arrivalLocation!.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _isCalculatingTravelTime = true;
+      _travelTimeError = null;
+    });
+
+    try {
+      final result = await MapService.calculateTravelTime(
+        origin: _departureLocation!,
+        destination: _arrivalLocation!,
+      );
+
+      final durationMinutes = result['durationMinutes'] as int;
+      final durationText = result['durationText'] as String;
+      final distanceText = result['distanceText'] as String;
+
+      setState(() {
+        _durationMinutes = durationMinutes;
+        // Calculate end time based on start time and duration
+        final startDateTime = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _startTime.hour,
+          _startTime.minute,
+        );
+        final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
+        _endTime = TimeOfDay.fromDateTime(endDateTime);
+        _isCalculatingTravelTime = false;
+      });
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Travel time calculated: $durationText ($distanceText)',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isCalculatingTravelTime = false;
+        _travelTimeError = e.toString().replaceAll('Exception: ', '');
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to calculate travel time: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildWorkLocationSection(ThemeData theme) {
@@ -717,46 +755,36 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       }
       final entryProvider = context.read<EntryProvider>();
 
-      final entryDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _startTime.hour,
-        _startTime.minute,
-      );
+      // For travel entries, use date only (no time). For work entries, include time.
+      final entryDateTime = widget.entryType == EntryType.travel
+          ? DateTime(
+              _selectedDate.year,
+              _selectedDate.month,
+              _selectedDate.day,
+            )
+          : DateTime(
+              _selectedDate.year,
+              _selectedDate.month,
+              _selectedDate.day,
+              _startTime.hour,
+              _startTime.minute,
+            );
 
-      // Compute travel minutes from start/end when available
-      int? computedTravelMinutes;
-      if (widget.entryType == EntryType.travel && _endTime != null) {
-        final entryStart = DateTime(
-          _selectedDate.year,
-          _selectedDate.month,
-          _selectedDate.day,
-          _startTime.hour,
-          _startTime.minute,
-        );
-        final entryEnd = DateTime(
-          _selectedDate.year,
-          _selectedDate.month,
-          _selectedDate.day,
-          _endTime!.hour,
-          _endTime!.minute,
-        );
-        final diff = entryEnd.difference(entryStart).inMinutes;
-        computedTravelMinutes = diff > 0 ? diff : 0;
+      // For travel entries, use calculated duration or manual duration input
+      int? finalTravelMinutes;
+      if (widget.entryType == EntryType.travel) {
+        // Use calculated duration (from Mapbox API) or manual duration input
+        finalTravelMinutes = _durationMinutes > 0 ? _durationMinutes : null;
       }
 
       final entry = Entry(
-        id: widget.existingEntry?.id ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
+        id: widget.existingEntry?.id, // Let Entry model generate UUID if null
         userId: _currentUserId!,
         type: widget.entryType,
         date: entryDateTime,
         from: widget.entryType == EntryType.travel ? _departureLocation : null,
         to: widget.entryType == EntryType.travel ? _arrivalLocation : null,
-        travelMinutes: widget.entryType == EntryType.travel
-            ? (computedTravelMinutes ?? _durationMinutes)
-            : null,
+        travelMinutes: finalTravelMinutes,
         shifts: widget.entryType == EntryType.work
             ? [
                 Shift(

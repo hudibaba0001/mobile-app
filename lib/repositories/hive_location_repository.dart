@@ -1,6 +1,5 @@
 import 'package:hive/hive.dart';
 import '../models/location.dart';
-import '../utils/constants.dart';
 import 'location_repository.dart';
 
 class HiveLocationRepository implements LocationRepository {

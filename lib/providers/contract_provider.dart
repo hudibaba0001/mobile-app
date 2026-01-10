@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Provider for managing contract settings and work hour calculations
@@ -33,7 +34,25 @@ class ContractProvider extends ChangeNotifier {
   /// 
   /// This is computed as: (fullTimeHours * contractPercent / 100)
   /// For example: 40 hours * 75% = 30 allowed hours per week
+  /// 
+  /// NOTE: This rounds to int for backward compatibility. Use weeklyTargetMinutes
+  /// for precise calculations without rounding drift.
   int get allowedHours => (fullTimeHours * contractPercent / 100).round();
+
+  /// Calculated allowed work minutes per week based on contract percentage
+  /// 
+  /// This is computed as: round(fullTimeHours * 60 * contractPercent / 100)
+  /// For example: 40 hours * 60 * 75% / 100 = 1800 minutes per week
+  /// 
+  /// This is the primary value for calculations to avoid rounding drift.
+  int get weeklyTargetMinutes {
+    return (fullTimeHours * 60.0 * contractPercent / 100.0).round();
+  }
+
+  /// Weekly target hours (for display/backward compatibility)
+  /// 
+  /// Returns weeklyTargetMinutes / 60.0
+  double get weeklyTargetHours => weeklyTargetMinutes / 60.0;
   
   // Setters with validation and persistence
   
@@ -86,13 +105,21 @@ class ContractProvider extends ChangeNotifier {
     final savedPercent = prefs.getInt(_contractPercentKey);
     if (savedPercent != null && savedPercent >= 0 && savedPercent <= 100) {
       _contractPercent = savedPercent;
+      debugPrint('ContractProvider: Loaded contract percentage: $_contractPercent%');
+    } else {
+      debugPrint('ContractProvider: Using default contract percentage: $_contractPercent%');
     }
     
     // Load full-time hours with validation
     final savedHours = prefs.getInt(_fullTimeHoursKey);
     if (savedHours != null && savedHours > 0) {
       _fullTimeHours = savedHours;
+      debugPrint('ContractProvider: Loaded full-time hours: $_fullTimeHours');
+    } else {
+      debugPrint('ContractProvider: Using default full-time hours: $_fullTimeHours');
     }
+    
+    debugPrint('ContractProvider: Calculated allowed hours: $allowedHours ($_fullTimeHours * $_contractPercent% / 100)');
     
     notifyListeners();
   }

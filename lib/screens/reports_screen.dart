@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../viewmodels/customer_analytics_viewmodel.dart';
@@ -7,13 +8,14 @@ import '../widgets/export_dialog.dart';
 import '../services/export_service.dart';
 import '../models/entry.dart';
 import '../models/travel_entry.dart';
-import '../models/work_entry.dart';
+import '../services/supabase_auth_service.dart';
 import '../repositories/repository_provider.dart';
-import '../services/auth_service.dart';
+import '../models/work_entry.dart';
 import 'reports/date_range_dialog.dart';
 import 'reports/overview_tab.dart';
 import 'reports/trends_tab.dart';
-import 'reports/locations_tab.dart';
+import 'reports/time_balance_tab.dart';
+import '../config/app_router.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -66,8 +68,8 @@ class _ReportsScreenState extends State<ReportsScreen>
   Future<List<Entry>> _getAllEntries() async {
     try {
       final repositoryProvider = context.read<RepositoryProvider>();
-      final authService = context.read<AuthService>();
-      final userId = authService.currentUser?.uid;
+      final authService = context.read<SupabaseAuthService>();
+      final userId = authService.currentUser?.id;
 
       if (userId == null) {
         return [];
@@ -172,6 +174,19 @@ class _ReportsScreenState extends State<ReportsScreen>
       final endDate = exportConfig['endDate'] as DateTime?;
       final format = exportConfig['format'] as String? ?? 'excel';
 
+      // Validate entries
+      if (entries.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No entries to export. Please select entries with data.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
       // Show loading indicator
       showDialog(
         context: context,
@@ -208,18 +223,21 @@ class _ReportsScreenState extends State<ReportsScreen>
       // Close loading dialog
       Navigator.of(context).pop();
 
-      // Share the file
-      await Share.shareXFiles(
-        [XFile(filePath)],
-        text: 'Time Tracker Export - $fileName',
-      );
+      // Share the file (only on mobile/desktop, web already downloaded)
+      if (!kIsWeb && filePath.isNotEmpty) {
+        await Share.shareXFiles(
+          [XFile(filePath)],
+          text: 'Time Tracker Export - $fileName',
+        );
+      }
 
       // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('${format.toUpperCase()} export completed successfully!'),
+            content: Text(kIsWeb
+                ? '${format.toUpperCase()} file downloaded successfully!'
+                : '${format.toUpperCase()} export completed successfully!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -248,8 +266,8 @@ class _ReportsScreenState extends State<ReportsScreen>
       create: (context) {
         final viewModel = CustomerAnalyticsViewModel();
         final repositoryProvider = context.read<RepositoryProvider>();
-        final authService = context.read<AuthService>();
-        final userId = authService.currentUser?.uid;
+        final authService = context.read<SupabaseAuthService>();
+        final userId = authService.currentUser?.id;
         viewModel.initialize(
           repositoryProvider.workRepository,
           repositoryProvider.travelRepository,
@@ -288,6 +306,16 @@ class _ReportsScreenState extends State<ReportsScreen>
                 tooltip: 'Refresh Data',
                 onPressed: () {
                   viewModel.refreshData();
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.account_balance_wallet,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                tooltip: 'Time Balance',
+                onPressed: () {
+                  AppRouter.goToTimeBalance(context);
                 },
               ),
             ],
@@ -343,7 +371,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                   tabs: const [
                     Tab(text: 'Overview'),
                     Tab(text: 'Trends'),
-                    Tab(text: 'Locations'),
+                    Tab(text: 'Time Balance'),
                   ],
                 ),
               ),
@@ -354,7 +382,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                   children: const [
                     OverviewTab(),
                     TrendsTab(),
-                    LocationsTab(),
+                    TimeBalanceTab(),
                   ],
                 ),
               ),

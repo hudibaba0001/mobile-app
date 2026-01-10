@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../services/auth_service.dart';
+import '../services/supabase_auth_service.dart';
 import '../widgets/app_scaffold.dart';
 import '../screens/login_screen.dart';
 import '../screens/unified_home_screen.dart';
@@ -14,6 +14,9 @@ import '../screens/analytics_screen.dart';
 import '../screens/enhanced_history_screen.dart';
 import '../screens/edit_entry_screen.dart';
 import '../screens/manage_locations_screen.dart';
+import '../screens/time_balance_screen.dart';
+import '../screens/absence_management_screen.dart';
+import '../screens/account_status_gate.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -28,6 +31,8 @@ class AppRouter {
   static const String profilePath = '/profile';
   static const String editEntryPath = '/edit-entry';
   static const String manageLocationsPath = '/manage-locations';
+  static const String timeBalancePath = '/time-balance';
+  static const String absenceManagementPath = '/absences';
 
   static const String loginName = 'login';
   static const String homeName = 'home';
@@ -40,12 +45,14 @@ class AppRouter {
   static const String profileName = 'profile';
   static const String editEntryName = 'editEntry';
   static const String manageLocationsName = 'manage-locations';
+  static const String timeBalanceName = 'time-balance';
+  static const String absenceManagementName = 'absences';
 
   static final router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: homePath,
     redirect: (context, state) async {
-      final authService = context.read<AuthService>();
+      final authService = context.read<SupabaseAuthService>();
       final isAuthenticated = authService.isAuthenticated;
       final isInitialized = authService.isInitialized;
       final isLoggingIn = state.matchedLocation == loginPath;
@@ -97,10 +104,13 @@ class AppRouter {
       ),
 
       // Shell with bottom navigation for main tabs
+      // Wrapped in AccountStatusGate to check legal/subscription status
       ShellRoute(
-        builder: (context, state, child) => AppScaffold(
-          currentPath: state.matchedLocation,
-          child: child,
+        builder: (context, state, child) => AccountStatusGate(
+          child: AppScaffold(
+            currentPath: state.matchedLocation,
+            child: child,
+          ),
         ),
         routes: [
           // Home tab and its nested routes
@@ -164,6 +174,20 @@ class AppRouter {
               ),
             ],
           ),
+
+          // Absence Management screen
+          GoRoute(
+            path: absenceManagementPath,
+            name: absenceManagementName,
+            builder: (context, state) => const AbsenceManagementScreen(),
+          ),
+
+          // Time Balance screen
+          GoRoute(
+            path: timeBalancePath,
+            name: timeBalanceName,
+            builder: (context, state) => const TimeBalanceScreen(),
+          ),
         ],
       ),
     ],
@@ -187,6 +211,8 @@ class AppRouter {
       context.goNamed(analyticsName);
   static void goToContractSettings(BuildContext context) =>
       context.goNamed(contractSettingsName);
+  static void goToTimeBalance(BuildContext context) =>
+      context.goNamed(timeBalanceName);
   static void goToProfile(BuildContext context) => context.goNamed(profileName);
 
   // Additional navigation methods

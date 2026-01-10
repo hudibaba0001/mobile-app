@@ -1,9 +1,9 @@
 class ApiConfig {
   ApiConfig._();
 
-  // Current Firebase Functions URL
+  // Current API URL (update with your Supabase Edge Functions URL if needed)
   static const String functionBaseUrl =
-      'https://europe-west3-kviktime-9ee5f.cloudfunctions.net/api';
+      'https://your-project-id.supabase.co/functions/v1';
 
   // Future Custom Domain URL (after DNS setup)
   // static const String functionBaseUrl = 'https://api.kviktime.se';

@@ -4,7 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 import '../viewmodels/analytics_view_model.dart';
 import '../services/admin_api_service.dart';
-import '../services/auth_service.dart';
+import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 
 class AnalyticsScreen extends StatefulWidget {
@@ -29,7 +29,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Future<void> _checkAdminStatus() async {
-    final authService = context.read<AuthService>();
+    final authService = context.read<SupabaseAuthService>();
     final isAdmin = await authService.isAdmin();
     if (mounted) {
       setState(() {

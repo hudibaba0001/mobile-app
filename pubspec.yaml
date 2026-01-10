@@ -50,13 +50,8 @@ dependencies:
   # Charts
   fl_chart: ^0.65.0
   url_launcher: ^6.3.1
-  # Firebase dependencies (compatible versions)
-  firebase_core: ^3.15.2
-  firebase_auth: ^5.7.0
-  cloud_firestore: ^5.6.12
-  firebase_storage: ^12.4.10
-  # Stripe dependencies
-  flutter_stripe: ^11.5.0
+  # Supabase dependencies
+  supabase_flutter: ^2.3.0
   # Web plugins for URL strategy
   flutter_web_plugins:
     sdk: flutter

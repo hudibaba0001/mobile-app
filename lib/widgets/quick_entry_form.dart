@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/entry.dart';
 import '../models/location.dart';
 import '../providers/entry_provider.dart';
-import '../services/auth_service.dart';
+import '../services/supabase_auth_service.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
 
@@ -139,8 +139,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     setState(() => _isLoading = true);
 
     try {
-      final auth = context.read<AuthService>();
-      final uid = auth.currentUser?.uid;
+      final auth = context.read<SupabaseAuthService>();
+      final uid = auth.currentUser?.id;
       if (uid == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -165,15 +165,14 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       );
 
       final entryProvider = context.read<EntryProvider>();
-      bool success;
 
       if (widget.initialEntry != null) {
-        success = await entryProvider.updateEntry(entry);
+        await entryProvider.updateEntry(entry);
       } else {
-        success = await entryProvider.addEntry(entry);
+        await entryProvider.addEntry(entry);
       }
 
-      if (success && mounted) {
+      if (mounted) {
         _clearForm();
         widget.onSuccess?.call();
 

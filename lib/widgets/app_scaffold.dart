@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../config/app_router.dart';
+import '../providers/entry_provider.dart';
+import '../services/supabase_auth_service.dart';
 
-class AppScaffold extends StatelessWidget {
+class AppScaffold extends StatefulWidget {
   final Widget child;
   final String currentPath;
 
@@ -13,10 +16,35 @@ class AppScaffold extends StatelessWidget {
   });
 
   @override
+  State<AppScaffold> createState() => _AppScaffoldState();
+}
+
+class _AppScaffoldState extends State<AppScaffold> {
+  bool _hasLoadedEntries = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Load entries once when user is authenticated
+    if (!_hasLoadedEntries) {
+      final authService = context.read<SupabaseAuthService>();
+      final entryProvider = context.read<EntryProvider>();
+      
+      if (authService.isAuthenticated && entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+        _hasLoadedEntries = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          entryProvider.loadEntries();
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final router = GoRouter.of(context);
     final canPop = router.canPop();
-    final isOnHomeTab = _isOnMainTab(currentPath);
+    final isOnHomeTab = _isOnMainTab(widget.currentPath);
 
     return PopScope(
       canPop: canPop, // if false (root), intercept back to avoid exit
@@ -32,9 +60,9 @@ class AppScaffold extends StatelessWidget {
         }
       },
       child: Scaffold(
-        body: child,
+        body: widget.child,
         bottomNavigationBar: NavigationBar(
-          selectedIndex: _calculateSelectedIndex(currentPath),
+          selectedIndex: _calculateSelectedIndex(widget.currentPath),
           onDestinationSelected: (index) => _onItemTapped(index, context),
           destinations: const [
             NavigationDestination(

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import '../config/app_router.dart';
-import '../services/auth_service.dart';
+import '../config/external_links.dart';
+import '../services/supabase_auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
         print(
             '🔐 LoginScreen: Attempting sign in with email: ${_emailController.text}');
 
-        final authService = context.read<AuthService>();
+        final authService = context.read<SupabaseAuthService>();
         await authService.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -96,134 +96,25 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _launchCreateAccountUrl() async {
-    const url = 'https://www.app.kviktime.se/create-account';
-    final uri = Uri.parse(url);
 
+  Future<void> _openSignupPage() async {
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final url = Uri.parse(ExternalLinks.signupUrl);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
-        // Dev-only fallback to in-app dialog if external URL can't open
-        if (kDebugMode && mounted) {
-          _showCreateAccountDialog();
-        } else if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not open sign up page. Please try again.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        throw Exception('Could not launch $url');
       }
     } catch (e) {
-      if (kDebugMode && mounted) {
-        _showCreateAccountDialog();
-      } else if (mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open sign up page. Please try again.'),
+          SnackBar(
+            content: Text('Failed to open signup page: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
-  }
-
-  void _showCreateAccountDialog() {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final nameController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Create Development Account'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'Enter your email',
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                hintText: 'Enter your password',
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Display Name (Optional)',
-                hintText: 'Enter your name',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final email = emailController.text.trim();
-              final password = passwordController.text;
-              final name = nameController.text.trim();
-
-              if (email.isEmpty || password.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please fill in all required fields'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
-
-              try {
-                final authService = context.read<AuthService>();
-                await authService.createAccountForDevelopment(
-                  email: email,
-                  password: password,
-                  displayName: name.isNotEmpty ? name : null,
-                );
-
-                if (mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'Account created successfully! You can now sign in with $email'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Account creation failed: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Create Account'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -523,11 +414,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Create Account Button (External)
+                  // Create Account Button (Simple Signup)
                   SizedBox(
                     height: 48,
                     child: OutlinedButton(
-                      onPressed: _launchCreateAccountUrl,
+                      onPressed: _openSignupPage,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
                         side: BorderSide(

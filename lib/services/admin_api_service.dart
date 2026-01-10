@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/admin_user.dart';
 import '../config/api_config.dart';
-import '../services/auth_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DashboardData {
   final double totalHoursLoggedThisWeek;
@@ -188,15 +188,8 @@ class AdminApiService {
   /// Gets the authorization headers for API requests
   Future<Map<String, String>> _getAuthHeaders() async {
     try {
-      final authService = AuthService();
-      final user = authService.currentUser;
-      
-      if (user == null) {
-        throw Exception('No authenticated user found');
-      }
-      
-      // Get the ID token from Firebase Auth
-      final token = await user.getIdToken();
+      final session = Supabase.instance.client.auth.currentSession;
+      final token = session?.accessToken;
       
       return {
         'Content-Type': 'application/json',

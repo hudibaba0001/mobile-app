@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../providers/local_entry_provider.dart';
-import '../services/dummy_auth_service.dart';
+import '../services/supabase_auth_service.dart';
 
 /// Simple entry form for both travel and work entries
 class SimpleEntryForm extends StatefulWidget {
@@ -353,7 +353,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
     setState(() => _isLoading = true);
 
     try {
-      final authService = context.read<DummyAuthService>();
+      final authService = context.read<SupabaseAuthService>();
       final entryProvider = context.read<LocalEntryProvider>();
 
       final hours = int.tryParse(_hoursController.text) ?? 0;
@@ -383,7 +383,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
       if (widget.entryType == EntryType.travel) {
         entry = Entry(
           id: widget.existingEntry?.id,
-          userId: authService.currentUserId,
+          userId: authService.currentUserId ?? '',
           type: EntryType.travel,
           from: _fromController.text.trim(),
           to: _toController.text.trim(),
@@ -406,7 +406,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
 
         entry = Entry(
           id: widget.existingEntry?.id,
-          userId: authService.currentUserId,
+          userId: authService.currentUserId ?? '',
           type: EntryType.work,
           shifts: [shift],
           date: entryDateTime,

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
@@ -24,8 +24,8 @@ class AnalyticsApi {
       if (endDate != null) 'endDate': endDate.toIso8601String(),
       if (userId != null && userId.isNotEmpty) 'userId': userId,
     });
-    final user = FirebaseAuth.instance.currentUser;
-    final token = await user?.getIdToken();
+    final user = Supabase.instance.client.auth.currentUser;
+    final token = user?.aud;
     final resp = await _client.get(
       u,
       headers: {

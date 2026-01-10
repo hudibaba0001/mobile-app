@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 import '../repositories/repository_provider.dart';
 
@@ -19,9 +19,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final user = context.read<AuthService>().currentUser;
+    final user = context.read<SupabaseAuthService>().currentUser;
     if (user != null) {
-      _nameController.text = user.displayName ?? '';
+      _nameController.text = user.userMetadata?['full_name'] ?? user.email ?? '';
     }
   }
 
@@ -34,7 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final user = context.read<AuthService>().currentUser;
+    final user = context.read<SupabaseAuthService>().currentUser;
 
     if (user == null) {
       return const Scaffold(body: Center(child: Text('Not signed in')));
@@ -115,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           Text(
-                            user.displayName ?? '—',
+                            user.userMetadata?['full_name'] ?? user.email ?? '—',
                             style: theme.textTheme.bodyLarge,
                           ),
                         ],
@@ -154,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _handleSignOut() async {
     try {
-      final authService = context.read<AuthService>();
+      final authService = context.read<SupabaseAuthService>();
       final repositoryProvider = context.read<RepositoryProvider>();
       await authService.signOutWithCleanup(() => repositoryProvider.dispose());
       if (mounted) {
@@ -171,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _showEditNameDialog(BuildContext context, User user) async {
     final theme = Theme.of(context);
-    final controller = TextEditingController(text: user.displayName);
+    final controller = TextEditingController(text: user.userMetadata?['full_name'] ?? user.email ?? '');
 
     return showDialog<void>(
       context: context,
@@ -194,7 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (newName.isEmpty) return;
 
               try {
-                final authService = context.read<AuthService>();
+                final authService = context.read<SupabaseAuthService>();
                 await authService.updateUserProfile(displayName: newName);
                 if (mounted) {
                   setState(() {}); // Refresh UI

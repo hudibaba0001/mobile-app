@@ -5,7 +5,7 @@ import '../models/travel_segment.dart';
 import '../models/entry.dart'; // Updated to use unified Entry model
 import '../providers/entry_provider.dart'; // Updated to use EntryProvider
 import '../utils/constants.dart';
-import '../services/auth_service.dart';
+import '../services/supabase_auth_service.dart';
 import '../utils/validators.dart';
 import 'travel_segment_card.dart';
 
@@ -200,8 +200,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
       final entries = <Entry>[];
       for (int i = 0; i < _segments.length; i++) {
         final segment = _segments[i];
-        final auth = context.read<AuthService>();
-        final uid = auth.currentUser?.uid;
+        final auth = context.read<SupabaseAuthService>();
+        final uid = auth.currentUser?.id;
         if (uid == null) {
           _showError('Please sign in to save journey segments');
           return;

@@ -326,7 +326,7 @@ class TravelService {
       date: entry.date,
       fromLocation: entry.from ?? '',
       toLocation: entry.to ?? '',
-      travelMinutes: entry.minutes,
+      travelMinutes: entry.minutes ?? 0,
       remarks: entry.notes ?? '',
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
@@ -360,7 +360,7 @@ class TravelService {
       date: entry.date,
       fromLocation: entry.from ?? '',
       toLocation: entry.to ?? '',
-      travelMinutes: entry.minutes,
+      travelMinutes: entry.minutes ?? 0,
       remarks: entry.notes ?? '',
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
@@ -430,14 +430,14 @@ class TravelService {
   }
 
   String _currentUserId() {
-    // This service isn’t a widget; prefer using a global/provider lookup pattern.
+    // This service isn't a widget; prefer using a global/provider lookup pattern.
     // For now, require that callers have set up a Provider scope and retrieve via
     // Navigation or a service locator. Here we fall back to throwing if missing.
     try {
       final ctx = AppRouter.navigatorKey.currentContext;
       if (ctx != null) {
         final auth = Provider.of<AuthService>(ctx, listen: false);
-        final uid = auth.currentUser?.uid;
+        final uid = auth.currentUserId;
         if (uid != null) return uid;
       }
     } catch (_) {}

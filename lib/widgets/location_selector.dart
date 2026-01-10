@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import '../models/location.dart';
 import '../providers/location_provider.dart';
+import '../services/map_service.dart';
 
 class LocationSelector extends StatefulWidget {
   final String? initialValue;
@@ -41,8 +43,11 @@ class _LocationSelectorState extends State<LocationSelector> {
   OverlayEntry? _overlayEntry;
   List<Location> _suggestions = [];
   List<String> _addressSuggestions = [];
+  List<String> _mapboxSuggestions = [];
   bool _isShowingOverlay = false;
   Location? _selectedLocation;
+  Timer? _debounceTimer;
+  bool _isLoadingMapboxSuggestions = false;
 
   @override
   void initState() {
@@ -54,6 +59,7 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _removeOverlay();
     _controller.dispose();
     _focusNode.dispose();
@@ -92,10 +98,17 @@ class _LocationSelectorState extends State<LocationSelector> {
     final query = _controller.text;
     widget.onLocationSelected(query);
 
+    // Debounce Mapbox API calls to avoid too many requests
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _loadMapboxSuggestions(query);
+    });
+
     _updateSuggestions(query);
     final trimmed = query.trim();
     final hasContent = _suggestions.isNotEmpty ||
         _addressSuggestions.isNotEmpty ||
+        _mapboxSuggestions.isNotEmpty ||
         (widget.showSaveOption &&
             trimmed.isNotEmpty &&
             !_isExistingLocation(trimmed));
@@ -108,6 +121,36 @@ class _LocationSelectorState extends State<LocationSelector> {
       _selectedLocation = null;
       widget.onLocationObjectSelected?.call(null);
       _removeOverlay();
+    }
+  }
+
+  Future<void> _loadMapboxSuggestions(String query) async {
+    if (query.trim().isEmpty || query.trim().length < 3) {
+      setState(() {
+        _mapboxSuggestions = [];
+        _isLoadingMapboxSuggestions = false;
+      });
+      _overlayEntry?.markNeedsBuild();
+      return;
+    }
+
+    setState(() {
+      _isLoadingMapboxSuggestions = true;
+    });
+
+    try {
+      final suggestions = await MapService.getAddressSuggestions(query, limit: 5);
+      setState(() {
+        _mapboxSuggestions = suggestions;
+        _isLoadingMapboxSuggestions = false;
+      });
+      _overlayEntry?.markNeedsBuild();
+    } catch (e) {
+      setState(() {
+        _mapboxSuggestions = [];
+        _isLoadingMapboxSuggestions = false;
+      });
+      _overlayEntry?.markNeedsBuild();
     }
   }
 
@@ -193,10 +236,13 @@ class _LocationSelectorState extends State<LocationSelector> {
   Widget _buildSuggestionsList() {
     final hasLocationSuggestions = _suggestions.isNotEmpty;
     final hasAddressSuggestions = _addressSuggestions.isNotEmpty;
+    final hasMapboxSuggestions = _mapboxSuggestions.isNotEmpty;
     final currentText = _controller.text.trim();
 
     if (!hasLocationSuggestions &&
         !hasAddressSuggestions &&
+        !hasMapboxSuggestions &&
+        !_isLoadingMapboxSuggestions &&
         currentText.isEmpty) {
       return _buildEmptyState();
     }
@@ -218,14 +264,59 @@ class _LocationSelectorState extends State<LocationSelector> {
             ),
           ),
           ..._suggestions.map((location) => _buildLocationTile(location)),
+          if (hasAddressSuggestions || hasMapboxSuggestions ||
+              (widget.showSaveOption && currentText.isNotEmpty))
+            const Divider(height: 1),
+        ],
+
+        // Mapbox address suggestions section
+        if (hasMapboxSuggestions) ...[
+          if (hasLocationSuggestions || hasAddressSuggestions)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Text(
+                'Address Suggestions',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ..._mapboxSuggestions.map((address) => _buildMapboxAddressTile(address)),
           if (hasAddressSuggestions ||
               (widget.showSaveOption && currentText.isNotEmpty))
             const Divider(height: 1),
         ],
 
-        // Address suggestions section
+        // Loading indicator for Mapbox suggestions
+        if (_isLoadingMapboxSuggestions)
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Searching addresses...',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+
+        // Address suggestions section (recent addresses)
         if (hasAddressSuggestions) ...[
-          if (hasLocationSuggestions)
+          if (hasLocationSuggestions || hasMapboxSuggestions)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Text(
@@ -247,6 +338,28 @@ class _LocationSelectorState extends State<LocationSelector> {
             !_isExistingLocation(currentText))
           _buildSaveLocationTile(currentText),
       ],
+    );
+  }
+
+  Widget _buildMapboxAddressTile(String address) {
+    return ListTile(
+      dense: true,
+      leading: CircleAvatar(
+        radius: 16,
+        backgroundColor: Colors.blue.withOpacity(0.1),
+        child: const Icon(
+          Icons.map,
+          size: 16,
+          color: Colors.blue,
+        ),
+      ),
+      title: Text(
+        address,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
+      onTap: () => _selectAddress(address),
     );
   }
 

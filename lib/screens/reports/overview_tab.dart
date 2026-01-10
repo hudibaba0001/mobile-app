@@ -147,15 +147,15 @@ class OverviewTab extends StatelessWidget {
                   child: _buildDistributionChart(theme, overviewData),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 24,
                   children: [
                     _buildLegendItem(
                       theme,
                       color: colorScheme.tertiary,
                       label: 'Travel',
                     ),
-                    const SizedBox(width: 24),
                     _buildLegendItem(
                       theme,
                       color: colorScheme.error,
@@ -172,14 +172,16 @@ class OverviewTab extends StatelessWidget {
         // Recent Activity
         Row(
           children: [
-            Text(
-              'Recent Activity',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface,
+            Expanded(
+              child: Text(
+                'Recent Activity',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Spacer(),
             TextButton(
               onPressed: () {
                 // TODO: Navigate to history screen
@@ -236,10 +238,13 @@ class OverviewTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                title,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

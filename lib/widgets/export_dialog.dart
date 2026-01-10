@@ -25,6 +25,8 @@ class _ExportDialogState extends State<ExportDialog> {
   bool _includeAllData = true;
   bool _isExporting = false;
   String _exportFormat = 'excel'; // 'excel' or 'csv'
+  String _entryTypeFilter = 'both'; // 'travel', 'work', or 'both'
+  late TextEditingController _fileNameController;
 
   @override
   void initState() {
@@ -32,13 +34,41 @@ class _ExportDialogState extends State<ExportDialog> {
     _startDate = widget.initialStartDate;
     _endDate = widget.initialEndDate;
 
-    // Set default filename based on date range
+    // Set default filename based on date range (without updating controller)
+    _calculateDefaultFileName();
+    // Initialize controller with the calculated filename
+    _fileNameController = TextEditingController(text: _customFileName);
+  }
+
+  @override
+  void dispose() {
+    _fileNameController.dispose();
+    super.dispose();
+  }
+
+  void _calculateDefaultFileName() {
+    String typePrefix = '';
+    if (_entryTypeFilter == 'travel') {
+      typePrefix = 'travel_';
+    } else if (_entryTypeFilter == 'work') {
+      typePrefix = 'work_';
+    }
+
     if (_startDate != null && _endDate != null) {
       final start = DateFormat('yyyyMMdd').format(_startDate!);
       final end = DateFormat('yyyyMMdd').format(_endDate!);
-      _customFileName = 'time_tracker_${start}_to_$end';
+      _customFileName = '${typePrefix}time_tracker_${start}_to_$end';
     } else {
-      _customFileName = 'time_tracker_export';
+      _customFileName = '${typePrefix}time_tracker_export';
+    }
+  }
+
+  void _updateDefaultFileName() {
+    _calculateDefaultFileName();
+    
+    // Update the controller text if it's different (controller is initialized after initState)
+    if (mounted && _fileNameController.text != _customFileName) {
+      _fileNameController.text = _customFileName;
     }
   }
 
@@ -75,6 +105,7 @@ class _ExportDialogState extends State<ExportDialog> {
                     _startDate = null;
                     _endDate = null;
                   }
+                  _updateDefaultFileName();
                 });
               },
               contentPadding: EdgeInsets.zero,
@@ -107,6 +138,56 @@ class _ExportDialogState extends State<ExportDialog> {
                 onTap: () => _selectDate(false),
               ),
             ],
+
+            const SizedBox(height: 24),
+
+            // Entry Type Filter Section
+            const Text(
+              'Entry Type',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Entry Type Selection
+            RadioListTile<String>(
+              title: const Text('Travel Entries Only'),
+              subtitle: const Text('Export only travel time entries'),
+              value: 'travel',
+              groupValue: _entryTypeFilter,
+              onChanged: (value) {
+                setState(() {
+                  _entryTypeFilter = value!;
+                  _updateDefaultFileName();
+                });
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('Work Entries Only'),
+              subtitle: const Text('Export only work shift entries'),
+              value: 'work',
+              groupValue: _entryTypeFilter,
+              onChanged: (value) {
+                setState(() {
+                  _entryTypeFilter = value!;
+                  _updateDefaultFileName();
+                });
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('Both'),
+              subtitle: const Text('Export all entries (travel + work)'),
+              value: 'both',
+              groupValue: _entryTypeFilter,
+              onChanged: (value) {
+                setState(() {
+                  _entryTypeFilter = value!;
+                  _updateDefaultFileName();
+                });
+              },
+            ),
 
             const SizedBox(height: 24),
 
@@ -162,7 +243,7 @@ class _ExportDialogState extends State<ExportDialog> {
                 hintText: 'Enter custom filename',
                 border: OutlineInputBorder(),
               ),
-              controller: TextEditingController(text: _customFileName),
+              controller: _fileNameController,
               onChanged: (value) {
                 _customFileName = value;
               },
@@ -220,19 +301,30 @@ class _ExportDialogState extends State<ExportDialog> {
   }
 
   List<Entry> _getFilteredEntries() {
-    if (_includeAllData) {
-      return widget.entries;
+    List<Entry> filtered = widget.entries;
+
+    // Filter by entry type
+    if (_entryTypeFilter == 'travel') {
+      filtered = filtered.where((entry) => entry.type == EntryType.travel).toList();
+    } else if (_entryTypeFilter == 'work') {
+      filtered = filtered.where((entry) => entry.type == EntryType.work).toList();
+    }
+    // If 'both', no type filtering needed
+
+    // Filter by date range
+    if (!_includeAllData) {
+      filtered = filtered.where((entry) {
+        if (_startDate != null && entry.date.isBefore(_startDate!)) {
+          return false;
+        }
+        if (_endDate != null && entry.date.isAfter(_endDate!)) {
+          return false;
+        }
+        return true;
+      }).toList();
     }
 
-    return widget.entries.where((entry) {
-      if (_startDate != null && entry.date.isBefore(_startDate!)) {
-        return false;
-      }
-      if (_endDate != null && entry.date.isAfter(_endDate!)) {
-        return false;
-      }
-      return true;
-    }).toList();
+    return filtered;
   }
 
   double _calculateTotalHours(List<Entry> entries) {
@@ -263,6 +355,7 @@ class _ExportDialogState extends State<ExportDialog> {
         } else {
           _endDate = picked;
         }
+        _updateDefaultFileName();
       });
     }
   }

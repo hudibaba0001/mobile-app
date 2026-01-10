@@ -69,7 +69,7 @@ class ImportService {
           date: entry.date,
           fromLocation: entry.from ?? '',
           toLocation: entry.to ?? '',
-          travelMinutes: entry.minutes,
+          travelMinutes: entry.minutes ?? 0,
           remarks: entry.notes ?? '',
           createdAt: entry.createdAt,
           updatedAt: entry.updatedAt,
@@ -106,7 +106,7 @@ class ImportService {
       final date = _parseDate(fields[0]);
       final departure = fields[1].trim();
       final arrival = fields[2].trim();
-      final minutes = int.parse(fields[3].trim());
+      final minutes = int.tryParse(fields[3].trim()) ?? 0;
       final info = fields.length > 4 && fields[4].trim().isNotEmpty
           ? fields[4].trim()
           : null;
@@ -230,7 +230,7 @@ class ImportService {
           date: entry.date,
           fromLocation: entry.from ?? '',
           toLocation: entry.to ?? '',
-          travelMinutes: entry.minutes,
+          travelMinutes: entry.minutes ?? 0,
           remarks: entry.notes ?? '',
           createdAt: entry.createdAt,
           updatedAt: entry.updatedAt,
@@ -255,7 +255,7 @@ class ImportService {
       date: DateTime.parse(data['date'] as String),
       from: data['departure'] as String? ?? data['from'] as String?,
       to: data['arrival'] as String? ?? data['to'] as String?,
-      travelMinutes: data['minutes'] as int? ?? data['travelMinutes'] as int?,
+      travelMinutes: (data['minutes'] as int?) ?? (data['travelMinutes'] as int?) ?? 0,
       notes: data['info'] as String? ?? data['notes'] as String?,
       createdAt: data['createdAt'] != null
           ? DateTime.parse(data['createdAt'] as String)

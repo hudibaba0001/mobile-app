@@ -54,6 +54,22 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
+  // Clear all entries
+  Future<void> clearAllEntries() async {
+    _setLoading(true);
+    try {
+      _entries = [];
+      _filteredEntries = [];
+      _currentSummary = null;
+      _clearError();
+      notifyListeners();
+    } catch (error) {
+      _handleError(error.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Refresh entries
   Future<void> refreshEntries() async {
     await _loadEntries();

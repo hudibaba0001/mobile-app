@@ -12,7 +12,7 @@ import '../models/autocomplete_suggestion.dart';
 import '../repositories/repository_provider.dart';
 import '../providers/entry_provider.dart';
 import '../providers/location_provider.dart';
-import '../services/auth_service.dart';
+import '../services/supabase_auth_service.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -40,8 +40,14 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Debounce initial load to next frame
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadRecentEntries());
+    // Load entries on startup if not already loaded, then load recent entries
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final entryProvider = context.read<EntryProvider>();
+      if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+        entryProvider.loadEntries();
+      }
+      _loadRecentEntries();
+    });
   }
 
   @override
@@ -85,8 +91,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     try {
       final repositoryProvider =
           Provider.of<RepositoryProvider>(context, listen: false);
-      final authService = context.read<AuthService>();
-      final userId = authService.currentUser?.uid;
+      final authService = context.read<SupabaseAuthService>();
+      final userId = authService.currentUser?.id;
 
       if (userId == null) {
         setState(() {
@@ -278,7 +284,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Today's Total Card
-            _buildTotalCard(theme),
+            Consumer<EntryProvider>(
+              builder: (context, entryProvider, _) => _buildTotalCard(theme, entryProvider),
+            ),
             const SizedBox(height: 24),
 
             // Action Cards
@@ -286,7 +294,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             const SizedBox(height: 24),
 
             // Stats Section
-            _buildStatsSection(theme),
+            Consumer<EntryProvider>(
+              builder: (context, entryProvider, _) => _buildStatsSection(theme, entryProvider),
+            ),
             const SizedBox(height: 24),
 
             // Recent Entries
@@ -320,7 +330,46 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
-  Widget _buildTotalCard(ThemeData theme) {
+  Widget _buildTotalCard(ThemeData theme, EntryProvider entryProvider) {
+    // Calculate today's totals
+    final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day);
+    final todayEnd = todayStart.add(const Duration(days: 1));
+
+    final todayEntries = entryProvider.entries.where((entry) {
+      return entry.date.isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
+          entry.date.isBefore(todayEnd);
+    }).toList();
+
+    // Calculate totals
+    Duration totalDuration = Duration.zero;
+    Duration travelDuration = Duration.zero;
+    Duration workDuration = Duration.zero;
+
+    for (final entry in todayEntries) {
+      totalDuration += entry.totalDuration;
+      if (entry.type == EntryType.travel) {
+        travelDuration += entry.totalDuration;
+      } else if (entry.type == EntryType.work) {
+        workDuration += entry.totalDuration;
+      }
+    }
+
+    // Format durations
+    String formatDuration(Duration duration) {
+      if (duration.inMinutes == 0) return '0m';
+      final hours = duration.inHours;
+      final minutes = duration.inMinutes % 60;
+      if (hours > 0) {
+        return minutes > 0 ? '${hours}h ${minutes}m' : '${hours}h';
+      }
+      return '${minutes}m';
+    }
+
+    final totalText = formatDuration(totalDuration);
+    final travelText = formatDuration(travelDuration);
+    final workText = formatDuration(workDuration);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -373,7 +422,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '7h 45m',
+                      totalText,
                       style: theme.textTheme.headlineLarge?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -404,7 +453,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '1h 30m',
+                        travelText,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -434,7 +483,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '6h 15m',
+                        workText,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -574,7 +623,49 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
-  Widget _buildStatsSection(ThemeData theme) {
+  Widget _buildStatsSection(ThemeData theme, EntryProvider entryProvider) {
+    // Calculate this week's totals
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
+    final weekEndDate = weekStartDate.add(const Duration(days: 7));
+
+    final weekEntries = entryProvider.entries.where((entry) {
+      return entry.date.isAfter(weekStartDate.subtract(const Duration(seconds: 1))) &&
+          entry.date.isBefore(weekEndDate);
+    }).toList();
+
+    // Calculate totals
+    Duration totalDuration = Duration.zero;
+    Duration travelDuration = Duration.zero;
+    Duration workDuration = Duration.zero;
+
+    for (final entry in weekEntries) {
+      totalDuration += entry.totalDuration;
+      if (entry.type == EntryType.travel) {
+        travelDuration += entry.totalDuration;
+      } else if (entry.type == EntryType.work) {
+        workDuration += entry.totalDuration;
+      }
+    }
+
+    // Format hours
+    String formatHours(Duration duration) {
+      final hours = duration.inMinutes / 60.0;
+      return hours.toStringAsFixed(1);
+    }
+
+    final totalHours = formatHours(totalDuration);
+    final travelHours = formatHours(travelDuration);
+    final workHours = formatHours(workDuration);
+
+    // Calculate contract percentage (assuming 40 hours/week standard)
+    final contractHours = 40.0;
+    final contractPercentage = workDuration.inMinutes > 0
+        ? ((workDuration.inMinutes / 60.0) / contractHours * 100).toStringAsFixed(0)
+        : '0';
+    final contractText = '$contractPercentage%';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -593,10 +684,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           mainAxisSpacing: 12,
           childAspectRatio: 1.5,
           children: [
-            _buildStatCard(theme, '38.5h', 'Total Hours'),
-            _buildStatCard(theme, '5.2h', 'Travel Time'),
-            _buildStatCard(theme, '33.3h', 'Work Hours'),
-            _buildStatCard(theme, '96%', 'Contract %'),
+            _buildStatCard(theme, '${totalHours}h', 'Total Hours'),
+            _buildStatCard(theme, '${travelHours}h', 'Travel Time'),
+            _buildStatCard(theme, '${workHours}h', 'Work Hours'),
+            _buildStatCard(theme, contractText, 'Contract %'),
           ],
         ),
       ],
@@ -1810,8 +1901,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                 print(
                                     'Trip data: from=${trip.fromController.text}, to=${trip.toController.text}, minutes=${trip.totalMinutes}');
 
-                                final authService = context.read<AuthService>();
-                                final userId = authService.currentUser?.uid;
+                                final authService = context.read<SupabaseAuthService>();
+                                final userId = authService.currentUser?.id;
                                 if (userId == null) return;
 
                                 final travelEntry = TravelEntry(
@@ -2827,8 +2918,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                 print('Total work minutes: $totalWorkMinutes');
 
                                 // Create work entry
-                                final authService = context.read<AuthService>();
-                                final userId = authService.currentUser?.uid;
+                                final authService = context.read<SupabaseAuthService>();
+                                final userId = authService.currentUser?.id;
                                 if (userId == null) return;
 
                                 final workEntry = WorkEntry(

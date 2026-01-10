@@ -4,7 +4,14 @@ import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/entry.dart';
+
+// Web-specific imports (conditional)
+import 'dart:convert' show utf8;
+
+// Conditional import for web download functionality
+import 'web_download_stub.dart' if (dart.library.html) 'web_download_web.dart' as web_download;
 
 class ExportService {
   static const String _fileNamePrefix = 'time_tracker_export';
@@ -12,7 +19,7 @@ class ExportService {
   static const String _excelFileExtension = '.xlsx';
 
   /// Export entries to CSV file
-  /// Returns the file path of the generated CSV
+  /// Returns the file path of the generated CSV (or empty string on web)
   static Future<String> exportEntriesToCSV({
     required List<Entry> entries,
     required String fileName,
@@ -20,27 +27,39 @@ class ExportService {
     DateTime? endDate,
   }) async {
     try {
-      // Get the documents directory
-      final directory = await getApplicationDocumentsDirectory();
+      if (entries.isEmpty) {
+        throw Exception('No entries to export');
+      }
+
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final fullFileName = '${fileName}_$timestamp$_csvFileExtension';
-      final filePath = '${directory.path}/$fullFileName';
 
       // Create CSV data
       final csvData = convertEntriesToCSV(entries, startDate, endDate);
+      
+      if (csvData.isEmpty) {
+        throw Exception('Generated CSV data is empty');
+      }
 
-      // Write to file
-      final file = File(filePath);
-      await file.writeAsString(csvData);
-
-      return filePath;
+      if (kIsWeb) {
+        // Web: Trigger browser download
+        _downloadFileWeb(csvData, fullFileName, 'text/csv;charset=utf-8');
+        return ''; // Web doesn't return a file path
+      } else {
+        // Mobile/Desktop: Save to file system
+        final directory = await getApplicationDocumentsDirectory();
+        final filePath = '${directory.path}/$fullFileName';
+        final file = File(filePath);
+        await file.writeAsString(csvData);
+        return filePath;
+      }
     } catch (e) {
       throw Exception('Failed to export data: $e');
     }
   }
 
   /// Export entries to Excel file
-  /// Returns the file path of the generated Excel file
+  /// Returns the file path of the generated Excel file (or empty string on web)
   static Future<String> exportEntriesToExcel({
     required List<Entry> entries,
     required String fileName,
@@ -48,20 +67,32 @@ class ExportService {
     DateTime? endDate,
   }) async {
     try {
-      // Get the documents directory
-      final directory = await getApplicationDocumentsDirectory();
+      if (entries.isEmpty) {
+        throw Exception('No entries to export');
+      }
+
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final fullFileName = '${fileName}_$timestamp$_excelFileExtension';
-      final filePath = '${directory.path}/$fullFileName';
 
       // Create Excel data
       final excelData = await generateExcelReport(entries, startDate, endDate);
 
-      // Write to file
-      final file = File(filePath);
-      await file.writeAsBytes(excelData);
+      if (excelData.isEmpty) {
+        throw Exception('Generated Excel data is empty');
+      }
 
-      return filePath;
+      if (kIsWeb) {
+        // Web: Trigger browser download
+        _downloadFileWeb(excelData, fullFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        return ''; // Web doesn't return a file path
+      } else {
+        // Mobile/Desktop: Save to file system
+        final directory = await getApplicationDocumentsDirectory();
+        final filePath = '${directory.path}/$fullFileName';
+        final file = File(filePath);
+        await file.writeAsBytes(excelData);
+        return filePath;
+      }
     } catch (e) {
       throw Exception('Failed to export data: $e');
     }
@@ -114,39 +145,39 @@ class ExportService {
       final row = rowIndex + 1; // +1 because row 0 is headers
 
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
-        ..value = entry.id;
+        .value = entry.id;
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row))
-        ..value = entry.type.name;
+        .value = entry.type.name;
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row))
-        ..value = DateFormat('yyyy-MM-dd').format(entry.date);
+        .value = DateFormat('yyyy-MM-dd').format(entry.date);
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row))
-        ..value = entry.from ?? '';
+        .value = entry.from ?? '';
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row))
-        ..value = entry.to ?? '';
+        .value = entry.to ?? '';
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row))
-        ..value = entry.totalDuration.inHours;
+        .value = entry.totalDuration.inHours;
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: row))
-        ..value = entry.totalDuration.inMinutes;
+        .value = entry.totalDuration.inMinutes;
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: row))
-        ..value = entry.notes ?? '';
+        .value = entry.notes ?? '';
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: row))
-        ..value = DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt);
+        .value = DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt);
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row))
-        ..value = entry.updatedAt != null
+        .value = entry.updatedAt != null
             ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
             : '';
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: row))
-        ..value = entry.journeyId ?? '';
+        .value = entry.journeyId ?? '';
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: row))
-        ..value = entry.segmentOrder?.toString() ?? '';
+        .value = entry.segmentOrder?.toString() ?? '';
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: row))
-        ..value = entry.totalSegments?.toString() ?? '';
+        .value = entry.totalSegments?.toString() ?? '';
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: row))
-        ..value = entry.workHours;
+        .value = entry.workHours;
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: row))
-        ..value = entry.shifts?.length.toString() ?? '0';
+        .value = entry.shifts?.length.toString() ?? '0';
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 15, rowIndex: row))
-        ..value = _formatShiftsForExcel(entry.shifts);
+        .value = _formatShiftsForExcel(entry.shifts);
     }
 
     // Add summary section
@@ -161,15 +192,15 @@ class ExportService {
 
     final summaryDataRow = summaryRow + 1;
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: summaryDataRow))
-      ..value = 'Total Entries: ${entries.length}';
+      .value = 'Total Entries: ${entries.length}';
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: summaryDataRow))
-      ..value = 'Travel Entries: ${entries.where((e) => e.type == EntryType.travel).length}';
+      .value = 'Travel Entries: ${entries.where((e) => e.type == EntryType.travel).length}';
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: summaryDataRow))
-      ..value = 'Work Entries: ${entries.where((e) => e.type == EntryType.work).length}';
+      .value = 'Work Entries: ${entries.where((e) => e.type == EntryType.work).length}';
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: summaryDataRow))
-      ..value = 'Total Hours: ${_calculateTotalHours(entries).toStringAsFixed(2)}';
+      .value = 'Total Hours: ${_calculateTotalHours(entries).toStringAsFixed(2)}';
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: summaryDataRow))
-      ..value = 'Date Range: ${_formatDateRange(startDate, endDate)}';
+      .value = 'Date Range: ${_formatDateRange(startDate, endDate)}';
 
     // Save the Excel file
     return Uint8List.fromList(excel.save()!);
@@ -351,8 +382,13 @@ class ExportService {
     return _fileNamePrefix;
   }
 
-  /// Clean up temporary export files
+  /// Clean up temporary export files (only for mobile/desktop)
   static Future<void> cleanupExportFiles() async {
+    if (kIsWeb) {
+      // Web doesn't need cleanup - files are downloaded directly
+      return;
+    }
+
     try {
       final directory = await getApplicationDocumentsDirectory();
       final files = directory.listSync();
@@ -368,5 +404,23 @@ class ExportService {
       // Silently handle cleanup errors
       print('Cleanup error: $e');
     }
+  }
+
+  /// Helper method to trigger browser download on web
+  static void _downloadFileWeb(dynamic data, String fileName, String mimeType) {
+    if (!kIsWeb) return;
+
+    // Convert data to bytes if it's a String (CSV), otherwise use as-is (Excel Uint8List)
+    final bytes = data is String 
+        ? Uint8List.fromList(utf8.encode(data)) 
+        : data as Uint8List;
+
+    if (bytes.isEmpty) {
+      throw Exception('Export data is empty - cannot download empty file');
+    }
+
+    // Use conditional import - web_download will be the web implementation on web,
+    // or stub on other platforms
+    web_download.downloadFileWeb(bytes, fileName, mimeType);
   }
 }

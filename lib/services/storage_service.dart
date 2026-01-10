@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Service class for handling Firebase Storage operations
-/// Provides methods for uploading and managing files in Firebase Storage
+/// Service class for handling Supabase Storage operations
+/// Provides methods for uploading and managing files in Supabase Storage
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   /// Upload a document or attachment for an entry
   ///
@@ -14,7 +14,7 @@ class StorageService {
   /// [fileName] - Optional custom filename
   ///
   /// Returns the download URL of the uploaded file
-  /// Throws [FirebaseException] on storage errors
+  /// Throws [StorageException] on storage errors
   Future<String> uploadEntryAttachment(
     String userId,
     String entryId,
@@ -27,85 +27,173 @@ class StorageService {
           fileName ??
           '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
 
-      // Create a reference to the storage location
-      final ref = _storage.ref('entries/$userId/$entryId/$name');
+      // Read file bytes
+      final fileBytes = await file.readAsBytes();
 
-      // Set metadata for the file
-      final metadata = SettableMetadata(
-        customMetadata: {
-          'uploadedBy': userId,
-          'entryId': entryId,
-          'uploadedAt': DateTime.now().toIso8601String(),
-        },
-      );
+      // Upload to Supabase Storage
+      final path = 'entries/$userId/$entryId/$name';
+      await _supabase.storage.from('attachments').uploadBinary(
+            path,
+            fileBytes,
+            fileOptions: FileOptions(
+              upsert: true,
+              metadata: {
+                'uploadedBy': userId,
+                'entryId': entryId,
+                'uploadedAt': DateTime.now().toIso8601String(),
+              },
+            ),
+          );
 
-      // Upload the file
-      final uploadTask = ref.putFile(file, metadata);
-
-      // Wait for upload to complete
-      final snapshot = await uploadTask;
-
-      // Get and return the download URL
-      return await snapshot.ref.getDownloadURL();
-    } on FirebaseException catch (e) {
-      throw Exception('Failed to upload attachment: ${e.message}');
+      // Get and return the public URL
+      return _supabase.storage.from('attachments').getPublicUrl(path);
+    } on StorageException catch (e) {
+      throw StorageException('Failed to upload attachment: ${e.message}');
     } catch (e) {
-      throw Exception('Unexpected error during upload: $e');
+      throw StorageException('Unexpected error uploading attachment: $e');
     }
   }
 
-  /// Delete a file from Firebase Storage
+  /// Upload a profile picture for a user
   ///
-  /// [downloadUrl] - The download URL of the file to delete
+  /// [userId] - The unique identifier for the user
+  /// [file] - The image file to upload
+  /// [fileName] - Optional custom filename
   ///
-  /// Throws [FirebaseException] on storage errors
-  Future<void> deleteFile(String downloadUrl) async {
+  /// Returns the download URL of the uploaded image
+  /// Throws [StorageException] on storage errors
+  Future<String> uploadProfilePicture(
+    String userId,
+    File file, {
+    String? fileName,
+  }) async {
     try {
-      // Get reference from download URL
-      final ref = _storage.refFromURL(downloadUrl);
+      // Generate filename if not provided
+      final name =
+          fileName ?? 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-      // Delete the file
-      await ref.delete();
-    } on FirebaseException catch (e) {
-      throw Exception('Failed to delete file: ${e.message}');
+      // Read file bytes
+      final fileBytes = await file.readAsBytes();
+
+      // Upload to Supabase Storage
+      final path = 'profiles/$userId/$name';
+      await _supabase.storage.from('avatars').uploadBinary(
+            path,
+            fileBytes,
+            fileOptions: FileOptions(
+              upsert: true,
+              metadata: {
+                'uploadedBy': userId,
+                'uploadedAt': DateTime.now().toIso8601String(),
+              },
+            ),
+          );
+
+      // Get and return the public URL
+      return _supabase.storage.from('avatars').getPublicUrl(path);
+    } on StorageException catch (e) {
+      throw StorageException('Failed to upload profile picture: ${e.message}');
     } catch (e) {
-      throw Exception('Unexpected error during deletion: $e');
+      throw StorageException('Unexpected error uploading profile picture: $e');
     }
   }
 
-  /// Get metadata for a file
+  /// Delete a file from storage
   ///
-  /// [downloadUrl] - The download URL of the file
+  /// [path] - The path of the file in storage
+  /// [bucket] - The bucket name (default: 'attachments')
   ///
-  /// Returns the file metadata
-  /// Throws [FirebaseException] on storage errors
-  Future<FullMetadata> getFileMetadata(String downloadUrl) async {
+  /// Throws [StorageException] on storage errors
+  Future<void> deleteFile(String path, {String bucket = 'attachments'}) async {
     try {
-      // Get reference from download URL
-      final ref = _storage.refFromURL(downloadUrl);
-
-      // Get and return metadata
-      return await ref.getMetadata();
-    } on FirebaseException catch (e) {
-      throw Exception('Failed to get file metadata: ${e.message}');
+      await _supabase.storage.from(bucket).remove([path]);
+    } on StorageException catch (e) {
+      throw StorageException('Failed to delete file: ${e.message}');
     } catch (e) {
-      throw Exception('Unexpected error getting metadata: $e');
+      throw StorageException('Unexpected error deleting file: $e');
     }
   }
 
-  /// Get download URL for a file reference
+  /// Get the public URL for a file
   ///
-  /// [ref] - The storage reference
+  /// [path] - The path of the file in storage
+  /// [bucket] - The bucket name (default: 'attachments')
   ///
-  /// Returns the download URL
-  /// Throws [FirebaseException] on storage errors
-  Future<String> getDownloadUrl(Reference ref) async {
+  /// Returns the public URL of the file
+  String getPublicUrl(String path, {String bucket = 'attachments'}) {
+    return _supabase.storage.from(bucket).getPublicUrl(path);
+  }
+
+  /// List all files for a user in a specific bucket
+  ///
+  /// [userId] - The unique identifier for the user
+  /// [bucket] - The bucket name (default: 'attachments')
+  ///
+  /// Returns a list of file information
+  /// Throws [StorageException] on storage errors
+  Future<List<FileMetadata>> listUserFiles(
+    String userId, {
+    String bucket = 'attachments',
+  }) async {
     try {
-      return await ref.getDownloadURL();
-    } on FirebaseException catch (e) {
-      throw Exception('Failed to get download URL: ${e.message}');
+      final response = await _supabase.storage.from(bucket).list(
+            path: userId,
+          );
+
+      return response.map((item) {
+        // Supabase file metadata uses camelCase
+        final metadata = item.metadata;
+        final size = metadata != null && metadata.containsKey('size')
+            ? (metadata['size'] as num?)?.toInt() ?? 0
+            : 0;
+        
+        // Parse dates safely from String?
+        final createdAt = item.createdAt != null 
+            ? DateTime.tryParse(item.createdAt!) ?? DateTime.now() 
+            : DateTime.now();
+        final updatedAt = item.updatedAt != null 
+            ? DateTime.tryParse(item.updatedAt!) ?? DateTime.now() 
+            : DateTime.now();
+        
+        return FileMetadata(
+          name: item.name,
+          size: size,
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+        );
+      }).toList();
+    } on StorageException catch (e) {
+      throw StorageException('Failed to list files: ${e.message}');
     } catch (e) {
-      throw Exception('Unexpected error getting URL: $e');
+      throw StorageException('Unexpected error listing files: $e');
     }
   }
+}
+
+/// Custom exception for storage operations
+class StorageException implements Exception {
+  final String message;
+  
+  StorageException(this.message);
+  
+  @override
+  String toString() => 'StorageException: $message';
+}
+
+/// Metadata for a file in storage
+class FileMetadata {
+  final String name;
+  final int size;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  
+  FileMetadata({
+    required this.name,
+    required this.size,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  
+  @override
+  String toString() => 'FileMetadata(name: $name, size: $size, createdAt: $createdAt)';
 }
