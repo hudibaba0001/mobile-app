@@ -88,7 +88,7 @@ export default function SignupPage() {
           </div>
 
           <div className="price-badge">
-            <strong>59 kr/mån</strong> inkl. moms — 7 dagar gratis
+            <strong>89 kr/mån</strong> inkl. moms — 7 dagar gratis
           </div>
 
           <div className="checkbox-group">

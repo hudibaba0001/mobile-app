@@ -91,23 +91,29 @@ export async function POST(request: NextRequest) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const priceId = process.env.STRIPE_PRICE_ID_MONTHLY
 
-    if (!priceId) {
-      return NextResponse.json(
-        { error: 'Stripe price not configured' },
-        { status: 500 }
-      )
-    }
+    // 89 SEK/month (8900 öre) - includes 25% VAT
+    const lineItems = priceId
+      ? [{ price: priceId, quantity: 1 }]
+      : [
+          {
+            price_data: {
+              currency: 'sek',
+              product_data: {
+                name: 'Travel Time App - Monthly',
+                description: 'Full access to the Travel Time App',
+              },
+              unit_amount: 8900, // 89 SEK in öre
+              recurring: { interval: 'month' as const },
+            },
+            quantity: 1,
+          },
+        ]
 
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customer.id,
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       subscription_data: {
         trial_period_days: 7,
         metadata: {
