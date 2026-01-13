@@ -354,6 +354,9 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                       isFullDay = value ?? true;
                       if (isFullDay) {
                         selectedMinutes = 0;
+                      } else {
+                        // Default to 8 hours (480 min) when switching to partial
+                        selectedMinutes = 480;
                       }
                     });
                   },
@@ -362,7 +365,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                   const SizedBox(height: 8),
                   Text('Hours: ${(selectedMinutes / 60.0).toStringAsFixed(1)}'),
                   Slider(
-                    value: selectedMinutes.toDouble(),
+                    value: selectedMinutes.toDouble().clamp(60, 480),
                     min: 60,
                     max: 480,
                     divisions: 7,

@@ -362,9 +362,15 @@ class EntryProvider extends ChangeNotifier {
 
       // Find and delete demo entries (those with IDs starting with 'sample_')
       final demoEntries = _entries.where((entry) => entry.id.startsWith('sample_')).toList();
+      debugPrint('EntryProvider: Found ${demoEntries.length} demo entries to delete');
 
       for (final entry in demoEntries) {
         try {
+          // Delete from Supabase first
+          await _supabaseService.deleteEntry(entry.id, userId);
+          debugPrint('EntryProvider: Deleted ${entry.id} from Supabase');
+          
+          // Then delete from local cache
           if (entry.type == EntryType.travel) {
             final travelRepo = _repositoryProvider.travelRepository;
             if (travelRepo != null) {
@@ -410,12 +416,18 @@ class EntryProvider extends ChangeNotifier {
         throw Exception('User not authenticated');
       }
 
-      // Get all current entries to delete them from repositories
+      // Get all current entries to delete them
       final allEntries = List<Entry>.from(_entries);
+      debugPrint('EntryProvider: Deleting ${allEntries.length} entries from Supabase and local cache');
 
-      // Delete entries from repositories
+      // Delete entries from Supabase and local repositories
       for (final entry in allEntries) {
         try {
+          // Delete from Supabase first
+          await _supabaseService.deleteEntry(entry.id, userId);
+          debugPrint('EntryProvider: Deleted ${entry.id} from Supabase');
+          
+          // Then delete from local cache
           if (entry.type == EntryType.travel) {
             final travelRepo = _repositoryProvider.travelRepository;
             if (travelRepo != null) {
@@ -433,7 +445,7 @@ class EntryProvider extends ChangeNotifier {
         }
       }
 
-      // Clear local entries after successful repository deletion
+      // Clear local entries after successful deletion
       _entries = [];
       _filteredEntries = [];
       _error = null;

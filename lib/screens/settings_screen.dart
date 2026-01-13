@@ -426,12 +426,14 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _syncToSupabase(BuildContext context) async {
     final entryProvider = context.read<EntryProvider>();
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     
     // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
+      builder: (dialogContext) => const AlertDialog(
         content: Row(
           children: [
             CircularProgressIndicator(),
@@ -445,29 +447,33 @@ class SettingsScreen extends StatelessWidget {
     try {
       await entryProvider.syncLocalEntriesToSupabase();
       
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Close loading dialog
-        
-        ScaffoldMessenger.of(context).showSnackBar(
+      // Close dialog safely after frame completes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigator.canPop()) {
+          navigator.pop();
+        }
+        scaffoldMessenger.showSnackBar(
           const SnackBar(
             content: Text('✅ Sync completed successfully!'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 3),
           ),
         );
-      }
+      });
     } catch (e) {
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Close loading dialog
-        
-        ScaffoldMessenger.of(context).showSnackBar(
+      // Close dialog safely after frame completes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigator.canPop()) {
+          navigator.pop();
+        }
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('❌ Sync failed: $e'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 5),
           ),
         );
-      }
+      });
     }
   }
 }

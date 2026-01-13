@@ -40,13 +40,18 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Load entries on startup if not already loaded, then load recent entries
+    // Always sync with Supabase on startup, then load recent entries
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final entryProvider = context.read<EntryProvider>();
-      if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
-        entryProvider.loadEntries();
+      if (!entryProvider.isLoading) {
+        // Always load/sync with Supabase on login
+        entryProvider.loadEntries().then((_) {
+          // Reload recent entries after Supabase sync completes
+          _loadRecentEntries();
+        });
+      } else {
+        _loadRecentEntries();
       }
-      _loadRecentEntries();
     });
   }
 
