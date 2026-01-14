@@ -284,7 +284,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -292,17 +292,17 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             Consumer<EntryProvider>(
               builder: (context, entryProvider, _) => _buildTotalCard(theme, entryProvider),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Action Cards
             _buildActionCards(theme),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Stats Section
             Consumer<EntryProvider>(
               builder: (context, entryProvider, _) => _buildStatsSection(theme, entryProvider),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Recent Entries
             _buildRecentEntries(theme),
@@ -377,130 +377,78 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
             theme.colorScheme.primary,
-            theme.colorScheme.primary.withOpacity(0.8),
+            theme.colorScheme.primary.withOpacity(0.85),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: theme.colorScheme.primary.withOpacity(0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+          // Today's total
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Today',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: Colors.white.withOpacity(0.8),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                child: Icon(
-                  Icons.timer_outlined,
-                  color: Colors.white,
-                  size: 24,
+                const SizedBox(height: 2),
+                Text(
+                  totalText,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Today\'s Total',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      totalText,
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 32,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
+          // Breakdown
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.directions_car_rounded,
-                        color: Colors.white.withOpacity(0.8),
-                        size: 20,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        travelText,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        'Travel',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withOpacity(0.7),
-                        ),
-                      ),
-                    ],
+                Icon(Icons.directions_car_rounded, color: Colors.white.withOpacity(0.9), size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  travelText,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: Colors.white.withOpacity(0.2),
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.work_rounded,
-                        color: Colors.white.withOpacity(0.8),
-                        size: 20,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        workText,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        'Work',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withOpacity(0.7),
-                        ),
-                      ),
-                    ],
+                const SizedBox(width: 12),
+                Icon(Icons.work_rounded, color: Colors.white.withOpacity(0.9), size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  workText,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -519,18 +467,16 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             theme,
             icon: Icons.directions_car_rounded,
             title: 'Log Travel',
-            subtitle: 'Track your commute',
             color: theme.colorScheme.primary,
             onTap: _startTravelEntry,
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         Expanded(
           child: _buildActionCard(
             theme,
             icon: Icons.work_rounded,
             title: 'Log Work',
-            subtitle: 'Track work hours',
             color: theme.colorScheme.secondary,
             onTap: _startWorkEntry,
           ),
@@ -543,85 +489,45 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     ThemeData theme, {
     required IconData icon,
     required String title,
-    required String subtitle,
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color.withOpacity(0.1),
-            color.withOpacity(0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            height: 140,
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 24,
+    return Material(
+      color: color.withOpacity(0.08),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 72,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+              ),
+            ],
           ),
         ),
       ),
@@ -641,12 +547,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     }).toList();
 
     // Calculate totals
-    Duration totalDuration = Duration.zero;
     Duration travelDuration = Duration.zero;
     Duration workDuration = Duration.zero;
 
     for (final entry in weekEntries) {
-      totalDuration += entry.totalDuration;
       if (entry.type == EntryType.travel) {
         travelDuration += entry.totalDuration;
       } else if (entry.type == EntryType.work) {
@@ -656,79 +560,105 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
     // Format hours
     String formatHours(Duration duration) {
-      final hours = duration.inMinutes / 60.0;
-      return hours.toStringAsFixed(1);
+      final hours = duration.inHours;
+      final mins = duration.inMinutes % 60;
+      if (hours > 0 && mins > 0) return '${hours}h ${mins}m';
+      if (hours > 0) return '${hours}h';
+      return '${mins}m';
     }
 
-    final totalHours = formatHours(totalDuration);
-    final travelHours = formatHours(travelDuration);
-    final workHours = formatHours(workDuration);
-
-    // Calculate contract percentage (assuming 40 hours/week standard)
-    final contractHours = 40.0;
-    final contractPercentage = workDuration.inMinutes > 0
-        ? ((workDuration.inMinutes / 60.0) / contractHours * 100).toStringAsFixed(0)
-        : '0';
-    final contractText = '$contractPercentage%';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'This Week',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_today_rounded,
+                size: 18,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'This Week',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.5,
-          children: [
-            _buildStatCard(theme, '${totalHours}h', 'Total Hours'),
-            _buildStatCard(theme, '${travelHours}h', 'Travel Time'),
-            _buildStatCard(theme, '${workHours}h', 'Work Hours'),
-            _buildStatCard(theme, contractText, 'Contract %'),
-          ],
-        ),
-      ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildCompactStat(
+                  theme,
+                  icon: Icons.directions_car_rounded,
+                  value: formatHours(travelDuration),
+                  label: 'Travel',
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 40,
+                color: theme.colorScheme.outline.withOpacity(0.2),
+              ),
+              Expanded(
+                child: _buildCompactStat(
+                  theme,
+                  icon: Icons.work_rounded,
+                  value: formatHours(workDuration),
+                  label: 'Work',
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildStatCard(ThemeData theme, String value, String label) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              value,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: theme.colorScheme.primary,
+  Widget _buildCompactStat(
+    ThemeData theme, {
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                letterSpacing: 0.5,
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -739,74 +669,55 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       children: [
         Row(
           children: [
-            Icon(
-              Icons.history_rounded,
-              color: theme.colorScheme.primary,
-              size: 24,
-            ),
-            const SizedBox(width: 12),
             Text(
               'Recent Entries',
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurface,
               ),
             ),
             const Spacer(),
-            TextButton(
-              onPressed: () => AppRouter.goToHistory(context),
+            GestureDetector(
+              onTap: () => AppRouter.goToHistory(context),
               child: Text(
-                'View All',
-                style: theme.textTheme.labelLarge?.copyWith(
+                'View All →',
+                style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         if (_recentEntries.isEmpty)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: theme.colorScheme.outline.withOpacity(0.2),
-                width: 1,
-              ),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               children: [
                 Icon(
                   Icons.history_rounded,
-                  size: 48,
-                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  size: 36,
+                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
                   'No entries yet',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Start tracking your time by logging travel or work entries',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           )
         else
           ...(_recentEntries
-              .take(3)
+              .take(5)
               .map((entry) => _buildRecentEntryCard(theme, entry))),
       ],
     );
@@ -818,62 +729,43 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         isTravel ? theme.colorScheme.primary : theme.colorScheme.secondary;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.1),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      margin: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: Colors.transparent,
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: () => _openQuickView(entry),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    entry.icon,
-                    color: color,
-                    size: 24,
-                  ),
+                  child: Icon(entry.icon, color: color, size: 20),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         entry.title,
-                        style: theme.textTheme.titleMedium?.copyWith(
+                        style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: theme.colorScheme.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
                       Text(
                         entry.subtitle,
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         maxLines: 1,
@@ -882,23 +774,20 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     entry.duration,
-                    style: theme.textTheme.labelMedium?.copyWith(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       color: color,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
               ],
             ),
           ),

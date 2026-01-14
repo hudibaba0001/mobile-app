@@ -488,7 +488,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        DateFormat('MMM dd, yyyy • h:mm a').format(entry.date),
+                        _formatEntryDateTime(entry),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                         ),
@@ -673,5 +673,21 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
     } else {
       return '${minutes}m';
     }
+  }
+
+  String _formatEntryDateTime(Entry entry) {
+    final dateStr = DateFormat('MMM dd, yyyy').format(entry.date);
+    
+    // For work entries with shifts, show time range
+    if (entry.type == EntryType.work && entry.shifts != null && entry.shifts!.isNotEmpty) {
+      final firstShift = entry.shifts!.first;
+      final lastShift = entry.shifts!.last;
+      final startTime = DateFormat('h:mm a').format(firstShift.start);
+      final endTime = DateFormat('h:mm a').format(lastShift.end);
+      return '$dateStr • $startTime - $endTime';
+    }
+    
+    // For travel entries, just show the date
+    return dateStr;
   }
 }
