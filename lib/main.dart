@@ -175,8 +175,8 @@ class MyApp extends StatelessWidget {
               AbsenceProvider(authService, SupabaseAbsenceService()),
         ),
         // TimeProvider depends on EntryProvider, ContractProvider, and optionally AbsenceProvider
-        // Use ProxyProvider3 to combine three dependencies
-        ProxyProvider3<EntryProvider, ContractProvider, AbsenceProvider,
+        // Use ChangeNotifierProxyProvider3 since TimeProvider is a ChangeNotifier
+        ChangeNotifierProxyProvider3<EntryProvider, ContractProvider, AbsenceProvider,
             TimeProvider>(
           create: (context) => TimeProvider(
             context.read<EntryProvider>(),

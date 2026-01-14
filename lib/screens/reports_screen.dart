@@ -11,11 +11,9 @@ import '../models/travel_entry.dart';
 import '../services/supabase_auth_service.dart';
 import '../repositories/repository_provider.dart';
 import '../models/work_entry.dart';
-import 'reports/date_range_dialog.dart';
 import 'reports/overview_tab.dart';
 import 'reports/trends_tab.dart';
 import 'reports/time_balance_tab.dart';
-import '../config/app_router.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -147,25 +145,6 @@ class _ReportsScreenState extends State<ReportsScreen>
     }
   }
 
-  Future<void> _showDateRangeDialog(
-      BuildContext context, CustomerAnalyticsViewModel viewModel) async {
-    final initialStartDate = viewModel.startDate ??
-        DateTime.now().subtract(const Duration(days: 30));
-    final initialEndDate = viewModel.endDate ?? DateTime.now();
-
-    final result = await showDialog<(DateTime, DateTime)>(
-      context: context,
-      builder: (context) => DateRangeDialog(
-        initialStartDate: initialStartDate,
-        initialEndDate: initialEndDate,
-      ),
-    );
-
-    if (result != null) {
-      viewModel.setDateRange(result.$1, result.$2);
-    }
-  }
-
   Future<void> _performExport(Map<String, dynamic> exportConfig) async {
     try {
       final entries = exportConfig['entries'] as List<Entry>;
@@ -284,39 +263,11 @@ class _ReportsScreenState extends State<ReportsScreen>
             actions: [
               IconButton(
                 icon: Icon(
-                  Icons.date_range,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                tooltip: 'Filter by Date',
-                onPressed: () => _showDateRangeDialog(context, viewModel),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.file_download,
+                  Icons.file_download_outlined,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 tooltip: 'Export Data',
                 onPressed: () => _showExportDialog(context),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.refresh,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                tooltip: 'Refresh Data',
-                onPressed: () {
-                  viewModel.refreshData();
-                },
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.account_balance_wallet,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                tooltip: 'Time Balance',
-                onPressed: () {
-                  AppRouter.goToTimeBalance(context);
-                },
               ),
             ],
           ),

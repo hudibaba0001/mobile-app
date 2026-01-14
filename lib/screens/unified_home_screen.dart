@@ -2,6 +2,7 @@ import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
 import 'dart:async';
 import '../models/entry.dart';
+import '../models/absence.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import '../models/work_entry.dart';
 import '../models/autocomplete_suggestion.dart';
 import '../repositories/repository_provider.dart';
 import '../providers/entry_provider.dart';
+import '../providers/absence_provider.dart';
 import '../providers/location_provider.dart';
 import '../services/supabase_auth_service.dart';
 
@@ -43,6 +45,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     // Always sync with Supabase on startup, then load recent entries
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final entryProvider = context.read<EntryProvider>();
+      final absenceProvider = context.read<AbsenceProvider>();
+      
+      // Load absences for current year
+      absenceProvider.loadAbsences(year: DateTime.now().year);
+      
       if (!entryProvider.isLoading) {
         // Always load/sync with Supabase on login
         entryProvider.loadEntries().then((_) {
@@ -97,6 +104,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       final repositoryProvider =
           Provider.of<RepositoryProvider>(context, listen: false);
       final authService = context.read<SupabaseAuthService>();
+      final absenceProvider = context.read<AbsenceProvider>();
       final userId = authService.currentUser?.id;
 
       if (userId == null) {
@@ -157,6 +165,28 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         ));
       }
 
+      // Convert absence entries (load current year)
+      final currentYear = DateTime.now().year;
+      final absences = absenceProvider.absencesForYear(currentYear);
+      debugPrint('Found ${absences.length} absence entries for year $currentYear');
+      
+      for (final absence in absences.take(5)) {
+        final typeLabel = _getAbsenceTypeLabel(absence.type);
+        final durationText = absence.minutes == 0
+            ? 'Full day'
+            : '${absence.minutes ~/ 60}h ${absence.minutes % 60}m';
+        
+        allEntries.add(_EntryData(
+          id: absence.id ?? 'absence_${absence.date.millisecondsSinceEpoch}',
+          type: 'absence',
+          title: typeLabel,
+          subtitle: '${absence.date.toString().split(' ')[0]}',
+          duration: durationText,
+          icon: _getAbsenceIcon(absence.type),
+          date: absence.date,
+        ));
+      }
+
       // Sort by real date (most recent first)
       allEntries.sort((a, b) => b.date.compareTo(a.date));
 
@@ -168,6 +198,32 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       debugPrint('Error loading recent entries: $e');
     } finally {
       _isLoadingRecent = false;
+    }
+  }
+
+  String _getAbsenceTypeLabel(AbsenceType type) {
+    switch (type) {
+      case AbsenceType.vacationPaid:
+        return 'Paid Leave';
+      case AbsenceType.sickPaid:
+        return 'Sick Leave';
+      case AbsenceType.vabPaid:
+        return 'VAB (Child Care)';
+      case AbsenceType.unpaid:
+        return 'Unpaid Leave';
+    }
+  }
+
+  IconData _getAbsenceIcon(AbsenceType type) {
+    switch (type) {
+      case AbsenceType.vacationPaid:
+        return Icons.beach_access;
+      case AbsenceType.sickPaid:
+        return Icons.local_hospital;
+      case AbsenceType.vabPaid:
+        return Icons.child_care;
+      case AbsenceType.unpaid:
+        return Icons.event_busy;
     }
   }
 
@@ -724,9 +780,20 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Widget _buildRecentEntryCard(ThemeData theme, _EntryData entry) {
-    final isTravel = entry.type == 'travel';
-    final color =
-        isTravel ? theme.colorScheme.primary : theme.colorScheme.secondary;
+    Color color;
+    switch (entry.type) {
+      case 'travel':
+        color = theme.colorScheme.primary;
+        break;
+      case 'work':
+        color = theme.colorScheme.secondary;
+        break;
+      case 'absence':
+        color = Colors.orange;
+        break;
+      default:
+        color = theme.colorScheme.tertiary;
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

@@ -66,11 +66,16 @@ class WeeklyStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final variance = hoursWorked - targetHours;
     final isOverTarget = hoursWorked >= targetHours;
     // Guard against division by zero for future weeks
     final progress = targetHours > 0 ? (hoursWorked / targetHours) : 0.0;
     final clampedProgress = progress.clamp(0.0, 1.0);
+
+    // Theme-aware colors
+    final positiveColor = isDark ? Colors.green.shade300 : Colors.green.shade700;
+    final warningColor = isDark ? Colors.amber.shade300 : Colors.amber.shade700;
 
     return Card(
       elevation: 0,
@@ -106,17 +111,13 @@ class WeeklyStatusCard extends StatelessWidget {
                 Icon(
                   isOverTarget ? Icons.check_circle : Icons.warning_amber_rounded,
                   size: 20,
-                  color: isOverTarget
-                      ? Colors.green.shade700
-                      : Colors.amber.shade700,
+                  color: isOverTarget ? positiveColor : warningColor,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Status: ${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)} h (${isOverTarget ? 'Over' : 'Under'})',
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: isOverTarget
-                        ? Colors.green.shade700
-                        : Colors.amber.shade700,
+                    color: isOverTarget ? positiveColor : warningColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -130,7 +131,7 @@ class WeeklyStatusCard extends StatelessWidget {
                 minHeight: 12,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isOverTarget ? Colors.green : Colors.amber,
+                  isOverTarget ? positiveColor : warningColor,
                 ),
               ),
             ),
@@ -166,6 +167,7 @@ class MonthlyStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     // Calculate effective hours including credits
     final effectiveHours = hoursWorked + (creditHours ?? 0.0);
     final variance = effectiveHours - targetHours;
@@ -173,6 +175,10 @@ class MonthlyStatusCard extends StatelessWidget {
     // Guard against division by zero for future months
     final progress = targetHours > 0 ? (effectiveHours / targetHours) : 0.0;
     final clampedProgress = progress.clamp(0.0, 1.0);
+
+    // Theme-aware colors
+    final positiveColor = isDark ? Colors.green.shade300 : Colors.green.shade700;
+    final warningColor = isDark ? Colors.amber.shade300 : Colors.amber.shade700;
 
     return Card(
       elevation: 0,
@@ -217,17 +223,13 @@ class MonthlyStatusCard extends StatelessWidget {
                 Icon(
                   isOverTarget ? Icons.check_circle : Icons.warning_amber_rounded,
                   size: 20,
-                  color: isOverTarget
-                      ? Colors.green.shade700
-                      : Colors.amber.shade700,
+                  color: isOverTarget ? positiveColor : warningColor,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Status: ${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)} h (${isOverTarget ? 'Over' : 'Under'})',
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: isOverTarget
-                        ? Colors.green.shade700
-                        : Colors.amber.shade700,
+                    color: isOverTarget ? positiveColor : warningColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -241,7 +243,7 @@ class MonthlyStatusCard extends StatelessWidget {
                 minHeight: 12,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isOverTarget ? Colors.green : Colors.amber,
+                  isOverTarget ? positiveColor : warningColor,
                 ),
               ),
             ),
@@ -275,11 +277,16 @@ class YearlyStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final variance = hoursWorked - targetHours;
     final isOverTarget = hoursWorked >= targetHours;
     // Guard against division by zero for future years
     final progress = targetHours > 0 ? (hoursWorked / targetHours) : 0.0;
     final clampedProgress = progress.clamp(0.0, 1.0);
+
+    // Theme-aware colors
+    final positiveColor = isDark ? Colors.green.shade300 : Colors.green.shade700;
+    final warningColor = isDark ? Colors.amber.shade300 : Colors.amber.shade700;
 
     return Card(
       elevation: 0,
@@ -315,17 +322,13 @@ class YearlyStatusCard extends StatelessWidget {
                 Icon(
                   isOverTarget ? Icons.check_circle : Icons.warning_amber_rounded,
                   size: 20,
-                  color: isOverTarget
-                      ? Colors.green.shade700
-                      : Colors.amber.shade700,
+                  color: isOverTarget ? positiveColor : warningColor,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Status: ${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)} h (${isOverTarget ? 'Over' : 'Under'})',
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: isOverTarget
-                        ? Colors.green.shade700
-                        : Colors.amber.shade700,
+                    color: isOverTarget ? positiveColor : warningColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -339,7 +342,7 @@ class YearlyStatusCard extends StatelessWidget {
                 minHeight: 12,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isOverTarget ? Colors.green : Colors.amber,
+                  isOverTarget ? positiveColor : warningColor,
                 ),
               ),
             ),
@@ -377,6 +380,7 @@ class YearlyBalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isPositive = balance >= 0;
     final displayBalance = '${isPositive ? '+' : ''}${balance.toStringAsFixed(1)}h';
     // Calculate variance including credits: (actual + credit) - target
@@ -387,15 +391,24 @@ class YearlyBalanceCard extends StatelessWidget {
     final progress = targetHours > 0 ? (totalEffectiveHours / targetHours) : 0.0;
     final clampedProgress = progress.clamp(0.0, 1.0);
 
+    // Theme-aware colors for dark/light mode
+    final positiveColor = isDark ? Colors.green.shade300 : Colors.green.shade700;
+    final negativeColor = isDark ? Colors.red.shade300 : Colors.red.shade700;
+    final warningColor = isDark ? Colors.amber.shade300 : Colors.amber.shade700;
+    final cardBgColor = isDark
+        ? (isPositive ? Colors.green.withOpacity(0.15) : Colors.red.withOpacity(0.15))
+        : (isPositive ? Colors.green.shade50 : Colors.red.shade50);
+    final borderColor = isDark
+        ? (isPositive ? Colors.green.shade700 : Colors.red.shade700)
+        : (isPositive ? Colors.green.shade200 : Colors.red.shade200);
+
     return Card(
       elevation: 0,
-      color: isPositive
-          ? Colors.green.shade50
-          : Colors.red.shade50,
+      color: cardBgColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: (isPositive ? Colors.green : Colors.red).shade200,
+          color: borderColor,
           width: 2,
         ),
       ),
@@ -434,17 +447,13 @@ class YearlyBalanceCard extends StatelessWidget {
                 Icon(
                   isOverTarget ? Icons.check_circle : Icons.warning_amber_rounded,
                   size: 20,
-                  color: isOverTarget
-                      ? Colors.green.shade700
-                      : Colors.amber.shade700,
+                  color: isOverTarget ? positiveColor : warningColor,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Status: ${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)} h (${isOverTarget ? 'Over' : 'Under'})',
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: isOverTarget
-                        ? Colors.green.shade700
-                        : Colors.amber.shade700,
+                    color: isOverTarget ? positiveColor : warningColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -458,7 +467,7 @@ class YearlyBalanceCard extends StatelessWidget {
                 minHeight: 12,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isOverTarget ? Colors.green : Colors.amber,
+                  isOverTarget ? positiveColor : warningColor,
                 ),
               ),
             ),
@@ -470,7 +479,7 @@ class YearlyBalanceCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Divider(),
+            Divider(color: theme.colorScheme.outline.withOpacity(0.3)),
             const SizedBox(height: 16),
             Text(
               'YEARLY RUNNING BALANCE',
@@ -493,9 +502,7 @@ class YearlyBalanceCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
-                color: isPositive
-                    ? Colors.green.shade800
-                    : Colors.red.shade800,
+                color: isPositive ? positiveColor : negativeColor,
               ),
             ),
             const SizedBox(height: 16),

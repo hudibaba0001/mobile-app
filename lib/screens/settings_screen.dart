@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/settings_provider.dart';
+import '../providers/theme_provider.dart';
 import '../config/app_router.dart';
 import '../config/external_links.dart';
 import '../widgets/standard_app_bar.dart';
@@ -288,6 +289,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
       appBar: const StandardAppBar(title: 'Settings'),
@@ -295,12 +297,34 @@ class SettingsScreen extends StatelessWidget {
         children: [
           // Theme Settings
           ListTile(
-            leading: const Icon(Icons.brightness_6),
-            title: const Text('Dark Mode'),
-            subtitle: const Text('Toggle dark/light theme'),
-            trailing: Switch(
-              value: settingsProvider.isDarkMode,
-              onChanged: settingsProvider.setDarkMode,
+            leading: Icon(
+              themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+            ),
+            title: const Text('Theme'),
+            subtitle: Text(themeProvider.themeModeDisplayName),
+            trailing: SegmentedButton<ThemeMode>(
+              segments: const [
+                ButtonSegment(
+                  value: ThemeMode.light,
+                  icon: Icon(Icons.light_mode, size: 18),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.system,
+                  icon: Icon(Icons.brightness_auto, size: 18),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.dark,
+                  icon: Icon(Icons.dark_mode, size: 18),
+                ),
+              ],
+              selected: {themeProvider.themeMode},
+              onSelectionChanged: (Set<ThemeMode> selection) {
+                themeProvider.setThemeMode(selection.first);
+              },
+              showSelectedIcon: false,
+              style: ButtonStyle(
+                visualDensity: VisualDensity.compact,
+              ),
             ),
           ),
 
