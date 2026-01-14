@@ -126,6 +126,8 @@ class ExportService {
       'Work Hours',
       'Shifts Count',
       'Shift Details',
+      'Holiday Work',
+      'Holiday Name',
     ];
 
     // Write headers
@@ -178,6 +180,10 @@ class ExportService {
         .value = entry.shifts?.length.toString() ?? '0';
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 15, rowIndex: row))
         .value = _formatShiftsForExcel(entry.shifts);
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 16, rowIndex: row))
+        .value = entry.isHolidayWork ? 'Yes' : 'No';
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 17, rowIndex: row))
+        .value = entry.holidayName ?? '';
     }
 
     // Add summary section
@@ -191,12 +197,18 @@ class ExportService {
       );
 
     final summaryDataRow = summaryRow + 1;
+    final holidayWorkEntries = entries.where((e) => e.isHolidayWork).toList();
+    final holidayWorkMinutes = holidayWorkEntries.fold<int>(0, (sum, e) => sum + e.totalDuration.inMinutes);
+    final holidayWorkHours = (holidayWorkMinutes / 60).toStringAsFixed(1);
+    
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: summaryDataRow))
       .value = 'Total Entries: ${entries.length}';
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: summaryDataRow))
       .value = 'Travel Entries: ${entries.where((e) => e.type == EntryType.travel).length}';
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: summaryDataRow))
       .value = 'Work Entries: ${entries.where((e) => e.type == EntryType.work).length}';
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: summaryDataRow))
+      .value = 'Holiday Work: ${holidayWorkEntries.length} entries (${holidayWorkHours}h)';
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: summaryDataRow))
       .value = 'Total Hours: ${_calculateTotalHours(entries).toStringAsFixed(2)}';
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: summaryDataRow))
@@ -245,6 +257,8 @@ class ExportService {
       'Work Hours',
       'Shifts Count',
       'Shift Details',
+      'Holiday Work',
+      'Holiday Name',
     ];
 
     // Convert entries to CSV rows
@@ -268,6 +282,8 @@ class ExportService {
         entry.workHours.toStringAsFixed(2),
         entry.shifts?.length.toString() ?? '0',
         _formatShiftsForCSV(entry.shifts),
+        entry.isHolidayWork ? 'Yes' : 'No',
+        entry.holidayName ?? '',
       ];
     }).toList();
 

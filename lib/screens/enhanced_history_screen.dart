@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
 import '../services/entry_service.dart';
+import '../services/holiday_service.dart';
 import '../widgets/standard_app_bar.dart';
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
@@ -402,6 +403,8 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isWorkEntry = entry.type == EntryType.work;
+    final holidayService = context.read<HolidayService>();
+    final holidayInfo = holidayService.getHolidayInfo(entry.date);
 
     return Card(
       elevation: 2,
@@ -477,6 +480,55 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                               ),
                             ),
                           ),
+                          // Holiday work badge (takes priority if it's actual holiday work)
+                          if (entry.isHolidayWork) ...[
+                            const SizedBox(width: 6),
+                            Tooltip(
+                              message: 'Holiday work: ${entry.holidayName ?? holidayInfo?.name ?? "Public holiday"}',
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade700,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'Holiday Work',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ] else if (holidayInfo != null) ...[
+                            // Just show "Auto" badge for travel entries on holidays
+                            const SizedBox(width: 6),
+                            Tooltip(
+                              message: 'Auto-marked: ${holidayInfo.name}',
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade600,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'Auto',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -487,11 +539,32 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        _formatEntryDateTime(entry),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant.withOpacity(0.7),
-                        ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              _formatEntryDateTime(entry),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                              ),
+                            ),
+                          ),
+                          if (holidayInfo != null) ...[
+                            Text(
+                              ' • ',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.red.shade400,
+                              ),
+                            ),
+                            Text(
+                              holidayInfo.name,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.red.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),

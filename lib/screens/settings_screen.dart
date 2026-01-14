@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/holiday_service.dart';
 import '../config/app_router.dart';
 import '../config/external_links.dart';
 import '../widgets/standard_app_bar.dart';
@@ -286,10 +287,109 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void _showHolidayInfoDialog(BuildContext context) {
+    final holidayService = context.read<HolidayService>();
+    final holidays = holidayService.getHolidaysWithNamesForYear(DateTime.now().year);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.event_available, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 12),
+            const Text('Swedish Public Holidays'),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${DateTime.now().year} Holidays',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 300),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: holidays.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final holiday = holidays[index];
+                    final dateStr = '${holiday.date.day}/${holiday.date.month}';
+                    return ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade600,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Auto',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      title: Text(holiday.name),
+                      trailing: Text(
+                        dateStr,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 18, color: Colors.blue.shade700),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'These holidays are auto-detected and marked as red days. Work entries on these days won\'t count toward your target hours.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
     final themeProvider = context.watch<ThemeProvider>();
+    final holidayService = context.watch<HolidayService>();
 
     return Scaffold(
       appBar: const StandardAppBar(title: 'Settings'),
@@ -327,6 +427,42 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          const Divider(),
+
+          // Holiday Settings Section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              'Public Holidays',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+
+          // Auto-mark holidays toggle
+          ListTile(
+            leading: const Icon(Icons.event_available),
+            title: const Text('Auto-mark public holidays'),
+            subtitle: const Text('Automatically mark Swedish public holidays as red days'),
+            trailing: Switch(
+              value: holidayService.autoMarkHolidays,
+              onChanged: (value) => holidayService.setAutoMarkHolidays(value),
+            ),
+          ),
+
+          // Holiday region info
+          ListTile(
+            leading: const Icon(Icons.flag_outlined),
+            title: const Text('Region'),
+            subtitle: const Text('Sweden (Svenska helgdagar)'),
+            trailing: const Icon(Icons.info_outline),
+            onTap: () => _showHolidayInfoDialog(context),
+          ),
+
+          const Divider(),
 
           // First Launch Setting
           ListTile(

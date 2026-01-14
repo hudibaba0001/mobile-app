@@ -40,6 +40,18 @@ body {
 
 .form-group {
   margin-bottom: 16px;
+  flex: 1;
+}
+
+.name-row {
+  display: flex;
+  gap: 12px;
+}
+
+.optional {
+  font-weight: 400;
+  color: #888;
+  font-size: 12px;
 }
 
 .label {

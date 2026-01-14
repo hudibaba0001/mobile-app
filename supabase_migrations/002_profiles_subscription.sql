@@ -5,6 +5,9 @@
 CREATE TABLE IF NOT EXISTS profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email text,
+  first_name text,
+  last_name text,
+  phone text,
   -- Consent fields
   terms_accepted_at timestamptz,
   privacy_accepted_at timestamptz,
@@ -23,6 +26,19 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- Add columns if they don't exist (for existing tables)
 DO $$ 
 BEGIN
+  -- User info fields
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'first_name') THEN
+    ALTER TABLE profiles ADD COLUMN first_name text;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'last_name') THEN
+    ALTER TABLE profiles ADD COLUMN last_name text;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'phone') THEN
+    ALTER TABLE profiles ADD COLUMN phone text;
+  END IF;
+
   -- Consent fields
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'terms_accepted_at') THEN
     ALTER TABLE profiles ADD COLUMN terms_accepted_at timestamptz;

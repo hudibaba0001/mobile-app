@@ -8,7 +8,10 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     email: '',
+    phone: '',
     password: '',
     termsAccepted: false,
     privacyAccepted: false,
@@ -52,9 +55,45 @@ export default function SignupPage() {
         {error && <div className="error-box">{error}</div>}
 
         <form onSubmit={handleSubmit}>
+          <div className="name-row">
+            <div className="form-group">
+              <label className="label" htmlFor="firstName">
+                First Name *
+              </label>
+              <input
+                id="firstName"
+                type="text"
+                className="input"
+                value={formData.firstName}
+                onChange={(e) =>
+                  setFormData({ ...formData, firstName: e.target.value })
+                }
+                required
+                placeholder="John"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="label" htmlFor="lastName">
+                Last Name *
+              </label>
+              <input
+                id="lastName"
+                type="text"
+                className="input"
+                value={formData.lastName}
+                onChange={(e) =>
+                  setFormData({ ...formData, lastName: e.target.value })
+                }
+                required
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+
           <div className="form-group">
             <label className="label" htmlFor="email">
-              Email
+              Email *
             </label>
             <input
               id="email"
@@ -70,8 +109,24 @@ export default function SignupPage() {
           </div>
 
           <div className="form-group">
+            <label className="label" htmlFor="phone">
+              Phone Number <span className="optional">(optional)</span>
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              className="input"
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
+              placeholder="+46 70 123 4567"
+            />
+          </div>
+
+          <div className="form-group">
             <label className="label" htmlFor="password">
-              Password
+              Password *
             </label>
             <input
               id="password"

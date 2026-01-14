@@ -130,6 +130,15 @@ class Entry extends HiveObject {
   @HiveField(13)
   final int? totalSegments;
 
+  /// Whether this entry is work done on a public holiday (red day)
+  /// Auto-set when saving an entry on a holiday date with hours > 0
+  @HiveField(14)
+  final bool isHolidayWork;
+
+  /// Holiday name if this is holiday work (for display/export)
+  @HiveField(15)
+  final String? holidayName;
+
   Entry({
     String? id,
     required this.userId,
@@ -145,6 +154,8 @@ class Entry extends HiveObject {
     this.journeyId,
     this.segmentOrder,
     this.totalSegments,
+    this.isHolidayWork = false,
+    this.holidayName,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -157,10 +168,15 @@ class Entry extends HiveObject {
       'date': date.toIso8601String(),
       'notes': notes,
       'created_at': createdAt.toIso8601String(),
+      'is_holiday_work': isHolidayWork,
     };
 
     if (updatedAt != null) {
       data['updated_at'] = updatedAt!.toIso8601String();
+    }
+
+    if (holidayName != null) {
+      data['holiday_name'] = holidayName;
     }
 
     // Add type-specific fields
@@ -202,6 +218,8 @@ class Entry extends HiveObject {
       journeyId: json['journey_id'] as String?,
       segmentOrder: json['segment_order'] as int?,
       totalSegments: json['total_segments'] as int?,
+      isHolidayWork: json['is_holiday_work'] as bool? ?? false,
+      holidayName: json['holiday_name'] as String?,
     );
 
     // Parse shifts for work entries
@@ -232,6 +250,8 @@ class Entry extends HiveObject {
     String? journeyId,
     int? segmentOrder,
     int? totalSegments,
+    bool? isHolidayWork,
+    String? holidayName,
   }) {
     return Entry(
       id: id ?? this.id,
@@ -248,6 +268,8 @@ class Entry extends HiveObject {
       journeyId: journeyId ?? this.journeyId,
       segmentOrder: segmentOrder ?? this.segmentOrder,
       totalSegments: totalSegments ?? this.totalSegments,
+      isHolidayWork: isHolidayWork ?? this.isHolidayWork,
+      holidayName: holidayName ?? this.holidayName,
     );
   }
 

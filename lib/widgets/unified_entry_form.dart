@@ -5,6 +5,7 @@ import '../providers/entry_provider.dart';
 import '../widgets/location_selector.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/map_service.dart';
+import '../services/holiday_service.dart';
 import 'package:flutter/foundation.dart';
 import '../widgets/keyboard_aware_form_container.dart';
 
@@ -146,6 +147,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               isTravel
                   ? _buildTravelDateAndTimesSection(theme)
                   : _buildWorkDateAndTimesSection(theme),
+              
+              // Holiday Notice (if date is a public holiday)
+              _buildHolidayNotice(theme),
               const SizedBox(height: 20),
 
               // Location Section
@@ -328,6 +332,107 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildHolidayNotice(ThemeData theme) {
+    final holidayService = context.watch<HolidayService>();
+    final holidayInfo = holidayService.getHolidayInfo(_selectedDate);
+    
+    if (holidayInfo == null) {
+      return const SizedBox.shrink();
+    }
+
+    final isWorkEntry = widget.entryType == EntryType.work;
+    
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade600,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Auto',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      holidayInfo.name,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red.shade800,
+                      ),
+                    ),
+                    Text(
+                      'Public holiday in Sweden',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.red.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Tooltip(
+                message: holidayService.getHolidayTooltip(_selectedDate),
+                child: Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: Colors.red.shade600,
+                ),
+              ),
+            ],
+          ),
+          // Show work-specific notice
+          if (isWorkEntry) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.amber.shade300),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.work_outline, size: 18, color: Colors.amber.shade800),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Hours entered here will be marked as holiday work.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.amber.shade900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -777,6 +882,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         finalTravelMinutes = _durationMinutes > 0 ? _durationMinutes : null;
       }
 
+      // Check if this is holiday work (work entry on a public holiday)
+      final holidayService = context.read<HolidayService>();
+      final holidayInfo = holidayService.getHolidayInfo(_selectedDate);
+      final isHolidayWork = widget.entryType == EntryType.work && holidayInfo != null;
+
       final entry = Entry(
         id: widget.existingEntry?.id, // Let Entry model generate UUID if null
         userId: _currentUserId!,
@@ -812,6 +922,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             : _notesController.text.trim(),
         createdAt: widget.existingEntry?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
+        isHolidayWork: isHolidayWork,
+        holidayName: isHolidayWork ? holidayInfo!.name : null,
       );
 
       if (widget.existingEntry != null) {

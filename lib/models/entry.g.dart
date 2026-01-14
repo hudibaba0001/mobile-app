@@ -63,24 +63,26 @@ class EntryAdapter extends TypeAdapter<Entry> {
       id: fields[0] as String?,
       userId: fields[1] as String,
       type: fields[2] as EntryType,
-      from: fields[3] as String?,
-      to: fields[4] as String?,
-      travelMinutes: fields[5] as int?,
-      shifts: (fields[6] as List?)?.cast<Shift>(),
-      date: fields[7] as DateTime,
+      date: fields[3] as DateTime,
+      from: fields[4] as String?,
+      to: fields[5] as String?,
+      travelMinutes: fields[6] as int?,
+      shifts: (fields[7] as List?)?.cast<Shift>(),
       notes: fields[8] as String?,
       createdAt: fields[9] as DateTime?,
       updatedAt: fields[10] as DateTime?,
       journeyId: fields[11] as String?,
       segmentOrder: fields[12] as int?,
       totalSegments: fields[13] as int?,
+      isHolidayWork: fields[14] as bool,
+      holidayName: fields[15] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Entry obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -88,15 +90,15 @@ class EntryAdapter extends TypeAdapter<Entry> {
       ..writeByte(2)
       ..write(obj.type)
       ..writeByte(3)
-      ..write(obj.from)
-      ..writeByte(4)
-      ..write(obj.to)
-      ..writeByte(5)
-      ..write(obj.travelMinutes)
-      ..writeByte(6)
-      ..write(obj.shifts)
-      ..writeByte(7)
       ..write(obj.date)
+      ..writeByte(4)
+      ..write(obj.from)
+      ..writeByte(5)
+      ..write(obj.to)
+      ..writeByte(6)
+      ..write(obj.travelMinutes)
+      ..writeByte(7)
+      ..write(obj.shifts)
       ..writeByte(8)
       ..write(obj.notes)
       ..writeByte(9)
@@ -108,7 +110,11 @@ class EntryAdapter extends TypeAdapter<Entry> {
       ..writeByte(12)
       ..write(obj.segmentOrder)
       ..writeByte(13)
-      ..write(obj.totalSegments);
+      ..write(obj.totalSegments)
+      ..writeByte(14)
+      ..write(obj.isHolidayWork)
+      ..writeByte(15)
+      ..write(obj.holidayName);
   }
 
   @override

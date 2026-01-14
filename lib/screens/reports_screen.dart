@@ -202,21 +202,14 @@ class _ReportsScreenState extends State<ReportsScreen>
       // Close loading dialog
       Navigator.of(context).pop();
 
-      // Share the file (only on mobile/desktop, web already downloaded)
-      if (!kIsWeb && filePath.isNotEmpty) {
-        await Share.shareXFiles(
-          [XFile(filePath)],
-          text: 'Time Tracker Export - $fileName',
-        );
-      }
-
-      // Show success message
-      if (mounted) {
+      // On mobile/desktop, show share options dialog
+      if (!kIsWeb && filePath.isNotEmpty && mounted) {
+        await _showShareOptionsDialog(context, filePath, fileName, format);
+      } else if (mounted) {
+        // Web: just show download success
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(kIsWeb
-                ? '${format.toUpperCase()} file downloaded successfully!'
-                : '${format.toUpperCase()} export completed successfully!'),
+            content: Text('${format.toUpperCase()} file downloaded successfully!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -237,6 +230,63 @@ class _ReportsScreenState extends State<ReportsScreen>
         );
       }
     }
+  }
+
+  Future<void> _showShareOptionsDialog(
+    BuildContext context,
+    String filePath,
+    String fileName,
+    String format,
+  ) async {
+    final theme = Theme.of(context);
+    
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            const SizedBox(width: 12),
+            const Expanded(child: Text('Export Complete')),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${format.toUpperCase()} file has been saved successfully.',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Would you like to share it via email or another app?',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Done'),
+          ),
+          FilledButton.icon(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await Share.shareXFiles(
+                [XFile(filePath)],
+                subject: 'Time Tracker Export - $fileName',
+                text: 'Please find attached the time tracker report.',
+              );
+            },
+            icon: const Icon(Icons.share),
+            label: const Text('Share'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

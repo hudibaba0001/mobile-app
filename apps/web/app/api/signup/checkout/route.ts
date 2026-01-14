@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: firstError }, { status: 400 })
     }
 
-    const { email, password } = validationResult.data
+    const { firstName, lastName, email, phone, password } = validationResult.data
     const supabase = createServiceRoleClient()
 
     // Check if user already exists
@@ -54,6 +54,9 @@ export async function POST(request: NextRequest) {
     const { error: profileError } = await supabase.from('profiles').upsert({
       id: userId,
       email,
+      first_name: firstName,
+      last_name: lastName,
+      phone: phone || null,
       terms_accepted_at: now,
       privacy_accepted_at: now,
       terms_version: TERMS_VERSION,
@@ -76,6 +79,8 @@ export async function POST(request: NextRequest) {
     // Create Stripe customer
     const customer = await stripe.customers.create({
       email,
+      name: `${firstName} ${lastName}`,
+      phone: phone || undefined,
       metadata: {
         supabase_user_id: userId,
       },

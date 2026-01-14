@@ -24,6 +24,7 @@ import 'repositories/work_repository.dart';
 import 'repositories/contract_repository.dart';
 import 'repositories/leave_repository.dart';
 import 'services/admin_api_service.dart';
+import 'services/holiday_service.dart';
 import 'viewmodels/analytics_view_model.dart';
 
 void main() async {
@@ -144,6 +145,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LocalEntryProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => HolidayService()),
         ChangeNotifierProvider(create: (_) => TravelProvider()),
         ChangeNotifierProxyProvider<RepositoryProvider, LocationProvider?>(
           create: (context) {
