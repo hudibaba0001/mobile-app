@@ -8,16 +8,27 @@ import '../calendar/sweden_holidays.dart';
 import 'entry_provider.dart';
 import 'contract_provider.dart';
 import 'absence_provider.dart';
+import 'balance_adjustment_provider.dart';
 
 /// Provider for managing time balance calculations and data
 /// Uses EntryProvider to get entries and ContractProvider for target hours
 /// Calculates monthly/yearly balances based on user's contract settings
 /// Now includes holiday-aware scheduling and paid absence credits (Option A)
+/// 
+/// V1 Starting Balance Feature:
+/// - trackingStartDate: Date from which to calculate balances (entries before are ignored)
+/// - openingFlexMinutes: Opening flex balance added once at start of running total
+/// 
+/// Balance Adjustments:
+/// - Manual corrections that shift the running balance by +/- minutes
+/// - Included in monthly/yearly totals on their effective date
 class TimeProvider extends ChangeNotifier {
   final EntryProvider _entryProvider;
   final ContractProvider _contractProvider;
   final AbsenceProvider?
       _absenceProvider; // Optional for backward compatibility
+  final BalanceAdjustmentProvider?
+      _adjustmentProvider; // Optional for balance adjustments
   final SwedenHolidayCalendar _holidays = SwedenHolidayCalendar();
 
   // State
@@ -34,11 +45,15 @@ class TimeProvider extends ChangeNotifier {
 
   // Store monthly credit minutes for UI display
   final Map<String, int> _monthlyCreditMinutes = {}; // Key: "year-month"
+  
+  // Store monthly adjustment minutes for UI display
+  final Map<String, int> _monthlyAdjustmentMinutes = {}; // Key: "year-month"
 
   TimeProvider(
     this._entryProvider,
     this._contractProvider, [
     this._absenceProvider,
+    this._adjustmentProvider,
   ]);
 
   // Getters
@@ -48,6 +63,21 @@ class TimeProvider extends ChangeNotifier {
   double get currentYearTotalHours => _currentYearTotalHours;
   double get yearlyRunningBalance => _yearlyRunningBalance;
   double get yearlyRunningBalanceFromWeeks => _yearlyRunningBalanceFromWeeks;
+  
+  /// Get the tracking start date from contract provider
+  DateTime get trackingStartDate => _contractProvider.trackingStartDate;
+  
+  /// Get opening flex balance in hours
+  double get openingFlexHours => _contractProvider.openingFlexHours;
+  
+  /// Get formatted opening flex balance string
+  String get openingFlexFormatted => _contractProvider.openingFlexFormatted;
+  
+  /// Whether an opening balance is set
+  bool get hasOpeningBalance => _contractProvider.hasOpeningBalance;
+  
+  /// Whether a custom tracking start date is set
+  bool get hasCustomTrackingStartDate => _contractProvider.hasCustomTrackingStartDate;
   List<MonthlySummary> get monthlySummaries => _monthlySummaries;
   List<WeeklySummary> get weeklySummaries => _weeklySummaries;
   bool get isLoading => _isLoading;
@@ -68,10 +98,16 @@ class TimeProvider extends ChangeNotifier {
 
     try {
       final targetYear = year ?? DateTime.now().year;
+      
+      // Get tracking start date and opening balance from contract settings
+      final startDate = _contractProvider.trackingStartDate;
+      final openingFlexMinutes = _contractProvider.openingFlexMinutes;
 
       debugPrint('TimeProvider: Calculating balances for year $targetYear');
       debugPrint(
           'TimeProvider: Weekly target: $weeklyTargetMinutes minutes (${weeklyTargetMinutes / 60.0} hours)');
+      debugPrint(
+          'TimeProvider: Tracking start date: $startDate, Opening balance: ${openingFlexMinutes / 60.0}h');
 
       // Get entries from EntryProvider
       final allEntries = _entryProvider.entries;
@@ -86,13 +122,20 @@ class TimeProvider extends ChangeNotifier {
 
       // Load absences for the year if AbsenceProvider is available
       await _absenceProvider?.loadAbsences(year: targetYear);
+      
+      // Load adjustments for the year if BalanceAdjustmentProvider is available
+      await _adjustmentProvider?.loadAdjustments(year: targetYear);
 
-      // Filter entries for the target year
+      // Filter entries for the target year AND on/after tracking start date
       final yearEntries = allEntries.where((entry) {
-        return entry.date.year == targetYear;
+        if (entry.date.year != targetYear) return false;
+        // Filter out entries before tracking start date (date-only comparison)
+        final entryDate = DateTime(entry.date.year, entry.date.month, entry.date.day);
+        final trackingDate = DateTime(startDate.year, startDate.month, startDate.day);
+        return !entryDate.isBefore(trackingDate);
       }).toList();
       debugPrint(
-          'TimeProvider: Entries for year $targetYear: ${yearEntries.length}');
+          'TimeProvider: Entries for year $targetYear (after $startDate): ${yearEntries.length}');
 
       // Build map of actual minutes by date (day-by-day)
       final Map<DateTime, int> actualByDate = {};
@@ -103,11 +146,16 @@ class TimeProvider extends ChangeNotifier {
       }
 
       // Generate ALL 12 months with day-by-day calculations
+      // But skip days before trackingStartDate
       _monthlySummaries = [];
       int totalYearlyVarianceMinutes = 0;
       int totalYearActualMinutes = 0;
       int totalYearScheduledMinutes = 0;
       int totalYearCreditMinutes = 0;
+      int totalYearAdjustmentMinutes = 0;
+      
+      // Normalize tracking start date for comparison
+      final trackingDate = DateTime(startDate.year, startDate.month, startDate.day);
 
       for (int month = 1; month <= 12; month++) {
         final lastDay = DateTime(targetYear, month + 1, 0);
@@ -115,10 +163,16 @@ class TimeProvider extends ChangeNotifier {
         int monthActualMinutes = 0;
         int monthScheduledMinutes = 0;
         int monthCreditMinutes = 0;
+        int monthAdjustmentMinutes = 0;
 
         // Calculate day-by-day for this month
         for (int day = 1; day <= lastDay.day; day++) {
           final date = DateTime(targetYear, month, day);
+          
+          // Skip days before tracking start date
+          if (date.isBefore(trackingDate)) {
+            continue;
+          }
 
           // Scheduled minutes (holiday-aware) - calculate once and reuse
           final scheduled = TargetHoursCalculator.scheduledMinutesForDate(
@@ -136,15 +190,21 @@ class TimeProvider extends ChangeNotifier {
           final credit =
               _absenceProvider?.paidAbsenceMinutesForDate(date, scheduled) ?? 0;
           monthCreditMinutes += credit;
+          
+          // Adjustment minutes (manual corrections) - separate from variance calculation
+          final adjustment = _adjustmentProvider?.adjustmentMinutesForDate(date) ?? 0;
+          monthAdjustmentMinutes += adjustment;
         }
 
         // Month variance = actual + credit - scheduled
+        // (adjustments are added separately to running balance)
         final monthVarianceMinutes =
             monthActualMinutes + monthCreditMinutes - monthScheduledMinutes;
         totalYearlyVarianceMinutes += monthVarianceMinutes;
         totalYearActualMinutes += monthActualMinutes;
         totalYearScheduledMinutes += monthScheduledMinutes;
         totalYearCreditMinutes += monthCreditMinutes;
+        totalYearAdjustmentMinutes += monthAdjustmentMinutes;
 
         final actualHours = monthActualMinutes / 60.0;
         _monthlySummaries.add(
@@ -155,25 +215,40 @@ class TimeProvider extends ChangeNotifier {
           ),
         );
 
-        // Store credit minutes for UI
+        // Store credit and adjustment minutes for UI
         _monthlyCreditMinutes['$targetYear-$month'] = monthCreditMinutes;
+        _monthlyAdjustmentMinutes['$targetYear-$month'] = monthAdjustmentMinutes;
 
         debugPrint(
             'TimeProvider: ${_monthlySummaries.last.monthName} $targetYear: '
             '${actualHours.toStringAsFixed(1)}h actual, '
             '${(monthScheduledMinutes / 60.0).toStringAsFixed(1)}h scheduled, '
             '${(monthCreditMinutes / 60.0).toStringAsFixed(1)}h credit, '
+            '${(monthAdjustmentMinutes / 60.0).toStringAsFixed(1)}h adj, '
             '${(monthVarianceMinutes / 60.0).toStringAsFixed(1)}h variance');
       }
 
-      _yearlyRunningBalance = totalYearlyVarianceMinutes / 60.0;
+      // Add opening balance and adjustments to yearly variance
+      // Formula: runningBalance = opening + sum(variances) + sum(adjustments)
+      final totalVarianceWithOpening = totalYearlyVarianceMinutes + 
+          openingFlexMinutes + 
+          totalYearAdjustmentMinutes;
+      
+      _yearlyRunningBalance = totalVarianceWithOpening / 60.0;
       _currentYearTotalHours = totalYearActualMinutes / 60.0;
 
-      // Yearly variance = sum of monthly variances (enforced)
+      // Yearly variance = sum of monthly variances + opening balance + adjustments
       final yearVarianceMinutes = totalYearActualMinutes +
           totalYearCreditMinutes -
-          totalYearScheduledMinutes;
+          totalYearScheduledMinutes +
+          openingFlexMinutes +
+          totalYearAdjustmentMinutes;
       _currentYearlyVariance = yearVarianceMinutes / 60.0;
+      
+      debugPrint(
+          'TimeProvider: Opening balance applied: ${openingFlexMinutes / 60.0}h');
+      debugPrint(
+          'TimeProvider: Adjustments applied: ${totalYearAdjustmentMinutes / 60.0}h');
 
       debugPrint(
           'TimeProvider: Yearly totals - Actual: ${_currentYearTotalHours.toStringAsFixed(1)}h, '
@@ -185,7 +260,7 @@ class TimeProvider extends ChangeNotifier {
       debugPrint(
           'TimeProvider: Match check: ${(yearVarianceMinutes - totalYearlyVarianceMinutes).abs() < 1 ? "✓ PASS" : "✗ FAIL"} (diff: ${(yearVarianceMinutes - totalYearlyVarianceMinutes).abs()} minutes)');
 
-      // Calculate current month variance
+      // Calculate current month variance (respecting tracking start date)
       final currentMonth = DateTime.now().month;
 
       // Recalculate current month with day-by-day method
@@ -196,6 +271,12 @@ class TimeProvider extends ChangeNotifier {
 
       for (int day = 1; day <= currentLastDay.day; day++) {
         final date = DateTime(targetYear, currentMonth, day);
+        
+        // Skip days before tracking start date
+        if (date.isBefore(trackingDate)) {
+          continue;
+        }
+        
         currentMonthScheduled += TargetHoursCalculator.scheduledMinutesForDate(
           date: date,
           weeklyTargetMinutes: weeklyTargetMinutes,
@@ -217,7 +298,7 @@ class TimeProvider extends ChangeNotifier {
           (currentMonthActual + currentMonthCredit - currentMonthScheduled) /
               60.0;
 
-      // Group entries by week
+      // Group entries by week (already filtered by trackingStartDate via yearEntries)
       final weeklyData = _groupEntriesByWeek(yearEntries);
 
       // Create WeeklySummary objects
@@ -475,6 +556,29 @@ class TimeProvider extends ChangeNotifier {
     final creditMinutes = _monthlyCreditMinutes[key] ?? 0;
     return creditMinutes / 60.0;
   }
+  
+  /// Get monthly adjustment hours for a specific month
+  ///
+  /// [year] The year
+  /// [month] The month (1-12)
+  /// Returns adjustment hours (0 if no adjustments or not calculated yet)
+  double monthlyAdjustmentHours({required int year, required int month}) {
+    final key = '$year-$month';
+    final adjustmentMinutes = _monthlyAdjustmentMinutes[key] ?? 0;
+    return adjustmentMinutes / 60.0;
+  }
+  
+  /// Get total adjustment minutes for the year
+  int get totalYearAdjustmentMinutes {
+    int total = 0;
+    for (final entry in _monthlyAdjustmentMinutes.entries) {
+      total += entry.value;
+    }
+    return total;
+  }
+  
+  /// Get total adjustment hours for the year
+  double get totalYearAdjustmentHours => totalYearAdjustmentMinutes / 60.0;
 
   /// Get month target minutes up to today (month-to-date)
   ///

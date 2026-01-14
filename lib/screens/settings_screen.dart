@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import '../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../providers/locale_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/holiday_service.dart';
@@ -389,10 +391,12 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
     final themeProvider = context.watch<ThemeProvider>();
+    final localeProvider = context.watch<LocaleProvider>();
     final holidayService = context.watch<HolidayService>();
+    final t = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: const StandardAppBar(title: 'Settings'),
+      appBar: StandardAppBar(title: t.settings_title),
       body: ListView(
         children: [
           // Theme Settings
@@ -400,21 +404,24 @@ class SettingsScreen extends StatelessWidget {
             leading: Icon(
               themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
             ),
-            title: const Text('Theme'),
+            title: Text(t.settings_theme),
             subtitle: Text(themeProvider.themeModeDisplayName),
             trailing: SegmentedButton<ThemeMode>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: ThemeMode.light,
-                  icon: Icon(Icons.light_mode, size: 18),
+                  icon: const Icon(Icons.light_mode, size: 18),
+                  label: Text(t.settings_themeLight, style: const TextStyle(fontSize: 11)),
                 ),
                 ButtonSegment(
                   value: ThemeMode.system,
-                  icon: Icon(Icons.brightness_auto, size: 18),
+                  icon: const Icon(Icons.brightness_auto, size: 18),
+                  label: Text(t.settings_themeSystem, style: const TextStyle(fontSize: 11)),
                 ),
                 ButtonSegment(
                   value: ThemeMode.dark,
-                  icon: Icon(Icons.dark_mode, size: 18),
+                  icon: const Icon(Icons.dark_mode, size: 18),
+                  label: Text(t.settings_themeDark, style: const TextStyle(fontSize: 11)),
                 ),
               ],
               selected: {themeProvider.themeMode},
@@ -422,9 +429,37 @@ class SettingsScreen extends StatelessWidget {
                 themeProvider.setThemeMode(selection.first);
               },
               showSelectedIcon: false,
-              style: ButtonStyle(
+              style: const ButtonStyle(
                 visualDensity: VisualDensity.compact,
               ),
+            ),
+          ),
+
+          // Language Settings
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(t.settings_language),
+            subtitle: Text(LocaleProvider.getDisplayName(localeProvider.locale)),
+            trailing: DropdownButton<Locale?>(
+              value: localeProvider.locale,
+              underline: const SizedBox(),
+              items: [
+                DropdownMenuItem<Locale?>(
+                  value: null,
+                  child: Text(t.settings_languageSystem),
+                ),
+                const DropdownMenuItem<Locale>(
+                  value: Locale('en'),
+                  child: Text('English'),
+                ),
+                const DropdownMenuItem<Locale>(
+                  value: Locale('sv'),
+                  child: Text('Svenska'),
+                ),
+              ],
+              onChanged: (Locale? locale) {
+                localeProvider.setLocale(locale);
+              },
             ),
           ),
 
@@ -434,7 +469,7 @@ class SettingsScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              'Public Holidays',
+              t.settings_publicHolidays,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w600,
@@ -445,8 +480,8 @@ class SettingsScreen extends StatelessWidget {
           // Auto-mark holidays toggle
           ListTile(
             leading: const Icon(Icons.event_available),
-            title: const Text('Auto-mark public holidays'),
-            subtitle: const Text('Automatically mark Swedish public holidays as red days'),
+            title: Text(t.settings_autoMarkHolidays),
+            subtitle: Text(t.redDay_publicHoliday),
             trailing: Switch(
               value: holidayService.autoMarkHolidays,
               onChanged: (value) => holidayService.setAutoMarkHolidays(value),
@@ -457,7 +492,7 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.flag_outlined),
             title: const Text('Region'),
-            subtitle: const Text('Sweden (Svenska helgdagar)'),
+            subtitle: Text(t.settings_holidayRegion),
             trailing: const Icon(Icons.info_outline),
             onTap: () => _showHolidayInfoDialog(context),
           ),

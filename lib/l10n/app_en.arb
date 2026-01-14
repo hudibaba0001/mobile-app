@@ -1,0 +1,427 @@
+{
+  "@@locale": "en",
+  "@@last_modified": "2026-01-14",
+  
+  "appTitle": "KvikTime",
+  "@appTitle": {
+    "description": "Application title"
+  },
+
+  "common_save": "Save",
+  "common_cancel": "Cancel",
+  "common_delete": "Delete",
+  "common_edit": "Edit",
+  "common_add": "Add",
+  "common_done": "Done",
+  "common_retry": "Retry",
+  "common_reset": "Reset",
+  "common_share": "Share",
+  "common_export": "Export",
+  "common_refresh": "Refresh",
+  "common_close": "Close",
+  "common_yes": "Yes",
+  "common_no": "No",
+  "common_ok": "OK",
+  "common_loading": "Loading...",
+  "common_error": "Error",
+  "common_success": "Success",
+  "common_today": "Today",
+  "common_thisWeek": "This week",
+  "common_thisMonth": "This month",
+  "common_thisYear": "This year",
+  "common_days": "{count, plural, one {# day} other {# days}}",
+  "@common_days": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "common_hours": "{count, plural, one {# hour} other {# hours}}",
+  "@common_hours": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "nav_home": "Home",
+  "nav_calendar": "Calendar",
+  "nav_reports": "Reports",
+  "nav_settings": "Settings",
+
+  "settings_title": "Settings",
+  "settings_account": "Account",
+  "settings_signOut": "Sign Out",
+  "settings_signUp": "Sign Up",
+  "settings_manageSubscription": "Manage Subscription",
+  "settings_contractSettings": "Contract Settings",
+  "settings_contractDescription": "Set your contract percentage and work hours",
+  "settings_publicHolidays": "Public Holidays",
+  "settings_autoMarkHolidays": "Auto-mark public holidays",
+  "settings_holidayRegion": "Sweden (Svenska helgdagar)",
+  "settings_viewHolidays": "View holidays for {year}",
+  "@settings_viewHolidays": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "settings_theme": "Theme",
+  "settings_themeLight": "Light",
+  "settings_themeDark": "Dark",
+  "settings_themeSystem": "System",
+  "settings_language": "Language",
+  "settings_languageSystem": "System default",
+  "settings_data": "Data",
+  "settings_clearDemoData": "Clear Demo Data",
+  "settings_clearAllData": "Clear All Data",
+  "settings_clearDemoDataConfirm": "This will remove all demo entries. Are you sure?",
+  "settings_clearAllDataConfirm": "This will permanently delete ALL your data. This action cannot be undone. Are you sure?",
+  "settings_about": "About",
+  "settings_version": "Version {version}",
+  "@settings_version": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+  "settings_terms": "Terms of Service",
+  "settings_privacy": "Privacy Policy",
+
+  "contract_title": "Contract Settings",
+  "contract_headerTitle": "Contract Settings",
+  "contract_headerDescription": "Configure your contract percentage and full-time hours for accurate work time tracking and overtime calculations.",
+  "contract_percentage": "Contract Percentage",
+  "contract_percentageHint": "Enter percentage (0-100)",
+  "contract_percentageError": "Percentage must be between 0 and 100",
+  "contract_fullTimeHours": "Full-time Hours per Week",
+  "contract_fullTimeHoursHint": "Enter hours per week (e.g., 40)",
+  "contract_fullTimeHoursError": "Hours must be greater than 0",
+  "contract_startingBalance": "Starting Balance",
+  "contract_startingBalanceDescription": "Set your starting point for balance calculations. Ask your manager for your flex saldo as of this date.",
+  "contract_startTrackingFrom": "Start tracking from",
+  "contract_openingBalance": "Opening time balance",
+  "contract_creditPlus": "Credit (+)",
+  "contract_deficitMinus": "Deficit (−)",
+  "contract_creditExplanation": "Credit means you have extra time (ahead of schedule)",
+  "contract_deficitExplanation": "Deficit means you owe time (behind schedule)",
+  "contract_livePreview": "Live Preview",
+  "contract_contractType": "Contract Type",
+  "contract_fullTime": "Full-time",
+  "contract_partTime": "Part-time",
+  "contract_allowedHours": "Allowed Hours",
+  "contract_dailyHours": "Daily Hours",
+  "contract_resetToDefaults": "Reset to Defaults",
+  "contract_resetConfirm": "This will reset your contract settings to 100% full-time with 40 hours per week, and clear your starting balance. Are you sure?",
+  "contract_saveSettings": "Save Settings",
+  "contract_savedSuccess": "Contract settings saved successfully!",
+  "contract_resetSuccess": "Contract settings reset to defaults",
+
+  "balance_title": "Time Balance",
+  "balance_myTimeBalance": "My Time Balance ({year})",
+  "@balance_myTimeBalance": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "balance_thisYear": "THIS YEAR: {year}",
+  "@balance_thisYear": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "balance_thisMonth": "THIS MONTH: {month}",
+  "@balance_thisMonth": {
+    "placeholders": {
+      "month": {"type": "String"}
+    }
+  },
+  "balance_hoursWorkedToDate": "Hours Worked (to date): {worked} / {target} h",
+  "@balance_hoursWorkedToDate": {
+    "placeholders": {
+      "worked": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+  "balance_creditedHours": "Credited Hours: {hours} h",
+  "@balance_creditedHours": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "balance_statusOver": "Over",
+  "balance_statusUnder": "Under",
+  "balance_status": "Status: {variance} h ({status})",
+  "@balance_status": {
+    "placeholders": {
+      "variance": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "balance_percentOfTarget": "{percent}% of target",
+  "@balance_percentOfTarget": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "balance_yearlyRunningBalance": "YEARLY RUNNING BALANCE",
+  "balance_totalAccumulation": "Total Accumulation:",
+  "balance_inCredit": "You are in credit",
+  "balance_inDebt": "You maintain a time debt",
+  "balance_includesOpening": "Includes opening balance ({balance}) as of {date}",
+  "@balance_includesOpening": {
+    "placeholders": {
+      "balance": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+
+  "adjustment_title": "Balance Adjustments",
+  "adjustment_description": "Manual corrections to your balance (e.g., manager adjustments)",
+  "adjustment_add": "Add Adjustment",
+  "adjustment_edit": "Edit Adjustment",
+  "adjustment_recent": "Recent Adjustments",
+  "adjustment_effectiveDate": "Effective Date",
+  "adjustment_amount": "Amount",
+  "adjustment_noteOptional": "Note (optional)",
+  "adjustment_noteHint": "e.g., Manager correction",
+  "adjustment_deleteConfirm": "Are you sure you want to delete this adjustment?",
+  "adjustment_saveError": "Failed to save: {error}",
+  "@adjustment_saveError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "adjustment_enterAmount": "Please enter an adjustment amount",
+  "adjustment_minutesError": "Minutes must be between 0 and 59",
+
+  "redDay_auto": "Auto",
+  "redDay_personal": "Personal",
+  "redDay_fullDay": "Full Day",
+  "redDay_halfDay": "Half Day",
+  "redDay_am": "AM",
+  "redDay_pm": "PM",
+  "redDay_publicHoliday": "Public holiday in Sweden",
+  "redDay_autoMarked": "Auto-marked: {holidayName}",
+  "@redDay_autoMarked": {
+    "placeholders": {
+      "holidayName": {"type": "String"}
+    }
+  },
+  "redDay_holidayWorkNotice": "This is a public holiday (Auto). Hours entered here may count as holiday work.",
+  "redDay_personalNotice": "Red day (Personal). Hours entered may count as holiday work.",
+  "redDay_addPersonal": "Add Personal Red Day",
+  "redDay_editPersonal": "Edit Personal Red Day",
+  "redDay_reason": "Reason (optional)",
+  "redDay_halfDayReducesScheduled": "Half-day red day reduces scheduled hours by 50%.",
+
+  "leave_title": "Leaves",
+  "leave_summary": "Leave Summary {year}",
+  "@leave_summary": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "leave_paidVacation": "Paid Vacation",
+  "leave_sickLeave": "Sick Leave",
+  "leave_vab": "VAB (Child Care)",
+  "leave_unpaid": "Unpaid Leave",
+  "leave_totalDays": "Total Leave Days",
+  "leave_recent": "Recent Leaves",
+  "leave_noRecords": "No leaves recorded",
+  "leave_historyAppears": "Your leave history will appear here",
+  "leave_daysCount": "{count, plural, =0 {0 days} =1 {1 day} other {{count} days}}",
+  "@leave_daysCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "reports_title": "Reports & Analytics",
+  "reports_overview": "Overview",
+  "reports_trends": "Trends",
+  "reports_timeBalance": "Time Balance",
+  "reports_leaves": "Leaves",
+  "reports_exportData": "Export Data",
+  "reports_serverAnalytics": "Server analytics",
+
+  "export_title": "Export Data",
+  "export_format": "Format",
+  "export_excel": "Excel",
+  "export_csv": "CSV",
+  "export_dateRange": "Date Range",
+  "export_allTime": "All time",
+  "export_fileName": "File Name",
+  "export_generating": "Generating {format} export...",
+  "@export_generating": {
+    "placeholders": {
+      "format": {"type": "String"}
+    }
+  },
+  "export_complete": "Export Complete",
+  "export_savedSuccess": "{format} file has been saved successfully.",
+  "@export_savedSuccess": {
+    "placeholders": {
+      "format": {"type": "String"}
+    }
+  },
+  "export_sharePrompt": "Would you like to share it via email or another app?",
+  "export_downloadedSuccess": "{format} file downloaded successfully!",
+  "@export_downloadedSuccess": {
+    "placeholders": {
+      "format": {"type": "String"}
+    }
+  },
+  "export_failed": "Export failed: {error}",
+  "@export_failed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "export_noData": "No data available for export",
+  "export_noEntries": "No entries to export. Please select entries with data.",
+
+  "home_todaysTotals": "Today's Totals",
+  "home_weeklyStats": "Weekly Stats",
+  "home_quickActions": "Quick Actions",
+  "home_recentEntries": "Recent Entries",
+  "home_addWork": "Add Work",
+  "home_addTravel": "Add Travel",
+  "home_addLeave": "Add Leave",
+  "home_viewAll": "View All",
+  "home_noEntries": "No recent entries",
+  "home_holidayWork": "Holiday Work",
+
+  "entry_travel": "Travel",
+  "entry_work": "Work",
+  "entry_from": "From",
+  "entry_to": "To",
+  "entry_duration": "Duration",
+  "entry_date": "Date",
+  "entry_notes": "Notes",
+  "entry_shifts": "Shifts",
+  "entry_addShift": "Add Shift",
+
+  "error_loadingData": "Error loading data",
+  "error_loadingBalance": "Error loading balance",
+  "error_userNotAuth": "User not authenticated",
+  "error_generic": "Something went wrong",
+  "error_networkError": "Network error. Please check your connection.",
+
+  "absence_title": "Absences",
+  "absence_addAbsence": "Add Absence",
+  "absence_editAbsence": "Edit Absence",
+  "absence_deleteAbsence": "Delete Absence",
+  "absence_deleteConfirm": "Are you sure you want to delete this absence?",
+  "absence_noAbsences": "No absences for {year}",
+  "@absence_noAbsences": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "absence_addHint": "Tap + to add vacation, sick leave, or VAB",
+  "absence_errorLoading": "Error loading absences",
+  "absence_type": "Absence Type",
+  "absence_date": "Date",
+  "absence_halfDay": "Half Day",
+  "absence_fullDay": "Full Day",
+  "absence_notes": "Notes",
+  "absence_savedSuccess": "Absence saved successfully",
+  "absence_deletedSuccess": "Absence deleted",
+  "absence_saveFailed": "Failed to save absence",
+  "absence_deleteFailed": "Failed to delete absence",
+
+  "settings_manageLocations": "Manage Locations",
+  "settings_manageLocationsDesc": "Add and edit your frequent locations",
+  "settings_absences": "Absences",
+  "settings_absencesDesc": "Manage vacation, sick leave, and VAB",
+  "settings_subscriptionDesc": "Update payment method and subscription plan",
+  "settings_welcomeScreen": "Show Welcome Screen",
+  "settings_welcomeScreenDesc": "Show introduction on next launch",
+  "settings_region": "Region",
+  
+  "common_unknown": "Unknown",
+  "common_noRemarks": "No remarks",
+  "common_workSession": "Work Session",
+  "common_confirmDelete": "Confirm Delete",
+  "common_durationFormat": "{hours}h {minutes}m",
+  "@common_durationFormat": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "common_profile": "Profile",
+  "common_required": "{field} is required",
+  "@common_required": {
+    "placeholders": {
+      "field": {"type": "String"}
+    }
+  },
+  "common_invalidNumber": "Please enter a valid number",
+
+  "home_title": "Time Tracker",
+  "home_subtitle": "Track your productivity",
+  "home_logTravel": "Log Travel",
+  "home_logWork": "Log Work",
+  "home_quickEntry": "Quick Entry",
+  "home_quickTravelEntry": "Quick travel entry",
+  "home_quickWorkEntry": "Quick work entry",
+  "home_noEntriesYet": "No entries yet",
+  "home_viewAllArrow": "View All →",
+  "home_travelRoute": "Travel: {from} → {to}",
+  "@home_travelRoute": {
+    "placeholders": {
+      "from": {"type": "String"},
+      "to": {"type": "String"}
+    }
+  },
+  "home_fullDay": "Full day",
+
+  "entry_deleteEntry": "Delete Entry",
+  "entry_deleteConfirm": "Are you sure you want to delete this {type} entry?",
+  "@entry_deleteConfirm": {
+    "placeholders": {
+      "type": {"type": "String"}
+    }
+  },
+  "entry_deletedSuccess": "{type} entry deleted successfully",
+  "@entry_deletedSuccess": {
+    "placeholders": {
+      "type": {"type": "String"}
+    }
+  },
+  "error_deleteFailed": "Failed to delete entry: {error}",
+  "@error_deleteFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "error_loadingEntries": "Error loading entries: {error}",
+  "@error_loadingEntries": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "contract_maxHoursError": "Hours cannot exceed 168 per week",
+  "contract_invalidHours": "Invalid hours",
+  "contract_minutesError": "Minutes must be 0-59",
+  "contract_hoursPerDayValue": "{hours} hours/day",
+  "@contract_hoursPerDayValue": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "contract_hrsWeek": "hrs/week",
+
+  "export_shareSubject": "Time Tracker Export - {fileName}",
+  "@export_shareSubject": {
+    "placeholders": {
+      "fileName": {"type": "String"}
+    }
+  },
+  "export_shareText": "Please find attached the time tracker report.",
+  "error_shareFile": "Could not share file: {error}",
+  "@error_shareFile": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  }
+}

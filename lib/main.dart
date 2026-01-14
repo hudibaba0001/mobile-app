@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'config/supabase_config.dart';
@@ -8,6 +10,7 @@ import 'providers/app_state_provider.dart';
 import 'providers/contract_provider.dart';
 import 'providers/email_settings_provider.dart';
 import 'providers/local_entry_provider.dart';
+import 'providers/locale_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/travel_provider.dart';
@@ -15,14 +18,16 @@ import 'providers/entry_provider.dart';
 import 'providers/location_provider.dart';
 import 'providers/time_provider.dart';
 import 'providers/absence_provider.dart';
+import 'providers/balance_adjustment_provider.dart';
 import 'services/supabase_auth_service.dart';
-import 'services/auth_service.dart';
+import 'repositories/balance_adjustment_repository.dart';
 import 'services/supabase_absence_service.dart';
 import 'repositories/repository_provider.dart';
 import 'repositories/travel_repository.dart';
 import 'repositories/work_repository.dart';
 import 'repositories/contract_repository.dart';
 import 'repositories/leave_repository.dart';
+import 'repositories/user_red_day_repository.dart';
 import 'services/admin_api_service.dart';
 import 'services/holiday_service.dart';
 import 'viewmodels/analytics_view_model.dart';
@@ -40,27 +45,34 @@ void main() async {
   final authService = SupabaseAuthService();
   await authService.initialize();
 
+  // Initialize LocaleProvider
+  final localeProvider = LocaleProvider();
+  await localeProvider.init();
+
   runApp(
     MyApp(
       authService: authService,
+      localeProvider: localeProvider,
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final AuthService authService;
+  final SupabaseAuthService authService;
+  final LocaleProvider localeProvider;
 
   const MyApp({
     super.key,
     required this.authService,
+    required this.localeProvider,
   });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<SupabaseAuthService>.value(
-            value: authService as SupabaseAuthService),
+        ChangeNotifierProvider<SupabaseAuthService>.value(value: authService),
+        ChangeNotifierProvider<LocaleProvider>.value(value: localeProvider),
         // RepositoryProvider will be managed by ProxyProvider
         ProxyProvider<SupabaseAuthService, RepositoryProvider>(
           create: (context) => RepositoryProvider(),
@@ -145,7 +157,22 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LocalEntryProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => HolidayService()),
+        ChangeNotifierProxyProvider<SupabaseAuthService, HolidayService>(
+          create: (_) => HolidayService(),
+          update: (context, authService, previous) {
+            final holidayService = previous ?? HolidayService();
+            final userId = authService.currentUser?.id;
+            holidayService.initialize(
+              repository: UserRedDayRepository(),
+              userId: userId,
+            );
+            // Load current year's personal red days if authenticated
+            if (userId != null) {
+              holidayService.loadPersonalRedDays(DateTime.now().year);
+            }
+            return holidayService;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => TravelProvider()),
         ChangeNotifierProxyProvider<RepositoryProvider, LocationProvider?>(
           create: (context) {
@@ -176,19 +203,35 @@ class MyApp extends StatelessWidget {
               previous ??
               AbsenceProvider(authService, SupabaseAbsenceService()),
         ),
-        // TimeProvider depends on EntryProvider, ContractProvider, and optionally AbsenceProvider
-        // Use ChangeNotifierProxyProvider3 since TimeProvider is a ChangeNotifier
-        ChangeNotifierProxyProvider3<EntryProvider, ContractProvider, AbsenceProvider,
-            TimeProvider>(
+        // BalanceAdjustmentProvider depends on SupabaseAuthService
+        ChangeNotifierProxyProvider<SupabaseAuthService, BalanceAdjustmentProvider>(
+          create: (context) {
+            final authService = context.read<SupabaseAuthService>();
+            final supabase = SupabaseConfig.client;
+            final repository = BalanceAdjustmentRepository(supabase);
+            return BalanceAdjustmentProvider(authService, repository);
+          },
+          update: (context, authService, previous) {
+            if (previous != null) return previous;
+            final supabase = SupabaseConfig.client;
+            final repository = BalanceAdjustmentRepository(supabase);
+            return BalanceAdjustmentProvider(authService, repository);
+          },
+        ),
+        // TimeProvider depends on EntryProvider, ContractProvider, AbsenceProvider, and BalanceAdjustmentProvider
+        // Use ChangeNotifierProxyProvider4 since TimeProvider is a ChangeNotifier
+        ChangeNotifierProxyProvider4<EntryProvider, ContractProvider, AbsenceProvider,
+            BalanceAdjustmentProvider, TimeProvider>(
           create: (context) => TimeProvider(
             context.read<EntryProvider>(),
             context.read<ContractProvider>(),
             context.read<AbsenceProvider>(),
+            context.read<BalanceAdjustmentProvider>(),
           ),
           update: (context, entryProvider, contractProvider, absenceProvider,
-                  previous) =>
+                  adjustmentProvider, previous) =>
               previous ??
-              TimeProvider(entryProvider, contractProvider, absenceProvider),
+              TimeProvider(entryProvider, contractProvider, absenceProvider, adjustmentProvider),
         ),
         // Services
         Provider(create: (_) => AdminApiService()),
@@ -200,8 +243,8 @@ class MyApp extends StatelessWidget {
               previous ?? AnalyticsViewModel(apiService),
         ),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+      child: Consumer2<ThemeProvider, LocaleProvider>(
+        builder: (context, themeProvider, localeProvider, child) {
           return MaterialApp.router(
             title: 'KvikTime',
             theme: AppTheme.lightTheme,
@@ -209,6 +252,15 @@ class MyApp extends StatelessWidget {
             themeMode: themeProvider.themeMode,
             routerConfig: AppRouter.router,
             debugShowCheckedModeBanner: false,
+            // Localization configuration
+            locale: localeProvider.locale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
           );
         },
       ),

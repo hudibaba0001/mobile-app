@@ -337,9 +337,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
   Widget _buildHolidayNotice(ThemeData theme) {
     final holidayService = context.watch<HolidayService>();
-    final holidayInfo = holidayService.getHolidayInfo(_selectedDate);
+    final redDayInfo = holidayService.getRedDayInfo(_selectedDate);
     
-    if (holidayInfo == null) {
+    if (!redDayInfo.isRedDay) {
       return const SizedBox.shrink();
     }
 
@@ -358,44 +358,60 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade600,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Auto',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+              // Show badges
+              ...redDayInfo.badges.map((badge) => Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: badge == 'Auto' ? Colors.red.shade600 : Colors.purple.shade600,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    badge,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
+              )),
+              const SizedBox(width: 6),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      holidayInfo.name,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.red.shade800,
+                    if (redDayInfo.isAutoHoliday)
+                      Text(
+                        redDayInfo.autoHolidayName ?? 'Public Holiday',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red.shade800,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Public holiday in Sweden',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.red.shade700,
+                    if (redDayInfo.personalRedDay != null)
+                      Text(
+                        redDayInfo.personalRedDay!.kindDisplayText +
+                            (redDayInfo.personalRedDay!.reason != null
+                                ? ' - ${redDayInfo.personalRedDay!.reason}'
+                                : ''),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.purple.shade700,
+                        ),
                       ),
-                    ),
+                    if (redDayInfo.isAutoHoliday && redDayInfo.personalRedDay == null)
+                      Text(
+                        'Public holiday in Sweden',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.red.shade700,
+                        ),
+                      ),
                   ],
                 ),
               ),
               Tooltip(
-                message: holidayService.getHolidayTooltip(_selectedDate),
+                message: redDayInfo.tooltip,
                 child: Icon(
                   Icons.info_outline,
                   size: 20,
@@ -420,7 +436,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Hours entered here will be marked as holiday work.',
+                      'Red day. Hours entered here may count as holiday work.',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.amber.shade900,
                         fontWeight: FontWeight.w500,
@@ -882,10 +898,14 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         finalTravelMinutes = _durationMinutes > 0 ? _durationMinutes : null;
       }
 
-      // Check if this is holiday work (work entry on a public holiday)
+      // Check if this is holiday work (work entry on a red day - auto or personal)
       final holidayService = context.read<HolidayService>();
-      final holidayInfo = holidayService.getHolidayInfo(_selectedDate);
-      final isHolidayWork = widget.entryType == EntryType.work && holidayInfo != null;
+      final redDayInfo = holidayService.getRedDayInfo(_selectedDate);
+      final isHolidayWork = widget.entryType == EntryType.work && redDayInfo.isRedDay;
+      // Get holiday name (prefer auto holiday name, fallback to personal reason)
+      final holidayName = redDayInfo.autoHolidayName ?? 
+          redDayInfo.personalRedDay?.reason ?? 
+          (redDayInfo.personalRedDay != null ? 'Personal red day' : null);
 
       final entry = Entry(
         id: widget.existingEntry?.id, // Let Entry model generate UUID if null
@@ -923,7 +943,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         createdAt: widget.existingEntry?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
         isHolidayWork: isHolidayWork,
-        holidayName: isHolidayWork ? holidayInfo!.name : null,
+        holidayName: isHolidayWork ? holidayName : null,
       );
 
       if (widget.existingEntry != null) {

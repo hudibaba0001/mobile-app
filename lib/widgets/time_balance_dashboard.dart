@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 /// Dashboard widget for displaying time balance information
 /// Shows current month status and yearly running balance with Material 3 styling
@@ -12,6 +13,8 @@ class TimeBalanceDashboard extends StatelessWidget {
   final int currentYear;
   final double? creditHours; // Optional: paid absence credits for month
   final double? yearCreditHours; // Optional: paid absence credits for year
+  final String? openingBalanceFormatted; // e.g., "+12h 30m" for opening balance
+  final DateTime? trackingStartDate; // Date from which tracking started
 
   const TimeBalanceDashboard({
     super.key,
@@ -24,6 +27,8 @@ class TimeBalanceDashboard extends StatelessWidget {
     required this.currentYear,
     this.creditHours,
     this.yearCreditHours,
+    this.openingBalanceFormatted,
+    this.trackingStartDate,
   });
 
   @override
@@ -44,6 +49,8 @@ class TimeBalanceDashboard extends StatelessWidget {
           targetHours: targetYearlyHours,
           balance: yearlyBalance,
           creditHours: yearCreditHours,
+          openingBalanceFormatted: openingBalanceFormatted,
+          trackingStartDate: trackingStartDate,
         ),
       ],
     );
@@ -367,6 +374,8 @@ class YearlyBalanceCard extends StatelessWidget {
   final double targetHours;
   final double balance;
   final double? creditHours; // Optional: paid absence credits
+  final String? openingBalanceFormatted; // e.g., "+12h 30m" or "−3h 15m"
+  final DateTime? trackingStartDate; // Date from which tracking started
 
   const YearlyBalanceCard({
     super.key,
@@ -375,6 +384,8 @@ class YearlyBalanceCard extends StatelessWidget {
     required this.targetHours,
     required this.balance,
     this.creditHours,
+    this.openingBalanceFormatted,
+    this.trackingStartDate,
   });
 
   @override
@@ -531,6 +542,40 @@ class YearlyBalanceCard extends StatelessWidget {
                 ),
               ],
             ),
+            // Opening balance note
+            if (openingBalanceFormatted != null && openingBalanceFormatted!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.account_balance_wallet,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        trackingStartDate != null
+                            ? 'Includes opening balance ($openingBalanceFormatted) as of ${DateFormat('MMM d, yyyy').format(trackingStartDate!)}'
+                            : 'Includes opening balance ($openingBalanceFormatted)',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

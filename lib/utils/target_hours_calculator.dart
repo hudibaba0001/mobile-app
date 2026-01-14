@@ -131,6 +131,7 @@ class TargetHoursCalculator {
   /// [weeklyTargetMinutes] Target minutes per week
   /// [holidays] Holiday calendar (SwedenHolidayCalendar)
   /// [workWeekdays] Ordered list of weekday numbers (1=Mon, 7=Sun). Default: [1,2,3,4,5]
+  /// [redDayFactor] Optional: fraction of scheduled to use (0.0 = full day off, 0.5 = half day, null = check holidays)
   ///
   /// Returns scheduled minutes for that day (0 if weekend or holiday)
   static int scheduledMinutesForDate({
@@ -138,15 +139,11 @@ class TargetHoursCalculator {
     required int weeklyTargetMinutes,
     required SwedenHolidayCalendar holidays,
     List<int> workWeekdays = const [1, 2, 3, 4, 5],
+    double? redDayFactor,
   }) {
     final normalized = _d(date);
 
-    // Check if holiday (red day) → scheduled = 0
-    if (holidays.isHoliday(normalized)) {
-      return 0;
-    }
-
-    // Check if weekday is in work weekdays
+    // Check if weekday is in work weekdays first
     final idx = workWeekdays.indexOf(normalized.weekday);
     if (idx < 0) {
       return 0; // Weekend or non-work day
@@ -158,8 +155,67 @@ class TargetHoursCalculator {
     final base = weeklyTargetMinutes ~/ days;
     final rem = weeklyTargetMinutes % days;
 
-    // Distribute remainder minutes to the earliest workdays in the list
-    return base + ((idx >= 0 && idx < rem) ? 1 : 0);
+    // Base scheduled minutes for this weekday
+    final baseScheduled = base + ((idx >= 0 && idx < rem) ? 1 : 0);
+    
+    // If a specific red day factor is provided, use it
+    if (redDayFactor != null) {
+      // Factor: 0.0 = full day off, 0.5 = half day, 1.0 = normal day
+      return (baseScheduled * redDayFactor).round();
+    }
+
+    // Check if holiday (red day) → scheduled = 0
+    if (holidays.isHoliday(normalized)) {
+      return 0;
+    }
+
+    return baseScheduled;
+  }
+  
+  /// Calculate scheduled minutes for a date with red day info
+  ///
+  /// V1 Rule:
+  /// - Full red day → scheduled = 0
+  /// - Half red day → scheduled = 50% of normal
+  /// - Normal day → full scheduled
+  ///
+  /// [date] The date
+  /// [weeklyTargetMinutes] Target minutes per week
+  /// [isFullRedDay] Whether it's a full red day
+  /// [isHalfRedDay] Whether it's a half red day
+  /// [workWeekdays] Work weekdays
+  ///
+  /// Returns scheduled minutes
+  static int scheduledMinutesWithRedDayInfo({
+    required DateTime date,
+    required int weeklyTargetMinutes,
+    required bool isFullRedDay,
+    required bool isHalfRedDay,
+    List<int> workWeekdays = const [1, 2, 3, 4, 5],
+  }) {
+    final normalized = _d(date);
+
+    // Check if weekday is in work weekdays first
+    final idx = workWeekdays.indexOf(normalized.weekday);
+    if (idx < 0) {
+      return 0; // Weekend or non-work day
+    }
+
+    // Deterministic distribution: base + remainder distribution
+    final days = workWeekdays.length;
+    final base = weeklyTargetMinutes ~/ days;
+    final rem = weeklyTargetMinutes % days;
+    final baseScheduled = base + ((idx >= 0 && idx < rem) ? 1 : 0);
+    
+    // Apply red day rules
+    if (isFullRedDay) {
+      return 0; // Full day off
+    }
+    if (isHalfRedDay) {
+      return (baseScheduled * 0.5).round(); // Half day
+    }
+
+    return baseScheduled;
   }
 
   /// Calculate monthly scheduled minutes (holiday-aware)

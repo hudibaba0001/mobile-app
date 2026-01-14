@@ -15,6 +15,7 @@ import '../providers/entry_provider.dart';
 import '../providers/absence_provider.dart';
 import '../providers/location_provider.dart';
 import '../services/supabase_auth_service.dart';
+import '../l10n/generated/app_localizations.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -252,6 +253,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -275,14 +277,14 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Time Tracker',
+                  t.home_title,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: colorScheme.onSurface,
                   ),
                 ),
                 Text(
-                  'Track your productivity',
+                  t.home_subtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -313,7 +315,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ),
             ),
             onPressed: () => AppRouter.goToProfile(context),
-            tooltip: 'Profile',
+            tooltip: t.common_profile,
           ),
           const SizedBox(width: 8),
           IconButton(
@@ -334,7 +336,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ),
             ),
             onPressed: () => AppRouter.goToSettings(context),
-            tooltip: 'Settings',
+            tooltip: t.nav_settings,
           ),
           const SizedBox(width: 16),
         ],
@@ -346,22 +348,22 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           children: [
             // Today's Total Card
             Consumer<EntryProvider>(
-              builder: (context, entryProvider, _) => _buildTotalCard(theme, entryProvider),
+              builder: (context, entryProvider, _) => _buildTotalCard(theme, entryProvider, t),
             ),
             const SizedBox(height: 16),
 
             // Action Cards
-            _buildActionCards(theme),
+            _buildActionCards(theme, t),
             const SizedBox(height: 16),
 
             // Stats Section
             Consumer<EntryProvider>(
-              builder: (context, entryProvider, _) => _buildStatsSection(theme, entryProvider),
+              builder: (context, entryProvider, _) => _buildStatsSection(theme, entryProvider, t),
             ),
             const SizedBox(height: 16),
 
             // Recent Entries
-            _buildRecentEntries(theme),
+            _buildRecentEntries(theme, t),
             const SizedBox(height: 80), // Space for bottom nav
           ],
         ),
@@ -391,7 +393,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
-  Widget _buildTotalCard(ThemeData theme, EntryProvider entryProvider) {
+  Widget _buildTotalCard(ThemeData theme, EntryProvider entryProvider, AppLocalizations t) {
     // Calculate today's totals
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
@@ -461,7 +463,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Today',
+                  t.common_today,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: Colors.white.withOpacity(0.8),
                     fontWeight: FontWeight.w500,
@@ -515,14 +517,14 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
-  Widget _buildActionCards(ThemeData theme) {
+  Widget _buildActionCards(ThemeData theme, AppLocalizations t) {
     return Row(
       children: [
         Expanded(
           child: _buildActionCard(
             theme,
             icon: Icons.directions_car_rounded,
-            title: 'Log Travel',
+            title: t.home_logTravel,
             color: theme.colorScheme.primary,
             onTap: _startTravelEntry,
           ),
@@ -532,7 +534,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           child: _buildActionCard(
             theme,
             icon: Icons.work_rounded,
-            title: 'Log Work',
+            title: t.home_logWork,
             color: theme.colorScheme.secondary,
             onTap: _startWorkEntry,
           ),
@@ -590,7 +592,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
-  Widget _buildStatsSection(ThemeData theme, EntryProvider entryProvider) {
+  Widget _buildStatsSection(ThemeData theme, EntryProvider entryProvider, AppLocalizations t) {
     // Calculate this week's totals
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
@@ -641,7 +643,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'This Week',
+                t.common_thisWeek,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.onSurface,
@@ -657,7 +659,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   theme,
                   icon: Icons.directions_car_rounded,
                   value: formatHours(travelDuration),
-                  label: 'Travel',
+                  label: t.entry_travel,
                   color: theme.colorScheme.primary,
                 ),
               ),
@@ -671,7 +673,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   theme,
                   icon: Icons.work_rounded,
                   value: formatHours(workDuration),
-                  label: 'Work',
+                  label: t.entry_work,
                   color: theme.colorScheme.secondary,
                 ),
               ),
@@ -719,14 +721,14 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
-  Widget _buildRecentEntries(ThemeData theme) {
+  Widget _buildRecentEntries(ThemeData theme, AppLocalizations t) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Text(
-              'Recent Entries',
+              t.home_recentEntries,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurface,
@@ -736,7 +738,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             GestureDetector(
               onTap: () => AppRouter.goToHistory(context),
               child: Text(
-                'View All →',
+                t.home_viewAllArrow,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.primary,
                   fontWeight: FontWeight.w500,
@@ -763,7 +765,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No entries yet',
+                  t.home_noEntriesYet,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -954,23 +956,23 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Future<void> _deleteEntry(BuildContext context, _EntryData entry) async {
+    final t = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Entry'),
-        content:
-            Text('Are you sure you want to delete this ${entry.type} entry?'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.entry_deleteEntry),
+        content: Text(t.entry_deleteConfirm(entry.type)),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(t.common_cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(t.common_delete),
           ),
         ],
       ),
@@ -989,8 +991,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('${entry.type.capitalize()} entry deleted successfully'),
+              content: Text(t.entry_deletedSuccess(entry.type.capitalize())),
               backgroundColor: Theme.of(context).colorScheme.primary,
             ),
           );
@@ -999,7 +1000,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to delete entry: $e'),
+              content: Text(t.error_deleteFailed(e.toString())),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -1133,35 +1134,36 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   void _showQuickEntry() {
+    final t = AppLocalizations.of(context)!;
     // Show bottom sheet with quick entry options
     showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext sheetContext) {
         return Container(
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Quick Entry',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                t.home_quickEntry,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               ListTile(
                 leading: const Icon(Icons.directions_car, color: Colors.blue),
-                title: const Text('Log Travel'),
-                subtitle: const Text('Quick travel entry'),
+                title: Text(t.home_logTravel),
+                subtitle: Text(t.home_quickTravelEntry),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   _startTravelEntry();
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.work, color: Colors.green),
-                title: const Text('Log Work'),
-                subtitle: const Text('Quick work entry'),
+                title: Text(t.home_logWork),
+                subtitle: Text(t.home_quickWorkEntry),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   _startWorkEntry();
                 },
               ),

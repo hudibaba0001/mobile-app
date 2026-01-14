@@ -14,6 +14,8 @@ import '../models/work_entry.dart';
 import 'reports/overview_tab.dart';
 import 'reports/trends_tab.dart';
 import 'reports/time_balance_tab.dart';
+import 'reports/leaves_tab.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -29,7 +31,7 @@ class _ReportsScreenState extends State<ReportsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -39,27 +41,59 @@ class _ReportsScreenState extends State<ReportsScreen>
   }
 
   Future<void> _showExportDialog(BuildContext context) async {
-    // Get all entries from repositories
-    final entries = await _getAllEntries();
-
-    if (entries.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No data available for export')),
-      );
-      return;
-    }
-
-    final result = await showDialog<Map<String, dynamic>>(
+    // Show loading indicator while fetching entries
+    if (!mounted) return;
+    
+    final t = AppLocalizations.of(context)!;
+    
+    showDialog(
       context: context,
-      builder: (context) => ExportDialog(
-        entries: entries,
-        initialStartDate: null, // Will be set by user in dialog
-        initialEndDate: null, // Will be set by user in dialog
-      ),
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator()),
     );
 
-    if (result != null) {
-      await _performExport(result);
+    try {
+      // Get all entries from repositories
+      final entries = await _getAllEntries();
+
+      // Close loading indicator
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+
+      if (entries.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t.export_noData)),
+        );
+        return;
+      }
+
+      if (!mounted) return;
+      final result = await showDialog<Map<String, dynamic>>(
+        context: context,
+        builder: (ctx) => ExportDialog(
+          entries: entries,
+          initialStartDate: null,
+          initialEndDate: null,
+        ),
+      );
+
+      if (result != null && mounted) {
+        await _performExport(result);
+      }
+    } catch (e) {
+      // Close loading indicator if still showing
+      if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(t.error_loadingEntries(e.toString())),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -146,6 +180,12 @@ class _ReportsScreenState extends State<ReportsScreen>
   }
 
   Future<void> _performExport(Map<String, dynamic> exportConfig) async {
+    if (!mounted) return;
+    
+    final t = AppLocalizations.of(context)!;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context, rootNavigator: true);
+    
     try {
       final entries = exportConfig['entries'] as List<Entry>;
       final fileName = exportConfig['fileName'] as String;
@@ -155,27 +195,26 @@ class _ReportsScreenState extends State<ReportsScreen>
 
       // Validate entries
       if (entries.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No entries to export. Please select entries with data.'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text(t.export_noEntries),
+            backgroundColor: Colors.orange,
+          ),
+        );
         return;
       }
 
       // Show loading indicator
+      if (!mounted) return;
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => AlertDialog(
+        builder: (ctx) => AlertDialog(
           content: Row(
             children: [
               const CircularProgressIndicator(),
               const SizedBox(width: 16),
-              Text('Generating ${format.toUpperCase()} export...'),
+              Flexible(child: Text(t.export_generating(format.toUpperCase()))),
             ],
           ),
         ),
@@ -183,52 +222,54 @@ class _ReportsScreenState extends State<ReportsScreen>
 
       // Generate file based on format
       String filePath;
-      if (format == 'excel') {
-        filePath = await ExportService.exportEntriesToExcel(
-          entries: entries,
-          fileName: fileName,
-          startDate: startDate,
-          endDate: endDate,
-        );
-      } else {
-        filePath = await ExportService.exportEntriesToCSV(
-          entries: entries,
-          fileName: fileName,
-          startDate: startDate,
-          endDate: endDate,
-        );
+      try {
+        if (format == 'excel') {
+          filePath = await ExportService.exportEntriesToExcel(
+            entries: entries,
+            fileName: fileName,
+            startDate: startDate,
+            endDate: endDate,
+          );
+        } else {
+          filePath = await ExportService.exportEntriesToCSV(
+            entries: entries,
+            fileName: fileName,
+            startDate: startDate,
+            endDate: endDate,
+          );
+        }
+      } catch (e) {
+        // Close loading dialog
+        if (navigator.canPop()) navigator.pop();
+        rethrow;
       }
 
       // Close loading dialog
-      Navigator.of(context).pop();
+      if (navigator.canPop()) navigator.pop();
 
       // On mobile/desktop, show share options dialog
       if (!kIsWeb && filePath.isNotEmpty && mounted) {
         await _showShareOptionsDialog(context, filePath, fileName, format);
       } else if (mounted) {
         // Web: just show download success
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text('${format.toUpperCase()} file downloaded successfully!'),
+            content: Text(t.export_downloadedSuccess(format.toUpperCase())),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
-      // Close loading dialog if still open
-      if (mounted && Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-
+      debugPrint('Export error: $e');
+      
       // Show error message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Export failed: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(t.export_failed(e.toString())),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
     }
   }
 
@@ -238,16 +279,19 @@ class _ReportsScreenState extends State<ReportsScreen>
     String fileName,
     String format,
   ) async {
+    if (!mounted) return;
+    
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
     
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            const Icon(Icons.check_circle, color: Colors.green, size: 28),
             const SizedBox(width: 12),
-            const Expanded(child: Text('Export Complete')),
+            Expanded(child: Text(t.export_complete)),
           ],
         ),
         content: Column(
@@ -255,12 +299,12 @@ class _ReportsScreenState extends State<ReportsScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${format.toUpperCase()} file has been saved successfully.',
+              t.export_savedSuccess(format.toUpperCase()),
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
             Text(
-              'Would you like to share it via email or another app?',
+              t.export_sharePrompt,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -269,20 +313,32 @@ class _ReportsScreenState extends State<ReportsScreen>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Done'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(t.common_done),
           ),
           FilledButton.icon(
             onPressed: () async {
-              Navigator.of(context).pop();
-              await Share.shareXFiles(
-                [XFile(filePath)],
-                subject: 'Time Tracker Export - $fileName',
-                text: 'Please find attached the time tracker report.',
-              );
+              Navigator.of(dialogContext).pop();
+              try {
+                await Share.shareXFiles(
+                  [XFile(filePath)],
+                  subject: t.export_shareSubject(fileName),
+                  text: t.export_shareText,
+                );
+              } catch (e) {
+                debugPrint('Share error: $e');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(t.error_shareFile(e.toString())),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+              }
             },
             icon: const Icon(Icons.share),
-            label: const Text('Share'),
+            label: Text(t.common_share),
           ),
         ],
       ),
@@ -291,6 +347,8 @@ class _ReportsScreenState extends State<ReportsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    
     return ChangeNotifierProvider(
       create: (context) {
         final viewModel = CustomerAnalyticsViewModel();
@@ -309,14 +367,14 @@ class _ReportsScreenState extends State<ReportsScreen>
 
         return Scaffold(
           appBar: StandardAppBar(
-            title: 'Reports & Analytics',
+            title: t.reports_title,
             actions: [
               IconButton(
                 icon: Icon(
                   Icons.file_download_outlined,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
-                tooltip: 'Export Data',
+                tooltip: t.reports_exportData,
                 onPressed: () => _showExportDialog(context),
               ),
             ],
@@ -338,7 +396,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Server analytics',
+                          t.reports_serverAnalytics,
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Theme.of(context)
@@ -369,10 +427,11 @@ class _ReportsScreenState extends State<ReportsScreen>
                   unselectedLabelColor:
                       Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                   indicatorColor: Theme.of(context).colorScheme.primary,
-                  tabs: const [
-                    Tab(text: 'Overview'),
-                    Tab(text: 'Trends'),
-                    Tab(text: 'Time Balance'),
+                  tabs: [
+                    Tab(text: t.reports_overview),
+                    Tab(text: t.reports_trends),
+                    Tab(text: t.reports_timeBalance),
+                    Tab(text: t.reports_leaves),
                   ],
                 ),
               ),
@@ -384,6 +443,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                     OverviewTab(),
                     TrendsTab(),
                     TimeBalanceTab(),
+                    LeavesTab(),
                   ],
                 ),
               ),

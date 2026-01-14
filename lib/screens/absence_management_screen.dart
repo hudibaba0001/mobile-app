@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../models/absence.dart';
 import '../providers/absence_provider.dart';
 
@@ -30,9 +31,11 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Absences'),
+        title: Text(t.absence_title),
         actions: [
           // Year selector
           PopupMenuButton<int>(
@@ -57,7 +60,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _showAddAbsenceDialog(context),
-            tooltip: 'Add Absence',
+            tooltip: t.absence_addAbsence,
           ),
         ],
       ),
@@ -79,7 +82,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error loading absences',
+                    t.absence_errorLoading,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
@@ -91,7 +94,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _loadAbsences,
-                    child: const Text('Retry'),
+                    child: Text(t.common_retry),
                   ),
                 ],
               ),
@@ -112,12 +115,12 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No absences for $_selectedYear',
+                    t.absence_noAbsences(_selectedYear),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap + to add vacation, sick leave, or VAB',
+                    t.absence_addHint,
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -174,39 +177,15 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     AbsenceEntry absence,
     AbsenceProvider absenceProvider,
   ) {
-    final dateFormat = DateFormat('EEEE, MMMM d', 'en_US');
+    final t = AppLocalizations.of(context);
+    final dateFormat = DateFormat('EEEE, MMMM d');
     final dateStr = dateFormat.format(absence.date);
 
-    String typeLabel;
-    IconData typeIcon;
-    Color typeColor;
-
-    switch (absence.type) {
-      case AbsenceType.vacationPaid:
-        typeLabel = 'Vacation (Paid)';
-        typeIcon = Icons.beach_access;
-        typeColor = Colors.blue;
-        break;
-      case AbsenceType.sickPaid:
-        typeLabel = 'Sick Leave (Paid)';
-        typeIcon = Icons.medical_services;
-        typeColor = Colors.red;
-        break;
-      case AbsenceType.vabPaid:
-        typeLabel = 'VAB (Paid)';
-        typeIcon = Icons.child_care;
-        typeColor = Colors.orange;
-        break;
-      case AbsenceType.unpaid:
-        typeLabel = 'Unpaid Leave';
-        typeIcon = Icons.event_busy;
-        typeColor = Colors.grey;
-        break;
-    }
+    final (typeLabel, typeIcon, typeColor) = _getTypeInfo(context, absence.type);
 
     final hours = absence.minutes == 0
-        ? 'Full day'
-        : '${(absence.minutes / 60.0).toStringAsFixed(1)} hours';
+        ? t.absence_fullDay
+        : '${(absence.minutes / 60.0).toStringAsFixed(1)} h';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -220,7 +199,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(dateStr),
-            Text('Duration: $hours'),
+            Text('${t.entry_duration}: $hours'),
           ],
         ),
         trailing: Row(
@@ -229,17 +208,31 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () => _showEditAbsenceDialog(context, absence),
-              tooltip: 'Edit',
+              tooltip: t.common_edit,
             ),
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () => _showDeleteConfirmation(context, absence),
-              tooltip: 'Delete',
+              tooltip: t.common_delete,
             ),
           ],
         ),
       ),
     );
+  }
+
+  (String, IconData, Color) _getTypeInfo(BuildContext context, AbsenceType type) {
+    final t = AppLocalizations.of(context);
+    switch (type) {
+      case AbsenceType.vacationPaid:
+        return (t.leave_paidVacation, Icons.beach_access, Colors.blue);
+      case AbsenceType.sickPaid:
+        return (t.leave_sickLeave, Icons.medical_services, Colors.red);
+      case AbsenceType.vabPaid:
+        return (t.leave_vab, Icons.child_care, Colors.orange);
+      case AbsenceType.unpaid:
+        return (t.leave_unpaid, Icons.event_busy, Colors.grey);
+    }
   }
 
   void _showAddAbsenceDialog(BuildContext context) {
@@ -251,6 +244,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
   }
 
   void _showAbsenceDialog(BuildContext context, {AbsenceEntry? absence}) {
+    final t = AppLocalizations.of(context);
     final isEditing = absence != null;
     DateTime selectedDate = absence?.date ?? DateTime.now();
     AbsenceType selectedType = absence?.type ?? AbsenceType.vacationPaid;
@@ -260,8 +254,8 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(isEditing ? 'Edit Absence' : 'Add Absence'),
+        builder: (ctx, setState) => AlertDialog(
+          title: Text(isEditing ? t.absence_editAbsence : t.absence_addAbsence),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -269,11 +263,11 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                 // Date picker
                 ListTile(
                   leading: const Icon(Icons.calendar_today),
-                  title: const Text('Date'),
+                  title: Text(t.absence_date),
                   subtitle: Text(DateFormat('EEEE, MMMM d, yyyy').format(selectedDate)),
                   onTap: () async {
                     final picked = await showDatePicker(
-                      context: context,
+                      context: ctx,
                       initialDate: selectedDate,
                       firstDate: DateTime(_selectedYear, 1, 1),
                       lastDate: DateTime(_selectedYear, 12, 31),
@@ -290,64 +284,21 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                 // Type selector
                 ListTile(
                   leading: const Icon(Icons.category),
-                  title: const Text('Type'),
-                  subtitle: Text(_getTypeLabel(selectedType)),
+                  title: Text(t.absence_type),
+                  subtitle: Text(_getTypeLabel(context, selectedType)),
                   onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (context) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ListTile(
-                            leading: const Icon(Icons.beach_access, color: Colors.blue),
-                            title: const Text('Vacation (Paid)'),
-                            onTap: () {
-                              setState(() {
-                                selectedType = AbsenceType.vacationPaid;
-                              });
-                              Navigator.pop(context);
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.medical_services, color: Colors.red),
-                            title: const Text('Sick Leave (Paid)'),
-                            onTap: () {
-                              setState(() {
-                                selectedType = AbsenceType.sickPaid;
-                              });
-                              Navigator.pop(context);
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.child_care, color: Colors.orange),
-                            title: const Text('VAB (Paid)'),
-                            onTap: () {
-                              setState(() {
-                                selectedType = AbsenceType.vabPaid;
-                              });
-                              Navigator.pop(context);
-                            },
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.event_busy, color: Colors.grey),
-                            title: const Text('Unpaid Leave'),
-                            onTap: () {
-                              setState(() {
-                                selectedType = AbsenceType.unpaid;
-                              });
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ],
-                      ),
-                    );
+                    _showTypeSelector(ctx, selectedType, (type) {
+                      setState(() {
+                        selectedType = type;
+                      });
+                    });
                   },
                 ),
                 const Divider(),
 
                 // Duration selector
                 CheckboxListTile(
-                  title: const Text('Full day'),
+                  title: Text(t.absence_fullDay),
                   value: isFullDay,
                   onChanged: (value) {
                     setState(() {
@@ -355,7 +306,6 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                       if (isFullDay) {
                         selectedMinutes = 0;
                       } else {
-                        // Default to 8 hours (480 min) when switching to partial
                         selectedMinutes = 480;
                       }
                     });
@@ -363,13 +313,13 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                 ),
                 if (!isFullDay) ...[
                   const SizedBox(height: 8),
-                  Text('Hours: ${(selectedMinutes / 60.0).toStringAsFixed(1)}'),
+                  Text('${(selectedMinutes / 60.0).toStringAsFixed(1)} h'),
                   Slider(
                     value: selectedMinutes.toDouble().clamp(60, 480),
                     min: 60,
                     max: 480,
                     divisions: 7,
-                    label: '${(selectedMinutes / 60.0).toStringAsFixed(1)} hours',
+                    label: '${(selectedMinutes / 60.0).toStringAsFixed(1)} h',
                     onChanged: (value) {
                       setState(() {
                         selectedMinutes = value.round();
@@ -382,49 +332,19 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(t.common_cancel),
             ),
             ElevatedButton(
-              onPressed: () async {
-                final absenceProvider = context.read<AbsenceProvider>();
-                final entry = AbsenceEntry(
-                  id: absence?.id,
-                  date: DateTime(selectedDate.year, selectedDate.month, selectedDate.day),
-                  minutes: selectedMinutes,
-                  type: selectedType,
-                );
-
-                try {
-                  if (isEditing) {
-                    await absenceProvider.updateAbsenceEntry(entry);
-                  } else {
-                    await absenceProvider.addAbsenceEntry(entry);
-                  }
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          isEditing
-                              ? 'Absence updated successfully'
-                              : 'Absence added successfully',
-                        ),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: Text(isEditing ? 'Update' : 'Add'),
+              onPressed: () => _saveAbsence(
+                ctx,
+                isEditing,
+                absence?.id,
+                selectedDate,
+                selectedType,
+                selectedMinutes,
+              ),
+              child: Text(isEditing ? t.common_save : t.common_add),
             ),
           ],
         ),
@@ -432,65 +352,153 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, AbsenceEntry absence) {
-    showDialog(
+  void _showTypeSelector(BuildContext context, AbsenceType current, ValueChanged<AbsenceType> onSelected) {
+    final t = AppLocalizations.of(context);
+    
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Absence'),
-        content: Text(
-          'Are you sure you want to delete this absence entry for ${DateFormat('MMMM d, yyyy').format(absence.date)}?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final absenceProvider = context.read<AbsenceProvider>();
-              try {
-                await absenceProvider.deleteAbsenceEntry(absence.id!, absence.date.year);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Absence deleted successfully'),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.beach_access, color: Colors.blue),
+            title: Text(t.leave_paidVacation),
+            onTap: () {
+              onSelected(AbsenceType.vacationPaid);
+              Navigator.pop(ctx);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            child: const Text('Delete'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.medical_services, color: Colors.red),
+            title: Text(t.leave_sickLeave),
+            onTap: () {
+              onSelected(AbsenceType.sickPaid);
+              Navigator.pop(ctx);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.child_care, color: Colors.orange),
+            title: Text(t.leave_vab),
+            onTap: () {
+              onSelected(AbsenceType.vabPaid);
+              Navigator.pop(ctx);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.event_busy, color: Colors.grey),
+            title: Text(t.leave_unpaid),
+            onTap: () {
+              onSelected(AbsenceType.unpaid);
+              Navigator.pop(ctx);
+            },
           ),
         ],
       ),
     );
   }
 
-  String _getTypeLabel(AbsenceType type) {
+  Future<void> _saveAbsence(
+    BuildContext context,
+    bool isEditing,
+    String? id,
+    DateTime date,
+    AbsenceType type,
+    int minutes,
+  ) async {
+    final t = AppLocalizations.of(context);
+    final absenceProvider = context.read<AbsenceProvider>();
+    final entry = AbsenceEntry(
+      id: id,
+      date: DateTime(date.year, date.month, date.day),
+      minutes: minutes,
+      type: type,
+    );
+
+    try {
+      if (isEditing) {
+        await absenceProvider.updateAbsenceEntry(entry);
+      } else {
+        await absenceProvider.addAbsenceEntry(entry);
+      }
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t.absence_savedSuccess)),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${t.absence_saveFailed}: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showDeleteConfirmation(BuildContext context, AbsenceEntry absence) {
+    final t = AppLocalizations.of(context);
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.absence_deleteAbsence),
+        content: Text(t.absence_deleteConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(t.common_cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => _deleteAbsence(ctx, absence),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: Text(t.common_delete),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteAbsence(BuildContext context, AbsenceEntry absence) async {
+    final t = AppLocalizations.of(context);
+    final absenceProvider = context.read<AbsenceProvider>();
+    
+    try {
+      await absenceProvider.deleteAbsenceEntry(absence.id!, absence.date.year);
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t.absence_deletedSuccess)),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${t.absence_deleteFailed}: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _getTypeLabel(BuildContext context, AbsenceType type) {
+    final t = AppLocalizations.of(context);
     switch (type) {
       case AbsenceType.vacationPaid:
-        return 'Vacation (Paid)';
+        return t.leave_paidVacation;
       case AbsenceType.sickPaid:
-        return 'Sick Leave (Paid)';
+        return t.leave_sickLeave;
       case AbsenceType.vabPaid:
-        return 'VAB (Paid)';
+        return t.leave_vab;
       case AbsenceType.unpaid:
-        return 'Unpaid Leave';
+        return t.leave_unpaid;
     }
   }
 }
-

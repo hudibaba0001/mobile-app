@@ -154,6 +154,12 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
               currentYear: currentMonth.year,
               creditHours: monthlyCredit > 0 ? monthlyCredit : null,
               yearCreditHours: yearlyCredit > 0 ? yearlyCredit : null,
+              openingBalanceFormatted: timeProvider.hasOpeningBalance 
+                  ? timeProvider.openingFlexFormatted 
+                  : null,
+              trackingStartDate: timeProvider.hasOpeningBalance || timeProvider.hasCustomTrackingStartDate
+                  ? timeProvider.trackingStartDate 
+                  : null,
             ),
           ),
         );

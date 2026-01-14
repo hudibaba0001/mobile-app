@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../providers/contract_provider.dart';
 import '../config/app_router.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Contract Settings screen with full ContractProvider integration
 /// Features: Contract percentage input, full-time hours input, live preview, validation
@@ -18,9 +20,16 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   final _contractPercentController = TextEditingController();
   final _fullTimeHoursController = TextEditingController();
   
+  // Starting balance fields
+  final _openingHoursController = TextEditingController();
+  final _openingMinutesController = TextEditingController();
+  DateTime _trackingStartDate = DateTime(DateTime.now().year, 1, 1);
+  bool _isDeficit = false; // false = credit (+), true = deficit (-)
+  
   bool _isFormValid = false;
   String? _contractPercentError;
   String? _fullTimeHoursError;
+  String? _openingBalanceError;
 
   @override
   void initState() {
@@ -30,33 +39,48 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       final contractProvider = context.read<ContractProvider>();
       _contractPercentController.text = contractProvider.contractPercent.toString();
       _fullTimeHoursController.text = contractProvider.fullTimeHours.toString();
+      
+      // Initialize starting balance fields
+      _trackingStartDate = contractProvider.trackingStartDate;
+      final absMinutes = contractProvider.openingFlexMinutes.abs();
+      final hours = absMinutes ~/ 60;
+      final mins = absMinutes % 60;
+      _openingHoursController.text = hours.toString();
+      _openingMinutesController.text = mins.toString().padLeft(2, '0');
+      _isDeficit = contractProvider.openingFlexMinutes < 0;
+      
       _validateForm();
     });
     
     // Add listeners for real-time validation
     _contractPercentController.addListener(_validateForm);
     _fullTimeHoursController.addListener(_validateForm);
+    _openingHoursController.addListener(_validateForm);
+    _openingMinutesController.addListener(_validateForm);
   }
 
   @override
   void dispose() {
     _contractPercentController.dispose();
     _fullTimeHoursController.dispose();
+    _openingHoursController.dispose();
+    _openingMinutesController.dispose();
     super.dispose();
   }
 
   void _validateForm() {
+    final t = AppLocalizations.of(context);
     setState(() {
       // Validate contract percentage
       final contractPercentText = _contractPercentController.text.trim();
       if (contractPercentText.isEmpty) {
-        _contractPercentError = 'Contract percentage is required';
+        _contractPercentError = t?.common_required(t.contract_percentage) ?? 'Contract percentage is required';
       } else {
         final contractPercent = int.tryParse(contractPercentText);
         if (contractPercent == null) {
-          _contractPercentError = 'Please enter a valid number';
+          _contractPercentError = t?.common_invalidNumber ?? 'Please enter a valid number';
         } else if (contractPercent < 0 || contractPercent > 100) {
-          _contractPercentError = 'Percentage must be between 0 and 100';
+          _contractPercentError = t?.contract_percentageError ?? 'Percentage must be between 0 and 100';
         } else {
           _contractPercentError = null;
         }
@@ -65,22 +89,44 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       // Validate full-time hours
       final fullTimeHoursText = _fullTimeHoursController.text.trim();
       if (fullTimeHoursText.isEmpty) {
-        _fullTimeHoursError = 'Full-time hours is required';
+        _fullTimeHoursError = t?.common_required(t.contract_fullTimeHours) ?? 'Full-time hours is required';
       } else {
         final fullTimeHours = int.tryParse(fullTimeHoursText);
         if (fullTimeHours == null) {
-          _fullTimeHoursError = 'Please enter a valid number';
+          _fullTimeHoursError = t?.common_invalidNumber ?? 'Please enter a valid number';
         } else if (fullTimeHours <= 0) {
-          _fullTimeHoursError = 'Hours must be greater than 0';
+          _fullTimeHoursError = t?.contract_fullTimeHoursError ?? 'Hours must be greater than 0';
         } else if (fullTimeHours > 168) { // 24 hours * 7 days
-          _fullTimeHoursError = 'Hours cannot exceed 168 per week';
+          _fullTimeHoursError = t?.contract_maxHoursError ?? 'Hours cannot exceed 168 per week';
         } else {
           _fullTimeHoursError = null;
         }
       }
 
-      // Form is valid if both fields have no errors
-      _isFormValid = _contractPercentError == null && _fullTimeHoursError == null;
+      // Validate opening balance
+      final hoursText = _openingHoursController.text.trim();
+      final minutesText = _openingMinutesController.text.trim();
+      
+      if (hoursText.isEmpty && minutesText.isEmpty) {
+        // Both empty is valid (defaults to 0)
+        _openingBalanceError = null;
+      } else {
+        final hours = int.tryParse(hoursText.isEmpty ? '0' : hoursText);
+        final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText);
+        
+        if (hours == null || hours < 0) {
+          _openingBalanceError = t?.contract_invalidHours ?? 'Invalid hours';
+        } else if (minutes == null || minutes < 0 || minutes >= 60) {
+          _openingBalanceError = t?.contract_minutesError ?? 'Minutes must be 0-59';
+        } else {
+          _openingBalanceError = null;
+        }
+      }
+
+      // Form is valid if all fields have no errors
+      _isFormValid = _contractPercentError == null && 
+                     _fullTimeHoursError == null && 
+                     _openingBalanceError == null;
     });
 
     // Update provider values if valid
@@ -96,14 +142,31 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       if (contractProvider.fullTimeHours != fullTimeHours) {
         contractProvider.setFullTimeHours(fullTimeHours);
       }
+      
+      // Update starting balance fields
+      if (contractProvider.trackingStartDate != _trackingStartDate) {
+        contractProvider.setTrackingStartDate(_trackingStartDate);
+      }
+      
+      final hoursText = _openingHoursController.text.trim();
+      final minutesText = _openingMinutesController.text.trim();
+      final hours = int.tryParse(hoursText.isEmpty ? '0' : hoursText) ?? 0;
+      final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
+      final totalMinutes = (hours * 60) + minutes;
+      final signedMinutes = _isDeficit ? -totalMinutes : totalMinutes;
+      
+      if (contractProvider.openingFlexMinutes != signedMinutes) {
+        contractProvider.setOpeningFlexMinutes(signedMinutes);
+      }
     }
   }
 
   void _saveSettings() {
+    final t = AppLocalizations.of(context)!;
     if (_isFormValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Contract settings saved successfully!'),
+        SnackBar(
+          content: Text(t.contract_savedSuccess),
           backgroundColor: Colors.green,
         ),
       );
@@ -112,32 +175,42 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   }
 
   void _resetToDefaults() {
+    final t = AppLocalizations.of(context)!;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset to Defaults'),
-        content: const Text('This will reset your contract settings to 100% full-time with 40 hours per week. Are you sure?'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.contract_resetToDefaults),
+        content: Text(t.contract_resetConfirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(t.common_cancel),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               final contractProvider = context.read<ContractProvider>();
               contractProvider.resetToDefaults();
               _contractPercentController.text = contractProvider.contractPercent.toString();
               _fullTimeHoursController.text = contractProvider.fullTimeHours.toString();
+              
+              // Reset starting balance fields
+              setState(() {
+                _trackingStartDate = contractProvider.trackingStartDate;
+                _openingHoursController.text = '0';
+                _openingMinutesController.text = '00';
+                _isDeficit = false;
+              });
+              
               _validateForm();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Contract settings reset to defaults'),
+                SnackBar(
+                  content: Text(t.contract_resetSuccess),
                   backgroundColor: Colors.blue,
                 ),
               );
             },
-            child: const Text('Reset'),
+            child: Text(t.common_reset),
           ),
         ],
       ),
@@ -148,11 +221,12 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Contract Settings'),
+        title: Text(t.contract_title),
         elevation: 0,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
@@ -164,7 +238,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
           TextButton(
             onPressed: _isFormValid ? _saveSettings : null,
             child: Text(
-              'Save',
+              t.common_save,
               style: TextStyle(
                 color: _isFormValid ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.5),
                 fontWeight: FontWeight.w600,
@@ -203,7 +277,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                'Contract Settings',
+                                t.contract_headerTitle,
                                 style: theme.textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.primary,
@@ -213,7 +287,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Configure your contract percentage and full-time hours for accurate work time tracking and overtime calculations.',
+                            t.contract_headerDescription,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurface.withOpacity(0.8),
                             ),
@@ -228,9 +302,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   // Contract Percentage Field
                   _buildTextField(
                     theme,
-                    'Contract Percentage',
+                    t.contract_percentage,
                     _contractPercentController,
-                    'Enter percentage (0-100)',
+                    t.contract_percentageHint,
                     suffixText: '%',
                     errorText: _contractPercentError,
                     keyboardType: TextInputType.number,
@@ -245,10 +319,10 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   // Full-time Hours Field
                   _buildTextField(
                     theme,
-                    'Full-time Hours per Week',
+                    t.contract_fullTimeHours,
                     _fullTimeHoursController,
-                    'Enter hours per week (e.g., 40)',
-                    suffixText: 'hrs/week',
+                    t.contract_fullTimeHoursHint,
+                    suffixText: t.contract_hrsWeek,
                     errorText: _fullTimeHoursError,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
@@ -256,6 +330,11 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       LengthLimitingTextInputFormatter(3),
                     ],
                   ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Starting Balance Section
+                  _buildStartingBalanceSection(theme, colorScheme, contractProvider, t),
                   
                   const SizedBox(height: 32),
                   
@@ -280,7 +359,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Live Preview',
+                                t.contract_livePreview,
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: colorScheme.secondary,
@@ -292,28 +371,28 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           
                           _buildPreviewRow(
                             theme,
-                            'Contract Type',
-                            contractProvider.isFullTime ? 'Full-time' : 'Part-time',
+                            t.contract_contractType,
+                            contractProvider.isFullTime ? t.contract_fullTime : t.contract_partTime,
                             Icons.badge,
                           ),
                           
                           _buildPreviewRow(
                             theme,
-                            'Contract Percentage',
+                            t.contract_percentage,
                             contractProvider.contractPercentString,
                             Icons.percent,
                           ),
                           
                           _buildPreviewRow(
                             theme,
-                            'Full-time Hours',
+                            t.contract_fullTimeHours,
                             contractProvider.fullTimeHoursString,
                             Icons.schedule,
                           ),
                           
                           _buildPreviewRow(
                             theme,
-                            'Allowed Hours',
+                            t.contract_allowedHours,
                             contractProvider.allowedHoursString,
                             Icons.check_circle,
                             isHighlighted: true,
@@ -321,9 +400,26 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           
                           _buildPreviewRow(
                             theme,
-                            'Daily Hours',
-                            '${contractProvider.allowedHoursPerDay.toStringAsFixed(1)} hours/day',
+                            t.contract_dailyHours,
+                            t.contract_hoursPerDayValue(contractProvider.allowedHoursPerDay.toStringAsFixed(1)),
                             Icons.today,
+                          ),
+                          
+                          const Divider(height: 24),
+                          
+                          _buildPreviewRow(
+                            theme,
+                            t.contract_startTrackingFrom,
+                            DateFormat('MMM d, yyyy').format(_trackingStartDate),
+                            Icons.calendar_today,
+                          ),
+                          
+                          _buildPreviewRow(
+                            theme,
+                            t.contract_openingBalance,
+                            contractProvider.openingFlexFormatted,
+                            Icons.account_balance_wallet,
+                            isHighlighted: contractProvider.hasOpeningBalance,
                           ),
                         ],
                       ),
@@ -339,7 +435,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                         child: OutlinedButton.icon(
                           onPressed: _resetToDefaults,
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Reset to Defaults'),
+                          label: Text(t.contract_resetToDefaults),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(0, 48),
                             shape: RoundedRectangleBorder(
@@ -354,7 +450,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                         child: ElevatedButton.icon(
                           onPressed: _isFormValid ? _saveSettings : null,
                           icon: const Icon(Icons.save),
-                          label: const Text('Save Settings'),
+                          label: Text(t.contract_saveSettings),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colorScheme.primary,
                             foregroundColor: colorScheme.onPrimary,
@@ -474,5 +570,261 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
         ],
       ),
     );
+  }
+  
+  Widget _buildStartingBalanceSection(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    ContractProvider contractProvider,
+    AppLocalizations t,
+  ) {
+    return Card(
+      elevation: 0,
+      color: colorScheme.tertiaryContainer.withOpacity(0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.account_balance_wallet,
+                  color: colorScheme.tertiary,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  t.contract_startingBalance,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.tertiary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              t.contract_startingBalanceDescription,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withOpacity(0.8),
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            // Start Tracking From Date
+            Text(
+              t.contract_startTrackingFrom,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: () => _selectStartDate(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: colorScheme.outline),
+                  borderRadius: BorderRadius.circular(12),
+                  color: colorScheme.surface,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      color: colorScheme.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      DateFormat('MMMM d, yyyy').format(_trackingStartDate),
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.edit,
+                      color: colorScheme.onSurfaceVariant,
+                      size: 18,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Opening Time Balance
+            Text(
+              t.contract_openingBalance,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Credit/Deficit Toggle
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colorScheme.outline),
+                    borderRadius: BorderRadius.circular(12),
+                    color: colorScheme.surface,
+                  ),
+                  child: ToggleButtons(
+                    borderRadius: BorderRadius.circular(12),
+                    isSelected: [!_isDeficit, _isDeficit],
+                    onPressed: (index) {
+                      setState(() {
+                        _isDeficit = index == 1;
+                      });
+                      _validateForm();
+                    },
+                    constraints: const BoxConstraints(
+                      minWidth: 60,
+                      minHeight: 48,
+                    ),
+                    selectedColor: colorScheme.onPrimary,
+                    fillColor: _isDeficit ? Colors.red : Colors.green,
+                    color: colorScheme.onSurface,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          '+',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          '−',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(width: 12),
+                
+                // Hours input
+                Expanded(
+                  child: TextFormField(
+                    controller: _openingHoursController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(3),
+                    ],
+                    decoration: InputDecoration(
+                      hintText: '0',
+                      suffixText: 'h',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(width: 8),
+                
+                // Minutes input
+                SizedBox(
+                  width: 80,
+                  child: TextFormField(
+                    controller: _openingMinutesController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(2),
+                    ],
+                    decoration: InputDecoration(
+                      hintText: '00',
+                      suffixText: 'm',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            if (_openingBalanceError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _openingBalanceError!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.error,
+                ),
+              ),
+            ],
+            
+            const SizedBox(height: 12),
+            
+            // Helper text
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _isDeficit
+                          ? t.contract_deficitExplanation
+                          : t.contract_creditExplanation,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Future<void> _selectStartDate(BuildContext context) async {
+    final t = AppLocalizations.of(context)!;
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _trackingStartDate,
+      firstDate: DateTime(2000),
+      lastDate: now.add(const Duration(days: 365)),
+      helpText: t.contract_startTrackingFrom,
+    );
+    
+    if (picked != null && picked != _trackingStartDate) {
+      setState(() {
+        _trackingStartDate = picked;
+      });
+      _validateForm();
+    }
   }
 }

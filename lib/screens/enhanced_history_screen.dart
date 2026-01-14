@@ -480,11 +480,11 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                               ),
                             ),
                           ),
-                          // Holiday work badge (takes priority if it's actual holiday work)
+                          // Holiday work badge (for work entries on red days)
                           if (entry.isHolidayWork) ...[
                             const SizedBox(width: 6),
                             Tooltip(
-                              message: 'Holiday work: ${entry.holidayName ?? holidayInfo?.name ?? "Public holiday"}',
+                              message: 'Holiday work: ${entry.holidayName ?? "Red day"}',
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
@@ -504,30 +504,32 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                                 ),
                               ),
                             ),
-                          ] else if (holidayInfo != null) ...[
-                            // Just show "Auto" badge for travel entries on holidays
-                            const SizedBox(width: 6),
-                            Tooltip(
-                              message: 'Auto-marked: ${holidayInfo.name}',
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade600,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text(
-                                  'Auto',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
+                          ] else ...[
+                            // Show red day badges (Auto and/or Personal)
+                            if (holidayInfo != null) ...[
+                              const SizedBox(width: 6),
+                              Tooltip(
+                                message: 'Auto-marked: ${holidayInfo.name}',
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade600,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'Auto',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ],
                         ],
                       ),
