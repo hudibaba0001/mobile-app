@@ -7,6 +7,7 @@ import '../services/profile_service.dart';
 import '../models/user_profile.dart';
 import '../config/external_links.dart';
 import '../config/app_router.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Gate screen that checks legal acceptance and subscription status
 /// Blocks access to app if requirements are not met
@@ -22,7 +23,7 @@ class AccountStatusGate extends StatefulWidget {
   State<AccountStatusGate> createState() => _AccountStatusGateState();
 }
 
-class _AccountStatusGateState extends State<AccountStatusGate> {
+class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindingObserver {
   final _profileService = ProfileService();
   UserProfile? _profile;
   bool _isLoading = true;
@@ -31,7 +32,22 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadProfile();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh profile when app resumes (e.g., after returning from payment portal)
+      _loadProfile();
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -71,9 +87,10 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
       }
     } catch (e) {
       if (mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to open signup page: $e'),
+            content: Text(t.auth_signupFailed(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -89,9 +106,10 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
       }
     } catch (e) {
       if (mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to open subscription page: $e'),
+            content: Text(t.auth_subscriptionFailed(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -150,7 +168,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Error',
+                  AppLocalizations.of(context)!.common_error,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
@@ -162,7 +180,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _loadProfile,
-                  child: const Text('Retry'),
+                  child: Text(AppLocalizations.of(context)!.common_retry),
                 ),
               ],
             ),
@@ -204,7 +222,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                 ElevatedButton.icon(
                   onPressed: _openSignupPage,
                   icon: const Icon(Icons.open_in_new),
-                  label: const Text('Complete Registration'),
+                  label: Text(AppLocalizations.of(context)!.auth_completeRegistration),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -218,7 +236,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                       context.goNamed(AppRouter.loginName);
                     }
                   },
-                  child: const Text('Sign Out'),
+                  child: Text(AppLocalizations.of(context)!.auth_signOut),
                 ),
               ],
             ),
@@ -244,7 +262,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'Legal Acceptance Required',
+                  AppLocalizations.of(context)!.auth_legalRequired,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -252,13 +270,13 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'You must accept our Terms of Service and Privacy Policy to continue using the app.',
+                  AppLocalizations.of(context)!.auth_legalDescription,
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Please visit our signup page to complete this step.',
+                  AppLocalizations.of(context)!.auth_legalVisitSignup,
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -266,7 +284,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                 ElevatedButton.icon(
                   onPressed: _openSignupPage,
                   icon: const Icon(Icons.open_in_new),
-                  label: const Text('Open Signup Page'),
+                  label: Text(AppLocalizations.of(context)!.auth_openSignupPage),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -280,7 +298,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                       context.goNamed(AppRouter.loginName);
                     }
                   },
-                  child: const Text('Sign Out'),
+                  child: Text(AppLocalizations.of(context)!.auth_signOut),
                 ),
               ],
             ),
@@ -322,7 +340,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                 ElevatedButton.icon(
                   onPressed: _openManageSubscription,
                   icon: const Icon(Icons.open_in_new),
-                  label: const Text('Manage Subscription'),
+                  label: Text(AppLocalizations.of(context)!.settings_manageSubscription),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -336,7 +354,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> {
                       context.goNamed(AppRouter.loginName);
                     }
                   },
-                  child: const Text('Sign Out'),
+                  child: Text(AppLocalizations.of(context)!.auth_signOut),
                 ),
               ],
             ),

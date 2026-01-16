@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import '../config/external_links.dart';
 import '../config/app_router.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Screen that redirects users to external signup page
 class CreateAccountScreen extends StatelessWidget {
@@ -19,9 +20,10 @@ class CreateAccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Account'),
+        title: Text(t.account_createTitle),
       ),
       body: SafeArea(
         child: Padding(
@@ -37,7 +39,7 @@ class CreateAccountScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               Text(
-                'Create your account on the web',
+                t.account_createOnWeb,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -45,7 +47,7 @@ class CreateAccountScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'To create an account, please visit our signup page in your web browser.',
+                t.account_createDescription,
                 style: Theme.of(context).textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),
@@ -58,7 +60,7 @@ class CreateAccountScreen extends StatelessWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Failed to open signup page: $e'),
+                          content: Text(t.auth_signupFailed(e.toString())),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -66,7 +68,7 @@ class CreateAccountScreen extends StatelessWidget {
                   }
                 },
                 icon: const Icon(Icons.open_in_new),
-                label: const Text('Open signup page'),
+                label: Text(t.account_openSignupPage),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -74,7 +76,7 @@ class CreateAccountScreen extends StatelessWidget {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => context.goNamed(AppRouter.loginName),
-                child: const Text('I already have an account → Login'),
+                child: Text(t.account_alreadyHaveAccount),
               ),
             ],
           ),

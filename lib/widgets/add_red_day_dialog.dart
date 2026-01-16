@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/user_red_day.dart';
 import '../services/holiday_service.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Dialog for adding/editing a personal red day
 class AddRedDayDialog extends StatefulWidget {
@@ -48,6 +49,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
   }
 
   Future<void> _save() async {
+    final t = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
 
     try {
@@ -70,8 +72,8 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(widget.existingRedDay != null 
-                ? 'Red day updated' 
-                : 'Red day added'),
+                ? t.redDay_updated 
+                : t.redDay_added),
             backgroundColor: Colors.green,
           ),
         );
@@ -80,7 +82,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving red day: $e'),
+            content: Text(t.redDay_errorSaving(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -93,22 +95,23 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
   }
 
   Future<void> _delete() async {
+    final t = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove Red Day?'),
-        content: const Text('This will remove the personal red day marker from this date.'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.redDay_removeTitle),
+        content: Text(t.redDay_removeMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(t.common_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Colors.red,
             ),
-            child: const Text('Remove'),
+            child: Text(t.redDay_remove),
           ),
         ],
       ),
@@ -124,8 +127,8 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
       if (mounted) {
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Red day removed'),
+          SnackBar(
+            content: Text(t.redDay_removed),
             backgroundColor: Colors.green,
           ),
         );
@@ -134,7 +137,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error removing red day: $e'),
+            content: Text(t.redDay_errorRemoving(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -148,6 +151,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final dateStr = DateFormat('EEEE, MMMM d, y').format(widget.date);
     final redDayInfo = widget.holidayService.getRedDayInfo(widget.date);
@@ -162,7 +166,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(isEditing ? 'Edit Red Day' : 'Mark as Red Day'),
+            child: Text(isEditing ? t.redDay_editRedDay : t.redDay_markAsRedDay),
           ),
         ],
       ),
@@ -205,15 +209,15 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
                         color: Colors.red.shade600,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text(
-                        'Auto',
-                        style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                      child: Text(
+                        t.redDay_auto,
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        redDayInfo.autoHolidayName ?? 'Public Holiday',
+                        redDayInfo.autoHolidayName ?? t.redDay_publicHoliday,
                         style: TextStyle(color: Colors.red.shade800, fontWeight: FontWeight.w500),
                       ),
                     ),
@@ -226,21 +230,21 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
 
             // Kind selector
             Text(
-              'Duration',
+              t.redDay_duration,
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             SegmentedButton<RedDayKind>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: RedDayKind.full,
-                  label: Text('Full Day'),
-                  icon: Icon(Icons.calendar_today),
+                  label: Text(t.redDay_fullDay),
+                  icon: const Icon(Icons.calendar_today),
                 ),
                 ButtonSegment(
                   value: RedDayKind.half,
-                  label: Text('Half Day'),
-                  icon: Icon(Icons.timelapse),
+                  label: Text(t.redDay_halfDay),
+                  icon: const Icon(Icons.timelapse),
                 ),
               ],
               selected: {_kind},
@@ -258,14 +262,14 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
             if (_kind == RedDayKind.half) ...[
               const SizedBox(height: 12),
               SegmentedButton<HalfDay>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: HalfDay.am,
-                    label: Text('Morning (AM)'),
+                    label: Text(t.redDay_morningAM),
                   ),
                   ButtonSegment(
                     value: HalfDay.pm,
-                    label: Text('Afternoon (PM)'),
+                    label: Text(t.redDay_afternoonPM),
                   ),
                 ],
                 selected: {_half ?? HalfDay.am},
@@ -279,15 +283,15 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
 
             // Reason field
             Text(
-              'Reason (optional)',
+              t.form_notesOptional,
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _reasonController,
-              decoration: const InputDecoration(
-                hintText: 'e.g., Personal day, Appointment...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: t.redDay_reasonHint,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
               textCapitalization: TextCapitalization.sentences,
@@ -301,12 +305,12 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
           TextButton(
             onPressed: _isLoading ? null : _delete,
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Remove'),
+            child: Text(t.redDay_remove),
           ),
         const Spacer(),
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(t.common_cancel),
         ),
         FilledButton(
           onPressed: _isLoading ? null : _save,
@@ -316,7 +320,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(isEditing ? 'Update' : 'Save'),
+              : Text(isEditing ? t.adjustment_update : t.common_save),
         ),
       ],
     );

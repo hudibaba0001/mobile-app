@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/absence.dart';
 import '../../providers/absence_provider.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class LeavesTab extends StatefulWidget {
   const LeavesTab({super.key});
@@ -133,7 +134,7 @@ class _LeavesTabState extends State<LeavesTab> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Leave Summary $year',
+                  AppLocalizations.of(context)!.leave_summary(year),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.primary,
@@ -183,7 +184,7 @@ class _LeavesTabState extends State<LeavesTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total Leave Days',
+                  AppLocalizations.of(context)!.leave_totalLeaveDays,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -270,7 +271,7 @@ class _LeavesTabState extends State<LeavesTab> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Recent Leaves',
+              AppLocalizations.of(context)!.leave_recentLeaves,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -298,14 +299,14 @@ class _LeavesTabState extends State<LeavesTab> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No leaves recorded',
+                      AppLocalizations.of(context)!.leave_noLeavesRecorded,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Your leave history will appear here',
+                      AppLocalizations.of(context)!.leave_noLeavesDescription,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                       ),
@@ -376,7 +377,7 @@ class _LeavesTabState extends State<LeavesTab> {
               ),
               child: Text(
                 absence.minutes == 0 
-                    ? 'Full Day'
+                    ? AppLocalizations.of(context)!.leave_fullDay
                     : '${(absence.minutes / 60).toStringAsFixed(1)}h',
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: typeInfo.color,

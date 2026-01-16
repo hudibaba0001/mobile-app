@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../config/app_router.dart';
 import '../providers/entry_provider.dart';
 import '../services/supabase_auth_service.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class AppScaffold extends StatefulWidget {
   final Widget child;
@@ -25,13 +26,15 @@ class _AppScaffoldState extends State<AppScaffold> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    
+
     // Load entries once when user is authenticated
     if (!_hasLoadedEntries) {
       final authService = context.read<SupabaseAuthService>();
       final entryProvider = context.read<EntryProvider>();
-      
-      if (authService.isAuthenticated && entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+
+      if (authService.isAuthenticated &&
+          entryProvider.entries.isEmpty &&
+          !entryProvider.isLoading) {
         _hasLoadedEntries = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           entryProvider.loadEntries();
@@ -61,31 +64,36 @@ class _AppScaffoldState extends State<AppScaffold> {
       },
       child: Scaffold(
         body: widget.child,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _calculateSelectedIndex(widget.currentPath),
-          onDestinationSelected: (index) => _onItemTapped(index, context),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.history_outlined),
-              selectedIcon: Icon(Icons.history),
-              label: 'History',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.analytics_outlined),
-              selectedIcon: Icon(Icons.analytics),
-              label: 'Reports',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
-          ],
+        bottomNavigationBar: Builder(
+          builder: (context) {
+            final t = AppLocalizations.of(context)!;
+            return NavigationBar(
+              selectedIndex: _calculateSelectedIndex(widget.currentPath),
+              onDestinationSelected: (index) => _onItemTapped(index, context),
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home),
+                  label: t.nav_home,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.history_outlined),
+                  selectedIcon: const Icon(Icons.history),
+                  label: t.nav_history,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.analytics_outlined),
+                  selectedIcon: const Icon(Icons.analytics),
+                  label: t.nav_reports,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.settings_outlined),
+                  selectedIcon: const Icon(Icons.settings),
+                  label: t.nav_settings,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

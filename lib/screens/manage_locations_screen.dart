@@ -4,6 +4,7 @@ import '../models/location.dart';
 import '../providers/location_provider.dart';
 import '../widgets/standard_app_bar.dart';
 import '../widgets/keyboard_aware_form_container.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class ManageLocationsScreen extends StatefulWidget {
   const ManageLocationsScreen({super.key});
@@ -147,7 +148,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                           controller: _addressController,
                           decoration: InputDecoration(
                             labelText: 'Address',
-                            hintText: 'Full address',
+                            hintText: AppLocalizations.of(context)!.location_fullAddress,
                             prefixIcon: Icon(
                               Icons.location_on_outlined,
                               color: colorScheme.onSurfaceVariant,
@@ -234,7 +235,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: const Text('Add Location'),
+                                child: Text(AppLocalizations.of(context)!.location_addLocation),
                               ),
                             ),
                           ],
@@ -403,7 +404,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 FilledButton.icon(
                                   onPressed: _showAddLocationDialog,
                                   icon: const Icon(Icons.add),
-                                  label: const Text('Add First Location'),
+                                  label: Text(AppLocalizations.of(context)!.location_addFirstLocation),
                                   style: FilledButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24,
@@ -571,24 +572,24 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
               ),
               onSelected: (value) async {
                 if (value == 'delete') {
+                  final t = AppLocalizations.of(context)!;
                   final confirmed = await showDialog<bool>(
                     context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Delete Location'),
-                      content: Text(
-                          'Are you sure you want to delete "${location.name}"?'),
+                    builder: (dialogContext) => AlertDialog(
+                      title: Text(t.location_deleteLocation),
+                      content: Text(t.location_deleteConfirm(location.name)),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('Cancel'),
+                          onPressed: () => Navigator.of(dialogContext).pop(false),
+                          child: Text(t.common_cancel),
                         ),
                         FilledButton.tonal(
-                          onPressed: () => Navigator.of(context).pop(true),
+                          onPressed: () => Navigator.of(dialogContext).pop(true),
                           style: FilledButton.styleFrom(
                             backgroundColor: colorScheme.errorContainer,
                             foregroundColor: colorScheme.onErrorContainer,
                           ),
-                          child: const Text('Delete'),
+                          child: Text(t.common_delete),
                         ),
                       ],
                     ),

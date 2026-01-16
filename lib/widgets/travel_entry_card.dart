@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/entry.dart'; // Updated to use unified Entry model
 import '../utils/constants.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class TravelEntryCard extends StatefulWidget {
   final Entry entry; // Updated to use Entry model
@@ -234,7 +235,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                   value: 'edit',
                   child: ListTile(
                     leading: Icon(Icons.edit, size: 20),
-                    title: Text('Edit'),
+                    title: Text(AppLocalizations.of(context)!.common_edit),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -242,7 +243,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                   value: 'delete',
                   child: ListTile(
                     leading: Icon(Icons.delete, color: Colors.red, size: 20),
-                    title: Text('Delete', style: TextStyle(color: Colors.red)),
+                    title: Text(AppLocalizations.of(context)!.common_delete, style: const TextStyle(color: Colors.red)),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -332,7 +333,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                       value: 'edit',
                       child: ListTile(
                         leading: Icon(Icons.edit),
-                        title: Text('Edit'),
+                        title: Text(AppLocalizations.of(context)!.common_edit),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -340,7 +341,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                       value: 'delete',
                       child: ListTile(
                         leading: Icon(Icons.delete, color: Colors.red),
-                        title: Text('Delete', style: TextStyle(color: Colors.red)),
+                        title: Text(AppLocalizations.of(context)!.common_delete, style: const TextStyle(color: Colors.red)),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),

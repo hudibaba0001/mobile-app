@@ -8,6 +8,7 @@ import '../services/map_service.dart';
 import '../services/holiday_service.dart';
 import 'package:flutter/foundation.dart';
 import '../widgets/keyboard_aware_form_container.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Unified entry form for both travel and work entries
 /// Provides appropriate fields based on entry type
@@ -45,7 +46,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   String? _workLocation;
   Shift? _shift;
 
-  String? get _currentUserId => context.read<SupabaseAuthService>().currentUser?.id;
+  String? get _currentUserId =>
+      context.read<SupabaseAuthService>().currentUser?.id;
 
   bool _isLoading = false;
   bool _isCalculatingTravelTime = false;
@@ -126,7 +128,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Log ${isTravel ? 'Travel' : 'Work'} Entry',
+                    isTravel
+                        ? AppLocalizations.of(context)!.entry_logTravelEntry
+                        : AppLocalizations.of(context)!.entry_logWorkEntry,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -136,7 +140,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                     style: IconButton.styleFrom(
-                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                     ),
                   ),
                 ],
@@ -147,7 +152,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               isTravel
                   ? _buildTravelDateAndTimesSection(theme)
                   : _buildWorkDateAndTimesSection(theme),
-              
+
               // Holiday Notice (if date is a public holiday)
               _buildHolidayNotice(theme),
               const SizedBox(height: 20),
@@ -232,7 +237,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Date & Time',
+          AppLocalizations.of(context)!.form_dateTime,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -338,13 +343,13 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   Widget _buildHolidayNotice(ThemeData theme) {
     final holidayService = context.watch<HolidayService>();
     final redDayInfo = holidayService.getRedDayInfo(_selectedDate);
-    
+
     if (!redDayInfo.isRedDay) {
       return const SizedBox.shrink();
     }
 
     final isWorkEntry = widget.entryType == EntryType.work;
-    
+
     return Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(12),
@@ -360,23 +365,26 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             children: [
               // Show badges
               ...redDayInfo.badges.map((badge) => Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: badge == 'Auto' ? Colors.red.shade600 : Colors.purple.shade600,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    badge,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: badge == 'Auto'
+                            ? Colors.red.shade600
+                            : Colors.purple.shade600,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        badge,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              )),
+                  )),
               const SizedBox(width: 6),
               Expanded(
                 child: Column(
@@ -400,7 +408,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                           color: Colors.purple.shade700,
                         ),
                       ),
-                    if (redDayInfo.isAutoHoliday && redDayInfo.personalRedDay == null)
+                    if (redDayInfo.isAutoHoliday &&
+                        redDayInfo.personalRedDay == null)
                       Text(
                         'Public holiday in Sweden',
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -432,7 +441,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.work_outline, size: 18, color: Colors.amber.shade800),
+                  Icon(Icons.work_outline,
+                      size: 18, color: Colors.amber.shade800),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -457,7 +467,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Travel Route',
+          AppLocalizations.of(context)!.form_travelRoute,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -490,9 +500,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
         const SizedBox(height: 12),
         // Calculate Travel Time Button
-        if (_departureLocation != null && 
-            _departureLocation!.isNotEmpty && 
-            _arrivalLocation != null && 
+        if (_departureLocation != null &&
+            _departureLocation!.isNotEmpty &&
+            _arrivalLocation != null &&
             _arrivalLocation!.isNotEmpty)
           OutlinedButton.icon(
             onPressed: _isCalculatingTravelTime ? null : _calculateTravelTime,
@@ -503,8 +513,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.directions_car),
-            label: Text(_isCalculatingTravelTime 
-                ? 'Calculating...' 
+            label: Text(_isCalculatingTravelTime
+                ? 'Calculating...'
                 : 'Calculate Travel Time'),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
@@ -524,9 +534,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   Future<void> _calculateTravelTime() async {
-    if (_departureLocation == null || 
-        _departureLocation!.isEmpty || 
-        _arrivalLocation == null || 
+    if (_departureLocation == null ||
+        _departureLocation!.isEmpty ||
+        _arrivalLocation == null ||
         _arrivalLocation!.isEmpty) {
       return;
     }
@@ -556,7 +566,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           _startTime.hour,
           _startTime.minute,
         );
-        final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
+        final endDateTime =
+            startDateTime.add(Duration(minutes: durationMinutes));
         _endTime = TimeOfDay.fromDateTime(endDateTime);
         _isCalculatingTravelTime = false;
       });
@@ -580,9 +591,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       });
 
       if (mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to calculate travel time: ${e.toString()}'),
+            content: Text(t.error_calculatingTravelTime(e.toString())),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -596,7 +608,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Work Location',
+          AppLocalizations.of(context)!.form_workLocation,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -692,7 +704,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Work Details',
+          AppLocalizations.of(context)!.form_workDetails,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -756,6 +768,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   Widget _buildActionButtons(ThemeData theme) {
+    final t = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(
@@ -766,7 +779,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Cancel'),
+            child: Text(t.common_cancel),
           ),
         ),
         const SizedBox(width: 12),
@@ -784,7 +797,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Save Entry'),
+                : Text(t.entry_saveEntry),
           ),
         ),
       ],
@@ -826,14 +839,15 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   Future<void> _saveEntry() async {
+    final t = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
     // Validate required fields
     if (widget.entryType == EntryType.travel) {
       if (_departureLocation == null || _arrivalLocation == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select both departure and arrival locations'),
+          SnackBar(
+            content: Text(t.error_selectBothLocations),
             backgroundColor: Colors.red,
           ),
         );
@@ -842,8 +856,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     } else {
       if (_workLocation == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a work location'),
+          SnackBar(
+            content: Text(t.error_selectWorkLocation),
             backgroundColor: Colors.red,
           ),
         );
@@ -851,8 +865,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       }
       if (_endTime == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select an end time'),
+          SnackBar(
+            content: Text(t.error_selectEndTime),
             backgroundColor: Colors.red,
           ),
         );
@@ -867,8 +881,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     try {
       if (_currentUserId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please sign in to save entries'),
+          SnackBar(
+            content: Text(t.error_signInRequired),
             backgroundColor: Colors.red,
           ),
         );
@@ -901,10 +915,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       // Check if this is holiday work (work entry on a red day - auto or personal)
       final holidayService = context.read<HolidayService>();
       final redDayInfo = holidayService.getRedDayInfo(_selectedDate);
-      final isHolidayWork = widget.entryType == EntryType.work && redDayInfo.isRedDay;
+      final isHolidayWork =
+          widget.entryType == EntryType.work && redDayInfo.isRedDay;
       // Get holiday name (prefer auto holiday name, fallback to personal reason)
-      final holidayName = redDayInfo.autoHolidayName ?? 
-          redDayInfo.personalRedDay?.reason ?? 
+      final holidayName = redDayInfo.autoHolidayName ??
+          redDayInfo.personalRedDay?.reason ??
           (redDayInfo.personalRedDay != null ? 'Personal red day' : null);
 
       final entry = Entry(
@@ -977,7 +992,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving entry: $e'),
+            content: Text(t.error_savingEntry(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

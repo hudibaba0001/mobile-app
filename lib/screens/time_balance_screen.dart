@@ -4,6 +4,7 @@ import '../providers/time_provider.dart';
 import '../providers/entry_provider.dart';
 import '../providers/contract_provider.dart';
 import '../widgets/time_balance_dashboard.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Screen that displays the time balance dashboard
 /// Loads data from TimeProvider and displays weekly, monthly, and yearly balances
@@ -59,8 +60,9 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
         }
 
         if (timeProvider.error != null) {
+          final t = AppLocalizations.of(context)!;
           return Scaffold(
-            appBar: AppBar(title: const Text('Time Balance')),
+            appBar: AppBar(title: Text(t.balance_title)),
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -72,7 +74,7 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error loading balance',
+                    t.error_loadingBalance,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
@@ -84,7 +86,7 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _loadBalances,
-                    child: const Text('Retry'),
+                    child: Text(t.common_retry),
                   ),
                 ],
               ),
@@ -129,16 +131,17 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
         debugPrint('TimeBalanceScreen: Monthly credit: ${monthlyCredit.toStringAsFixed(1)}h, Yearly credit: ${yearlyCredit.toStringAsFixed(1)}h');
         debugPrint('TimeBalanceScreen: YTD Yearly balance: ${yearlyBalanceToDate.toStringAsFixed(1)}h');
 
+        final t = AppLocalizations.of(context)!;
         return Scaffold(
           appBar: AppBar(
-            title: Text('My Time Balance (${currentMonth.year})'),
+            title: Text(t.balance_myTimeBalance(currentMonth.year)),
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings),
                 onPressed: () {
                   // TODO: Navigate to settings
                 },
-                tooltip: 'Settings',
+                tooltip: t.settings_title,
               ),
             ],
           ),

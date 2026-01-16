@@ -8,6 +8,7 @@ import '../services/holiday_service.dart';
 import '../widgets/standard_app_bar.dart';
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
+import '../l10n/generated/app_localizations.dart';
 
 enum DateRange { today, yesterday, lastWeek, custom }
 
@@ -176,7 +177,9 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
     return Semantics(
       label: '$label entries filter',
       hint:
-          isSelected ? 'Currently selected' : 'Tap to filter by $label entries',
+          isSelected 
+            ? AppLocalizations.of(context)!.history_currentlySelected 
+            : AppLocalizations.of(context)!.history_tapToFilter(label),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -484,7 +487,9 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                           if (entry.isHolidayWork) ...[
                             const SizedBox(width: 6),
                             Tooltip(
-                              message: 'Holiday work: ${entry.holidayName ?? "Red day"}',
+                              message: AppLocalizations.of(context)!.history_holidayWork(
+                                entry.holidayName ?? AppLocalizations.of(context)!.history_redDay
+                              ),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
@@ -535,7 +540,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        entry.description ?? 'No description',
+                        entry.description ?? AppLocalizations.of(context)!.history_noDescription,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -691,22 +696,24 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
   }
 
   void _showDeleteConfirmation(BuildContext context, Entry entry) {
+    final t = AppLocalizations.of(context)!;
+    final typeStr = entry.type == EntryType.travel ? t.entry_travel : t.entry_work;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Entry'),
-        content: const Text('Are you sure you want to delete this entry?'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.entry_deleteTitle),
+        content: Text(t.entry_deleteConfirm(typeStr)),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(t.common_cancel),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               context.read<EntryProvider>().deleteEntry(entry.id);
             },
-            child: const Text('Delete'),
+            child: Text(t.common_delete),
           ),
         ],
       ),

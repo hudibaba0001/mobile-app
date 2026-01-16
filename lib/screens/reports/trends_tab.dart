@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class TrendsTab extends StatelessWidget {
   const TrendsTab({super.key});
@@ -28,7 +29,7 @@ class TrendsTab extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error loading data',
+              AppLocalizations.of(context)!.overview_errorLoadingData,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -64,7 +65,7 @@ class TrendsTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Monthly Comparison',
+                  AppLocalizations.of(context)!.trends_monthlyComparison,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.onSurface,
@@ -76,20 +77,24 @@ class TrendsTab extends StatelessWidget {
                     Expanded(
                       child: _buildComparisonCard(
                         theme,
-                        title: 'Current Month',
+                        title:
+                            AppLocalizations.of(context)!.trends_currentMonth,
                         value:
                             '${(trendsData['monthlyComparison']?['currentMonth'] as double? ?? 0.0).toStringAsFixed(1)}h',
-                        subtitle: 'Work Hours',
+                        subtitle:
+                            AppLocalizations.of(context)!.trends_workHours,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildComparisonCard(
                         theme,
-                        title: 'Previous Month',
+                        title:
+                            AppLocalizations.of(context)!.trends_previousMonth,
                         value:
                             '${(trendsData['monthlyComparison']?['previousMonth'] as double? ?? 0.0).toStringAsFixed(1)}h',
-                        subtitle: 'Work Hours',
+                        subtitle:
+                            AppLocalizations.of(context)!.trends_workHours,
                       ),
                     ),
                   ],
@@ -136,7 +141,7 @@ class TrendsTab extends StatelessWidget {
 
           // Weekly Hours Chart
           Text(
-            'Weekly Hours',
+            AppLocalizations.of(context)!.trends_weeklyHours,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
@@ -164,7 +169,7 @@ class TrendsTab extends StatelessWidget {
 
           // Daily Trends
           Text(
-            'Daily Trends (Last 7 Days)',
+            AppLocalizations.of(context)!.trends_dailyTrends,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
@@ -173,7 +178,7 @@ class TrendsTab extends StatelessWidget {
           const SizedBox(height: 16),
           ...(trendsData['dailyTrends'] as List<Map<String, dynamic>?>? ?? [])
               .map(
-            (dayData) => _buildDailyTrendCard(theme, dayData),
+            (dayData) => _buildDailyTrendCard(context, theme, dayData),
           ),
         ],
       );
@@ -344,7 +349,8 @@ class TrendsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildDailyTrendCard(ThemeData theme, Map<String, dynamic>? dayData) {
+  Widget _buildDailyTrendCard(
+      BuildContext context, ThemeData theme, Map<String, dynamic>? dayData) {
     final colorScheme = theme.colorScheme;
 
     // Handle null dayData
@@ -360,7 +366,7 @@ class TrendsTab extends StatelessWidget {
           ),
         ),
         child: Text(
-          'No data available',
+          AppLocalizations.of(context)!.overview_noDataAvailable,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -413,7 +419,7 @@ class TrendsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${totalHours.toStringAsFixed(1)}h total',
+                  '${totalHours.toStringAsFixed(1)}h ${AppLocalizations.of(context)!.trends_total}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -425,14 +431,14 @@ class TrendsTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${workHours.toStringAsFixed(1)}h work',
+                '${workHours.toStringAsFixed(1)}h ${AppLocalizations.of(context)!.trends_work}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.error,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
-                '${travelHours.toStringAsFixed(1)}h travel',
+                '${travelHours.toStringAsFixed(1)}h ${AppLocalizations.of(context)!.trends_travel}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.tertiary,
                   fontWeight: FontWeight.w500,

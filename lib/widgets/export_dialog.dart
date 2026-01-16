@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/entry.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class ExportDialog extends StatefulWidget {
   final List<Entry> entries;
@@ -74,19 +75,20 @@ class _ExportDialogState extends State<ExportDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final filteredEntries = _getFilteredEntries();
 
     return AlertDialog(
-      title: const Text('Export Data'),
+      title: Text(t.export_title),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Date Range Section
-            const Text(
-              'Date Range',
-              style: TextStyle(
+            Text(
+              t.export_dateRange,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -95,8 +97,8 @@ class _ExportDialogState extends State<ExportDialog> {
 
             // Include All Data Toggle
             CheckboxListTile(
-              title: const Text('Include all data'),
-              subtitle: const Text('Export all entries regardless of date'),
+              title: Text(t.export_includeAllData),
+              subtitle: Text(t.export_includeAllDataDesc),
               value: _includeAllData,
               onChanged: (value) {
                 setState(() {
@@ -116,11 +118,11 @@ class _ExportDialogState extends State<ExportDialog> {
 
               // Start Date
               ListTile(
-                title: const Text('Start Date'),
+                title: Text(t.export_startDate),
                 subtitle: Text(
                   _startDate != null
                       ? DateFormat('MMM dd, yyyy').format(_startDate!)
-                      : 'Select start date',
+                      : t.export_selectStartDate,
                 ),
                 trailing: const Icon(Icons.calendar_today),
                 onTap: () => _selectDate(true),
@@ -128,11 +130,11 @@ class _ExportDialogState extends State<ExportDialog> {
 
               // End Date
               ListTile(
-                title: const Text('End Date'),
+                title: Text(t.export_endDate),
                 subtitle: Text(
                   _endDate != null
                       ? DateFormat('MMM dd, yyyy').format(_endDate!)
-                      : 'Select end date',
+                      : t.export_selectEndDate,
                 ),
                 trailing: const Icon(Icons.calendar_today),
                 onTap: () => _selectDate(false),
@@ -142,9 +144,9 @@ class _ExportDialogState extends State<ExportDialog> {
             const SizedBox(height: 24),
 
             // Entry Type Filter Section
-            const Text(
-              'Entry Type',
-              style: TextStyle(
+            Text(
+              t.export_entryType,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -153,8 +155,8 @@ class _ExportDialogState extends State<ExportDialog> {
 
             // Entry Type Selection
             RadioListTile<String>(
-              title: const Text('Travel Entries Only'),
-              subtitle: const Text('Export only travel time entries'),
+              title: Text(t.export_travelOnly),
+              subtitle: Text(t.export_travelOnlyDesc),
               value: 'travel',
               groupValue: _entryTypeFilter,
               onChanged: (value) {
@@ -165,8 +167,8 @@ class _ExportDialogState extends State<ExportDialog> {
               },
             ),
             RadioListTile<String>(
-              title: const Text('Work Entries Only'),
-              subtitle: const Text('Export only work shift entries'),
+              title: Text(t.export_workOnly),
+              subtitle: Text(t.export_workOnlyDesc),
               value: 'work',
               groupValue: _entryTypeFilter,
               onChanged: (value) {
@@ -177,8 +179,8 @@ class _ExportDialogState extends State<ExportDialog> {
               },
             ),
             RadioListTile<String>(
-              title: const Text('Both'),
-              subtitle: const Text('Export all entries (travel + work)'),
+              title: Text(t.export_both),
+              subtitle: Text(t.export_bothDesc),
               value: 'both',
               groupValue: _entryTypeFilter,
               onChanged: (value) {
@@ -192,9 +194,9 @@ class _ExportDialogState extends State<ExportDialog> {
             const SizedBox(height: 24),
 
             // Export Format Section
-            const Text(
-              'Export Format',
-              style: TextStyle(
+            Text(
+              t.export_formatTitle,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -203,8 +205,8 @@ class _ExportDialogState extends State<ExportDialog> {
 
             // Export Format Selection
             RadioListTile<String>(
-              title: const Text('Excel (.xlsx)'),
-              subtitle: const Text('Professional format with formatting'),
+              title: Text(t.export_excelFormat),
+              subtitle: Text(t.export_excelDesc),
               value: 'excel',
               groupValue: _exportFormat,
               onChanged: (value) {
@@ -214,8 +216,8 @@ class _ExportDialogState extends State<ExportDialog> {
               },
             ),
             RadioListTile<String>(
-              title: const Text('CSV (.csv)'),
-              subtitle: const Text('Simple text format'),
+              title: Text(t.export_csvFormat),
+              subtitle: Text(t.export_csvDesc),
               value: 'csv',
               groupValue: _exportFormat,
               onChanged: (value) {
@@ -228,9 +230,9 @@ class _ExportDialogState extends State<ExportDialog> {
             const SizedBox(height: 16),
 
             // Filename Section
-            const Text(
-              'Export Options',
-              style: TextStyle(
+            Text(
+              t.export_options,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -238,10 +240,10 @@ class _ExportDialogState extends State<ExportDialog> {
             const SizedBox(height: 8),
 
             TextField(
-              decoration: const InputDecoration(
-                labelText: 'Filename',
-                hintText: 'Enter custom filename',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: t.export_filename,
+                hintText: t.export_filenameHint,
+                border: const OutlineInputBorder(),
               ),
               controller: _fileNameController,
               onChanged: (value) {
@@ -261,20 +263,17 @@ class _ExportDialogState extends State<ExportDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Export Summary',
-                    style: TextStyle(
+                  Text(
+                    t.export_summary,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text('Total entries: ${filteredEntries.length}'),
-                  Text(
-                      'Travel entries: ${filteredEntries.where((e) => e.type == EntryType.travel).length}'),
-                  Text(
-                      'Work entries: ${filteredEntries.where((e) => e.type == EntryType.work).length}'),
-                  Text(
-                      'Total hours: ${_calculateTotalHours(filteredEntries).toStringAsFixed(2)}'),
+                  Text(t.export_totalEntries(filteredEntries.length)),
+                  Text(t.export_travelEntries(filteredEntries.where((e) => e.type == EntryType.travel).length)),
+                  Text(t.export_workEntries(filteredEntries.where((e) => e.type == EntryType.work).length)),
+                  Text(t.export_totalHours(_calculateTotalHours(filteredEntries).toStringAsFixed(2))),
                 ],
               ),
             ),
@@ -284,7 +283,7 @@ class _ExportDialogState extends State<ExportDialog> {
       actions: [
         TextButton(
           onPressed: _isExporting ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(t.common_cancel),
         ),
         ElevatedButton(
           onPressed: _isExporting ? null : _exportData,
@@ -294,7 +293,7 @@ class _ExportDialogState extends State<ExportDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Export'),
+              : Text(t.export_button),
         ),
       ],
     );
@@ -361,9 +360,10 @@ class _ExportDialogState extends State<ExportDialog> {
   }
 
   Future<void> _exportData() async {
+    final t = AppLocalizations.of(context)!;
     if (_customFileName.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a filename')),
+        SnackBar(content: Text(t.export_enterFilename)),
       );
       return;
     }
@@ -377,8 +377,7 @@ class _ExportDialogState extends State<ExportDialog> {
 
       if (filteredEntries.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('No entries found for the selected date range')),
+          SnackBar(content: Text(t.export_noEntriesInRange)),
         );
         return;
       }
@@ -393,7 +392,7 @@ class _ExportDialogState extends State<ExportDialog> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error preparing export: $e')),
+        SnackBar(content: Text(t.export_errorPreparing(e.toString()))),
       );
     } finally {
       setState(() {

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../config/app_router.dart';
 import '../config/external_links.dart';
 import '../services/supabase_auth_service.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
@@ -107,9 +108,10 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to open signup page: $e'),
+            content: Text(t.auth_signupFailed(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

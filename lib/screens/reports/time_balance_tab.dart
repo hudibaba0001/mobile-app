@@ -7,6 +7,7 @@ import '../../providers/contract_provider.dart';
 import '../../providers/balance_adjustment_provider.dart';
 import '../../widgets/time_balance_dashboard.dart';
 import '../../widgets/add_adjustment_dialog.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class TimeBalanceTab extends StatefulWidget {
   const TimeBalanceTab({super.key});
@@ -79,7 +80,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _loadBalances,
-                  child: const Text('Retry'),
+                  child: Text(AppLocalizations.of(context)!.common_retry),
                 ),
               ],
             ),
@@ -230,7 +231,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
             OutlinedButton.icon(
               onPressed: () => _showAddAdjustmentDialog(context),
               icon: const Icon(Icons.add),
-              label: const Text('Add Adjustment'),
+              label: Text(AppLocalizations.of(context)!.adjustment_addAdjustment),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(

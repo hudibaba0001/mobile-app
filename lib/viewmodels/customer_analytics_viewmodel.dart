@@ -268,9 +268,9 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
         final peakDay =
             dailyHours.entries.reduce((a, b) => a.value > b.value ? a : b);
         insights.add({
-          'title': 'Peak Performance',
-          'description':
-              'Your most productive day was $peakDay with ${peakDay.value.toStringAsFixed(1)} hours',
+          'key': 'peak_performance',
+          'day': peakDay.key,
+          'hours': peakDay.value.toStringAsFixed(1),
           'icon': '📈',
           'trend': 'positive',
         });
@@ -291,8 +291,8 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
         final mostFrequentLocation =
             locationCounts.entries.reduce((a, b) => a.value > b.value ? a : b);
         insights.add({
-          'title': 'Location Insights',
-          'description': '$mostFrequentLocation is your most frequent location',
+          'key': 'location_insights',
+          'location': mostFrequentLocation.key,
           'icon': '📍',
           'trend': 'neutral',
         });
@@ -305,9 +305,8 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
             60.0;
     if (totalWorkHours > 0) {
       insights.add({
-        'title': 'Time Management',
-        'description':
-            'You worked ${totalWorkHours.toStringAsFixed(1)} hours in this period',
+        'key': 'time_management',
+        'hours': totalWorkHours.toStringAsFixed(1),
         'icon': '⏰',
         'trend': 'positive',
       });

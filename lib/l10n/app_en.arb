@@ -11,6 +11,9 @@
   "common_cancel": "Cancel",
   "common_delete": "Delete",
   "common_edit": "Edit",
+  "common_back": "Back",
+  "common_saved": "saved",
+  "common_updated": "updated",
   "common_add": "Add",
   "common_done": "Done",
   "common_retry": "Retry",
@@ -422,6 +425,486 @@
   "@error_shareFile": {
     "placeholders": {
       "error": {"type": "String"}
+    }
+  },
+
+  "entry_saveEntry": "Save Entry",
+  "entry_editEntry": "Edit Entry",
+  "entry_deleteTitle": "Delete Entry",
+  "error_selectBothLocations": "Please select both departure and arrival locations",
+  "error_selectWorkLocation": "Please select a work location",
+  "error_selectEndTime": "Please select an end time",
+  "error_signInRequired": "Please sign in to save entries",
+  "error_savingEntry": "Error saving entry: {error}",
+  "@error_savingEntry": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "error_calculatingTravelTime": "Failed to calculate travel time: {error}",
+  "@error_calculatingTravelTime": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "form_departure": "Departure",
+  "form_arrival": "Arrival",
+  "form_location": "Location",
+  "form_date": "Date",
+  "form_startTime": "Start Time",
+  "form_endTime": "End Time",
+  "form_duration": "Duration",
+  "form_notesOptional": "Notes (optional)",
+  "form_selectLocation": "Select a location",
+  "form_calculateFromLocations": "Calculate from locations",
+  "form_manualDuration": "Manual Duration",
+  "form_hours": "Hours",
+  "form_minutes": "Minutes",
+
+  "export_title": "Export Data",
+  "export_dateRange": "Date Range",
+  "export_includeAllData": "Include all data",
+  "export_includeAllDataDesc": "Export all entries regardless of date",
+  "export_startDate": "Start Date",
+  "export_endDate": "End Date",
+  "export_selectStartDate": "Select start date",
+  "export_selectEndDate": "Select end date",
+  "export_entryType": "Entry Type",
+  "export_travelOnly": "Travel Entries Only",
+  "export_travelOnlyDesc": "Export only travel time entries",
+  "export_workOnly": "Work Entries Only",
+  "export_workOnlyDesc": "Export only work shift entries",
+  "export_both": "Both",
+  "export_bothDesc": "Export all entries (travel + work)",
+  "export_formatTitle": "Export Format",
+  "export_excelFormat": "Excel (.xlsx)",
+  "export_excelDesc": "Professional format with formatting",
+  "export_csvFormat": "CSV (.csv)",
+  "export_csvDesc": "Simple text format",
+  "export_options": "Export Options",
+  "export_filename": "Filename",
+  "export_filenameHint": "Enter custom filename",
+  "export_summary": "Export Summary",
+  "export_totalEntries": "Total entries: {count}",
+  "@export_totalEntries": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "export_travelEntries": "Travel entries: {count}",
+  "@export_travelEntries": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "export_workEntries": "Work entries: {count}",
+  "@export_workEntries": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "export_totalHours": "Total hours: {hours}",
+  "@export_totalHours": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "export_button": "Export",
+  "export_enterFilename": "Please enter a filename",
+  "export_noEntriesInRange": "No entries found for the selected date range",
+  "export_errorPreparing": "Error preparing export: {error}",
+  "@export_errorPreparing": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "redDay_editRedDay": "Edit Red Day",
+  "redDay_markAsRedDay": "Mark as Red Day",
+  "redDay_duration": "Duration",
+  "redDay_morningAM": "Morning (AM)",
+  "redDay_afternoonPM": "Afternoon (PM)",
+  "redDay_reasonHint": "e.g., Personal day, Appointment...",
+  "redDay_remove": "Remove",
+  "redDay_removeTitle": "Remove Red Day?",
+  "redDay_removeMessage": "This will remove the personal red day marker from this date.",
+  "redDay_updated": "Red day updated",
+  "redDay_added": "Red day added",
+  "redDay_removed": "Red day removed",
+  "redDay_errorSaving": "Error saving red day: {error}",
+  "@redDay_errorSaving": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "redDay_errorRemoving": "Error removing red day: {error}",
+  "@redDay_errorRemoving": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "adjustment_editAdjustment": "Edit Adjustment",
+  "adjustment_addAdjustment": "Add Adjustment",
+  "adjustment_deleteTitle": "Delete Adjustment",
+  "adjustment_deleteMessage": "Are you sure you want to delete this adjustment?",
+  "adjustment_update": "Update",
+  "adjustment_failedToSave": "Failed to save: {error}",
+  "@adjustment_failedToSave": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "adjustment_failedToDelete": "Failed to delete: {error}",
+  "@adjustment_failedToDelete": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "adjustment_effectiveDate": "Effective Date",
+  "adjustment_amount": "Amount",
+  "adjustment_noteHint": "e.g., Manager correction",
+  "adjustment_enterAmount": "Please enter an adjustment amount",
+
+  "profile_title": "Profile",
+  "profile_notSignedIn": "Not signed in",
+  "profile_editName": "Edit Name",
+  "profile_nameUpdated": "Name updated successfully",
+  "profile_nameUpdateFailed": "Failed to update name: {error}",
+  "@profile_nameUpdateFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "location_addLocation": "Add Location",
+  "location_addFirstLocation": "Add First Location",
+  "location_deleteLocation": "Delete Location",
+  "location_deleteConfirm": "Are you sure you want to delete \"{name}\"?",
+  "@location_deleteConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "location_manageLocations": "Manage Locations",
+
+  "auth_signupFailed": "Failed to open signup page: {error}",
+  "@auth_signupFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "auth_subscriptionFailed": "Failed to open subscription page: {error}",
+  "@auth_subscriptionFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "auth_completeRegistration": "Complete Registration",
+  "auth_openSignupPage": "Open Signup Page",
+  "auth_signOut": "Sign Out",
+  
+  "balance_myTimeBalance": "My Time Balance ({year})",
+  "@balance_myTimeBalance": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+
+  "password_resetTitle": "Reset Password",
+  "password_forgotTitle": "Forgot your password?",
+  "password_forgotDescription": "Enter your email address and we'll send you a link to reset your password.",
+  "password_emailLabel": "Email",
+  "password_emailHint": "Enter your email address",
+  "password_emailRequired": "Email is required",
+  "password_emailInvalid": "Please enter a valid email address",
+  "password_sendResetLink": "Send Reset Link",
+  "password_backToSignIn": "Back to Sign In",
+  "password_resetLinkSent": "Reset link sent to your email",
+
+  "welcome_title": "Welcome to KvikTime",
+  "welcome_subtitle": "Track your travel time effortlessly",
+  "welcome_signIn": "Sign In",
+  "welcome_getStarted": "Get Started",
+  "welcome_footer": "New to KvikTime? Create an account to get started.",
+  "welcome_urlError": "Could not open sign up page. Please try again.",
+
+  "edit_title": "Edit Entry",
+  "edit_travel": "Travel",
+  "edit_work": "Work",
+  "edit_addTravelEntry": "Add Travel Entry",
+  "edit_addShift": "Add Shift",
+  "edit_notes": "Notes",
+  "edit_notesHint": "Add any additional notes...",
+  "edit_travelNotesHint": "Add any additional notes for all travel entries...",
+  "edit_trip": "Trip {number}",
+  "@edit_trip": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "edit_shift": "Shift {number}",
+  "@edit_shift": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "edit_from": "From",
+  "edit_to": "To",
+  "edit_departureHint": "Departure location",
+  "edit_destinationHint": "Destination location",
+  "edit_hours": "Hours",
+  "edit_minutes": "Minutes",
+  "edit_total": "Total",
+  "edit_startTime": "Start Time",
+  "edit_endTime": "End Time",
+  "edit_selectTime": "Select time",
+  "edit_toLabel": "to",
+  "edit_save": "Save",
+  "edit_cancel": "Cancel",
+  "edit_errorSaving": "Error saving entry: {error}",
+  "@edit_errorSaving": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "dateRange_title": "Select Date Range",
+  "dateRange_description": "Choose a time period to analyze",
+  "dateRange_quickSelections": "Quick Selections",
+  "dateRange_customRange": "Custom Range",
+  "dateRange_startDate": "Start Date",
+  "dateRange_endDate": "End Date",
+  "dateRange_apply": "Apply",
+  "dateRange_last7Days": "Last 7 Days",
+  "dateRange_last30Days": "Last 30 Days",
+  "dateRange_thisMonth": "This Month",
+  "dateRange_lastMonth": "Last Month",
+  "dateRange_thisYear": "This Year",
+
+  "quickEntry_signInRequired": "Please sign in to add entries.",
+  "quickEntry_error": "Error: {error}",
+  "@quickEntry_error": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "quickEntry_multiSegment": "Multi-Segment",
+  "quickEntry_clear": "Clear",
+
+  "location_saved": "Location \"{name}\" saved!",
+  "@location_saved": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "location_saveTitle": "Save Location",
+  "location_address": "Address: {address}",
+  "@location_address": {
+    "placeholders": {
+      "address": {"type": "String"}
+    }
+  },
+
+  "dev_addSampleData": "Add Sample Data",
+  "dev_addSampleDataDesc": "Create test entries from the last week",
+  "dev_sampleDataAdded": "Sample data added successfully",
+  "dev_sampleDataFailed": "Failed to add sample data: {error}",
+  "@dev_sampleDataFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "dev_signInRequired": "Please sign in to add sample data.",
+  "dev_syncing": "Syncing to Supabase...",
+  "dev_syncSuccess": "✅ Sync completed successfully!",
+  "dev_syncFailed": "❌ Sync failed: {error}",
+  "@dev_syncFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "dev_syncToSupabase": "Sync to Supabase",
+  "dev_syncToSupabaseDesc": "Manually sync local entries to Supabase cloud",
+  "settings_languageEnglish": "English",
+  "settings_languageSwedish": "Svenska",
+
+  "simpleEntry_validDuration": "Please enter a valid duration",
+  "simpleEntry_entrySaved": "{type} entry {action} successfully! 🎉",
+  "@simpleEntry_entrySaved": {
+    "placeholders": {
+      "type": {"type": "String"},
+      "action": {"type": "String"}
+    }
+  },
+
+  "account_createTitle": "Create Account",
+  "account_createOnWeb": "Create your account on the web",
+  "account_createDescription": "To create an account, please visit our signup page in your web browser.",
+  "account_openSignupPage": "Open signup page",
+  "account_alreadyHaveAccount": "I already have an account → Login",
+
+  "history_currentlySelected": "Currently selected",
+  "history_tapToFilter": "Tap to filter by {label} entries",
+  "@history_tapToFilter": {
+    "placeholders": {
+      "label": {"type": "String"}
+    }
+  },
+  "history_holidayWork": "Holiday work: {name}",
+  "@history_holidayWork": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "history_redDay": "Red day",
+  "history_noDescription": "No description",
+
+  "overview_totalHours": "Total Hours",
+  "overview_allActivities": "All activities",
+  "overview_totalEntries": "Total Entries",
+  "overview_thisPeriod": "This period",
+  "overview_travelTime": "Travel Time",
+  "overview_totalCommute": "Total commute",
+  "overview_workTime": "Work Time",
+  "overview_totalWork": "Total work",
+  "overview_quickInsights": "Quick Insights",
+  "overview_activityDistribution": "Activity Distribution",
+  "overview_recentActivity": "Recent Activity",
+  "overview_viewAll": "View All",
+  "overview_noDataAvailable": "No data available",
+  "overview_errorLoadingData": "Error loading data",
+  "overview_travel": "Travel",
+  "overview_work": "Work",
+
+  "location_fullAddress": "Full address",
+
+  "auth_legalRequired": "Legal Acceptance Required",
+  "auth_legalDescription": "You must accept our Terms of Service and Privacy Policy to continue using the app.",
+  "auth_legalVisitSignup": "Please visit our signup page to complete this step.",
+
+  "entry_logTravelEntry": "Log Travel Entry",
+  "entry_logWorkEntry": "Log Work Entry",
+
+  "trends_monthlyComparison": "Monthly Comparison",
+  "trends_currentMonth": "Current Month",
+  "trends_previousMonth": "Previous Month",
+  "trends_workHours": "Work Hours",
+  "trends_weeklyHours": "Weekly Hours",
+  "trends_dailyTrends": "Daily Trends (Last 7 Days)",
+  "trends_total": "total",
+  "trends_work": "work",
+  "trends_travel": "travel",
+
+  "leave_summary": "Leave Summary {year}",
+  "@leave_summary": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "leave_recentLeaves": "Recent Leaves",
+  "leave_fullDay": "Full Day",
+  "leave_totalLeaveDays": "Total Leave Days",
+  "leave_noLeavesRecorded": "No leaves recorded",
+  "leave_noLeavesDescription": "Your leave history will appear here",
+
+  "insight_peakPerformance": "Peak Performance",
+  "insight_peakPerformanceDesc": "Your most productive day was {day} with {hours} hours",
+  "@insight_peakPerformanceDesc": {
+    "placeholders": {
+      "day": {"type": "String"},
+      "hours": {"type": "String"}
+    }
+  },
+  "insight_locationInsights": "Location Insights",
+  "insight_locationInsightsDesc": "{location} is your most frequent location",
+  "@insight_locationInsightsDesc": {
+    "placeholders": {
+      "location": {"type": "String"}
+    }
+  },
+  "insight_timeManagement": "Time Management",
+  "insight_timeManagementDesc": "You worked {hours} hours in this period",
+  "@insight_timeManagementDesc": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+
+  "profile_signOut": "Sign Out",
+
+  "form_dateTime": "Date & Time",
+  "form_travelRoute": "Travel Route",
+  "form_workLocation": "Work Location",
+  "form_workDetails": "Work Details",
+
+  "nav_home": "Home",
+  "nav_history": "History",
+  "nav_reports": "Reports",
+  "nav_settings": "Settings",
+
+  "balance_thisWeek": "THIS WEEK: {range}",
+  "@balance_thisWeek": {
+    "placeholders": {
+      "range": {"type": "String"}
+    }
+  },
+  "balance_thisMonth": "THIS MONTH: {month}",
+  "@balance_thisMonth": {
+    "placeholders": {
+      "month": {"type": "String"}
+    }
+  },
+  "balance_thisYear": "THIS YEAR: {year}",
+  "@balance_thisYear": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "balance_hoursWorked": "Hours Worked (to date): {worked} / {target} h",
+  "@balance_hoursWorked": {
+    "placeholders": {
+      "worked": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+  "balance_creditedHours": "Credited Hours: {hours} h",
+  "@balance_creditedHours": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "balance_status": "Status: {variance} h ({status})",
+  "@balance_status": {
+    "placeholders": {
+      "variance": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
+  "balance_over": "Over",
+  "balance_under": "Under",
+  "balance_percentOfTarget": "{percent}% of target",
+  "@balance_percentOfTarget": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "balance_yearlyRunningBalance": "YEARLY RUNNING BALANCE",
+  "balance_totalAccumulation": "Total Accumulation:",
+  "balance_inCredit": "You are in credit",
+  "balance_timeDebt": "You maintain a time debt",
+  "balance_includesOpeningBalance": "Includes opening balance ({balance}) as of {date}",
+  "@balance_includesOpeningBalance": {
+    "placeholders": {
+      "balance": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "balance_includesOpeningBalanceShort": "Includes opening balance ({balance})",
+  "@balance_includesOpeningBalanceShort": {
+    "placeholders": {
+      "balance": {"type": "String"}
     }
   }
 }

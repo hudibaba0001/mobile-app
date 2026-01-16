@@ -4,6 +4,7 @@ import 'dart:async';
 import '../models/location.dart';
 import '../providers/location_provider.dart';
 import '../services/map_service.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class LocationSelector extends StatefulWidget {
   final String? initialValue;
@@ -550,10 +551,11 @@ class _LocationSelectorState extends State<LocationSelector> {
 
       await locationProvider.addLocation(newLocation);
       if (mounted) {
+        final t = AppLocalizations.of(context)!;
         _selectLocation(newLocation);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Location "$name" saved!'),
+            content: Text(t.location_saved(name)),
             backgroundColor: Colors.green,
           ),
         );
@@ -564,15 +566,16 @@ class _LocationSelectorState extends State<LocationSelector> {
   Future<String?> _showSaveLocationDialog(String address) async {
     final controller = TextEditingController();
 
+    final t = AppLocalizations.of(context)!;
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Save Location'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.location_saveTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Address: $address'),
+            Text(t.location_address(address)),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
@@ -587,12 +590,12 @@ class _LocationSelectorState extends State<LocationSelector> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(t.common_cancel),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Save'),
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: Text(t.common_save),
           ),
         ],
       ),

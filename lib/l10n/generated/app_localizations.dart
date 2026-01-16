@@ -128,6 +128,24 @@ abstract class AppLocalizations {
   /// **'Edit'**
   String get common_edit;
 
+  /// No description provided for @common_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get common_back;
+
+  /// No description provided for @common_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'saved'**
+  String get common_saved;
+
+  /// No description provided for @common_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'updated'**
+  String get common_updated;
+
   /// No description provided for @common_add.
   ///
   /// In en, this message translates to:
@@ -1531,6 +1549,1362 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not share file: {error}'**
   String error_shareFile(String error);
+
+  /// No description provided for @entry_saveEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Entry'**
+  String get entry_saveEntry;
+
+  /// No description provided for @entry_editEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Entry'**
+  String get entry_editEntry;
+
+  /// No description provided for @entry_deleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Entry'**
+  String get entry_deleteTitle;
+
+  /// No description provided for @error_selectBothLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select both departure and arrival locations'**
+  String get error_selectBothLocations;
+
+  /// No description provided for @error_selectWorkLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a work location'**
+  String get error_selectWorkLocation;
+
+  /// No description provided for @error_selectEndTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select an end time'**
+  String get error_selectEndTime;
+
+  /// No description provided for @error_signInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in to save entries'**
+  String get error_signInRequired;
+
+  /// No description provided for @error_savingEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving entry: {error}'**
+  String error_savingEntry(String error);
+
+  /// No description provided for @error_calculatingTravelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to calculate travel time: {error}'**
+  String error_calculatingTravelTime(String error);
+
+  /// No description provided for @form_departure.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure'**
+  String get form_departure;
+
+  /// No description provided for @form_arrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival'**
+  String get form_arrival;
+
+  /// No description provided for @form_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get form_location;
+
+  /// No description provided for @form_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get form_date;
+
+  /// No description provided for @form_startTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Time'**
+  String get form_startTime;
+
+  /// No description provided for @form_endTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End Time'**
+  String get form_endTime;
+
+  /// No description provided for @form_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get form_duration;
+
+  /// No description provided for @form_notesOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get form_notesOptional;
+
+  /// No description provided for @form_selectLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a location'**
+  String get form_selectLocation;
+
+  /// No description provided for @form_calculateFromLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate from locations'**
+  String get form_calculateFromLocations;
+
+  /// No description provided for @form_manualDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Duration'**
+  String get form_manualDuration;
+
+  /// No description provided for @form_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get form_hours;
+
+  /// No description provided for @form_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get form_minutes;
+
+  /// No description provided for @export_includeAllData.
+  ///
+  /// In en, this message translates to:
+  /// **'Include all data'**
+  String get export_includeAllData;
+
+  /// No description provided for @export_includeAllDataDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Export all entries regardless of date'**
+  String get export_includeAllDataDesc;
+
+  /// No description provided for @export_startDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get export_startDate;
+
+  /// No description provided for @export_endDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get export_endDate;
+
+  /// No description provided for @export_selectStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select start date'**
+  String get export_selectStartDate;
+
+  /// No description provided for @export_selectEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select end date'**
+  String get export_selectEndDate;
+
+  /// No description provided for @export_entryType.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry Type'**
+  String get export_entryType;
+
+  /// No description provided for @export_travelOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Entries Only'**
+  String get export_travelOnly;
+
+  /// No description provided for @export_travelOnlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Export only travel time entries'**
+  String get export_travelOnlyDesc;
+
+  /// No description provided for @export_workOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Entries Only'**
+  String get export_workOnly;
+
+  /// No description provided for @export_workOnlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Export only work shift entries'**
+  String get export_workOnlyDesc;
+
+  /// No description provided for @export_both.
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get export_both;
+
+  /// No description provided for @export_bothDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Export all entries (travel + work)'**
+  String get export_bothDesc;
+
+  /// No description provided for @export_formatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Format'**
+  String get export_formatTitle;
+
+  /// No description provided for @export_excelFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel (.xlsx)'**
+  String get export_excelFormat;
+
+  /// No description provided for @export_excelDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional format with formatting'**
+  String get export_excelDesc;
+
+  /// No description provided for @export_csvFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV (.csv)'**
+  String get export_csvFormat;
+
+  /// No description provided for @export_csvDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple text format'**
+  String get export_csvDesc;
+
+  /// No description provided for @export_options.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Options'**
+  String get export_options;
+
+  /// No description provided for @export_filename.
+  ///
+  /// In en, this message translates to:
+  /// **'Filename'**
+  String get export_filename;
+
+  /// No description provided for @export_filenameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter custom filename'**
+  String get export_filenameHint;
+
+  /// No description provided for @export_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Summary'**
+  String get export_summary;
+
+  /// No description provided for @export_totalEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Total entries: {count}'**
+  String export_totalEntries(int count);
+
+  /// No description provided for @export_travelEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel entries: {count}'**
+  String export_travelEntries(int count);
+
+  /// No description provided for @export_workEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Work entries: {count}'**
+  String export_workEntries(int count);
+
+  /// No description provided for @export_totalHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Total hours: {hours}'**
+  String export_totalHours(String hours);
+
+  /// No description provided for @export_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get export_button;
+
+  /// No description provided for @export_enterFilename.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a filename'**
+  String get export_enterFilename;
+
+  /// No description provided for @export_noEntriesInRange.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries found for the selected date range'**
+  String get export_noEntriesInRange;
+
+  /// No description provided for @export_errorPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Error preparing export: {error}'**
+  String export_errorPreparing(String error);
+
+  /// No description provided for @redDay_editRedDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Red Day'**
+  String get redDay_editRedDay;
+
+  /// No description provided for @redDay_markAsRedDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Red Day'**
+  String get redDay_markAsRedDay;
+
+  /// No description provided for @redDay_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get redDay_duration;
+
+  /// No description provided for @redDay_morningAM.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning (AM)'**
+  String get redDay_morningAM;
+
+  /// No description provided for @redDay_afternoonPM.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon (PM)'**
+  String get redDay_afternoonPM;
+
+  /// No description provided for @redDay_reasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Personal day, Appointment...'**
+  String get redDay_reasonHint;
+
+  /// No description provided for @redDay_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get redDay_remove;
+
+  /// No description provided for @redDay_removeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Red Day?'**
+  String get redDay_removeTitle;
+
+  /// No description provided for @redDay_removeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove the personal red day marker from this date.'**
+  String get redDay_removeMessage;
+
+  /// No description provided for @redDay_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Red day updated'**
+  String get redDay_updated;
+
+  /// No description provided for @redDay_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Red day added'**
+  String get redDay_added;
+
+  /// No description provided for @redDay_removed.
+  ///
+  /// In en, this message translates to:
+  /// **'Red day removed'**
+  String get redDay_removed;
+
+  /// No description provided for @redDay_errorSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving red day: {error}'**
+  String redDay_errorSaving(String error);
+
+  /// No description provided for @redDay_errorRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'Error removing red day: {error}'**
+  String redDay_errorRemoving(String error);
+
+  /// No description provided for @adjustment_editAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Adjustment'**
+  String get adjustment_editAdjustment;
+
+  /// No description provided for @adjustment_addAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Adjustment'**
+  String get adjustment_addAdjustment;
+
+  /// No description provided for @adjustment_deleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Adjustment'**
+  String get adjustment_deleteTitle;
+
+  /// No description provided for @adjustment_deleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this adjustment?'**
+  String get adjustment_deleteMessage;
+
+  /// No description provided for @adjustment_update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get adjustment_update;
+
+  /// No description provided for @adjustment_failedToSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save: {error}'**
+  String adjustment_failedToSave(String error);
+
+  /// No description provided for @adjustment_failedToDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete: {error}'**
+  String adjustment_failedToDelete(String error);
+
+  /// No description provided for @profile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile_title;
+
+  /// No description provided for @profile_notSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed in'**
+  String get profile_notSignedIn;
+
+  /// No description provided for @profile_editName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Name'**
+  String get profile_editName;
+
+  /// No description provided for @profile_nameUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Name updated successfully'**
+  String get profile_nameUpdated;
+
+  /// No description provided for @profile_nameUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update name: {error}'**
+  String profile_nameUpdateFailed(String error);
+
+  /// No description provided for @location_addLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Location'**
+  String get location_addLocation;
+
+  /// No description provided for @location_addFirstLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add First Location'**
+  String get location_addFirstLocation;
+
+  /// No description provided for @location_deleteLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Location'**
+  String get location_deleteLocation;
+
+  /// No description provided for @location_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"?'**
+  String location_deleteConfirm(String name);
+
+  /// No description provided for @location_manageLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Locations'**
+  String get location_manageLocations;
+
+  /// No description provided for @auth_signupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to open signup page: {error}'**
+  String auth_signupFailed(String error);
+
+  /// No description provided for @auth_subscriptionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to open subscription page: {error}'**
+  String auth_subscriptionFailed(String error);
+
+  /// No description provided for @auth_completeRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Registration'**
+  String get auth_completeRegistration;
+
+  /// No description provided for @auth_openSignupPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Signup Page'**
+  String get auth_openSignupPage;
+
+  /// No description provided for @auth_signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get auth_signOut;
+
+  /// No description provided for @password_resetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get password_resetTitle;
+
+  /// No description provided for @password_forgotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your password?'**
+  String get password_forgotTitle;
+
+  /// No description provided for @password_forgotDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address and we\'ll send you a link to reset your password.'**
+  String get password_forgotDescription;
+
+  /// No description provided for @password_emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get password_emailLabel;
+
+  /// No description provided for @password_emailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address'**
+  String get password_emailHint;
+
+  /// No description provided for @password_emailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required'**
+  String get password_emailRequired;
+
+  /// No description provided for @password_emailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address'**
+  String get password_emailInvalid;
+
+  /// No description provided for @password_sendResetLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Reset Link'**
+  String get password_sendResetLink;
+
+  /// No description provided for @password_backToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Sign In'**
+  String get password_backToSignIn;
+
+  /// No description provided for @password_resetLinkSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset link sent to your email'**
+  String get password_resetLinkSent;
+
+  /// No description provided for @welcome_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to KvikTime'**
+  String get welcome_title;
+
+  /// No description provided for @welcome_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your travel time effortlessly'**
+  String get welcome_subtitle;
+
+  /// No description provided for @welcome_signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get welcome_signIn;
+
+  /// No description provided for @welcome_getStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get welcome_getStarted;
+
+  /// No description provided for @welcome_footer.
+  ///
+  /// In en, this message translates to:
+  /// **'New to KvikTime? Create an account to get started.'**
+  String get welcome_footer;
+
+  /// No description provided for @welcome_urlError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open sign up page. Please try again.'**
+  String get welcome_urlError;
+
+  /// No description provided for @edit_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Entry'**
+  String get edit_title;
+
+  /// No description provided for @edit_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get edit_travel;
+
+  /// No description provided for @edit_work.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get edit_work;
+
+  /// No description provided for @edit_addTravelEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Travel Entry'**
+  String get edit_addTravelEntry;
+
+  /// No description provided for @edit_addShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Shift'**
+  String get edit_addShift;
+
+  /// No description provided for @edit_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get edit_notes;
+
+  /// No description provided for @edit_notesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add any additional notes...'**
+  String get edit_notesHint;
+
+  /// No description provided for @edit_travelNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add any additional notes for all travel entries...'**
+  String get edit_travelNotesHint;
+
+  /// No description provided for @edit_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip {number}'**
+  String edit_trip(int number);
+
+  /// No description provided for @edit_shift.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {number}'**
+  String edit_shift(int number);
+
+  /// No description provided for @edit_from.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get edit_from;
+
+  /// No description provided for @edit_to.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get edit_to;
+
+  /// No description provided for @edit_departureHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure location'**
+  String get edit_departureHint;
+
+  /// No description provided for @edit_destinationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination location'**
+  String get edit_destinationHint;
+
+  /// No description provided for @edit_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get edit_hours;
+
+  /// No description provided for @edit_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get edit_minutes;
+
+  /// No description provided for @edit_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get edit_total;
+
+  /// No description provided for @edit_startTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Time'**
+  String get edit_startTime;
+
+  /// No description provided for @edit_endTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End Time'**
+  String get edit_endTime;
+
+  /// No description provided for @edit_selectTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Select time'**
+  String get edit_selectTime;
+
+  /// No description provided for @edit_toLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'to'**
+  String get edit_toLabel;
+
+  /// No description provided for @edit_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get edit_save;
+
+  /// No description provided for @edit_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get edit_cancel;
+
+  /// No description provided for @edit_errorSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving entry: {error}'**
+  String edit_errorSaving(String error);
+
+  /// No description provided for @dateRange_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date Range'**
+  String get dateRange_title;
+
+  /// No description provided for @dateRange_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a time period to analyze'**
+  String get dateRange_description;
+
+  /// No description provided for @dateRange_quickSelections.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Selections'**
+  String get dateRange_quickSelections;
+
+  /// No description provided for @dateRange_customRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Range'**
+  String get dateRange_customRange;
+
+  /// No description provided for @dateRange_startDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get dateRange_startDate;
+
+  /// No description provided for @dateRange_endDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get dateRange_endDate;
+
+  /// No description provided for @dateRange_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get dateRange_apply;
+
+  /// No description provided for @dateRange_last7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 Days'**
+  String get dateRange_last7Days;
+
+  /// No description provided for @dateRange_last30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 Days'**
+  String get dateRange_last30Days;
+
+  /// No description provided for @dateRange_thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get dateRange_thisMonth;
+
+  /// No description provided for @dateRange_lastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Month'**
+  String get dateRange_lastMonth;
+
+  /// No description provided for @dateRange_thisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This Year'**
+  String get dateRange_thisYear;
+
+  /// No description provided for @quickEntry_signInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in to add entries.'**
+  String get quickEntry_signInRequired;
+
+  /// No description provided for @quickEntry_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String quickEntry_error(String error);
+
+  /// No description provided for @quickEntry_multiSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-Segment'**
+  String get quickEntry_multiSegment;
+
+  /// No description provided for @quickEntry_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get quickEntry_clear;
+
+  /// No description provided for @location_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Location \"{name}\" saved!'**
+  String location_saved(String name);
+
+  /// No description provided for @location_saveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Location'**
+  String get location_saveTitle;
+
+  /// No description provided for @location_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address: {address}'**
+  String location_address(String address);
+
+  /// No description provided for @dev_addSampleData.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Sample Data'**
+  String get dev_addSampleData;
+
+  /// No description provided for @dev_addSampleDataDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create test entries from the last week'**
+  String get dev_addSampleDataDesc;
+
+  /// No description provided for @dev_sampleDataAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample data added successfully'**
+  String get dev_sampleDataAdded;
+
+  /// No description provided for @dev_sampleDataFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add sample data: {error}'**
+  String dev_sampleDataFailed(String error);
+
+  /// No description provided for @dev_signInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in to add sample data.'**
+  String get dev_signInRequired;
+
+  /// No description provided for @dev_syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing to Supabase...'**
+  String get dev_syncing;
+
+  /// No description provided for @dev_syncSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Sync completed successfully!'**
+  String get dev_syncSuccess;
+
+  /// No description provided for @dev_syncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'❌ Sync failed: {error}'**
+  String dev_syncFailed(String error);
+
+  /// No description provided for @dev_syncToSupabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync to Supabase'**
+  String get dev_syncToSupabase;
+
+  /// No description provided for @dev_syncToSupabaseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Manually sync local entries to Supabase cloud'**
+  String get dev_syncToSupabaseDesc;
+
+  /// No description provided for @settings_languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get settings_languageEnglish;
+
+  /// No description provided for @settings_languageSwedish.
+  ///
+  /// In en, this message translates to:
+  /// **'Svenska'**
+  String get settings_languageSwedish;
+
+  /// No description provided for @simpleEntry_validDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid duration'**
+  String get simpleEntry_validDuration;
+
+  /// No description provided for @simpleEntry_entrySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'{type} entry {action} successfully! 🎉'**
+  String simpleEntry_entrySaved(String type, String action);
+
+  /// No description provided for @account_createTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get account_createTitle;
+
+  /// No description provided for @account_createOnWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your account on the web'**
+  String get account_createOnWeb;
+
+  /// No description provided for @account_createDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'To create an account, please visit our signup page in your web browser.'**
+  String get account_createDescription;
+
+  /// No description provided for @account_openSignupPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open signup page'**
+  String get account_openSignupPage;
+
+  /// No description provided for @account_alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'I already have an account → Login'**
+  String get account_alreadyHaveAccount;
+
+  /// No description provided for @history_currentlySelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently selected'**
+  String get history_currentlySelected;
+
+  /// No description provided for @history_tapToFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to filter by {label} entries'**
+  String history_tapToFilter(String label);
+
+  /// No description provided for @history_holidayWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday work: {name}'**
+  String history_holidayWork(String name);
+
+  /// No description provided for @history_redDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Red day'**
+  String get history_redDay;
+
+  /// No description provided for @history_noDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No description'**
+  String get history_noDescription;
+
+  /// No description provided for @overview_totalHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Hours'**
+  String get overview_totalHours;
+
+  /// No description provided for @overview_allActivities.
+  ///
+  /// In en, this message translates to:
+  /// **'All activities'**
+  String get overview_allActivities;
+
+  /// No description provided for @overview_totalEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Entries'**
+  String get overview_totalEntries;
+
+  /// No description provided for @overview_thisPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'This period'**
+  String get overview_thisPeriod;
+
+  /// No description provided for @overview_travelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Time'**
+  String get overview_travelTime;
+
+  /// No description provided for @overview_totalCommute.
+  ///
+  /// In en, this message translates to:
+  /// **'Total commute'**
+  String get overview_totalCommute;
+
+  /// No description provided for @overview_workTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Time'**
+  String get overview_workTime;
+
+  /// No description provided for @overview_totalWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Total work'**
+  String get overview_totalWork;
+
+  /// No description provided for @overview_quickInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Insights'**
+  String get overview_quickInsights;
+
+  /// No description provided for @overview_activityDistribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Distribution'**
+  String get overview_activityDistribution;
+
+  /// No description provided for @overview_recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get overview_recentActivity;
+
+  /// No description provided for @overview_viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get overview_viewAll;
+
+  /// No description provided for @overview_noDataAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get overview_noDataAvailable;
+
+  /// No description provided for @overview_errorLoadingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading data'**
+  String get overview_errorLoadingData;
+
+  /// No description provided for @overview_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get overview_travel;
+
+  /// No description provided for @overview_work.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get overview_work;
+
+  /// No description provided for @location_fullAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Full address'**
+  String get location_fullAddress;
+
+  /// No description provided for @auth_legalRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal Acceptance Required'**
+  String get auth_legalRequired;
+
+  /// No description provided for @auth_legalDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'You must accept our Terms of Service and Privacy Policy to continue using the app.'**
+  String get auth_legalDescription;
+
+  /// No description provided for @auth_legalVisitSignup.
+  ///
+  /// In en, this message translates to:
+  /// **'Please visit our signup page to complete this step.'**
+  String get auth_legalVisitSignup;
+
+  /// No description provided for @entry_logTravelEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Travel Entry'**
+  String get entry_logTravelEntry;
+
+  /// No description provided for @entry_logWorkEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Work Entry'**
+  String get entry_logWorkEntry;
+
+  /// No description provided for @trends_monthlyComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Comparison'**
+  String get trends_monthlyComparison;
+
+  /// No description provided for @trends_currentMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Month'**
+  String get trends_currentMonth;
+
+  /// No description provided for @trends_previousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Month'**
+  String get trends_previousMonth;
+
+  /// No description provided for @trends_workHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Hours'**
+  String get trends_workHours;
+
+  /// No description provided for @trends_weeklyHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Hours'**
+  String get trends_weeklyHours;
+
+  /// No description provided for @trends_dailyTrends.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Trends (Last 7 Days)'**
+  String get trends_dailyTrends;
+
+  /// No description provided for @trends_total.
+  ///
+  /// In en, this message translates to:
+  /// **'total'**
+  String get trends_total;
+
+  /// No description provided for @trends_work.
+  ///
+  /// In en, this message translates to:
+  /// **'work'**
+  String get trends_work;
+
+  /// No description provided for @trends_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'travel'**
+  String get trends_travel;
+
+  /// No description provided for @leave_recentLeaves.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Leaves'**
+  String get leave_recentLeaves;
+
+  /// No description provided for @leave_fullDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Day'**
+  String get leave_fullDay;
+
+  /// No description provided for @leave_totalLeaveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Leave Days'**
+  String get leave_totalLeaveDays;
+
+  /// No description provided for @leave_noLeavesRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'No leaves recorded'**
+  String get leave_noLeavesRecorded;
+
+  /// No description provided for @leave_noLeavesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your leave history will appear here'**
+  String get leave_noLeavesDescription;
+
+  /// No description provided for @insight_peakPerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak Performance'**
+  String get insight_peakPerformance;
+
+  /// No description provided for @insight_peakPerformanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your most productive day was {day} with {hours} hours'**
+  String insight_peakPerformanceDesc(String day, String hours);
+
+  /// No description provided for @insight_locationInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Insights'**
+  String get insight_locationInsights;
+
+  /// No description provided for @insight_locationInsightsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'{location} is your most frequent location'**
+  String insight_locationInsightsDesc(String location);
+
+  /// No description provided for @insight_timeManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Management'**
+  String get insight_timeManagement;
+
+  /// No description provided for @insight_timeManagementDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You worked {hours} hours in this period'**
+  String insight_timeManagementDesc(String hours);
+
+  /// No description provided for @profile_signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get profile_signOut;
+
+  /// No description provided for @form_dateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Date & Time'**
+  String get form_dateTime;
+
+  /// No description provided for @form_travelRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Route'**
+  String get form_travelRoute;
+
+  /// No description provided for @form_workLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Location'**
+  String get form_workLocation;
+
+  /// No description provided for @form_workDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Details'**
+  String get form_workDetails;
+
+  /// No description provided for @nav_history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get nav_history;
+
+  /// No description provided for @balance_thisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'THIS WEEK: {range}'**
+  String balance_thisWeek(String range);
+
+  /// No description provided for @balance_hoursWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours Worked (to date): {worked} / {target} h'**
+  String balance_hoursWorked(String worked, String target);
+
+  /// No description provided for @balance_over.
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get balance_over;
+
+  /// No description provided for @balance_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Under'**
+  String get balance_under;
+
+  /// No description provided for @balance_timeDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'You maintain a time debt'**
+  String get balance_timeDebt;
+
+  /// No description provided for @balance_includesOpeningBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes opening balance ({balance}) as of {date}'**
+  String balance_includesOpeningBalance(String balance, String date);
+
+  /// No description provided for @balance_includesOpeningBalanceShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes opening balance ({balance})'**
+  String balance_includesOpeningBalanceShort(String balance);
 }
 
 class _AppLocalizationsDelegate

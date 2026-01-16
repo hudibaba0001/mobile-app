@@ -7,6 +7,7 @@ import '../providers/entry_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
+import '../l10n/generated/app_localizations.dart';
 
 import 'multi_segment_form.dart';
 
@@ -143,8 +144,9 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       final uid = auth.currentUser?.id;
       if (uid == null) {
         if (mounted) {
+          final t = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please sign in to add entries.')),
+            SnackBar(content: Text(t.quickEntry_signInRequired)),
           );
         }
         return;
@@ -195,9 +197,10 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       }
     } catch (error) {
       if (mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $error'),
+            content: Text(t.quickEntry_error(error.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -273,7 +276,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       TextButton.icon(
                         onPressed: _showMultiSegmentForm,
                         icon: const Icon(Icons.route, size: 16),
-                        label: const Text('Multi-Segment'),
+                        label: Text(AppLocalizations.of(context)!.quickEntry_multiSegment),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                         ),
@@ -452,7 +455,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       child: OutlinedButton.icon(
                         onPressed: _isLoading ? null : _clearForm,
                         icon: const Icon(Icons.clear),
-                        label: const Text('Clear'),
+                        label: Text(AppLocalizations.of(context)!.quickEntry_clear),
                       ),
                     ),
                     const SizedBox(width: 12),

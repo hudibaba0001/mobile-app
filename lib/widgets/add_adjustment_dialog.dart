@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/balance_adjustment.dart';
 import '../providers/balance_adjustment_provider.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Dialog for adding or editing a balance adjustment
 class AddAdjustmentDialog extends StatefulWidget {
@@ -73,6 +74,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
   }
 
   Future<void> _save() async {
+    final t = AppLocalizations.of(context)!;
     // Validate
     final hoursText = _hoursController.text.trim();
     final minutesText = _minutesController.text.trim();
@@ -81,12 +83,12 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
     final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
     
     if (hours == 0 && minutes == 0) {
-      setState(() => _error = 'Please enter an adjustment amount');
+      setState(() => _error = t.adjustment_enterAmount);
       return;
     }
     
     if (minutes < 0 || minutes >= 60) {
-      setState(() => _error = 'Minutes must be between 0 and 59');
+      setState(() => _error = t.contract_minutesError);
       return;
     }
     
@@ -122,29 +124,30 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
       }
     } catch (e) {
       setState(() {
-        _error = 'Failed to save: $e';
+        _error = t.adjustment_failedToSave(e.toString());
         _isSaving = false;
       });
     }
   }
 
   Future<void> _delete() async {
+    final t = AppLocalizations.of(context)!;
     if (!_isEditing || widget.existingAdjustment?.id == null) return;
     
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Adjustment'),
-        content: const Text('Are you sure you want to delete this adjustment?'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.adjustment_deleteTitle),
+        content: Text(t.adjustment_deleteMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(t.common_cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(t.common_delete),
           ),
         ],
       ),
@@ -165,7 +168,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
         }
       } catch (e) {
         setState(() {
-          _error = 'Failed to delete: $e';
+          _error = t.adjustment_failedToDelete(e.toString());
           _isSaving = false;
         });
       }
@@ -174,6 +177,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final dateFormat = DateFormat('MMMM d, yyyy');
@@ -186,7 +190,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
             color: colorScheme.primary,
           ),
           const SizedBox(width: 12),
-          Text(_isEditing ? 'Edit Adjustment' : 'Add Adjustment'),
+          Flexible(child: Text(_isEditing ? t.adjustment_editAdjustment : t.adjustment_addAdjustment)),
         ],
       ),
       content: SingleChildScrollView(
@@ -196,7 +200,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
           children: [
             // Date picker
             Text(
-              'Effective Date',
+              t.adjustment_effectiveDate,
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: 8),
@@ -225,7 +229,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
             
             // Amount input
             Text(
-              'Amount',
+              t.adjustment_amount,
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: 8),
@@ -312,7 +316,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
             
             // Note
             Text(
-              'Note (optional)',
+              t.form_notesOptional,
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: 8),
@@ -320,7 +324,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
               controller: _noteController,
               maxLines: 2,
               decoration: InputDecoration(
-                hintText: 'e.g., Manager correction',
+                hintText: t.adjustment_noteHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -360,11 +364,11 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
           TextButton(
             onPressed: _isSaving ? null : _delete,
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(t.common_delete),
           ),
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(t.common_cancel),
         ),
         FilledButton(
           onPressed: _isSaving ? null : _save,
@@ -374,7 +378,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(_isEditing ? 'Update' : 'Add'),
+              : Text(_isEditing ? t.adjustment_update : t.common_add),
         ),
       ],
     );

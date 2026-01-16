@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/entry.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class EntryDetailSheet extends StatelessWidget {
   final Entry entry;
@@ -69,35 +70,38 @@ class EntryDetailSheet extends StatelessWidget {
             const SizedBox(height: 8),
             ..._detailWidgets(context, entry),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      onEdit();
-                    },
-                    icon: const Icon(Icons.edit_outlined),
-                    label: const Text('Edit'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      onDelete();
-                    },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.error,
-                      foregroundColor: colorScheme.onError,
+            Builder(builder: (context) {
+              final t = AppLocalizations.of(context)!;
+              return Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onEdit();
+                      },
+                      icon: const Icon(Icons.edit_outlined),
+                      label: Text(t.common_edit),
                     ),
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Delete'),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onDelete();
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: colorScheme.error,
+                        foregroundColor: colorScheme.onError,
+                      ),
+                      icon: const Icon(Icons.delete_outline),
+                      label: Text(t.common_delete),
+                    ),
+                  ),
+                ],
+              );
+            }),
           ],
         ),
       ),
@@ -146,7 +150,7 @@ class EntryDetailSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Shift ${i + 1}',
+                        Text(AppLocalizations.of(context)!.edit_shift(i + 1),
                             style: theme.textTheme.labelLarge),
                         const SizedBox(height: 4),
                         Text(

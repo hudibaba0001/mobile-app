@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/entry_provider.dart';
 import '../models/entry.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Edit Entry screen for both travel and work entries.
 /// Features: Entry type switching, form validation, Material 3 theming.
@@ -257,9 +258,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       });
     } catch (e) {
       if (mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving entry: $e'),
+            content: Text(t.edit_errorSaving(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -302,11 +304,11 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       backgroundColor: colorScheme.surface,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Edit Entry'),
+        title: Text(AppLocalizations.of(context)!.edit_title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
-          tooltip: 'Back',
+          tooltip: AppLocalizations.of(context)!.common_back,
         ),
       ),
       body: Column(
@@ -361,7 +363,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             Expanded(
               child: _buildToggleButton(
                 theme,
-                'Travel',
+                AppLocalizations.of(context)!.edit_travel,
                 Icons.directions_car,
                 EntryType.travel,
                 _currentEntryType == EntryType.travel,
@@ -370,7 +372,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             Expanded(
               child: _buildToggleButton(
                 theme,
-                'Work',
+                AppLocalizations.of(context)!.edit_work,
                 Icons.work,
                 EntryType.work,
                 _currentEntryType == EntryType.work,
@@ -448,7 +450,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           child: OutlinedButton.icon(
             onPressed: _addTravelEntry,
             icon: const Icon(Icons.add),
-            label: const Text('Add Travel Entry'),
+            label: Text(AppLocalizations.of(context)!.edit_addTravelEntry),
             style: OutlinedButton.styleFrom(
               foregroundColor: theme.colorScheme.primary,
               side: BorderSide(
@@ -465,9 +467,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
         _buildTextField(
           theme,
-          'Notes',
+          AppLocalizations.of(context)!.edit_notes,
           _travelNotesController,
-          'Add any additional notes for all travel entries...',
+          AppLocalizations.of(context)!.edit_travelNotesHint,
           maxLines: 4,
         ),
       ],
@@ -489,7 +491,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           child: OutlinedButton.icon(
             onPressed: _addShift,
             icon: const Icon(Icons.add),
-            label: const Text('Add Shift'),
+            label: Text(AppLocalizations.of(context)!.edit_addShift),
             style: OutlinedButton.styleFrom(
               foregroundColor: theme.colorScheme.primary,
               side: BorderSide(
@@ -506,9 +508,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
         _buildTextField(
           theme,
-          'Notes',
+          AppLocalizations.of(context)!.edit_notes,
           _workNotesController,
-          'Add any additional notes...',
+          AppLocalizations.of(context)!.edit_notesHint,
           maxLines: 4,
         ),
       ],
@@ -590,7 +592,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Trip ${_travelEntries.indexOf(travelEntry) + 1}',
+                    AppLocalizations.of(context)!.edit_trip(_travelEntries.indexOf(travelEntry) + 1),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: theme.colorScheme.primary,
@@ -620,14 +622,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'From',
+                      AppLocalizations.of(context)!.edit_from,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
                     TextFormField(
                       controller: travelEntry.fromController,
                       decoration: InputDecoration(
-                        hintText: 'Departure location',
+                        hintText: AppLocalizations.of(context)!.edit_departureHint,
                         prefixIcon: const Icon(Icons.my_location, size: 20),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -652,14 +654,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'To',
+                      AppLocalizations.of(context)!.edit_to,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
                     TextFormField(
                       controller: travelEntry.toController,
                       decoration: InputDecoration(
-                        hintText: 'Destination location',
+                        hintText: AppLocalizations.of(context)!.edit_destinationHint,
                         prefixIcon: const Icon(Icons.location_on, size: 20),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -683,7 +685,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hours',
+                      AppLocalizations.of(context)!.edit_hours,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -712,7 +714,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Minutes',
+                      AppLocalizations.of(context)!.edit_minutes,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -741,7 +743,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Total',
+                      AppLocalizations.of(context)!.edit_total,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -792,7 +794,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Shift ${_shifts.indexOf(shift) + 1}',
+                AppLocalizations.of(context)!.edit_shift(_shifts.indexOf(shift) + 1),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.primary,
@@ -818,7 +820,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Start Time',
+                      AppLocalizations.of(context)!.edit_startTime,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -828,7 +830,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       onTap: () =>
                           _selectTime(context, shift.startTimeController),
                       decoration: InputDecoration(
-                        hintText: 'Select time',
+                        hintText: AppLocalizations.of(context)!.edit_selectTime,
                         suffixIcon: const Icon(Icons.access_time),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -841,7 +843,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               ),
               const SizedBox(width: 16),
               Text(
-                'to',
+                AppLocalizations.of(context)!.edit_toLabel,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -852,7 +854,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'End Time',
+                      AppLocalizations.of(context)!.edit_endTime,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -862,7 +864,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       onTap: () =>
                           _selectTime(context, shift.endTimeController),
                       decoration: InputDecoration(
-                        hintText: 'Select time',
+                        hintText: AppLocalizations.of(context)!.edit_selectTime,
                         suffixIcon: const Icon(Icons.access_time),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -894,7 +896,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       child: Row(
         children: [
           Expanded(
-            child: OutlinedButton(
+              child: OutlinedButton(
               onPressed: _isSaving ? null : _cancelEdit,
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(0, 48),
@@ -902,7 +904,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.edit_cancel),
             ),
           ),
           const SizedBox(width: 12),
@@ -927,7 +929,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Text('Save'),
+                  : Text(AppLocalizations.of(context)!.edit_save),
             ),
           ),
         ],

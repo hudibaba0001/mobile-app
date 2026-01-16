@@ -24,6 +24,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_edit => 'Edit';
 
   @override
+  String get common_back => 'Back';
+
+  @override
+  String get common_saved => 'saved';
+
+  @override
+  String get common_updated => 'updated';
+
+  @override
   String get common_add => 'Add';
 
   @override
@@ -824,5 +833,762 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String error_shareFile(String error) {
     return 'Could not share file: $error';
+  }
+
+  @override
+  String get entry_saveEntry => 'Save Entry';
+
+  @override
+  String get entry_editEntry => 'Edit Entry';
+
+  @override
+  String get entry_deleteTitle => 'Delete Entry';
+
+  @override
+  String get error_selectBothLocations =>
+      'Please select both departure and arrival locations';
+
+  @override
+  String get error_selectWorkLocation => 'Please select a work location';
+
+  @override
+  String get error_selectEndTime => 'Please select an end time';
+
+  @override
+  String get error_signInRequired => 'Please sign in to save entries';
+
+  @override
+  String error_savingEntry(String error) {
+    return 'Error saving entry: $error';
+  }
+
+  @override
+  String error_calculatingTravelTime(String error) {
+    return 'Failed to calculate travel time: $error';
+  }
+
+  @override
+  String get form_departure => 'Departure';
+
+  @override
+  String get form_arrival => 'Arrival';
+
+  @override
+  String get form_location => 'Location';
+
+  @override
+  String get form_date => 'Date';
+
+  @override
+  String get form_startTime => 'Start Time';
+
+  @override
+  String get form_endTime => 'End Time';
+
+  @override
+  String get form_duration => 'Duration';
+
+  @override
+  String get form_notesOptional => 'Notes (optional)';
+
+  @override
+  String get form_selectLocation => 'Select a location';
+
+  @override
+  String get form_calculateFromLocations => 'Calculate from locations';
+
+  @override
+  String get form_manualDuration => 'Manual Duration';
+
+  @override
+  String get form_hours => 'Hours';
+
+  @override
+  String get form_minutes => 'Minutes';
+
+  @override
+  String get export_includeAllData => 'Include all data';
+
+  @override
+  String get export_includeAllDataDesc =>
+      'Export all entries regardless of date';
+
+  @override
+  String get export_startDate => 'Start Date';
+
+  @override
+  String get export_endDate => 'End Date';
+
+  @override
+  String get export_selectStartDate => 'Select start date';
+
+  @override
+  String get export_selectEndDate => 'Select end date';
+
+  @override
+  String get export_entryType => 'Entry Type';
+
+  @override
+  String get export_travelOnly => 'Travel Entries Only';
+
+  @override
+  String get export_travelOnlyDesc => 'Export only travel time entries';
+
+  @override
+  String get export_workOnly => 'Work Entries Only';
+
+  @override
+  String get export_workOnlyDesc => 'Export only work shift entries';
+
+  @override
+  String get export_both => 'Both';
+
+  @override
+  String get export_bothDesc => 'Export all entries (travel + work)';
+
+  @override
+  String get export_formatTitle => 'Export Format';
+
+  @override
+  String get export_excelFormat => 'Excel (.xlsx)';
+
+  @override
+  String get export_excelDesc => 'Professional format with formatting';
+
+  @override
+  String get export_csvFormat => 'CSV (.csv)';
+
+  @override
+  String get export_csvDesc => 'Simple text format';
+
+  @override
+  String get export_options => 'Export Options';
+
+  @override
+  String get export_filename => 'Filename';
+
+  @override
+  String get export_filenameHint => 'Enter custom filename';
+
+  @override
+  String get export_summary => 'Export Summary';
+
+  @override
+  String export_totalEntries(int count) {
+    return 'Total entries: $count';
+  }
+
+  @override
+  String export_travelEntries(int count) {
+    return 'Travel entries: $count';
+  }
+
+  @override
+  String export_workEntries(int count) {
+    return 'Work entries: $count';
+  }
+
+  @override
+  String export_totalHours(String hours) {
+    return 'Total hours: $hours';
+  }
+
+  @override
+  String get export_button => 'Export';
+
+  @override
+  String get export_enterFilename => 'Please enter a filename';
+
+  @override
+  String get export_noEntriesInRange =>
+      'No entries found for the selected date range';
+
+  @override
+  String export_errorPreparing(String error) {
+    return 'Error preparing export: $error';
+  }
+
+  @override
+  String get redDay_editRedDay => 'Edit Red Day';
+
+  @override
+  String get redDay_markAsRedDay => 'Mark as Red Day';
+
+  @override
+  String get redDay_duration => 'Duration';
+
+  @override
+  String get redDay_morningAM => 'Morning (AM)';
+
+  @override
+  String get redDay_afternoonPM => 'Afternoon (PM)';
+
+  @override
+  String get redDay_reasonHint => 'e.g., Personal day, Appointment...';
+
+  @override
+  String get redDay_remove => 'Remove';
+
+  @override
+  String get redDay_removeTitle => 'Remove Red Day?';
+
+  @override
+  String get redDay_removeMessage =>
+      'This will remove the personal red day marker from this date.';
+
+  @override
+  String get redDay_updated => 'Red day updated';
+
+  @override
+  String get redDay_added => 'Red day added';
+
+  @override
+  String get redDay_removed => 'Red day removed';
+
+  @override
+  String redDay_errorSaving(String error) {
+    return 'Error saving red day: $error';
+  }
+
+  @override
+  String redDay_errorRemoving(String error) {
+    return 'Error removing red day: $error';
+  }
+
+  @override
+  String get adjustment_editAdjustment => 'Edit Adjustment';
+
+  @override
+  String get adjustment_addAdjustment => 'Add Adjustment';
+
+  @override
+  String get adjustment_deleteTitle => 'Delete Adjustment';
+
+  @override
+  String get adjustment_deleteMessage =>
+      'Are you sure you want to delete this adjustment?';
+
+  @override
+  String get adjustment_update => 'Update';
+
+  @override
+  String adjustment_failedToSave(String error) {
+    return 'Failed to save: $error';
+  }
+
+  @override
+  String adjustment_failedToDelete(String error) {
+    return 'Failed to delete: $error';
+  }
+
+  @override
+  String get profile_title => 'Profile';
+
+  @override
+  String get profile_notSignedIn => 'Not signed in';
+
+  @override
+  String get profile_editName => 'Edit Name';
+
+  @override
+  String get profile_nameUpdated => 'Name updated successfully';
+
+  @override
+  String profile_nameUpdateFailed(String error) {
+    return 'Failed to update name: $error';
+  }
+
+  @override
+  String get location_addLocation => 'Add Location';
+
+  @override
+  String get location_addFirstLocation => 'Add First Location';
+
+  @override
+  String get location_deleteLocation => 'Delete Location';
+
+  @override
+  String location_deleteConfirm(String name) {
+    return 'Are you sure you want to delete \"$name\"?';
+  }
+
+  @override
+  String get location_manageLocations => 'Manage Locations';
+
+  @override
+  String auth_signupFailed(String error) {
+    return 'Failed to open signup page: $error';
+  }
+
+  @override
+  String auth_subscriptionFailed(String error) {
+    return 'Failed to open subscription page: $error';
+  }
+
+  @override
+  String get auth_completeRegistration => 'Complete Registration';
+
+  @override
+  String get auth_openSignupPage => 'Open Signup Page';
+
+  @override
+  String get auth_signOut => 'Sign Out';
+
+  @override
+  String get password_resetTitle => 'Reset Password';
+
+  @override
+  String get password_forgotTitle => 'Forgot your password?';
+
+  @override
+  String get password_forgotDescription =>
+      'Enter your email address and we\'ll send you a link to reset your password.';
+
+  @override
+  String get password_emailLabel => 'Email';
+
+  @override
+  String get password_emailHint => 'Enter your email address';
+
+  @override
+  String get password_emailRequired => 'Email is required';
+
+  @override
+  String get password_emailInvalid => 'Please enter a valid email address';
+
+  @override
+  String get password_sendResetLink => 'Send Reset Link';
+
+  @override
+  String get password_backToSignIn => 'Back to Sign In';
+
+  @override
+  String get password_resetLinkSent => 'Reset link sent to your email';
+
+  @override
+  String get welcome_title => 'Welcome to KvikTime';
+
+  @override
+  String get welcome_subtitle => 'Track your travel time effortlessly';
+
+  @override
+  String get welcome_signIn => 'Sign In';
+
+  @override
+  String get welcome_getStarted => 'Get Started';
+
+  @override
+  String get welcome_footer =>
+      'New to KvikTime? Create an account to get started.';
+
+  @override
+  String get welcome_urlError =>
+      'Could not open sign up page. Please try again.';
+
+  @override
+  String get edit_title => 'Edit Entry';
+
+  @override
+  String get edit_travel => 'Travel';
+
+  @override
+  String get edit_work => 'Work';
+
+  @override
+  String get edit_addTravelEntry => 'Add Travel Entry';
+
+  @override
+  String get edit_addShift => 'Add Shift';
+
+  @override
+  String get edit_notes => 'Notes';
+
+  @override
+  String get edit_notesHint => 'Add any additional notes...';
+
+  @override
+  String get edit_travelNotesHint =>
+      'Add any additional notes for all travel entries...';
+
+  @override
+  String edit_trip(int number) {
+    return 'Trip $number';
+  }
+
+  @override
+  String edit_shift(int number) {
+    return 'Shift $number';
+  }
+
+  @override
+  String get edit_from => 'From';
+
+  @override
+  String get edit_to => 'To';
+
+  @override
+  String get edit_departureHint => 'Departure location';
+
+  @override
+  String get edit_destinationHint => 'Destination location';
+
+  @override
+  String get edit_hours => 'Hours';
+
+  @override
+  String get edit_minutes => 'Minutes';
+
+  @override
+  String get edit_total => 'Total';
+
+  @override
+  String get edit_startTime => 'Start Time';
+
+  @override
+  String get edit_endTime => 'End Time';
+
+  @override
+  String get edit_selectTime => 'Select time';
+
+  @override
+  String get edit_toLabel => 'to';
+
+  @override
+  String get edit_save => 'Save';
+
+  @override
+  String get edit_cancel => 'Cancel';
+
+  @override
+  String edit_errorSaving(String error) {
+    return 'Error saving entry: $error';
+  }
+
+  @override
+  String get dateRange_title => 'Select Date Range';
+
+  @override
+  String get dateRange_description => 'Choose a time period to analyze';
+
+  @override
+  String get dateRange_quickSelections => 'Quick Selections';
+
+  @override
+  String get dateRange_customRange => 'Custom Range';
+
+  @override
+  String get dateRange_startDate => 'Start Date';
+
+  @override
+  String get dateRange_endDate => 'End Date';
+
+  @override
+  String get dateRange_apply => 'Apply';
+
+  @override
+  String get dateRange_last7Days => 'Last 7 Days';
+
+  @override
+  String get dateRange_last30Days => 'Last 30 Days';
+
+  @override
+  String get dateRange_thisMonth => 'This Month';
+
+  @override
+  String get dateRange_lastMonth => 'Last Month';
+
+  @override
+  String get dateRange_thisYear => 'This Year';
+
+  @override
+  String get quickEntry_signInRequired => 'Please sign in to add entries.';
+
+  @override
+  String quickEntry_error(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get quickEntry_multiSegment => 'Multi-Segment';
+
+  @override
+  String get quickEntry_clear => 'Clear';
+
+  @override
+  String location_saved(String name) {
+    return 'Location \"$name\" saved!';
+  }
+
+  @override
+  String get location_saveTitle => 'Save Location';
+
+  @override
+  String location_address(String address) {
+    return 'Address: $address';
+  }
+
+  @override
+  String get dev_addSampleData => 'Add Sample Data';
+
+  @override
+  String get dev_addSampleDataDesc => 'Create test entries from the last week';
+
+  @override
+  String get dev_sampleDataAdded => 'Sample data added successfully';
+
+  @override
+  String dev_sampleDataFailed(String error) {
+    return 'Failed to add sample data: $error';
+  }
+
+  @override
+  String get dev_signInRequired => 'Please sign in to add sample data.';
+
+  @override
+  String get dev_syncing => 'Syncing to Supabase...';
+
+  @override
+  String get dev_syncSuccess => '✅ Sync completed successfully!';
+
+  @override
+  String dev_syncFailed(String error) {
+    return '❌ Sync failed: $error';
+  }
+
+  @override
+  String get dev_syncToSupabase => 'Sync to Supabase';
+
+  @override
+  String get dev_syncToSupabaseDesc =>
+      'Manually sync local entries to Supabase cloud';
+
+  @override
+  String get settings_languageEnglish => 'English';
+
+  @override
+  String get settings_languageSwedish => 'Svenska';
+
+  @override
+  String get simpleEntry_validDuration => 'Please enter a valid duration';
+
+  @override
+  String simpleEntry_entrySaved(String type, String action) {
+    return '$type entry $action successfully! 🎉';
+  }
+
+  @override
+  String get account_createTitle => 'Create Account';
+
+  @override
+  String get account_createOnWeb => 'Create your account on the web';
+
+  @override
+  String get account_createDescription =>
+      'To create an account, please visit our signup page in your web browser.';
+
+  @override
+  String get account_openSignupPage => 'Open signup page';
+
+  @override
+  String get account_alreadyHaveAccount => 'I already have an account → Login';
+
+  @override
+  String get history_currentlySelected => 'Currently selected';
+
+  @override
+  String history_tapToFilter(String label) {
+    return 'Tap to filter by $label entries';
+  }
+
+  @override
+  String history_holidayWork(String name) {
+    return 'Holiday work: $name';
+  }
+
+  @override
+  String get history_redDay => 'Red day';
+
+  @override
+  String get history_noDescription => 'No description';
+
+  @override
+  String get overview_totalHours => 'Total Hours';
+
+  @override
+  String get overview_allActivities => 'All activities';
+
+  @override
+  String get overview_totalEntries => 'Total Entries';
+
+  @override
+  String get overview_thisPeriod => 'This period';
+
+  @override
+  String get overview_travelTime => 'Travel Time';
+
+  @override
+  String get overview_totalCommute => 'Total commute';
+
+  @override
+  String get overview_workTime => 'Work Time';
+
+  @override
+  String get overview_totalWork => 'Total work';
+
+  @override
+  String get overview_quickInsights => 'Quick Insights';
+
+  @override
+  String get overview_activityDistribution => 'Activity Distribution';
+
+  @override
+  String get overview_recentActivity => 'Recent Activity';
+
+  @override
+  String get overview_viewAll => 'View All';
+
+  @override
+  String get overview_noDataAvailable => 'No data available';
+
+  @override
+  String get overview_errorLoadingData => 'Error loading data';
+
+  @override
+  String get overview_travel => 'Travel';
+
+  @override
+  String get overview_work => 'Work';
+
+  @override
+  String get location_fullAddress => 'Full address';
+
+  @override
+  String get auth_legalRequired => 'Legal Acceptance Required';
+
+  @override
+  String get auth_legalDescription =>
+      'You must accept our Terms of Service and Privacy Policy to continue using the app.';
+
+  @override
+  String get auth_legalVisitSignup =>
+      'Please visit our signup page to complete this step.';
+
+  @override
+  String get entry_logTravelEntry => 'Log Travel Entry';
+
+  @override
+  String get entry_logWorkEntry => 'Log Work Entry';
+
+  @override
+  String get trends_monthlyComparison => 'Monthly Comparison';
+
+  @override
+  String get trends_currentMonth => 'Current Month';
+
+  @override
+  String get trends_previousMonth => 'Previous Month';
+
+  @override
+  String get trends_workHours => 'Work Hours';
+
+  @override
+  String get trends_weeklyHours => 'Weekly Hours';
+
+  @override
+  String get trends_dailyTrends => 'Daily Trends (Last 7 Days)';
+
+  @override
+  String get trends_total => 'total';
+
+  @override
+  String get trends_work => 'work';
+
+  @override
+  String get trends_travel => 'travel';
+
+  @override
+  String get leave_recentLeaves => 'Recent Leaves';
+
+  @override
+  String get leave_fullDay => 'Full Day';
+
+  @override
+  String get leave_totalLeaveDays => 'Total Leave Days';
+
+  @override
+  String get leave_noLeavesRecorded => 'No leaves recorded';
+
+  @override
+  String get leave_noLeavesDescription => 'Your leave history will appear here';
+
+  @override
+  String get insight_peakPerformance => 'Peak Performance';
+
+  @override
+  String insight_peakPerformanceDesc(String day, String hours) {
+    return 'Your most productive day was $day with $hours hours';
+  }
+
+  @override
+  String get insight_locationInsights => 'Location Insights';
+
+  @override
+  String insight_locationInsightsDesc(String location) {
+    return '$location is your most frequent location';
+  }
+
+  @override
+  String get insight_timeManagement => 'Time Management';
+
+  @override
+  String insight_timeManagementDesc(String hours) {
+    return 'You worked $hours hours in this period';
+  }
+
+  @override
+  String get profile_signOut => 'Sign Out';
+
+  @override
+  String get form_dateTime => 'Date & Time';
+
+  @override
+  String get form_travelRoute => 'Travel Route';
+
+  @override
+  String get form_workLocation => 'Work Location';
+
+  @override
+  String get form_workDetails => 'Work Details';
+
+  @override
+  String get nav_history => 'History';
+
+  @override
+  String balance_thisWeek(String range) {
+    return 'THIS WEEK: $range';
+  }
+
+  @override
+  String balance_hoursWorked(String worked, String target) {
+    return 'Hours Worked (to date): $worked / $target h';
+  }
+
+  @override
+  String get balance_over => 'Over';
+
+  @override
+  String get balance_under => 'Under';
+
+  @override
+  String get balance_timeDebt => 'You maintain a time debt';
+
+  @override
+  String balance_includesOpeningBalance(String balance, String date) {
+    return 'Includes opening balance ($balance) as of $date';
+  }
+
+  @override
+  String balance_includesOpeningBalanceShort(String balance) {
+    return 'Includes opening balance ($balance)';
   }
 }

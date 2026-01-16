@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 import '../repositories/repository_provider.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -33,17 +34,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final user = context.read<SupabaseAuthService>().currentUser;
 
     if (user == null) {
-      return const Scaffold(body: Center(child: Text('Not signed in')));
+      return Scaffold(body: Center(child: Text(t.profile_notSignedIn)));
     }
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(t.profile_title),
         elevation: 0,
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
@@ -55,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: _handleSignOut,
             child: Text(
-              'Sign Out',
+              t.profile_signOut,
               style: theme.textTheme.labelLarge?.copyWith(
                 color: theme.colorScheme.primary,
               ),
@@ -170,23 +172,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showEditNameDialog(BuildContext context, User user) async {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final controller = TextEditingController(text: user.userMetadata?['full_name'] ?? user.email ?? '');
 
     return showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Name'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.profile_editName),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Enter your name'),
           textCapitalization: TextCapitalization.words,
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(t.common_cancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -198,10 +200,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 await authService.updateUserProfile(displayName: newName);
                 if (mounted) {
                   setState(() {}); // Refresh UI
-                  Navigator.of(context).pop();
+                  Navigator.of(dialogContext).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Name updated successfully'),
+                    SnackBar(
+                      content: Text(t.profile_nameUpdated),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -210,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Failed to update name: $e'),
+                      content: Text(t.profile_nameUpdateFailed(e.toString())),
                       backgroundColor: theme.colorScheme.error,
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -218,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
               }
             },
-            child: const Text('Save'),
+            child: Text(t.common_save),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class DateRangeDialog extends StatefulWidget {
   final DateTime initialStartDate;
@@ -19,59 +20,62 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
   late DateTime _endDate;
   late int _selectedPresetIndex;
 
-  final _presets = [
-    _DateRangePreset(
-      name: 'Last 7 Days',
-      getRange: () {
-        final now = DateTime.now();
-        return (
-          now.subtract(const Duration(days: 7)),
-          now,
-        );
-      },
-    ),
-    _DateRangePreset(
-      name: 'Last 30 Days',
-      getRange: () {
-        final now = DateTime.now();
-        return (
-          now.subtract(const Duration(days: 30)),
-          now,
-        );
-      },
-    ),
-    _DateRangePreset(
-      name: 'This Month',
-      getRange: () {
-        final now = DateTime.now();
-        return (
-          DateTime(now.year, now.month, 1),
-          now,
-        );
-      },
-    ),
-    _DateRangePreset(
-      name: 'Last Month',
-      getRange: () {
-        final now = DateTime.now();
-        final lastMonth = DateTime(now.year, now.month - 1);
-        return (
-          DateTime(lastMonth.year, lastMonth.month, 1),
-          DateTime(now.year, now.month, 0),
-        );
-      },
-    ),
-    _DateRangePreset(
-      name: 'This Year',
-      getRange: () {
-        final now = DateTime.now();
-        return (
-          DateTime(now.year, 1, 1),
-          now,
-        );
-      },
-    ),
-  ];
+  List<_DateRangePreset> _getPresets(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return [
+      _DateRangePreset(
+        name: t.dateRange_last7Days,
+        getRange: () {
+          final now = DateTime.now();
+          return (
+            now.subtract(const Duration(days: 7)),
+            now,
+          );
+        },
+      ),
+      _DateRangePreset(
+        name: t.dateRange_last30Days,
+        getRange: () {
+          final now = DateTime.now();
+          return (
+            now.subtract(const Duration(days: 30)),
+            now,
+          );
+        },
+      ),
+      _DateRangePreset(
+        name: t.dateRange_thisMonth,
+        getRange: () {
+          final now = DateTime.now();
+          return (
+            DateTime(now.year, now.month, 1),
+            now,
+          );
+        },
+      ),
+      _DateRangePreset(
+        name: t.dateRange_lastMonth,
+        getRange: () {
+          final now = DateTime.now();
+          final lastMonth = DateTime(now.year, now.month - 1);
+          return (
+            DateTime(lastMonth.year, lastMonth.month, 1),
+            DateTime(now.year, now.month, 0),
+          );
+        },
+      ),
+      _DateRangePreset(
+        name: t.dateRange_thisYear,
+        getRange: () {
+          final now = DateTime.now();
+          return (
+            DateTime(now.year, 1, 1),
+            now,
+          );
+        },
+      ),
+    ];
+  }
 
   @override
   void initState() {
@@ -79,10 +83,13 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
     _startDate = widget.initialStartDate;
     _endDate = widget.initialEndDate;
     _selectedPresetIndex = -1;
+  }
 
-    // Check if current range matches any preset
-    for (var i = 0; i < _presets.length; i++) {
-      final (presetStart, presetEnd) = _presets[i].getRange();
+  void _checkPresetMatch(BuildContext context) {
+    final presets = _getPresets(context);
+    _selectedPresetIndex = -1;
+    for (var i = 0; i < presets.length; i++) {
+      final (presetStart, presetEnd) = presets[i].getRange();
       if (_isSameDay(_startDate, presetStart) && _isSameDay(_endDate, presetEnd)) {
         _selectedPresetIndex = i;
         break;
@@ -94,10 +101,11 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  void _selectPreset(int index) {
+  void _selectPreset(int index, BuildContext context) {
+    final presets = _getPresets(context);
     setState(() {
       _selectedPresetIndex = index;
-      final (start, end) = _presets[index].getRange();
+      final (start, end) = presets[index].getRange();
       _startDate = start;
       _endDate = end;
     });
@@ -127,23 +135,22 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
           _endDate = date;
         }
         // Clear preset selection if dates don't match any preset
-        _selectedPresetIndex = -1;
-        for (var i = 0; i < _presets.length; i++) {
-          final (presetStart, presetEnd) = _presets[i].getRange();
-          if (_isSameDay(_startDate, presetStart) &&
-              _isSameDay(_endDate, presetEnd)) {
-            _selectedPresetIndex = i;
-            break;
-          }
-        }
+        _checkPresetMatch(context);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final presets = _getPresets(context);
+    
+    // Check preset match on build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _checkPresetMatch(context);
+    });
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -184,7 +191,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Select Date Range',
+                          t.dateRange_title,
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: colorScheme.onSurface,
@@ -192,7 +199,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Choose a time period to analyze',
+                          t.dateRange_description,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -219,7 +226,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                 children: [
                   // Quick Selections
                   Text(
-                    'Quick Selections',
+                    t.dateRange_quickSelections,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
@@ -229,7 +236,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _presets.asMap().entries.map((entry) {
+                    children: presets.asMap().entries.map((entry) {
                       final index = entry.key;
                       final preset = entry.value;
                       final isSelected = index == _selectedPresetIndex;
@@ -237,7 +244,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                       return FilterChip(
                         label: Text(preset.name),
                         selected: isSelected,
-                        onSelected: (_) => _selectPreset(index),
+                        onSelected: (_) => _selectPreset(index, context),
                         showCheckmark: false,
                         labelStyle: theme.textTheme.bodyMedium?.copyWith(
                           color: isSelected
@@ -263,7 +270,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
 
                   // Custom Range
                   Text(
-                    'Custom Range',
+                    t.dateRange_customRange,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
@@ -275,7 +282,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                       Expanded(
                         child: _buildDateField(
                           theme,
-                          label: 'Start Date',
+                          label: t.dateRange_startDate,
                           date: _startDate,
                           onTap: () => _selectDate(true),
                         ),
@@ -284,7 +291,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                       Expanded(
                         child: _buildDateField(
                           theme,
-                          label: 'End Date',
+                          label: t.dateRange_endDate,
                           date: _endDate,
                           onTap: () => _selectDate(false),
                         ),
@@ -306,7 +313,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                             ),
                           ),
                           child: Text(
-                            'Cancel',
+                            t.common_cancel,
                             style: TextStyle(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -325,7 +332,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text('Apply'),
+                          child: Text(t.dateRange_apply),
                         ),
                       ),
                     ],

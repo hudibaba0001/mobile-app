@@ -27,8 +27,9 @@ class SettingsScreen extends StatelessWidget {
     final uid = auth.currentUser?.id;
     if (uid == null) {
       if (context.mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please sign in to add sample data.')),
+          SnackBar(content: Text(t.dev_signInRequired)),
         );
       }
       return;
@@ -162,18 +163,20 @@ class SettingsScreen extends StatelessWidget {
       }
 
       if (context.mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Sample data added successfully'),
+            content: Text(t.dev_sampleDataAdded),
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add sample data: $e'),
+            content: Text(t.dev_sampleDataFailed(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -182,25 +185,24 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _clearDemoData(BuildContext context) async {
+    final t = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Demo Data'),
-        content: const Text(
-          'Are you sure you want to delete all demo/sample entries? This will only remove entries with IDs starting with "sample_".',
-        ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.settings_clearDemoData),
+        content: Text(t.settings_clearDemoDataConfirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(t.common_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Clear Demo Data'),
+            child: Text(t.settings_clearDemoData),
           ),
         ],
       ),
@@ -213,8 +215,8 @@ class SettingsScreen extends StatelessWidget {
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Demo data cleared successfully'),
+            SnackBar(
+              content: Text(t.common_success),
               backgroundColor: Colors.green,
             ),
           );
@@ -223,7 +225,7 @@ class SettingsScreen extends StatelessWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to clear demo data: $e'),
+              content: Text('${t.common_error}: $e'),
               backgroundColor: Colors.red,
             ),
           );
@@ -233,25 +235,24 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _clearAllData(BuildContext context) async {
+    final t = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear All Data'),
-        content: const Text(
-          'Are you sure you want to delete all entries? This action cannot be undone.',
-        ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.settings_clearAllData),
+        content: Text(t.settings_clearAllDataConfirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(t.common_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete All'),
+            child: Text(t.common_delete),
           ),
         ],
       ),
@@ -270,8 +271,8 @@ class SettingsScreen extends StatelessWidget {
         
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('All data cleared successfully'),
+            SnackBar(
+              content: Text(t.common_success),
               backgroundColor: Colors.green,
             ),
           );
@@ -280,7 +281,7 @@ class SettingsScreen extends StatelessWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to clear data: $e'),
+              content: Text('${t.common_error}: $e'),
               backgroundColor: Colors.red,
             ),
           );
@@ -290,17 +291,18 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showHolidayInfoDialog(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final holidayService = context.read<HolidayService>();
     final holidays = holidayService.getHolidaysWithNamesForYear(DateTime.now().year);
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.event_available, color: Theme.of(context).colorScheme.primary),
+            Icon(Icons.event_available, color: Theme.of(dialogContext).colorScheme.primary),
             const SizedBox(width: 12),
-            const Text('Swedish Public Holidays'),
+            Flexible(child: Text(t.settings_publicHolidays)),
           ],
         ),
         content: SizedBox(
@@ -310,8 +312,8 @@ class SettingsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${DateTime.now().year} Holidays',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                t.settings_viewHolidays(DateTime.now().year),
+                style: Theme.of(dialogContext).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -322,7 +324,7 @@ class SettingsScreen extends StatelessWidget {
                   shrinkWrap: true,
                   itemCount: holidays.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
+                  itemBuilder: (itemContext, index) {
                     final holiday = holidays[index];
                     final dateStr = '${holiday.date.day}/${holiday.date.month}';
                     return ListTile(
@@ -334,9 +336,9 @@ class SettingsScreen extends StatelessWidget {
                           color: Colors.red.shade600,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          'Auto',
-                          style: TextStyle(
+                        child: Text(
+                          t.redDay_auto,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -346,7 +348,7 @@ class SettingsScreen extends StatelessWidget {
                       title: Text(holiday.name),
                       trailing: Text(
                         dateStr,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(itemContext).textTheme.bodySmall,
                       ),
                     );
                   },
@@ -365,8 +367,8 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'These holidays are auto-detected and marked as red days. Work entries on these days won\'t count toward your target hours.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        t.redDay_holidayWorkNotice,
+                        style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
                           color: Colors.blue.shade800,
                         ),
                       ),
@@ -379,8 +381,8 @@ class SettingsScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(t.common_close),
           ),
         ],
       ),
@@ -448,13 +450,13 @@ class SettingsScreen extends StatelessWidget {
                   value: null,
                   child: Text(t.settings_languageSystem),
                 ),
-                const DropdownMenuItem<Locale>(
-                  value: Locale('en'),
-                  child: Text('English'),
+                DropdownMenuItem<Locale>(
+                  value: const Locale('en'),
+                  child: Text(AppLocalizations.of(context)!.settings_languageEnglish),
                 ),
-                const DropdownMenuItem<Locale>(
-                  value: Locale('sv'),
-                  child: Text('Svenska'),
+                DropdownMenuItem<Locale>(
+                  value: const Locale('sv'),
+                  child: Text(AppLocalizations.of(context)!.settings_languageSwedish),
                 ),
               ],
               onChanged: (Locale? locale) {
@@ -491,7 +493,7 @@ class SettingsScreen extends StatelessWidget {
           // Holiday region info
           ListTile(
             leading: const Icon(Icons.flag_outlined),
-            title: const Text('Region'),
+            title: Text(t.settings_region),
             subtitle: Text(t.settings_holidayRegion),
             trailing: const Icon(Icons.info_outline),
             onTap: () => _showHolidayInfoDialog(context),
@@ -502,8 +504,8 @@ class SettingsScreen extends StatelessWidget {
           // First Launch Setting
           ListTile(
             leading: const Icon(Icons.new_releases),
-            title: const Text('Show Welcome Screen'),
-            subtitle: const Text('Show introduction on next launch'),
+            title: Text(t.settings_welcomeScreen),
+            subtitle: Text(t.settings_welcomeScreenDesc),
             trailing: Switch(
               value: settingsProvider.isFirstLaunch,
               onChanged: settingsProvider.setFirstLaunch,
@@ -515,8 +517,8 @@ class SettingsScreen extends StatelessWidget {
           // Manage Locations
           ListTile(
             leading: const Icon(Icons.location_on_outlined),
-            title: const Text('Manage Locations'),
-            subtitle: const Text('Add and edit your frequent locations'),
+            title: Text(t.settings_manageLocations),
+            subtitle: Text(t.settings_manageLocationsDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => AppRouter.goToManageLocations(context),
           ),
@@ -524,8 +526,8 @@ class SettingsScreen extends StatelessWidget {
           // Contract Settings
           ListTile(
             leading: const Icon(Icons.assignment_outlined),
-            title: const Text('Contract Settings'),
-            subtitle: const Text('Configure your work contract and rates'),
+            title: Text(t.settings_contractSettings),
+            subtitle: Text(t.settings_contractDescription),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => AppRouter.goToContractSettings(context),
           ),
@@ -533,8 +535,8 @@ class SettingsScreen extends StatelessWidget {
           // Absence Management
           ListTile(
             leading: const Icon(Icons.event_busy),
-            title: const Text('Absences'),
-            subtitle: const Text('Manage vacation, sick leave, and VAB'),
+            title: Text(t.settings_absences),
+            subtitle: Text(t.settings_absencesDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRouter.absenceManagementPath),
           ),
@@ -542,8 +544,8 @@ class SettingsScreen extends StatelessWidget {
           // Manage Subscription
           ListTile(
             leading: const Icon(Icons.payment_outlined),
-            title: const Text('Manage Subscription'),
-            subtitle: const Text('Update payment method and subscription plan'),
+            title: Text(t.settings_manageSubscription),
+            subtitle: Text(t.settings_subscriptionDesc),
             trailing: const Icon(Icons.chevron_right),
             onTap: () async {
               try {
@@ -553,8 +555,8 @@ class SettingsScreen extends StatelessWidget {
                 } else {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Could not open subscription page'),
+                      SnackBar(
+                        content: Text(t.common_error),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -564,7 +566,7 @@ class SettingsScreen extends StatelessWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Failed to open subscription page: $e'),
+                      content: Text('${t.common_error}: $e'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -586,33 +588,40 @@ class SettingsScreen extends StatelessWidget {
                     ),
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.data_array),
-              title: const Text('Add Sample Data'),
-              subtitle: const Text('Create test entries from the last week'),
-              onTap: () => _addSampleData(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.cleaning_services, color: Colors.orange),
-              title: const Text('Clear Demo Data', style: TextStyle(color: Colors.orange)),
-              subtitle: const Text('Remove sample entries (IDs starting with "sample_")',
-                                style: TextStyle(color: Colors.orange)),
-              onTap: () => _clearDemoData(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_sweep, color: Colors.red),
-              title: const Text('Clear All Data', style: TextStyle(color: Colors.red)),
-              subtitle: const Text('Delete all entries (cannot be undone)', 
-                                style: TextStyle(color: Colors.red)),
-              onTap: () => _clearAllData(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.sync, color: Colors.blue),
-              title: const Text('Sync to Supabase', style: TextStyle(color: Colors.blue)),
-              subtitle: const Text('Manually sync local entries to Supabase cloud',
-                                style: TextStyle(color: Colors.blue)),
-              onTap: () => _syncToSupabase(context),
-            ),
+            Builder(builder: (context) {
+              final t = AppLocalizations.of(context)!;
+              return Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.data_array),
+                    title: Text(t.dev_addSampleData),
+                    subtitle: Text(t.dev_addSampleDataDesc),
+                    onTap: () => _addSampleData(context),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.cleaning_services, color: Colors.orange),
+                    title: Text(t.settings_clearDemoData, style: const TextStyle(color: Colors.orange)),
+                    subtitle: Text(t.settings_clearDemoDataConfirm,
+                                  style: const TextStyle(color: Colors.orange)),
+                    onTap: () => _clearDemoData(context),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.delete_sweep, color: Colors.red),
+                    title: Text(t.settings_clearAllData, style: const TextStyle(color: Colors.red)),
+                    subtitle: Text(t.settings_clearAllDataConfirm, 
+                                  style: const TextStyle(color: Colors.red)),
+                    onTap: () => _clearAllData(context),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.sync, color: Colors.blue),
+                    title: Text(t.dev_syncToSupabase, style: const TextStyle(color: Colors.blue)),
+                    subtitle: Text(t.dev_syncToSupabaseDesc,
+                                  style: const TextStyle(color: Colors.blue)),
+                    onTap: () => _syncToSupabase(context),
+                  ),
+                ],
+              );
+            }),
           ],
         ],
       ),
@@ -625,15 +634,16 @@ class SettingsScreen extends StatelessWidget {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     
     // Show loading dialog
+    final t = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => const AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         content: Row(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('Syncing to Supabase...'),
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Text(t.dev_syncing),
           ],
         ),
       ),
@@ -647,11 +657,12 @@ class SettingsScreen extends StatelessWidget {
         if (navigator.canPop()) {
           navigator.pop();
         }
+        final t = AppLocalizations.of(context)!;
         scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('✅ Sync completed successfully!'),
+          SnackBar(
+            content: Text(t.dev_syncSuccess),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       });
@@ -661,9 +672,10 @@ class SettingsScreen extends StatelessWidget {
         if (navigator.canPop()) {
           navigator.pop();
         }
+        final t = AppLocalizations.of(context)!;
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text('❌ Sync failed: $e'),
+            content: Text(t.dev_syncFailed(e.toString())),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 5),
           ),

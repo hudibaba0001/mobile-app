@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -23,13 +24,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Reset Password'),
+        title: Text(t.password_resetTitle),
         elevation: 0,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
@@ -59,7 +61,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                 // Title
                 Text(
-                  'Forgot your password?',
+                  t.password_forgotTitle,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
@@ -71,7 +73,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                 // Description
                 Text(
-                  'Enter your email address and we\'ll send you a link to reset your password.',
+                  t.password_forgotDescription,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -86,8 +88,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email address',
+                    labelText: t.password_emailLabel,
+                    hintText: t.password_emailHint,
                     prefixIcon: const Icon(Icons.email_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -125,7 +127,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             color: colorScheme.onPrimary,
                           ),
                         )
-                      : const Text('Send Reset Link'),
+                      : Text(t.password_sendResetLink),
                 ),
 
                 const SizedBox(height: 24),
@@ -133,7 +135,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 // Back to Sign In button
                 TextButton(
                   onPressed: () => AppRouter.goToLogin(context),
-                  child: const Text('Back to Sign In'),
+                  child: Text(t.password_backToSignIn),
                 ),
               ],
             ),
@@ -145,8 +147,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   /// Validate email field
   String? _validateEmail(String? value) {
+    final t = AppLocalizations.of(context)!;
     if (value == null || value.trim().isEmpty) {
-      return 'Email is required';
+      return t.password_emailRequired;
     }
 
     // Basic email regex validation
@@ -154,7 +157,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
     if (!emailRegex.hasMatch(value.trim())) {
-      return 'Please enter a valid email address';
+      return t.password_emailInvalid;
     }
 
     return null;
@@ -174,9 +177,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           );
 
       if (mounted) {
+        final t = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Reset link sent to your email'),
+            content: Text(t.password_resetLinkSent),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/app_router.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// Welcome screen that serves as the entry point for new users
 /// Provides options to sign in or get started with account creation
@@ -9,6 +10,7 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -28,7 +30,7 @@ class WelcomeScreen extends StatelessWidget {
 
                 // Welcome title
                 Text(
-                  'Welcome to KvikTime',
+                  t.welcome_title,
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.onSurface,
@@ -40,7 +42,7 @@ class WelcomeScreen extends StatelessWidget {
 
                 // Subtitle
                 Text(
-                  'Track your travel time effortlessly',
+                  t.welcome_subtitle,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -64,7 +66,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Sign In',
+                      t.welcome_signIn,
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -91,7 +93,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Get Started',
+                      t.welcome_getStarted,
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -103,7 +105,7 @@ class WelcomeScreen extends StatelessWidget {
 
                 // Footer text
                 Text(
-                  'New to KvikTime? Create an account to get started.',
+                  t.welcome_footer,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -168,9 +170,10 @@ class WelcomeScreen extends StatelessWidget {
 
   /// Show error message when URL cannot be launched
   void _showUrlError(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Could not open sign up page. Please try again.'),
+        content: Text(t.welcome_urlError),
         backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),

@@ -43,9 +43,9 @@ class _ReportsScreenState extends State<ReportsScreen>
   Future<void> _showExportDialog(BuildContext context) async {
     // Show loading indicator while fetching entries
     if (!mounted) return;
-    
+
     final t = AppLocalizations.of(context)!;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -181,11 +181,11 @@ class _ReportsScreenState extends State<ReportsScreen>
 
   Future<void> _performExport(Map<String, dynamic> exportConfig) async {
     if (!mounted) return;
-    
+
     final t = AppLocalizations.of(context)!;
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context, rootNavigator: true);
-    
+
     try {
       final entries = exportConfig['entries'] as List<Entry>;
       final fileName = exportConfig['fileName'] as String;
@@ -261,7 +261,7 @@ class _ReportsScreenState extends State<ReportsScreen>
       }
     } catch (e) {
       debugPrint('Export error: $e');
-      
+
       // Show error message
       scaffoldMessenger.showSnackBar(
         SnackBar(
@@ -280,10 +280,10 @@ class _ReportsScreenState extends State<ReportsScreen>
     String format,
   ) async {
     if (!mounted) return;
-    
+
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context)!;
-    
+
     await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -348,7 +348,7 @@ class _ReportsScreenState extends State<ReportsScreen>
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    
+
     return ChangeNotifierProvider(
       create: (context) {
         final viewModel = CustomerAnalyticsViewModel();
