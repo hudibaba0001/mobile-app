@@ -412,11 +412,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               // From field
               TextFormField(
                 controller: _departureController,
-                decoration: const InputDecoration(
                   labelText: AppLocalizations.of(context)!.entry_from,
                   hintText: AppLocalizations.of(context)!.form_departureLocation,
-                  prefixIcon: Icon(Icons.my_location),
-                  border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
                     Validators.validateRequired(value, AppLocalizations.of(context)!.form_departureLocation),
@@ -427,11 +424,11 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               // To field
               TextFormField(
                 controller: _arrivalController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.entry_to,
                   hintText: AppLocalizations.of(context)!.form_arrivalLocation,
-                  prefixIcon: Icon(Icons.location_on),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.location_on),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) =>
                     Validators.validateRequired(value, AppLocalizations.of(context)!.form_arrivalLocation),
@@ -457,11 +454,11 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               // Info field
               TextFormField(
                 controller: _infoController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.entry_notes,
                   hintText: AppLocalizations.of(context)!.form_additionalInformation,
-                  prefixIcon: Icon(Icons.note),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.note),
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 1,
               ),
