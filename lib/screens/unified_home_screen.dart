@@ -203,15 +203,16 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   String _getAbsenceTypeLabel(AbsenceType type) {
+    final t = AppLocalizations.of(context)!;
     switch (type) {
       case AbsenceType.vacationPaid:
-        return 'Paid Leave';
+        return t.home_paidLeave;
       case AbsenceType.sickPaid:
-        return 'Sick Leave';
+        return t.home_sickLeave;
       case AbsenceType.vabPaid:
-        return 'VAB (Child Care)';
+        return t.home_vab;
       case AbsenceType.unpaid:
-        return 'Unpaid Leave';
+        return t.home_unpaidLeave;
     }
   }
 
