@@ -1548,7 +1548,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Log Travel Entry',
+                          AppLocalizations.of(context)!.home_logTravelEntry,
                           style: theme.textTheme.headlineSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
