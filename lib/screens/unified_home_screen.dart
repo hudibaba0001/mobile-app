@@ -157,7 +157,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         allEntries.add(_EntryData(
           id: entry.id,
           type: 'work',
-          title: 'Work Session',
+          title: AppLocalizations.of(context)!.home_workSession,
           subtitle:
               '${entry.date.toString().split(' ')[0]} • ${entry.remarks.isNotEmpty ? entry.remarks : 'No remarks'}',
           duration: '${entry.workMinutes ~/ 60}h ${entry.workMinutes % 60}m',
