@@ -83,10 +83,11 @@ class LocationProvider extends ChangeNotifier {
   List<Location> getLocationsByName(String query) {
     if (query.isEmpty) return _locations;
 
+    final lowercaseQuery = query.toLowerCase();
     return _locations
         .where((location) =>
-            location.name.toLowerCase().contains(query.toLowerCase()) ||
-            location.address.toLowerCase().contains(query.toLowerCase()))
+            location.name.toLowerCase().contains(lowercaseQuery) ||
+            location.address.toLowerCase().contains(lowercaseQuery))
         .toList();
   }
 
@@ -155,11 +156,22 @@ class LocationProvider extends ChangeNotifier {
 
     final suggestions = <AutocompleteSuggestion>[];
     final lowercaseQuery = query.toLowerCase();
+    final seenLocationIds = <String>{};
+    var hasExactTextMatch = false;
 
-    // First, add exact matches from saved locations
     for (final location in _locations) {
-      if (location.name.toLowerCase() == lowercaseQuery ||
-          location.address.toLowerCase() == lowercaseQuery) {
+      final nameLower = location.name.toLowerCase();
+      final addressLower = location.address.toLowerCase();
+      final isExactMatch =
+          nameLower == lowercaseQuery || addressLower == lowercaseQuery;
+      final isPartialMatch = nameLower.contains(lowercaseQuery) ||
+          addressLower.contains(lowercaseQuery);
+
+      if (!isExactMatch && !isPartialMatch) {
+        continue;
+      }
+
+      if (seenLocationIds.add(location.id)) {
         suggestions.add(AutocompleteSuggestion(
           text: location.name,
           subtitle: location.address,
@@ -167,27 +179,14 @@ class LocationProvider extends ChangeNotifier {
           location: location,
         ));
       }
-    }
 
-    // Then add partial matches from saved locations
-    for (final location in _locations) {
-      if (location.name.toLowerCase().contains(lowercaseQuery) ||
-          location.address.toLowerCase().contains(lowercaseQuery)) {
-        if (!suggestions.any((s) => s.location?.id == location.id)) {
-          suggestions.add(AutocompleteSuggestion(
-            text: location.name,
-            subtitle: location.address,
-            type: SuggestionType.saved,
-            location: location,
-          ));
-        }
+      if (isExactMatch) {
+        hasExactTextMatch = true;
       }
     }
 
     // Finally, add the raw input as a custom suggestion if it doesn't match any saved location
-    if (!suggestions.any((s) =>
-        s.text.toLowerCase() == lowercaseQuery ||
-        s.subtitle.toLowerCase() == lowercaseQuery)) {
+    if (!hasExactTextMatch) {
       suggestions.add(AutocompleteSuggestion(
         text: query,
         subtitle: 'Custom location',
