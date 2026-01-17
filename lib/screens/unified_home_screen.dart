@@ -3081,9 +3081,9 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     if (!widget.enableSuggestions)
                       TextField(
                         controller: shift.startTimeController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: AppLocalizations.of(context)!.home_timeExample,
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                         ),
                         onChanged: (_) {
                           _updateTotalDuration();
