@@ -265,8 +265,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                   children: [
                     Text(
                       widget.initialEntry != null
-                          ? 'Edit Entry'
-                          : 'Quick Entry',
+                          ? AppLocalizations.of(context)!.quickEntry_editEntry
+                          : AppLocalizations.of(context)!.quickEntry_quickEntry,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const Spacer(),
@@ -418,11 +418,11 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
               // Minutes field
               TextFormField(
                 controller: _minutesController,
-                decoration: const InputDecoration(
-                  labelText: 'Travel Time (minutes)',
-                  hintText: 'e.g., 45',
-                  prefixIcon: Icon(Icons.access_time),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.quickEntry_travelTimeMinutes,
+                  hintText: AppLocalizations.of(context)!.quickEntry_travelTimeHint,
+                  prefixIcon: const Icon(Icons.access_time),
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
                 validator: Validators.validateMinutes,
@@ -434,11 +434,11 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
               // Info field
               TextFormField(
                 controller: _infoController,
-                decoration: const InputDecoration(
-                  labelText: 'Additional Info (Optional)',
-                  hintText: 'Notes, delays, etc.',
-                  prefixIcon: Icon(Icons.note),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.quickEntry_additionalInfo,
+                  hintText: AppLocalizations.of(context)!.quickEntry_additionalInfoHint,
+                  prefixIcon: const Icon(Icons.note),
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: widget.isCompact ? 1 : 2,
                 validator: Validators.validateInfo,
@@ -475,10 +475,10 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                               : Icons.add),
                       label: Text(
                         _isLoading
-                            ? 'Saving...'
+                            ? AppLocalizations.of(context)!.quickEntry_saving
                             : widget.initialEntry != null
-                                ? 'Update Entry'
-                                : 'Add Entry',
+                                ? AppLocalizations.of(context)!.quickEntry_updateEntry
+                                : AppLocalizations.of(context)!.quickEntry_addEntry,
                       ),
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.all(widget.isCompact

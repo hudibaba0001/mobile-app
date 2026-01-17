@@ -608,13 +608,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get entry_to => 'Till';
 
   @override
-  String get entry_duration => 'Längd';
+  String get entry_duration => 'Varaktighet';
 
   @override
   String get entry_date => 'Datum';
 
   @override
-  String get entry_notes => 'Anteckningar';
+  String get entry_notes => 'Anteckningar (Valfritt)';
 
   @override
   String get entry_shifts => 'Pass';
@@ -1590,4 +1590,166 @@ class AppLocalizationsSv extends AppLocalizations {
   String balance_includesOpeningBalanceShort(String balance) {
     return 'Inkluderar startsaldo ($balance)';
   }
+
+  @override
+  String get locations_errorLoading => 'Fel vid laddning av data';
+
+  @override
+  String get locations_distribution => 'Platsfördelning';
+
+  @override
+  String get locations_details => 'Platsdetaljer';
+
+  @override
+  String get locations_noData => 'Ingen platsdata';
+
+  @override
+  String get locations_noDataDescription =>
+      'Inga poster hittades för den valda perioden';
+
+  @override
+  String get locations_noDataAvailable => 'Ingen platsdata tillgänglig';
+
+  @override
+  String get locations_totalHours => 'Totalt antal timmar';
+
+  @override
+  String get locations_entries => 'Poster';
+
+  @override
+  String get locations_workTime => 'Arbetstid';
+
+  @override
+  String get locations_travelTime => 'Restid';
+
+  @override
+  String get chart_timeDistribution => 'Tidsfördelning';
+
+  @override
+  String get chart_workTime => 'Arbetstid';
+
+  @override
+  String get chart_travelTime => 'Restid';
+
+  @override
+  String get chart_totalTime => 'Total tid';
+
+  @override
+  String get chart_noDataAvailable => 'Ingen data tillgänglig';
+
+  @override
+  String get chart_startTracking => 'Börja spåra din tid för att se statistik';
+
+  @override
+  String get chart_allTime => 'Hela tiden';
+
+  @override
+  String get chart_today => 'Idag';
+
+  @override
+  String get balance_todaysBalance => 'Dagens saldo';
+
+  @override
+  String get balance_workVsTravel => 'Arbete vs resa';
+
+  @override
+  String get balance_balanced => 'Balanserad';
+
+  @override
+  String get balance_unbalanced => 'Ob balanserad';
+
+  @override
+  String get balance_work => 'Arbete';
+
+  @override
+  String get balance_travel => 'Resa';
+
+  @override
+  String get balance_entries => 'Poster';
+
+  @override
+  String get settings_darkMode => 'Mörkt läge';
+
+  @override
+  String get settings_darkModeActive => 'Mörkt tema är aktivt';
+
+  @override
+  String get settings_switchToDark => 'Växla till mörkt tema';
+
+  @override
+  String get settings_darkModeEnabled => 'Mörkt läge aktiverat';
+
+  @override
+  String get settings_lightModeEnabled => 'Ljust läge aktiverat';
+
+  @override
+  String get entry_endTime => 'Sluttid';
+
+  @override
+  String get entry_fromHint => 'Ange avgångsplats';
+
+  @override
+  String get entry_toHint => 'Ange ankomstplats';
+
+  @override
+  String get entry_location => 'Plats';
+
+  @override
+  String get entry_locationHint => 'Ange arbetsplats';
+
+  @override
+  String get entry_hours => 'Timmar';
+
+  @override
+  String get entry_minutes => 'Minuter';
+
+  @override
+  String get entry_shift => 'Skift';
+
+  @override
+  String get entry_notesHint => 'Lägg till ytterligare detaljer...';
+
+  @override
+  String get entry_calculating => 'Beräknar...';
+
+  @override
+  String get entry_calculateTravelTime => 'Beräkna restid';
+
+  @override
+  String entry_travelTimeCalculated(String duration, String distance) {
+    return 'Restid beräknad: $duration ($distance)';
+  }
+
+  @override
+  String entry_total(String duration) {
+    return 'Totalt: $duration';
+  }
+
+  @override
+  String get entry_publicHoliday => 'Allmän helgdag';
+
+  @override
+  String get entry_publicHolidaySweden => 'Allmän helgdag i Sverige';
+
+  @override
+  String get entry_redDayWarning =>
+      'Röd dag. Timmar som anges här kan räknas som helgdagsarbete.';
+
+  @override
+  String get entry_personalRedDay => 'Personlig röd dag';
+
+  @override
+  String get shift_morning => 'Morgonskift';
+
+  @override
+  String get shift_afternoon => 'Eftermiddagsskift';
+
+  @override
+  String get shift_evening => 'Kvällsskift';
+
+  @override
+  String get shift_night => 'Nattskift';
+
+  @override
+  String get shift_unknown => 'Okänt skift';
 }

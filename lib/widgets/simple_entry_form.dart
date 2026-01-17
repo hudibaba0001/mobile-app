@@ -125,14 +125,14 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
               if (isTravel) ...[
                 TextFormField(
                   controller: _fromController,
-                  decoration: const InputDecoration(
-                    labelText: 'From Location',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.my_location),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.simpleEntry_fromLocation,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.my_location),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter departure location';
+                      return AppLocalizations.of(context)!.simpleEntry_pleaseEnterDeparture;
                     }
                     return null;
                   },
@@ -140,14 +140,14 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _toController,
-                  decoration: const InputDecoration(
-                    labelText: 'To Location',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.location_on),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.simpleEntry_toLocation,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.location_on),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter arrival location';
+                      return AppLocalizations.of(context)!.simpleEntry_pleaseEnterArrival;
                     }
                     return null;
                   },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// A Material 3 styled Dark Mode toggle component for the Settings screen.
 /// 
@@ -111,7 +112,7 @@ class DarkModeToggle extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Dark Mode',
+          AppLocalizations.of(context)!.settings_darkMode,
           style: theme.textTheme.titleMedium?.copyWith(
             color: colorScheme.onSurface,
             fontWeight: FontWeight.w600,
@@ -120,8 +121,8 @@ class DarkModeToggle extends StatelessWidget {
         const SizedBox(height: 2.0),
         Text(
           isDarkMode 
-              ? 'Dark theme is active'
-              : 'Switch to dark theme',
+              ? AppLocalizations.of(context)!.settings_darkModeActive
+              : AppLocalizations.of(context)!.settings_switchToDark,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
             height: 1.3,
@@ -178,9 +179,10 @@ class DarkModeToggle extends StatelessWidget {
 
   /// Shows a brief confirmation message
   void _showToggleConfirmation(BuildContext context, bool isDarkMode) {
+    final t = AppLocalizations.of(context)!;
     final message = isDarkMode 
-        ? 'Dark mode enabled' 
-        : 'Light mode enabled';
+        ? t.settings_darkModeEnabled
+        : t.settings_lightModeEnabled;
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

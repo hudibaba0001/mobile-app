@@ -191,7 +191,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Date',
+          AppLocalizations.of(context)!.entry_date,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -326,7 +326,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       Text(
                         _endTime != null
                             ? _endTime!.format(context)
-                            : 'End time',
+                            : AppLocalizations.of(context)!.entry_endTime,
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
@@ -392,7 +392,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   children: [
                     if (redDayInfo.isAutoHoliday)
                       Text(
-                        redDayInfo.autoHolidayName ?? 'Public Holiday',
+                        redDayInfo.autoHolidayName ?? AppLocalizations.of(context)!.entry_publicHoliday,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: Colors.red.shade800,
@@ -411,7 +411,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     if (redDayInfo.isAutoHoliday &&
                         redDayInfo.personalRedDay == null)
                       Text(
-                        'Public holiday in Sweden',
+                        AppLocalizations.of(context)!.entry_publicHolidaySweden,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: Colors.red.shade700,
                         ),
@@ -446,7 +446,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Red day. Hours entered here may count as holiday work.',
+                      AppLocalizations.of(context)!.entry_redDayWarning,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.amber.shade900,
                         fontWeight: FontWeight.w500,
@@ -474,8 +474,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
         const SizedBox(height: 12),
         LocationSelector(
-          labelText: 'From',
-          hintText: 'Enter departure location',
+          labelText: AppLocalizations.of(context)!.entry_from,
+          hintText: AppLocalizations.of(context)!.entry_fromHint,
           initialValue: _departureLocation,
           onLocationSelected: (location) {
             setState(() {
@@ -487,8 +487,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
         const SizedBox(height: 12),
         LocationSelector(
-          labelText: 'To',
-          hintText: 'Enter arrival location',
+          labelText: AppLocalizations.of(context)!.entry_to,
+          hintText: AppLocalizations.of(context)!.entry_toHint,
           initialValue: _arrivalLocation,
           onLocationSelected: (location) {
             setState(() {
@@ -514,8 +514,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   )
                 : const Icon(Icons.directions_car),
             label: Text(_isCalculatingTravelTime
-                ? 'Calculating...'
-                : 'Calculate Travel Time'),
+                ? AppLocalizations.of(context)!.entry_calculating
+                : AppLocalizations.of(context)!.entry_calculateTravelTime),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
             ),
@@ -577,7 +577,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Travel time calculated: $durationText ($distanceText)',
+              AppLocalizations.of(context)!.entry_travelTimeCalculated(durationText, distanceText),
             ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
@@ -615,8 +615,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
         const SizedBox(height: 12),
         LocationSelector(
-          labelText: 'Location',
-          hintText: 'Enter work location',
+          labelText: AppLocalizations.of(context)!.entry_location,
+          hintText: AppLocalizations.of(context)!.entry_locationHint,
           initialValue: _workLocation,
           onLocationSelected: (location) =>
               setState(() => _workLocation = location),
@@ -631,7 +631,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Duration',
+          AppLocalizations.of(context)!.entry_duration,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -644,9 +644,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 initialValue: _durationMinutes > 0
                     ? (_durationMinutes ~/ 60).toString()
                     : '',
-                decoration: const InputDecoration(
-                  labelText: 'Hours',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.entry_hours,
+                  border: const OutlineInputBorder(),
                   suffixText: 'h',
                 ),
                 keyboardType: TextInputType.number,
@@ -663,9 +663,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 initialValue: _durationMinutes > 0
                     ? (_durationMinutes % 60).toString()
                     : '',
-                decoration: const InputDecoration(
-                  labelText: 'Minutes',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.entry_minutes,
+                  border: const OutlineInputBorder(),
                   suffixText: 'm',
                 ),
                 keyboardType: TextInputType.number,
@@ -687,7 +687,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              'Total: ${_formatDuration(_durationMinutes)}',
+              AppLocalizations.of(context)!.entry_total(_formatDuration(_durationMinutes)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w500,
@@ -712,10 +712,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(
           value: _shift?.description,
-          decoration: const InputDecoration(
-            labelText: 'Shift',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.schedule),
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.entry_shift,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.schedule),
           ),
           items: Shift.values.map((shiftType) {
             return DropdownMenuItem(
@@ -747,7 +747,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Notes (Optional)',
+          AppLocalizations.of(context)!.entry_notes,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -755,10 +755,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         const SizedBox(height: 12),
         TextFormField(
           controller: _notesController,
-          decoration: const InputDecoration(
-            hintText: 'Add any additional details...',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.note),
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context)!.entry_notesHint,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.note),
           ),
           maxLines: 3,
           textCapitalization: TextCapitalization.sentences,
@@ -920,7 +920,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       // Get holiday name (prefer auto holiday name, fallback to personal reason)
       final holidayName = redDayInfo.autoHolidayName ??
           redDayInfo.personalRedDay?.reason ??
-          (redDayInfo.personalRedDay != null ? 'Personal red day' : null);
+          (redDayInfo.personalRedDay != null ? AppLocalizations.of(context)!.entry_personalRedDay : null);
 
       final entry = Entry(
         id: widget.existingEntry?.id, // Let Entry model generate UUID if null
@@ -1017,17 +1017,18 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   String _getShiftDisplayName(String shiftType) {
+    final t = AppLocalizations.of(context)!;
     switch (shiftType) {
       case 'morning':
-        return 'Morning Shift';
+        return t.shift_morning;
       case 'afternoon':
-        return 'Afternoon Shift';
+        return t.shift_afternoon;
       case 'evening':
-        return 'Evening Shift';
+        return t.shift_evening;
       case 'night':
-        return 'Night Shift';
+        return t.shift_night;
       default:
-        return 'Unknown Shift';
+        return t.shift_unknown;
     }
   }
 }

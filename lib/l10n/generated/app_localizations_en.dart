@@ -614,7 +614,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entry_date => 'Date';
 
   @override
-  String get entry_notes => 'Notes';
+  String get entry_notes => 'Notes (Optional)';
 
   @override
   String get entry_shifts => 'Shifts';
@@ -1591,4 +1591,167 @@ class AppLocalizationsEn extends AppLocalizations {
   String balance_includesOpeningBalanceShort(String balance) {
     return 'Includes opening balance ($balance)';
   }
+
+  @override
+  String get locations_errorLoading => 'Error loading data';
+
+  @override
+  String get locations_distribution => 'Location Distribution';
+
+  @override
+  String get locations_details => 'Location Details';
+
+  @override
+  String get locations_noData => 'No location data';
+
+  @override
+  String get locations_noDataDescription =>
+      'No entries found for the selected period';
+
+  @override
+  String get locations_noDataAvailable => 'No location data available';
+
+  @override
+  String get locations_totalHours => 'Total Hours';
+
+  @override
+  String get locations_entries => 'Entries';
+
+  @override
+  String get locations_workTime => 'Work Time';
+
+  @override
+  String get locations_travelTime => 'Travel Time';
+
+  @override
+  String get chart_timeDistribution => 'Time Distribution';
+
+  @override
+  String get chart_workTime => 'Work Time';
+
+  @override
+  String get chart_travelTime => 'Travel Time';
+
+  @override
+  String get chart_totalTime => 'Total Time';
+
+  @override
+  String get chart_noDataAvailable => 'No data available';
+
+  @override
+  String get chart_startTracking =>
+      'Start tracking your time to see statistics';
+
+  @override
+  String get chart_allTime => 'All time';
+
+  @override
+  String get chart_today => 'Today';
+
+  @override
+  String get balance_todaysBalance => 'Today\'s Balance';
+
+  @override
+  String get balance_workVsTravel => 'Work vs Travel';
+
+  @override
+  String get balance_balanced => 'Balanced';
+
+  @override
+  String get balance_unbalanced => 'Unbalanced';
+
+  @override
+  String get balance_work => 'Work';
+
+  @override
+  String get balance_travel => 'Travel';
+
+  @override
+  String get balance_entries => 'Entries';
+
+  @override
+  String get settings_darkMode => 'Dark Mode';
+
+  @override
+  String get settings_darkModeActive => 'Dark theme is active';
+
+  @override
+  String get settings_switchToDark => 'Switch to dark theme';
+
+  @override
+  String get settings_darkModeEnabled => 'Dark mode enabled';
+
+  @override
+  String get settings_lightModeEnabled => 'Light mode enabled';
+
+  @override
+  String get entry_endTime => 'End time';
+
+  @override
+  String get entry_fromHint => 'Enter departure location';
+
+  @override
+  String get entry_toHint => 'Enter arrival location';
+
+  @override
+  String get entry_location => 'Location';
+
+  @override
+  String get entry_locationHint => 'Enter work location';
+
+  @override
+  String get entry_hours => 'Hours';
+
+  @override
+  String get entry_minutes => 'Minutes';
+
+  @override
+  String get entry_shift => 'Shift';
+
+  @override
+  String get entry_notesHint => 'Add any additional details...';
+
+  @override
+  String get entry_calculating => 'Calculating...';
+
+  @override
+  String get entry_calculateTravelTime => 'Calculate Travel Time';
+
+  @override
+  String entry_travelTimeCalculated(String duration, String distance) {
+    return 'Travel time calculated: $duration ($distance)';
+  }
+
+  @override
+  String entry_total(String duration) {
+    return 'Total: $duration';
+  }
+
+  @override
+  String get entry_publicHoliday => 'Public Holiday';
+
+  @override
+  String get entry_publicHolidaySweden => 'Public holiday in Sweden';
+
+  @override
+  String get entry_redDayWarning =>
+      'Red day. Hours entered here may count as holiday work.';
+
+  @override
+  String get entry_personalRedDay => 'Personal red day';
+
+  @override
+  String get shift_morning => 'Morning Shift';
+
+  @override
+  String get shift_afternoon => 'Afternoon Shift';
+
+  @override
+  String get shift_evening => 'Evening Shift';
+
+  @override
+  String get shift_night => 'Night Shift';
+
+  @override
+  String get shift_unknown => 'Unknown Shift';
 }

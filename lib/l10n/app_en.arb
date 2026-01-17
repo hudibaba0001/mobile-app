@@ -906,5 +906,136 @@
     "placeholders": {
       "balance": {"type": "String"}
     }
-  }
+  },
+
+  "locations_errorLoading": "Error loading data",
+  "locations_distribution": "Location Distribution",
+  "locations_details": "Location Details",
+  "locations_noData": "No location data",
+  "locations_noDataDescription": "No entries found for the selected period",
+  "locations_noDataAvailable": "No location data available",
+  "locations_totalHours": "Total Hours",
+  "locations_entries": "Entries",
+  "locations_workTime": "Work Time",
+  "locations_travelTime": "Travel Time",
+
+  "chart_timeDistribution": "Time Distribution",
+  "chart_workTime": "Work Time",
+  "chart_travelTime": "Travel Time",
+  "chart_totalTime": "Total Time",
+  "chart_noDataAvailable": "No data available",
+  "chart_startTracking": "Start tracking your time to see statistics",
+  "chart_allTime": "All time",
+  "chart_today": "Today",
+
+  "balance_todaysBalance": "Today's Balance",
+  "balance_workVsTravel": "Work vs Travel",
+  "balance_balanced": "Balanced",
+  "balance_unbalanced": "Unbalanced",
+  "balance_work": "Work",
+  "balance_travel": "Travel",
+  "balance_entries": "Entries",
+
+  "settings_darkMode": "Dark Mode",
+  "settings_darkModeActive": "Dark theme is active",
+  "settings_switchToDark": "Switch to dark theme",
+  "settings_darkModeEnabled": "Dark mode enabled",
+  "settings_lightModeEnabled": "Light mode enabled",
+
+  "entry_date": "Date",
+  "entry_endTime": "End time",
+  "entry_from": "From",
+  "entry_fromHint": "Enter departure location",
+  "entry_to": "To",
+  "entry_toHint": "Enter arrival location",
+  "entry_location": "Location",
+  "entry_locationHint": "Enter work location",
+  "entry_duration": "Duration",
+  "entry_hours": "Hours",
+  "entry_minutes": "Minutes",
+  "entry_shift": "Shift",
+  "entry_notes": "Notes (Optional)",
+  "entry_notesHint": "Add any additional details...",
+  "entry_calculating": "Calculating...",
+  "entry_calculateTravelTime": "Calculate Travel Time",
+  "entry_travelTimeCalculated": "Travel time calculated: {duration} ({distance})",
+  "@entry_travelTimeCalculated": {
+    "placeholders": {
+      "duration": {"type": "String"},
+      "distance": {"type": "String"}
+    }
+  },
+  "entry_total": "Total: {duration}",
+  "@entry_total": {
+    "placeholders": {
+      "duration": {"type": "String"}
+    }
+  },
+  "entry_publicHoliday": "Public Holiday",
+  "entry_publicHolidaySweden": "Public holiday in Sweden",
+  "entry_redDayWarning": "Red day. Hours entered here may count as holiday work.",
+  "entry_personalRedDay": "Personal red day",
+
+  "shift_morning": "Morning Shift",
+  "shift_afternoon": "Afternoon Shift",
+  "shift_evening": "Evening Shift",
+  "shift_night": "Night Shift",
+  "shift_unknown": "Unknown Shift",
+
+  "simpleEntry_fromLocation": "From Location",
+  "simpleEntry_toLocation": "To Location",
+  "simpleEntry_pleaseEnterDeparture": "Please enter departure location",
+  "simpleEntry_pleaseEnterArrival": "Please enter arrival location",
+
+  "quickEntry_editEntry": "Edit Entry",
+  "quickEntry_quickEntry": "Quick Entry",
+  "quickEntry_travelTimeMinutes": "Travel Time (minutes)",
+  "quickEntry_travelTimeHint": "e.g., 45",
+  "quickEntry_additionalInfo": "Additional Info (Optional)",
+  "quickEntry_additionalInfoHint": "Notes, delays, etc.",
+  "quickEntry_updateEntry": "Update Entry",
+  "quickEntry_addEntry": "Add Entry",
+  "quickEntry_saving": "Saving...",
+
+  "multiSegment_editJourney": "Edit Multi-Segment Journey",
+  "multiSegment_journey": "Multi-Segment Journey",
+  "multiSegment_journeySegments": "Journey Segments",
+  "multiSegment_firstSegment": "First Segment",
+  "multiSegment_addNextSegment": "Add Next Segment",
+  "multiSegment_travelTimeMinutes": "Travel Time (minutes)",
+  "multiSegment_travelTimeHint": "e.g., 20",
+  "multiSegment_addFirstSegment": "Add First Segment",
+  "multiSegment_saveJourney": "Save Journey",
+  "multiSegment_saving": "Saving...",
+  "multiSegment_pleaseEnterDeparture": "Please enter departure location",
+  "multiSegment_pleaseEnterArrival": "Please enter arrival location",
+  "multiSegment_pleaseEnterTravelTime": "Please enter travel time",
+
+  "entryDetail_workSession": "Work Session",
+
+  "dateRange_startDate": "Start Date",
+  "dateRange_endDate": "End Date",
+  "dateRange_quickSelect": "Quick Select",
+  "dateRange_yesterday": "Yesterday",
+  "dateRange_thisWeek": "This Week",
+  "dateRange_lastWeek": "Last Week",
+  "dateRange_thisMonth": "This Month",
+  "dateRange_lastMonth": "Last Month",
+  "dateRange_last30Days": "Last 30 Days",
+
+  "home_workSession": "Work Session",
+  "home_paidLeave": "Paid Leave",
+  "home_sickLeave": "Sick Leave",
+  "home_vab": "VAB (Child Care)",
+  "home_unpaidLeave": "Unpaid Leave",
+  "home_logTravelEntry": "Log Travel Entry",
+  "home_tripDetails": "Trip Details",
+  "home_addAnotherTrip": "Add Another Trip",
+  "home_totalDuration": "Total Duration",
+  "home_logWorkEntry": "Log Work Entry",
+  "home_workShifts": "Work Shifts",
+  "home_addAnotherShift": "Add Another Shift",
+  "home_startTime": "Start Time",
+  "home_endTime": "End Time",
+  "home_logEntry": "Log Entry"
 }

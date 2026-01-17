@@ -1163,7 +1163,7 @@ abstract class AppLocalizations {
   /// No description provided for @entry_notes.
   ///
   /// In en, this message translates to:
-  /// **'Notes'**
+  /// **'Notes (Optional)'**
   String get entry_notes;
 
   /// No description provided for @entry_shifts.
@@ -2905,6 +2905,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Includes opening balance ({balance})'**
   String balance_includesOpeningBalanceShort(String balance);
+
+  /// No description provided for @locations_errorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading data'**
+  String get locations_errorLoading;
+
+  /// No description provided for @locations_distribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Distribution'**
+  String get locations_distribution;
+
+  /// No description provided for @locations_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Details'**
+  String get locations_details;
+
+  /// No description provided for @locations_noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No location data'**
+  String get locations_noData;
+
+  /// No description provided for @locations_noDataDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries found for the selected period'**
+  String get locations_noDataDescription;
+
+  /// No description provided for @locations_noDataAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No location data available'**
+  String get locations_noDataAvailable;
+
+  /// No description provided for @locations_totalHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Hours'**
+  String get locations_totalHours;
+
+  /// No description provided for @locations_entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get locations_entries;
+
+  /// No description provided for @locations_workTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Time'**
+  String get locations_workTime;
+
+  /// No description provided for @locations_travelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Time'**
+  String get locations_travelTime;
+
+  /// No description provided for @chart_timeDistribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Distribution'**
+  String get chart_timeDistribution;
+
+  /// No description provided for @chart_workTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Time'**
+  String get chart_workTime;
+
+  /// No description provided for @chart_travelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Time'**
+  String get chart_travelTime;
+
+  /// No description provided for @chart_totalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Time'**
+  String get chart_totalTime;
+
+  /// No description provided for @chart_noDataAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get chart_noDataAvailable;
+
+  /// No description provided for @chart_startTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Start tracking your time to see statistics'**
+  String get chart_startTracking;
+
+  /// No description provided for @chart_allTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get chart_allTime;
+
+  /// No description provided for @chart_today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get chart_today;
+
+  /// No description provided for @balance_todaysBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Balance'**
+  String get balance_todaysBalance;
+
+  /// No description provided for @balance_workVsTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Work vs Travel'**
+  String get balance_workVsTravel;
+
+  /// No description provided for @balance_balanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get balance_balanced;
+
+  /// No description provided for @balance_unbalanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Unbalanced'**
+  String get balance_unbalanced;
+
+  /// No description provided for @balance_work.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get balance_work;
+
+  /// No description provided for @balance_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get balance_travel;
+
+  /// No description provided for @balance_entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get balance_entries;
+
+  /// No description provided for @settings_darkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Mode'**
+  String get settings_darkMode;
+
+  /// No description provided for @settings_darkModeActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark theme is active'**
+  String get settings_darkModeActive;
+
+  /// No description provided for @settings_switchToDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to dark theme'**
+  String get settings_switchToDark;
+
+  /// No description provided for @settings_darkModeEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode enabled'**
+  String get settings_darkModeEnabled;
+
+  /// No description provided for @settings_lightModeEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Light mode enabled'**
+  String get settings_lightModeEnabled;
+
+  /// No description provided for @entry_endTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End time'**
+  String get entry_endTime;
+
+  /// No description provided for @entry_fromHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter departure location'**
+  String get entry_fromHint;
+
+  /// No description provided for @entry_toHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter arrival location'**
+  String get entry_toHint;
+
+  /// No description provided for @entry_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get entry_location;
+
+  /// No description provided for @entry_locationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter work location'**
+  String get entry_locationHint;
+
+  /// No description provided for @entry_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get entry_hours;
+
+  /// No description provided for @entry_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get entry_minutes;
+
+  /// No description provided for @entry_shift.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift'**
+  String get entry_shift;
+
+  /// No description provided for @entry_notesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add any additional details...'**
+  String get entry_notesHint;
+
+  /// No description provided for @entry_calculating.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating...'**
+  String get entry_calculating;
+
+  /// No description provided for @entry_calculateTravelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate Travel Time'**
+  String get entry_calculateTravelTime;
+
+  /// No description provided for @entry_travelTimeCalculated.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel time calculated: {duration} ({distance})'**
+  String entry_travelTimeCalculated(String duration, String distance);
+
+  /// No description provided for @entry_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {duration}'**
+  String entry_total(String duration);
+
+  /// No description provided for @entry_publicHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Holiday'**
+  String get entry_publicHoliday;
+
+  /// No description provided for @entry_publicHolidaySweden.
+  ///
+  /// In en, this message translates to:
+  /// **'Public holiday in Sweden'**
+  String get entry_publicHolidaySweden;
+
+  /// No description provided for @entry_redDayWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Red day. Hours entered here may count as holiday work.'**
+  String get entry_redDayWarning;
+
+  /// No description provided for @entry_personalRedDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal red day'**
+  String get entry_personalRedDay;
+
+  /// No description provided for @shift_morning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning Shift'**
+  String get shift_morning;
+
+  /// No description provided for @shift_afternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon Shift'**
+  String get shift_afternoon;
+
+  /// No description provided for @shift_evening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening Shift'**
+  String get shift_evening;
+
+  /// No description provided for @shift_night.
+  ///
+  /// In en, this message translates to:
+  /// **'Night Shift'**
+  String get shift_night;
+
+  /// No description provided for @shift_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Shift'**
+  String get shift_unknown;
 }
 
 class _AppLocalizationsDelegate

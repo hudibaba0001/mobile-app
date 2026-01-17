@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class LocationsTab extends StatelessWidget {
   const LocationsTab({super.key});
@@ -28,7 +29,7 @@ class LocationsTab extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error loading data',
+              AppLocalizations.of(context)!.locations_errorLoading,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -51,7 +52,7 @@ class LocationsTab extends StatelessWidget {
       children: [
         // Location Distribution Chart
         Text(
-          'Location Distribution',
+          AppLocalizations.of(context)!.locations_distribution,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
@@ -76,7 +77,7 @@ class LocationsTab extends StatelessWidget {
 
         // Location List
         Text(
-          'Location Details',
+          AppLocalizations.of(context)!.locations_details,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
@@ -94,14 +95,14 @@ class LocationsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No location data',
+                  AppLocalizations.of(context)!.locations_noData,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'No entries found for the selected period',
+                  AppLocalizations.of(context)!.locations_noDataDescription,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                   ),
@@ -124,7 +125,7 @@ class LocationsTab extends StatelessWidget {
     if (locations.isEmpty) {
       return Center(
         child: Text(
-          'No location data available',
+          AppLocalizations.of(context)!.locations_noDataAvailable,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -210,18 +211,20 @@ class LocationsTab extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildLocationStat(
+                  context,
                   theme,
                   icon: Icons.timer_rounded,
-                  label: 'Total Hours',
+                  label: AppLocalizations.of(context)!.locations_totalHours,
                   value: '${totalHours.toStringAsFixed(1)}h',
                   color: colorScheme.primary,
                 ),
               ),
               Expanded(
                 child: _buildLocationStat(
+                  context,
                   theme,
                   icon: Icons.assignment_rounded,
-                  label: 'Entries',
+                  label: AppLocalizations.of(context)!.locations_entries,
                   value: '${workMinutes + travelMinutes}',
                   color: colorScheme.secondary,
                 ),
@@ -233,18 +236,20 @@ class LocationsTab extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildLocationStat(
+                  context,
                   theme,
                   icon: Icons.work_rounded,
-                  label: 'Work Time',
+                  label: AppLocalizations.of(context)!.locations_workTime,
                   value: _formatMinutes(workMinutes),
                   color: colorScheme.error,
                 ),
               ),
               Expanded(
                 child: _buildLocationStat(
+                  context,
                   theme,
                   icon: Icons.directions_car_rounded,
-                  label: 'Travel Time',
+                  label: AppLocalizations.of(context)!.locations_travelTime,
                   value: _formatMinutes(travelMinutes),
                   color: colorScheme.tertiary,
                 ),
@@ -257,6 +262,7 @@ class LocationsTab extends StatelessWidget {
   }
 
   Widget _buildLocationStat(
+    BuildContext context,
     ThemeData theme, {
     required IconData icon,
     required String label,

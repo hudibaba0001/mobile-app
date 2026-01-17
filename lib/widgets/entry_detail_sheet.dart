@@ -112,7 +112,7 @@ class EntryDetailSheet extends StatelessWidget {
     if (e.type == EntryType.travel) {
       return 'Travel: ${e.from ?? ''} → ${e.to ?? ''}'.trim();
     }
-    return 'Work Session';
+    return AppLocalizations.of(context)!.entryDetail_workSession;
   }
 
   List<Widget> _detailWidgets(BuildContext context, Entry e) {

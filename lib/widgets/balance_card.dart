@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/travel_provider.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// A Material 3 styled card widget that displays work/travel time balance
 /// with visual indicators and interactive elements
@@ -141,7 +142,7 @@ class _BalanceCardState extends State<BalanceCard>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Today\'s Balance',
+                AppLocalizations.of(context)!.balance_todaysBalance,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w600,
@@ -185,7 +186,9 @@ class _BalanceCardState extends State<BalanceCard>
           ),
           const SizedBox(width: 4),
           Text(
-            isBalanced ? 'Balanced' : 'Unbalanced',
+            isBalanced 
+              ? AppLocalizations.of(context)!.balance_balanced
+              : AppLocalizations.of(context)!.balance_unbalanced,
             style: theme.textTheme.labelSmall?.copyWith(
               color: isBalanced ? colorScheme.tertiary : colorScheme.error,
               fontWeight: FontWeight.w600,
@@ -208,7 +211,7 @@ class _BalanceCardState extends State<BalanceCard>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Work vs Travel',
+              AppLocalizations.of(context)!.balance_workVsTravel,
               style: theme.textTheme.labelMedium?.copyWith(
                 color: colorScheme.onPrimaryContainer.withOpacity(0.8),
               ),
@@ -281,7 +284,7 @@ class _BalanceCardState extends State<BalanceCard>
           child: _buildStatItem(
             theme,
             icon: Icons.work_outline,
-            label: 'Work',
+            label: AppLocalizations.of(context)!.balance_work,
             value: _formatDuration(stats.workMinutes),
             color: colorScheme.secondary,
           ),
@@ -291,7 +294,7 @@ class _BalanceCardState extends State<BalanceCard>
           child: _buildStatItem(
             theme,
             icon: Icons.directions_car,
-            label: 'Travel',
+            label: AppLocalizations.of(context)!.balance_travel,
             value: _formatDuration(stats.travelMinutes),
             color: colorScheme.primary,
           ),
@@ -301,7 +304,7 @@ class _BalanceCardState extends State<BalanceCard>
           child: _buildStatItem(
             theme,
             icon: Icons.timeline,
-            label: 'Entries',
+            label: AppLocalizations.of(context)!.balance_entries,
             value: '${stats.entryCount}',
             color: colorScheme.tertiary,
           ),

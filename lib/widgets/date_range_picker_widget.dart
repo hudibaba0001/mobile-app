@@ -277,11 +277,11 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                 controller: _startDateController,
                 readOnly: true,
                 onTap: _selectStartDate,
-                decoration: const InputDecoration(
-                  labelText: 'Start Date',
-                  hintText: 'Select start date',
-                  prefixIcon: Icon(Icons.calendar_today),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.dateRange_startDate,
+                  hintText: AppLocalizations.of(context)!.dateRange_startDate,
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ),
@@ -291,11 +291,11 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                 controller: _endDateController,
                 readOnly: true,
                 onTap: _selectEndDate,
-                decoration: const InputDecoration(
-                  labelText: 'End Date',
-                  hintText: 'Select end date',
-                  prefixIcon: Icon(Icons.calendar_today),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.dateRange_endDate,
+                  hintText: AppLocalizations.of(context)!.dateRange_endDate,
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ),
@@ -306,7 +306,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
         if (widget.showQuickSelects) ...[
           const SizedBox(height: AppConstants.defaultPadding),
           Text(
-            'Quick Select',
+            AppLocalizations.of(context)!.dateRange_quickSelect,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -329,23 +329,24 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
   }
 
   String _getQuickRangeLabel(QuickDateRange range) {
+    final t = AppLocalizations.of(context)!;
     switch (range) {
       case QuickDateRange.today:
-        return 'Today';
+        return t.common_today;
       case QuickDateRange.yesterday:
-        return 'Yesterday';
+        return t.dateRange_yesterday;
       case QuickDateRange.thisWeek:
-        return 'This Week';
+        return t.dateRange_thisWeek;
       case QuickDateRange.lastWeek:
-        return 'Last Week';
+        return t.dateRange_lastWeek;
       case QuickDateRange.thisMonth:
-        return 'This Month';
+        return t.dateRange_thisMonth;
       case QuickDateRange.lastMonth:
-        return 'Last Month';
+        return t.dateRange_lastMonth;
       case QuickDateRange.last30Days:
-        return 'Last 30 Days';
+        return t.dateRange_last30Days;
       case QuickDateRange.last90Days:
-        return 'Last 90 Days';
+        return t.dateRange_last30Days; // Use same key for now
     }
   }
 }

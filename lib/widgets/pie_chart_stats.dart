@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../providers/travel_provider.dart';
+import '../l10n/generated/app_localizations.dart';
 
 /// A Material 3 styled pie chart widget for displaying work/travel statistics
 /// with interactive legend and smooth animations
@@ -139,13 +140,13 @@ class _PieChartStatsState extends State<PieChartStats>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Time Distribution',
+                AppLocalizations.of(context)!.chart_timeDistribution,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
-                _getDateRangeText(),
+                _getDateRangeText(context),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface.withOpacity(0.7),
                 ),
@@ -238,7 +239,7 @@ class _PieChartStatsState extends State<PieChartStats>
         _buildLegendItem(
           theme,
           color: colorScheme.secondary,
-          label: 'Work Time',
+          label: AppLocalizations.of(context)!.chart_workTime,
           value: _formatDuration(stats.workMinutes),
           percentage: stats.totalMinutes > 0 
               ? (stats.workMinutes / stats.totalMinutes * 100).toInt()
@@ -249,7 +250,7 @@ class _PieChartStatsState extends State<PieChartStats>
         _buildLegendItem(
           theme,
           color: colorScheme.primary,
-          label: 'Travel Time',
+          label: AppLocalizations.of(context)!.chart_travelTime,
           value: _formatDuration(stats.travelMinutes),
           percentage: stats.totalMinutes > 0 
               ? (stats.travelMinutes / stats.totalMinutes * 100).toInt()
@@ -263,7 +264,7 @@ class _PieChartStatsState extends State<PieChartStats>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Total Time',
+              AppLocalizations.of(context)!.chart_totalTime,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -360,14 +361,14 @@ class _PieChartStatsState extends State<PieChartStats>
           ),
           const SizedBox(height: 16),
           Text(
-            'No data available',
+            AppLocalizations.of(context)!.chart_noDataAvailable,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Start tracking your time to see statistics',
+            AppLocalizations.of(context)!.chart_startTracking,
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.5),
             ),
@@ -387,9 +388,10 @@ class _PieChartStatsState extends State<PieChartStats>
     );
   }
 
-  String _getDateRangeText() {
+  String _getDateRangeText(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     if (widget.startDate == null && widget.endDate == null) {
-      return 'All time';
+      return t.chart_allTime;
     }
     
     final now = DateTime.now();
@@ -398,7 +400,7 @@ class _PieChartStatsState extends State<PieChartStats>
     final endDate = widget.endDate ?? today;
     
     if (startDate == endDate && startDate == today) {
-      return 'Today';
+      return t.chart_today;
     } else if (startDate == endDate) {
       return _formatDate(startDate);
     } else {
