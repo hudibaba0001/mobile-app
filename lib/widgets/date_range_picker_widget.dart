@@ -347,7 +347,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
       case QuickDateRange.last30Days:
         return t.dateRange_last30Days;
       case QuickDateRange.last90Days:
-        return t.dateRange_last30Days; // Use same key for now
+        return t.dateRange_last90Days;
     }
   }
 }

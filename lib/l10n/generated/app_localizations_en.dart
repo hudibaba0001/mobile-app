@@ -1754,4 +1754,171 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shift_unknown => 'Unknown Shift';
+
+  @override
+  String get simpleEntry_fromLocation => 'From Location';
+
+  @override
+  String get simpleEntry_toLocation => 'To Location';
+
+  @override
+  String get simpleEntry_pleaseEnterDeparture =>
+      'Please enter departure location';
+
+  @override
+  String get simpleEntry_pleaseEnterArrival => 'Please enter arrival location';
+
+  @override
+  String get quickEntry_editEntry => 'Edit Entry';
+
+  @override
+  String get quickEntry_quickEntry => 'Quick Entry';
+
+  @override
+  String get quickEntry_travelTimeMinutes => 'Travel Time (minutes)';
+
+  @override
+  String get quickEntry_travelTimeHint => 'e.g., 45';
+
+  @override
+  String get quickEntry_additionalInfo => 'Additional Info (Optional)';
+
+  @override
+  String get quickEntry_additionalInfoHint => 'Notes, delays, etc.';
+
+  @override
+  String get quickEntry_updateEntry => 'Update Entry';
+
+  @override
+  String get quickEntry_addEntry => 'Add Entry';
+
+  @override
+  String get quickEntry_saving => 'Saving...';
+
+  @override
+  String get multiSegment_editJourney => 'Edit Multi-Segment Journey';
+
+  @override
+  String get multiSegment_journey => 'Multi-Segment Journey';
+
+  @override
+  String get multiSegment_journeySegments => 'Journey Segments';
+
+  @override
+  String get multiSegment_firstSegment => 'First Segment';
+
+  @override
+  String get multiSegment_addNextSegment => 'Add Next Segment';
+
+  @override
+  String get multiSegment_travelTimeMinutes => 'Travel Time (minutes)';
+
+  @override
+  String get multiSegment_travelTimeHint => 'e.g., 20';
+
+  @override
+  String get multiSegment_addFirstSegment => 'Add First Segment';
+
+  @override
+  String get multiSegment_saveJourney => 'Save Journey';
+
+  @override
+  String get multiSegment_saving => 'Saving...';
+
+  @override
+  String get multiSegment_pleaseEnterDeparture =>
+      'Please enter departure location';
+
+  @override
+  String get multiSegment_pleaseEnterArrival => 'Please enter arrival location';
+
+  @override
+  String get multiSegment_pleaseEnterTravelTime => 'Please enter travel time';
+
+  @override
+  String get entryDetail_workSession => 'Work Session';
+
+  @override
+  String get dateRange_quickSelect => 'Quick Select';
+
+  @override
+  String get dateRange_yesterday => 'Yesterday';
+
+  @override
+  String get dateRange_thisWeek => 'This Week';
+
+  @override
+  String get dateRange_lastWeek => 'Last Week';
+
+  @override
+  String get home_workSession => 'Work Session';
+
+  @override
+  String get home_paidLeave => 'Paid Leave';
+
+  @override
+  String get home_sickLeave => 'Sick Leave';
+
+  @override
+  String get home_vab => 'VAB (Child Care)';
+
+  @override
+  String get home_unpaidLeave => 'Unpaid Leave';
+
+  @override
+  String get home_logTravelEntry => 'Log Travel Entry';
+
+  @override
+  String get home_tripDetails => 'Trip Details';
+
+  @override
+  String get home_addAnotherTrip => 'Add Another Trip';
+
+  @override
+  String get home_totalDuration => 'Total Duration';
+
+  @override
+  String get home_logWorkEntry => 'Log Work Entry';
+
+  @override
+  String get home_workShifts => 'Work Shifts';
+
+  @override
+  String get home_addAnotherShift => 'Add Another Shift';
+
+  @override
+  String get home_startTime => 'Start Time';
+
+  @override
+  String get home_endTime => 'End Time';
+
+  @override
+  String get home_logEntry => 'Log Entry';
+
+  @override
+  String get home_selectTime => 'Select time';
+
+  @override
+  String get home_timeExample => 'e.g. 9:00 AM';
+
+  @override
+  String get home_noRemarks => 'No remarks';
+
+  @override
+  String get common_swapLocations => 'Swap locations';
+
+  @override
+  String get form_departureLocation => 'Departure location';
+
+  @override
+  String get form_arrivalLocation => 'Arrival location';
+
+  @override
+  String get form_additionalInformation => 'Additional information';
+
+  @override
+  String get form_pleaseSelectDate => 'Please select a date';
+
+  @override
+  String get dateRange_last90Days => 'Last 90 Days';
 }

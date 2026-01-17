@@ -1752,4 +1752,169 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get shift_unknown => 'Okänt skift';
+
+  @override
+  String get simpleEntry_fromLocation => 'Från plats';
+
+  @override
+  String get simpleEntry_toLocation => 'Till plats';
+
+  @override
+  String get simpleEntry_pleaseEnterDeparture => 'Vänligen ange avgångsplats';
+
+  @override
+  String get simpleEntry_pleaseEnterArrival => 'Vänligen ange ankomstplats';
+
+  @override
+  String get quickEntry_editEntry => 'Redigera post';
+
+  @override
+  String get quickEntry_quickEntry => 'Snabbpost';
+
+  @override
+  String get quickEntry_travelTimeMinutes => 'Restid (minuter)';
+
+  @override
+  String get quickEntry_travelTimeHint => 't.ex. 45';
+
+  @override
+  String get quickEntry_additionalInfo => 'Ytterligare information (Valfritt)';
+
+  @override
+  String get quickEntry_additionalInfoHint => 'Anteckningar, förseningar, etc.';
+
+  @override
+  String get quickEntry_updateEntry => 'Uppdatera post';
+
+  @override
+  String get quickEntry_addEntry => 'Lägg till post';
+
+  @override
+  String get quickEntry_saving => 'Sparar...';
+
+  @override
+  String get multiSegment_editJourney => 'Redigera flersegmentsresa';
+
+  @override
+  String get multiSegment_journey => 'Flersegmentsresa';
+
+  @override
+  String get multiSegment_journeySegments => 'Resesegment';
+
+  @override
+  String get multiSegment_firstSegment => 'Första segmentet';
+
+  @override
+  String get multiSegment_addNextSegment => 'Lägg till nästa segment';
+
+  @override
+  String get multiSegment_travelTimeMinutes => 'Restid (minuter)';
+
+  @override
+  String get multiSegment_travelTimeHint => 't.ex. 20';
+
+  @override
+  String get multiSegment_addFirstSegment => 'Lägg till första segmentet';
+
+  @override
+  String get multiSegment_saveJourney => 'Spara resa';
+
+  @override
+  String get multiSegment_saving => 'Sparar...';
+
+  @override
+  String get multiSegment_pleaseEnterDeparture => 'Vänligen ange avgångsplats';
+
+  @override
+  String get multiSegment_pleaseEnterArrival => 'Vänligen ange ankomstplats';
+
+  @override
+  String get multiSegment_pleaseEnterTravelTime => 'Vänligen ange restid';
+
+  @override
+  String get entryDetail_workSession => 'Arbetspass';
+
+  @override
+  String get dateRange_quickSelect => 'Snabbval';
+
+  @override
+  String get dateRange_yesterday => 'Igår';
+
+  @override
+  String get dateRange_thisWeek => 'Denna vecka';
+
+  @override
+  String get dateRange_lastWeek => 'Förra veckan';
+
+  @override
+  String get home_workSession => 'Arbetspass';
+
+  @override
+  String get home_paidLeave => 'Betald ledighet';
+
+  @override
+  String get home_sickLeave => 'Sjukledighet';
+
+  @override
+  String get home_vab => 'VAB (Vård av barn)';
+
+  @override
+  String get home_unpaidLeave => 'Obetald ledighet';
+
+  @override
+  String get home_logTravelEntry => 'Logga resepost';
+
+  @override
+  String get home_tripDetails => 'Resdetaljer';
+
+  @override
+  String get home_addAnotherTrip => 'Lägg till ytterligare resa';
+
+  @override
+  String get home_totalDuration => 'Total varaktighet';
+
+  @override
+  String get home_logWorkEntry => 'Logga arbete';
+
+  @override
+  String get home_workShifts => 'Arbetsskift';
+
+  @override
+  String get home_addAnotherShift => 'Lägg till ytterligare skift';
+
+  @override
+  String get home_startTime => 'Starttid';
+
+  @override
+  String get home_endTime => 'Sluttid';
+
+  @override
+  String get home_logEntry => 'Logga post';
+
+  @override
+  String get home_selectTime => 'Välj tid';
+
+  @override
+  String get home_timeExample => 't.ex. 9:00';
+
+  @override
+  String get home_noRemarks => 'Inga anmärkningar';
+
+  @override
+  String get common_swapLocations => 'Byt platser';
+
+  @override
+  String get form_departureLocation => 'Avgångsplats';
+
+  @override
+  String get form_arrivalLocation => 'Ankomstplats';
+
+  @override
+  String get form_additionalInformation => 'Ytterligare information';
+
+  @override
+  String get form_pleaseSelectDate => 'Vänligen välj ett datum';
+
+  @override
+  String get dateRange_last90Days => 'Last 90 Days';
 }

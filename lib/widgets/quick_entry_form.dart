@@ -288,7 +288,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       IconButton(
                         onPressed: widget.onCancel,
                         icon: const Icon(Icons.close),
-                        tooltip: 'Close',
+                        tooltip: AppLocalizations.of(context)!.common_close,
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.grey.withOpacity(0.1),
                         ),
@@ -303,7 +303,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                           }
                         },
                         icon: const Icon(Icons.close),
-                        tooltip: 'Close',
+                        tooltip: AppLocalizations.of(context)!.common_close,
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.grey.withOpacity(0.1),
                         ),
@@ -342,13 +342,13 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                 controller: _dateController,
                 readOnly: true,
                 onTap: _selectDate,
-                decoration: const InputDecoration(
-                  labelText: 'Date',
-                  prefixIcon: Icon(Icons.calendar_today),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.entry_date,
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                    value?.isEmpty == true ? 'Please select a date' : null,
+                    value?.isEmpty == true ? AppLocalizations.of(context)!.form_pleaseSelectDate : null,
               ),
 
               SizedBox(
@@ -362,13 +362,13 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                   TextFormField(
                     controller: _departureController,
                     decoration: const InputDecoration(
-                      labelText: 'From',
-                      hintText: 'Departure location',
+                      labelText: AppLocalizations.of(context)!.entry_from,
+                      hintText: AppLocalizations.of(context)!.form_departureLocation,
                       prefixIcon: Icon(Icons.my_location),
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) => Validators.validateRequired(
-                        value, 'Departure location'),
+                        value, AppLocalizations.of(context)!.form_departureLocation),
                   ),
 
                   // Swap button (centered between fields)
@@ -382,7 +382,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                           child: IconButton(
                             onPressed: _swapLocations,
                             icon: const Icon(Icons.swap_vert),
-                            tooltip: 'Swap locations',
+                            tooltip: AppLocalizations.of(context)!.common_swapLocations,
                             style: IconButton.styleFrom(
                               backgroundColor: Theme.of(context)
                                   .colorScheme
@@ -401,13 +401,13 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                   TextFormField(
                     controller: _arrivalController,
                     decoration: const InputDecoration(
-                      labelText: 'To',
-                      hintText: 'Arrival location',
+                      labelText: AppLocalizations.of(context)!.entry_to,
+                      hintText: AppLocalizations.of(context)!.form_arrivalLocation,
                       prefixIcon: Icon(Icons.location_on),
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) =>
-                        Validators.validateRequired(value, 'Arrival location'),
+                        Validators.validateRequired(value, AppLocalizations.of(context)!.form_arrivalLocation),
                   ),
                 ],
               ),

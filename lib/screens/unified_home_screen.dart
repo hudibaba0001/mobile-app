@@ -144,7 +144,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           type: 'travel',
           title: 'Travel: ${entry.fromLocation} → ${entry.toLocation}',
           subtitle:
-              '${entry.date.toString().split(' ')[0]} • ${entry.remarks.isNotEmpty ? entry.remarks : 'No remarks'}',
+              '${entry.date.toString().split(' ')[0]} • ${entry.remarks.isNotEmpty ? entry.remarks : AppLocalizations.of(context)!.home_noRemarks}',
           duration:
               '${entry.travelMinutes ~/ 60}h ${entry.travelMinutes % 60}m',
           icon: Icons.directions_car,
@@ -159,7 +159,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           type: 'work',
           title: AppLocalizations.of(context)!.home_workSession,
           subtitle:
-              '${entry.date.toString().split(' ')[0]} • ${entry.remarks.isNotEmpty ? entry.remarks : 'No remarks'}',
+              '${entry.date.toString().split(' ')[0]} • ${entry.remarks.isNotEmpty ? entry.remarks : AppLocalizations.of(context)!.home_noRemarks}',
           duration: '${entry.workMinutes ~/ 60}h ${entry.workMinutes % 60}m',
           icon: Icons.work,
           date: entry.date,
@@ -1593,7 +1593,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Trip Details',
+                          AppLocalizations.of(context)!.home_tripDetails,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.primary,
@@ -1635,7 +1635,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           color: theme.colorScheme.primary,
                         ),
                         label: Text(
-                          'Add Another Trip',
+                          AppLocalizations.of(context)!.home_addAnotherTrip,
                           style: TextStyle(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w500,
@@ -1691,7 +1691,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Hours',
+                                  AppLocalizations.of(context)!.entry_hours,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -1723,7 +1723,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Minutes',
+                                  AppLocalizations.of(context)!.entry_minutes,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -1969,7 +1969,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Log Entry',
+                            AppLocalizations.of(context)!.home_logEntry,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                             ),
@@ -2560,7 +2560,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Log Work Entry',
+                          AppLocalizations.of(context)!.home_logWorkEntry,
                           style: theme.textTheme.headlineSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -2605,7 +2605,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Work Shifts',
+                          AppLocalizations.of(context)!.home_workShifts,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.secondary,
@@ -2647,7 +2647,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           color: theme.colorScheme.secondary,
                         ),
                         label: Text(
-                          'Add Another Shift',
+                          AppLocalizations.of(context)!.home_addAnotherShift,
                           style: TextStyle(
                             color: theme.colorScheme.secondary,
                             fontWeight: FontWeight.w500,
@@ -2703,7 +2703,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Hours',
+                                  AppLocalizations.of(context)!.entry_hours,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -2735,7 +2735,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Minutes',
+                                  AppLocalizations.of(context)!.entry_minutes,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -2983,7 +2983,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Log Entry',
+                            AppLocalizations.of(context)!.home_logEntry,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                             ),
@@ -3070,7 +3070,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Start Time',
+                      AppLocalizations.of(context)!.home_startTime,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -3082,7 +3082,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       TextField(
                         controller: shift.startTimeController,
                         decoration: const InputDecoration(
-                          hintText: 'e.g. 9:00 AM',
+                          hintText: AppLocalizations.of(context)!.home_timeExample,
                           border: OutlineInputBorder(),
                         ),
                         onChanged: (_) {
@@ -3112,7 +3112,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               Expanded(
                                 child: Text(
                                   shift.startTimeController.text.isEmpty
-                                      ? 'Select time'
+                                      ? AppLocalizations.of(context)!.home_selectTime
                                       : shift.startTimeController.text,
                                   style: TextStyle(
                                     color:
@@ -3135,7 +3135,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'End Time',
+                      AppLocalizations.of(context)!.home_endTime,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -3177,7 +3177,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               Expanded(
                                 child: Text(
                                   shift.endTimeController.text.isEmpty
-                                      ? 'Select time'
+                                      ? AppLocalizations.of(context)!.home_selectTime
                                       : shift.endTimeController.text,
                                   style: TextStyle(
                                     color: shift.endTimeController.text.isEmpty

@@ -1037,5 +1037,15 @@
   "home_addAnotherShift": "Add Another Shift",
   "home_startTime": "Start Time",
   "home_endTime": "End Time",
-  "home_logEntry": "Log Entry"
+  "home_logEntry": "Log Entry",
+  "home_selectTime": "Select time",
+  "home_timeExample": "e.g. 9:00 AM",
+  "home_noRemarks": "No remarks",
+  "common_close": "Close",
+  "common_swapLocations": "Swap locations",
+  "form_departureLocation": "Departure location",
+  "form_arrivalLocation": "Arrival location",
+  "form_additionalInformation": "Additional information",
+  "form_pleaseSelectDate": "Please select a date",
+  "dateRange_last90Days": "Last 90 Days"
 }

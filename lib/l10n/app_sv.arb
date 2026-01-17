@@ -658,5 +658,16 @@
   "home_addAnotherShift": "Lägg till ytterligare skift",
   "home_startTime": "Starttid",
   "home_endTime": "Sluttid",
-  "home_logEntry": "Logga post"
+  "home_logEntry": "Logga post",
+  "home_trackJourney": "Spåra dina resdetaljer",
+  "home_trackWork": "Spåra dina arbetsdetaljer",
+  "home_selectTime": "Välj tid",
+  "home_timeExample": "t.ex. 9:00",
+  "home_noRemarks": "Inga anmärkningar",
+  "common_close": "Stäng",
+  "common_swapLocations": "Byt platser",
+  "form_departureLocation": "Avgångsplats",
+  "form_arrivalLocation": "Ankomstplats",
+  "form_additionalInformation": "Ytterligare information",
+  "form_pleaseSelectDate": "Vänligen välj ett datum"
 }

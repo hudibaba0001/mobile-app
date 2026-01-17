@@ -3217,6 +3217,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown Shift'**
   String get shift_unknown;
+
+  /// No description provided for @simpleEntry_fromLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'From Location'**
+  String get simpleEntry_fromLocation;
+
+  /// No description provided for @simpleEntry_toLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'To Location'**
+  String get simpleEntry_toLocation;
+
+  /// No description provided for @simpleEntry_pleaseEnterDeparture.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter departure location'**
+  String get simpleEntry_pleaseEnterDeparture;
+
+  /// No description provided for @simpleEntry_pleaseEnterArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter arrival location'**
+  String get simpleEntry_pleaseEnterArrival;
+
+  /// No description provided for @quickEntry_editEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Entry'**
+  String get quickEntry_editEntry;
+
+  /// No description provided for @quickEntry_quickEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Entry'**
+  String get quickEntry_quickEntry;
+
+  /// No description provided for @quickEntry_travelTimeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Time (minutes)'**
+  String get quickEntry_travelTimeMinutes;
+
+  /// No description provided for @quickEntry_travelTimeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 45'**
+  String get quickEntry_travelTimeHint;
+
+  /// No description provided for @quickEntry_additionalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional Info (Optional)'**
+  String get quickEntry_additionalInfo;
+
+  /// No description provided for @quickEntry_additionalInfoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes, delays, etc.'**
+  String get quickEntry_additionalInfoHint;
+
+  /// No description provided for @quickEntry_updateEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Entry'**
+  String get quickEntry_updateEntry;
+
+  /// No description provided for @quickEntry_addEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Entry'**
+  String get quickEntry_addEntry;
+
+  /// No description provided for @quickEntry_saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get quickEntry_saving;
+
+  /// No description provided for @multiSegment_editJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Multi-Segment Journey'**
+  String get multiSegment_editJourney;
+
+  /// No description provided for @multiSegment_journey.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-Segment Journey'**
+  String get multiSegment_journey;
+
+  /// No description provided for @multiSegment_journeySegments.
+  ///
+  /// In en, this message translates to:
+  /// **'Journey Segments'**
+  String get multiSegment_journeySegments;
+
+  /// No description provided for @multiSegment_firstSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'First Segment'**
+  String get multiSegment_firstSegment;
+
+  /// No description provided for @multiSegment_addNextSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Next Segment'**
+  String get multiSegment_addNextSegment;
+
+  /// No description provided for @multiSegment_travelTimeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Time (minutes)'**
+  String get multiSegment_travelTimeMinutes;
+
+  /// No description provided for @multiSegment_travelTimeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 20'**
+  String get multiSegment_travelTimeHint;
+
+  /// No description provided for @multiSegment_addFirstSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add First Segment'**
+  String get multiSegment_addFirstSegment;
+
+  /// No description provided for @multiSegment_saveJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Journey'**
+  String get multiSegment_saveJourney;
+
+  /// No description provided for @multiSegment_saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get multiSegment_saving;
+
+  /// No description provided for @multiSegment_pleaseEnterDeparture.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter departure location'**
+  String get multiSegment_pleaseEnterDeparture;
+
+  /// No description provided for @multiSegment_pleaseEnterArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter arrival location'**
+  String get multiSegment_pleaseEnterArrival;
+
+  /// No description provided for @multiSegment_pleaseEnterTravelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter travel time'**
+  String get multiSegment_pleaseEnterTravelTime;
+
+  /// No description provided for @entryDetail_workSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Session'**
+  String get entryDetail_workSession;
+
+  /// No description provided for @dateRange_quickSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Select'**
+  String get dateRange_quickSelect;
+
+  /// No description provided for @dateRange_yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get dateRange_yesterday;
+
+  /// No description provided for @dateRange_thisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get dateRange_thisWeek;
+
+  /// No description provided for @dateRange_lastWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Week'**
+  String get dateRange_lastWeek;
+
+  /// No description provided for @home_workSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Session'**
+  String get home_workSession;
+
+  /// No description provided for @home_paidLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid Leave'**
+  String get home_paidLeave;
+
+  /// No description provided for @home_sickLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick Leave'**
+  String get home_sickLeave;
+
+  /// No description provided for @home_vab.
+  ///
+  /// In en, this message translates to:
+  /// **'VAB (Child Care)'**
+  String get home_vab;
+
+  /// No description provided for @home_unpaidLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid Leave'**
+  String get home_unpaidLeave;
+
+  /// No description provided for @home_logTravelEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Travel Entry'**
+  String get home_logTravelEntry;
+
+  /// No description provided for @home_tripDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip Details'**
+  String get home_tripDetails;
+
+  /// No description provided for @home_addAnotherTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Another Trip'**
+  String get home_addAnotherTrip;
+
+  /// No description provided for @home_totalDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Duration'**
+  String get home_totalDuration;
+
+  /// No description provided for @home_logWorkEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Work Entry'**
+  String get home_logWorkEntry;
+
+  /// No description provided for @home_workShifts.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Shifts'**
+  String get home_workShifts;
+
+  /// No description provided for @home_addAnotherShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Another Shift'**
+  String get home_addAnotherShift;
+
+  /// No description provided for @home_startTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Time'**
+  String get home_startTime;
+
+  /// No description provided for @home_endTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End Time'**
+  String get home_endTime;
+
+  /// No description provided for @home_logEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Entry'**
+  String get home_logEntry;
+
+  /// No description provided for @home_selectTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Select time'**
+  String get home_selectTime;
+
+  /// No description provided for @home_timeExample.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 9:00 AM'**
+  String get home_timeExample;
+
+  /// No description provided for @home_noRemarks.
+  ///
+  /// In en, this message translates to:
+  /// **'No remarks'**
+  String get home_noRemarks;
+
+  /// No description provided for @common_swapLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap locations'**
+  String get common_swapLocations;
+
+  /// No description provided for @form_departureLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure location'**
+  String get form_departureLocation;
+
+  /// No description provided for @form_arrivalLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival location'**
+  String get form_arrivalLocation;
+
+  /// No description provided for @form_additionalInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional information'**
+  String get form_additionalInformation;
+
+  /// No description provided for @form_pleaseSelectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a date'**
+  String get form_pleaseSelectDate;
+
+  /// No description provided for @dateRange_last90Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 Days'**
+  String get dateRange_last90Days;
 }
 
 class _AppLocalizationsDelegate

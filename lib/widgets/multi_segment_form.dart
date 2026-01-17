@@ -413,13 +413,13 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               TextFormField(
                 controller: _departureController,
                 decoration: const InputDecoration(
-                  labelText: 'From',
-                  hintText: 'Departure location',
+                  labelText: AppLocalizations.of(context)!.entry_from,
+                  hintText: AppLocalizations.of(context)!.form_departureLocation,
                   prefixIcon: Icon(Icons.my_location),
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                    Validators.validateRequired(value, 'Departure location'),
+                    Validators.validateRequired(value, AppLocalizations.of(context)!.form_departureLocation),
               ),
 
               const SizedBox(height: AppConstants.smallPadding),
@@ -428,13 +428,13 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               TextFormField(
                 controller: _arrivalController,
                 decoration: const InputDecoration(
-                  labelText: 'To',
-                  hintText: 'Arrival location',
+                  labelText: AppLocalizations.of(context)!.entry_to,
+                  hintText: AppLocalizations.of(context)!.form_arrivalLocation,
                   prefixIcon: Icon(Icons.location_on),
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                    Validators.validateRequired(value, 'Arrival location'),
+                    Validators.validateRequired(value, AppLocalizations.of(context)!.form_arrivalLocation),
               ),
 
               const SizedBox(height: AppConstants.smallPadding),
@@ -458,8 +458,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               TextFormField(
                 controller: _infoController,
                 decoration: const InputDecoration(
-                  labelText: 'Notes (Optional)',
-                  hintText: 'Additional information',
+                  labelText: AppLocalizations.of(context)!.entry_notes,
+                  hintText: AppLocalizations.of(context)!.form_additionalInformation,
                   prefixIcon: Icon(Icons.note),
                   border: OutlineInputBorder(),
                 ),
