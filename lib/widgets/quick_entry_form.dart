@@ -361,11 +361,11 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                   // From location
                   TextFormField(
                     controller: _departureController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.entry_from,
                       hintText: AppLocalizations.of(context)!.form_departureLocation,
-                      prefixIcon: Icon(Icons.my_location),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.my_location),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) => Validators.validateRequired(
                         value, AppLocalizations.of(context)!.form_departureLocation),
@@ -400,11 +400,11 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                   // To location
                   TextFormField(
                     controller: _arrivalController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.entry_to,
                       hintText: AppLocalizations.of(context)!.form_arrivalLocation,
-                      prefixIcon: Icon(Icons.location_on),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.location_on),
+                      border: const OutlineInputBorder(),
                     ),
                     validator: (value) =>
                         Validators.validateRequired(value, AppLocalizations.of(context)!.form_arrivalLocation),
