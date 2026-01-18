@@ -344,6 +344,16 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
     final time = await showTimePicker(
       context: context,
       initialTime: _startTime,
+      builder: (context, child) {
+        return Localizations.override(
+          context: context,
+          locale: const Locale('en', 'US'),
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+            child: child!,
+          ),
+        );
+      },
     );
     if (time != null) {
       setState(() => _startTime = time);

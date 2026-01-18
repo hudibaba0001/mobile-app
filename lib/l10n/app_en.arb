@@ -760,6 +760,25 @@
   },
   "history_redDay": "Red day",
   "history_noDescription": "No description",
+  "history_title": "History",
+  "history_travel": "Travel",
+  "history_work": "Work",
+  "history_all": "All",
+  "history_yesterday": "Yesterday",
+  "history_last7Days": "Last 7 Days",
+  "history_custom": "Custom",
+  "history_searchHint": "Search by location, notes...",
+  "history_loadingEntries": "Loading entries...",
+  "history_noEntriesFound": "No entries found",
+  "history_tryAdjustingFilters": "Try adjusting your filters or search terms",
+  "history_holidayWorkBadge": "Holiday Work",
+  "history_autoBadge": "Auto",
+  "history_autoMarked": "Auto-marked: {name}",
+  "@history_autoMarked": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
 
   "overview_totalHours": "Total Hours",
   "overview_allActivities": "All activities",

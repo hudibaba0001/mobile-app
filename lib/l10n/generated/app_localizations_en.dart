@@ -1412,6 +1412,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get history_noDescription => 'No description';
 
   @override
+  String get history_title => 'History';
+
+  @override
+  String get history_travel => 'Travel';
+
+  @override
+  String get history_work => 'Work';
+
+  @override
+  String get history_all => 'All';
+
+  @override
+  String get history_yesterday => 'Yesterday';
+
+  @override
+  String get history_last7Days => 'Last 7 Days';
+
+  @override
+  String get history_custom => 'Custom';
+
+  @override
+  String get history_searchHint => 'Search by location, notes...';
+
+  @override
+  String get history_loadingEntries => 'Loading entries...';
+
+  @override
+  String get history_noEntriesFound => 'No entries found';
+
+  @override
+  String get history_tryAdjustingFilters =>
+      'Try adjusting your filters or search terms';
+
+  @override
+  String get history_holidayWorkBadge => 'Holiday Work';
+
+  @override
+  String get history_autoBadge => 'Auto';
+
+  @override
+  String history_autoMarked(String name) {
+    return 'Auto-marked: $name';
+  }
+
+  @override
   String get overview_totalHours => 'Total Hours';
 
   @override

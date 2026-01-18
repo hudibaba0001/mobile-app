@@ -1411,6 +1411,51 @@ class AppLocalizationsSv extends AppLocalizations {
   String get history_noDescription => 'Ingen beskrivning';
 
   @override
+  String get history_title => 'Historik';
+
+  @override
+  String get history_travel => 'Resa';
+
+  @override
+  String get history_work => 'Arbete';
+
+  @override
+  String get history_all => 'Alla';
+
+  @override
+  String get history_yesterday => 'Igår';
+
+  @override
+  String get history_last7Days => 'Senaste 7 dagarna';
+
+  @override
+  String get history_custom => 'Anpassad';
+
+  @override
+  String get history_searchHint => 'Sök efter plats, anteckningar...';
+
+  @override
+  String get history_loadingEntries => 'Laddar poster...';
+
+  @override
+  String get history_noEntriesFound => 'Inga poster hittades';
+
+  @override
+  String get history_tryAdjustingFilters =>
+      'Försök justera dina filter eller söktermer';
+
+  @override
+  String get history_holidayWorkBadge => 'Högtidsarbete';
+
+  @override
+  String get history_autoBadge => 'Auto';
+
+  @override
+  String history_autoMarked(String name) {
+    return 'Auto-markerad: $name';
+  }
+
+  @override
   String get overview_totalHours => 'Totalt antal timmar';
 
   @override

@@ -50,7 +50,7 @@ class EntryDetailSheet extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _titleFor(entry),
+                    _titleFor(context, entry),
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -108,7 +108,7 @@ class EntryDetailSheet extends StatelessWidget {
     );
   }
 
-  String _titleFor(Entry e) {
+  String _titleFor(BuildContext context, Entry e) {
     if (e.type == EntryType.travel) {
       return 'Travel: ${e.from ?? ''} → ${e.to ?? ''}'.trim();
     }

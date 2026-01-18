@@ -480,6 +480,16 @@ class _UnifiedSettingsScreenState extends State<UnifiedSettingsScreen> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: reminderTime,
+      builder: (context, child) {
+        return Localizations.override(
+          context: context,
+          locale: const Locale('en', 'US'),
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+            child: child!,
+          ),
+        );
+      },
     );
     if (picked != null && picked != reminderTime) {
       setState(() {

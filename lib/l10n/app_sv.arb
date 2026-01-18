@@ -461,6 +461,25 @@
   "history_holidayWork": "Högtidsarbete: {name}",
   "history_redDay": "Röd dag",
   "history_noDescription": "Ingen beskrivning",
+  "history_title": "Historik",
+  "history_travel": "Resa",
+  "history_work": "Arbete",
+  "history_all": "Alla",
+  "history_yesterday": "Igår",
+  "history_last7Days": "Senaste 7 dagarna",
+  "history_custom": "Anpassad",
+  "history_searchHint": "Sök efter plats, anteckningar...",
+  "history_loadingEntries": "Laddar poster...",
+  "history_noEntriesFound": "Inga poster hittades",
+  "history_tryAdjustingFilters": "Försök justera dina filter eller söktermer",
+  "history_holidayWorkBadge": "Högtidsarbete",
+  "history_autoBadge": "Auto",
+  "history_autoMarked": "Auto-markerad: {name}",
+  "@history_autoMarked": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
 
   "overview_totalHours": "Totalt antal timmar",
   "overview_allActivities": "Alla aktiviteter",

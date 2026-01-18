@@ -2576,6 +2576,90 @@ abstract class AppLocalizations {
   /// **'No description'**
   String get history_noDescription;
 
+  /// No description provided for @history_title.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get history_title;
+
+  /// No description provided for @history_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get history_travel;
+
+  /// No description provided for @history_work.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get history_work;
+
+  /// No description provided for @history_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get history_all;
+
+  /// No description provided for @history_yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get history_yesterday;
+
+  /// No description provided for @history_last7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 Days'**
+  String get history_last7Days;
+
+  /// No description provided for @history_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get history_custom;
+
+  /// No description provided for @history_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by location, notes...'**
+  String get history_searchHint;
+
+  /// No description provided for @history_loadingEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading entries...'**
+  String get history_loadingEntries;
+
+  /// No description provided for @history_noEntriesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries found'**
+  String get history_noEntriesFound;
+
+  /// No description provided for @history_tryAdjustingFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your filters or search terms'**
+  String get history_tryAdjustingFilters;
+
+  /// No description provided for @history_holidayWorkBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday Work'**
+  String get history_holidayWorkBadge;
+
+  /// No description provided for @history_autoBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get history_autoBadge;
+
+  /// No description provided for @history_autoMarked.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-marked: {name}'**
+  String history_autoMarked(String name);
+
   /// No description provided for @overview_totalHours.
   ///
   /// In en, this message translates to:
