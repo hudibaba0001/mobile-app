@@ -463,7 +463,9 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                       Row(
                         children: [
                           Text(
-                            isWorkEntry ? 'Work' : 'Travel',
+                            isWorkEntry 
+                                ? AppLocalizations.of(context)!.history_work 
+                                : AppLocalizations.of(context)!.history_travel,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
