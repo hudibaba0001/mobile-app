@@ -508,9 +508,9 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                                   color: Colors.orange.shade700,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
-                                  'Holiday Work',
-                                  style: TextStyle(
+                                child: Text(
+                                  AppLocalizations.of(context)!.history_holidayWorkBadge,
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
@@ -523,7 +523,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                             if (holidayInfo != null) ...[
                               const SizedBox(width: 6),
                               Tooltip(
-                                message: 'Auto-marked: ${holidayInfo.name}',
+                                message: AppLocalizations.of(context)!.history_autoMarked(holidayInfo.name),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 6,
@@ -533,9 +533,9 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                                     color: Colors.red.shade600,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: const Text(
-                                    'Auto',
-                                    style: TextStyle(
+                                  child: Text(
+                                    AppLocalizations.of(context)!.history_autoBadge,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
