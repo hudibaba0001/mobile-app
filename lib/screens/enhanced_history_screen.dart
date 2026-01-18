@@ -80,9 +80,10 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: const StandardAppBar(title: 'History'),
+      appBar: StandardAppBar(title: t.history_title),
       body: Column(
         children: [
           // Filter Controls
@@ -132,7 +133,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
               Expanded(
                 child: _buildSegmentButton(
                   context,
-                  'Travel',
+                  t.history_travel,
                   EntryType.travel,
                   Icons.directions_car_rounded,
                   selectedType,
@@ -141,7 +142,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
               Expanded(
                 child: _buildSegmentButton(
                   context,
-                  'Work',
+                  t.history_work,
                   EntryType.work,
                   Icons.work_outline_rounded,
                   selectedType,
@@ -150,7 +151,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
               Expanded(
                 child: _buildSegmentButton(
                   context,
-                  'All',
+                  t.history_all,
                   null,
                   Icons.list_alt_rounded,
                   selectedType,
@@ -234,19 +235,24 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
       builder: (context, selectedRange, child) {
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildDateChip(context, 'Today', DateRange.today, selectedRange),
-              const SizedBox(width: 8),
-              _buildDateChip(
-                  context, 'Yesterday', DateRange.yesterday, selectedRange),
-              const SizedBox(width: 8),
-              _buildDateChip(
-                  context, 'Last 7 Days', DateRange.lastWeek, selectedRange),
-              const SizedBox(width: 8),
-              _buildDateChip(
-                  context, 'Custom', DateRange.custom, selectedRange),
-            ],
+          child: Builder(
+            builder: (context) {
+              final t = AppLocalizations.of(context)!;
+              return Row(
+                children: [
+                  _buildDateChip(context, t.common_today, DateRange.today, selectedRange),
+                  const SizedBox(width: 8),
+                  _buildDateChip(
+                      context, t.history_yesterday, DateRange.yesterday, selectedRange),
+                  const SizedBox(width: 8),
+                  _buildDateChip(
+                      context, t.history_last7Days, DateRange.lastWeek, selectedRange),
+                  const SizedBox(width: 8),
+                  _buildDateChip(
+                      context, t.history_custom, DateRange.custom, selectedRange),
+                ],
+              );
+            },
           ),
         );
       },
@@ -302,10 +308,11 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final t = AppLocalizations.of(context)!;
     return TextField(
       controller: _searchController,
       decoration: InputDecoration(
-        hintText: 'Search by location, notes...',
+        hintText: t.history_searchHint,
         prefixIcon: Icon(
           Icons.search_rounded,
           color: colorScheme.onSurfaceVariant,
@@ -368,7 +375,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Loading entries...',
+                    AppLocalizations.of(context)!.history_loadingEntries,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
