@@ -651,14 +651,14 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No entries found',
+            AppLocalizations.of(context)!.history_noEntriesFound,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Try adjusting your filters or search terms',
+            AppLocalizations.of(context)!.history_tryAdjustingFilters,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant.withOpacity(0.7),
             ),
