@@ -678,8 +678,6 @@
   "home_startTime": "Starttid",
   "home_endTime": "Sluttid",
   "home_logEntry": "Logga post",
-  "home_trackJourney": "Spåra dina resdetaljer",
-  "home_trackWork": "Spåra dina arbetsdetaljer",
   "home_selectTime": "Välj tid",
   "home_timeExample": "t.ex. 9:00",
   "home_noRemarks": "Inga anmärkningar",
@@ -688,5 +686,6 @@
   "form_departureLocation": "Avgångsplats",
   "form_arrivalLocation": "Ankomstplats",
   "form_additionalInformation": "Ytterligare information",
-  "form_pleaseSelectDate": "Vänligen välj ett datum"
+  "form_pleaseSelectDate": "Vänligen välj ett datum",
+  "dateRange_last90Days": "Senaste 90 dagarna"
 }

@@ -119,6 +119,7 @@ class _EnhancedHistoryScreenState extends State<EnhancedHistoryScreen> {
   Widget _buildSegmentedControl(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return ValueListenableBuilder<EntryType?>(
       valueListenable: _selectedTypeNotifier,
