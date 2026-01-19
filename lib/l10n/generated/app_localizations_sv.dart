@@ -1961,5 +1961,5 @@ class AppLocalizationsSv extends AppLocalizations {
   String get form_pleaseSelectDate => 'Vänligen välj ett datum';
 
   @override
-  String get dateRange_last90Days => 'Last 90 Days';
+  String get dateRange_last90Days => 'Senaste 90 dagarna';
 }
