@@ -231,18 +231,18 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'edit',
                   child: ListTile(
-                    leading: Icon(Icons.edit, size: 20),
+                    leading: const Icon(Icons.edit, size: 20),
                     title: Text(AppLocalizations.of(context)!.common_edit),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: ListTile(
-                    leading: Icon(Icons.delete, color: Colors.red, size: 20),
+                    leading: const Icon(Icons.delete, color: Colors.red, size: 20),
                     title: Text(AppLocalizations.of(context)!.common_delete, style: const TextStyle(color: Colors.red)),
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -329,18 +329,18 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'edit',
                       child: ListTile(
-                        leading: Icon(Icons.edit),
+                        leading: const Icon(Icons.edit),
                         title: Text(AppLocalizations.of(context)!.common_edit),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: ListTile(
-                        leading: Icon(Icons.delete, color: Colors.red),
+                        leading: const Icon(Icons.delete, color: Colors.red),
                         title: Text(AppLocalizations.of(context)!.common_delete, style: const TextStyle(color: Colors.red)),
                         contentPadding: EdgeInsets.zero,
                       ),

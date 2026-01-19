@@ -133,11 +133,11 @@ class ExportService {
     // Write headers
     for (int i = 0; i < headers.length; i++) {
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0))
-        ..value = headers[i]
+        ..value = TextCellValue(headers[i])
         ..cellStyle = CellStyle(
           bold: true,
           horizontalAlign: HorizontalAlign.Center,
-          backgroundColorHex: '#E0E0E0',
+          backgroundColorHex: ExcelColor.fromHexString('#E0E0E0'),
         );
     }
 
@@ -147,53 +147,53 @@ class ExportService {
       final row = rowIndex + 1; // +1 because row 0 is headers
 
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
-        .value = entry.id;
+        .value = TextCellValue(entry.id);
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row))
-        .value = entry.type.name;
+        .value = TextCellValue(entry.type.name);
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row))
-        .value = DateFormat('yyyy-MM-dd').format(entry.date);
+        .value = TextCellValue(DateFormat('yyyy-MM-dd').format(entry.date));
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row))
-        .value = entry.from ?? '';
+        .value = TextCellValue(entry.from ?? '');
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row))
-        .value = entry.to ?? '';
+        .value = TextCellValue(entry.to ?? '');
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row))
-        .value = entry.totalDuration.inHours;
+        .value = IntCellValue(entry.totalDuration.inHours);
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: row))
-        .value = entry.totalDuration.inMinutes;
+        .value = IntCellValue(entry.totalDuration.inMinutes);
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: row))
-        .value = entry.notes ?? '';
+        .value = TextCellValue(entry.notes ?? '');
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: row))
-        .value = DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt);
+        .value = TextCellValue(DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt));
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row))
-        .value = entry.updatedAt != null
+        .value = TextCellValue(entry.updatedAt != null
             ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-            : '';
+            : '');
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: row))
-        .value = entry.journeyId ?? '';
+        .value = TextCellValue(entry.journeyId ?? '');
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: row))
-        .value = entry.segmentOrder?.toString() ?? '';
+        .value = TextCellValue(entry.segmentOrder?.toString() ?? '');
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: row))
-        .value = entry.totalSegments?.toString() ?? '';
+        .value = TextCellValue(entry.totalSegments?.toString() ?? '');
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: row))
-        .value = entry.workHours;
+        .value = DoubleCellValue(entry.workHours);
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: row))
-        .value = entry.shifts?.length.toString() ?? '0';
+        .value = TextCellValue(entry.shifts?.length.toString() ?? '0');
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 15, rowIndex: row))
-        .value = _formatShiftsForExcel(entry.shifts);
+        .value = TextCellValue(_formatShiftsForExcel(entry.shifts));
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 16, rowIndex: row))
-        .value = entry.isHolidayWork ? 'Yes' : 'No';
+        .value = TextCellValue(entry.isHolidayWork ? 'Yes' : 'No');
       sheet.cell(CellIndex.indexByColumnRow(columnIndex: 17, rowIndex: row))
-        .value = entry.holidayName ?? '';
+        .value = TextCellValue(entry.holidayName ?? '');
     }
 
     // Add summary section
     final summaryRow = entries.length + 2;
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: summaryRow))
-      ..value = 'Export Summary'
+      ..value = TextCellValue('Export Summary')
       ..cellStyle = CellStyle(
         bold: true,
         fontSize: 14,
-        backgroundColorHex: '#F0F0F0',
+        backgroundColorHex: ExcelColor.fromHexString('#F0F0F0'),
       );
 
     final summaryDataRow = summaryRow + 1;
@@ -202,17 +202,17 @@ class ExportService {
     final holidayWorkHours = (holidayWorkMinutes / 60).toStringAsFixed(1);
     
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: summaryDataRow))
-      .value = 'Total Entries: ${entries.length}';
+      .value = TextCellValue('Total Entries: ${entries.length}');
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: summaryDataRow))
-      .value = 'Travel Entries: ${entries.where((e) => e.type == EntryType.travel).length}';
+      .value = TextCellValue('Travel Entries: ${entries.where((e) => e.type == EntryType.travel).length}');
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: summaryDataRow))
-      .value = 'Work Entries: ${entries.where((e) => e.type == EntryType.work).length}';
+      .value = TextCellValue('Work Entries: ${entries.where((e) => e.type == EntryType.work).length}');
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: summaryDataRow))
-      .value = 'Holiday Work: ${holidayWorkEntries.length} entries (${holidayWorkHours}h)';
+      .value = TextCellValue('Holiday Work: ${holidayWorkEntries.length} entries (${holidayWorkHours}h)');
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: summaryDataRow))
-      .value = 'Total Hours: ${_calculateTotalHours(entries).toStringAsFixed(2)}';
+      .value = TextCellValue('Total Hours: ${_calculateTotalHours(entries).toStringAsFixed(2)}');
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: summaryDataRow))
-      .value = 'Date Range: ${_formatDateRange(startDate, endDate)}';
+      .value = TextCellValue('Date Range: ${_formatDateRange(startDate, endDate)}');
 
     // Save the Excel file
     return Uint8List.fromList(excel.save()!);

@@ -296,6 +296,27 @@ class AppLocalizationsSv extends AppLocalizations {
       'Anställningsinställningar återställda till standard';
 
   @override
+  String get contract_employerMode => 'Employer Mode';
+
+  @override
+  String get contract_modeStandard => 'Standard';
+
+  @override
+  String get contract_modeStrict => 'Strict';
+
+  @override
+  String get contract_modeFlexible => 'Flexible';
+
+  @override
+  String get contract_modeStrictDesc => 'Strict validation of hours';
+
+  @override
+  String get contract_modeFlexibleDesc => 'No warnings for overages';
+
+  @override
+  String get contract_modeStandardDesc => 'Standard balance tracking';
+
+  @override
   String get balance_title => 'Flexsaldo';
 
   @override
@@ -745,6 +766,15 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get common_invalidNumber => 'Ange ett giltigt nummer';
+
+  @override
+  String get common_noDataToExport => 'No data to export';
+
+  @override
+  String get common_exportSuccess => 'Export successful';
+
+  @override
+  String get common_exportFailed => 'Export failed';
 
   @override
   String get home_title => 'Tidrapportering';

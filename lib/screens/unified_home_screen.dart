@@ -1,5 +1,6 @@
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
+import '../widgets/flexsaldo_card.dart';
 import 'dart:async';
 import '../models/entry.dart';
 import '../models/absence.dart';
@@ -14,7 +15,9 @@ import '../repositories/repository_provider.dart';
 import '../providers/entry_provider.dart';
 import '../providers/absence_provider.dart';
 import '../providers/location_provider.dart';
+import '../providers/time_provider.dart';
 import '../services/supabase_auth_service.dart';
+import '../services/export_service.dart';
 import '../l10n/generated/app_localizations.dart';
 
 extension StringExtension on String {
@@ -347,6 +350,13 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Flexsaldo MTD Card (prominent at top)
+            FlexsaldoCard(
+              onExportTimeReport: () => _exportReport(context, 'time'),
+              onExportTravelReport: () => _exportReport(context, 'travel'),
+            ),
+            const SizedBox(height: 16),
+            
             // Today's Total Card
             Consumer<EntryProvider>(
               builder: (context, entryProvider, _) => _buildTotalCard(theme, entryProvider, t),
@@ -980,6 +990,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
 
     if (confirmed == true) {
+      if (!mounted) return;
       try {
         final entryProvider = context.read<EntryProvider>();
 
@@ -1174,6 +1185,63 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         );
       },
     );
+  }
+
+  /// Export report from FlexsaldoCard buttons
+  Future<void> _exportReport(BuildContext context, String reportType) async {
+    final t = AppLocalizations.of(context)!;
+    final entryProvider = context.read<EntryProvider>();
+    
+    // Get current month date range
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 0);
+    
+    // Filter entries by type
+    final entries = entryProvider.entries.where((entry) {
+      final inRange = entry.date.isAfter(monthStart.subtract(const Duration(days: 1))) &&
+          entry.date.isBefore(monthEnd.add(const Duration(days: 1)));
+      if (reportType == 'travel') {
+        return inRange && entry.type == EntryType.travel;
+      } else if (reportType == 'time') {
+        return inRange && entry.type == EntryType.work;
+      }
+      return inRange;
+    }).toList();
+    
+    if (entries.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t.common_noDataToExport)),
+        );
+      }
+      return;
+    }
+    
+    try {
+      final fileName = reportType == 'travel' 
+          ? 'travel_report_${now.year}_${now.month}'
+          : 'time_report_${now.year}_${now.month}';
+      
+      await ExportService.exportEntriesToCSV(
+        entries: entries,
+        fileName: fileName,
+        startDate: monthStart,
+        endDate: monthEnd,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t.common_exportSuccess)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${t.common_exportFailed}: $e')),
+        );
+      }
+    }
   }
 }
 
@@ -1443,9 +1511,13 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
 
   @override
   void dispose() {
+    _overlayEntry?.remove();
     _notesController.dispose();
     _totalHoursController.dispose();
     _totalMinutesController.dispose();
+    for (final trip in _trips) {
+      trip.dispose();
+    }
     super.dispose();
   }
 
@@ -1851,8 +1923,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     child: ElevatedButton(
                       onPressed: _isValid()
                           ? () async {
+                              if (!mounted) return;
                               try {
-                                print('=== TRAVEL ENTRY SAVE ATTEMPT ===');
 
                                 // Get the repository provider
                                 final repositoryProvider =
@@ -2863,6 +2935,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     child: ElevatedButton(
                       onPressed: _isValid()
                           ? () async {
+                              if (!mounted) return;
                               try {
                                 print('=== WORK ENTRY SAVE ATTEMPT ===');
 

@@ -26,6 +26,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   DateTime _trackingStartDate = DateTime(DateTime.now().year, 1, 1);
   bool _isDeficit = false; // false = credit (+), true = deficit (-)
   
+  // Employer mode
+  String _employerMode = 'standard'; // 'standard', 'strict', 'flexible'
+  
   bool _isFormValid = false;
   String? _contractPercentError;
   String? _fullTimeHoursError;
@@ -48,6 +51,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       _openingHoursController.text = hours.toString();
       _openingMinutesController.text = mins.toString().padLeft(2, '0');
       _isDeficit = contractProvider.openingFlexMinutes < 0;
+      
+      // Initialize employer mode
+      _employerMode = contractProvider.employerMode;
       
       _validateForm();
     });
@@ -158,6 +164,11 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       if (contractProvider.openingFlexMinutes != signedMinutes) {
         contractProvider.setOpeningFlexMinutes(signedMinutes);
       }
+      
+      // Update employer mode
+      if (contractProvider.employerMode != _employerMode) {
+        contractProvider.setEmployerMode(_employerMode);
+      }
     }
   }
 
@@ -200,6 +211,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                 _openingHoursController.text = '0';
                 _openingMinutesController.text = '00';
                 _isDeficit = false;
+                _employerMode = 'standard';
               });
               
               _validateForm();
@@ -326,9 +338,75 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                     errorText: _fullTimeHoursError,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(3),
                     ],
+                  ),
+                  
+                  const SizedBox(height: 32),
+
+                  // Employer Mode Dropdown
+                  Text(
+                    'Employer Mode',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colorScheme.outline),
+                      borderRadius: BorderRadius.circular(12),
+                      color: colorScheme.surface,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _employerMode,
+                        isExpanded: true,
+                        icon: const Icon(Icons.arrow_drop_down),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'standard',
+                            child: Text(
+                              t.contract_modeStandard ?? 'Standard',
+                              style: theme.textTheme.bodyLarge,
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'strict',
+                            child: Text(
+                              t.contract_modeStrict ?? 'Strict',
+                              style: theme.textTheme.bodyLarge,
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'flexible',
+                            child: Text(
+                              t.contract_modeFlexible ?? 'Flexible',
+                              style: theme.textTheme.bodyLarge,
+                            ),
+                          ),
+                        ],
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _employerMode = newValue;
+                            });
+                            _validateForm();
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _employerMode == 'strict' 
+                        ? (t.contract_modeStrictDesc ?? 'Strict validation of hours')
+                        : _employerMode == 'flexible'
+                            ? (t.contract_modeFlexibleDesc ?? 'No warnings for overages')
+                            : (t.contract_modeStandardDesc ?? 'Standard balance tracking'),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   
                   const SizedBox(height: 32),

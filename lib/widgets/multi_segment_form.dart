@@ -412,8 +412,11 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               // From field
               TextFormField(
                 controller: _departureController,
+                decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.entry_from,
                   hintText: AppLocalizations.of(context)!.form_departureLocation,
+                  prefixIcon: const Icon(Icons.location_on),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) =>
                     Validators.validateRequired(value, AppLocalizations.of(context)!.form_departureLocation),

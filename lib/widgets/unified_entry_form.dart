@@ -556,6 +556,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       final durationText = result['durationText'] as String;
       final distanceText = result['distanceText'] as String;
 
+      if (!mounted) return;
       setState(() {
         _durationMinutes = durationMinutes;
         // Calculate end time based on start time and duration
@@ -585,6 +586,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isCalculatingTravelTime = false;
         _travelTimeError = e.toString().replaceAll('Exception: ', '');
@@ -811,7 +813,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 30)),
     );
-    if (date != null) {
+    if (date != null && mounted) {
       setState(() => _selectedDate = date);
     }
   }
@@ -831,7 +833,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         );
       },
     );
-    if (time != null) {
+    if (time != null && mounted) {
       setState(() => _startTime = time);
     }
   }
@@ -853,7 +855,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         );
       },
     );
-    if (time != null) {
+    if (time != null && mounted) {
       setState(() => _endTime = time);
     }
   }
@@ -865,6 +867,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     // Validate required fields
     if (widget.entryType == EntryType.travel) {
       if (_departureLocation == null || _arrivalLocation == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_selectBothLocations),
@@ -875,6 +878,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       }
     } else {
       if (_workLocation == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_selectWorkLocation),
@@ -884,6 +888,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         return;
       }
       if (_endTime == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_selectEndTime),
@@ -900,6 +905,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
     try {
       if (_currentUserId == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_signInRequired),

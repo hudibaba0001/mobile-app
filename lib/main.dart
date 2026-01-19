@@ -30,6 +30,7 @@ import 'repositories/leave_repository.dart';
 import 'repositories/user_red_day_repository.dart';
 import 'services/admin_api_service.dart';
 import 'services/holiday_service.dart';
+import 'services/travel_cache_service.dart';
 import 'viewmodels/analytics_view_model.dart';
 
 void main() async {
@@ -235,6 +236,7 @@ class MyApp extends StatelessWidget {
         ),
         // Services
         Provider(create: (_) => AdminApiService()),
+        Provider(create: (_) => TravelCacheService()..init()),
         // ViewModels
         ChangeNotifierProxyProvider<AdminApiService, AnalyticsViewModel>(
           create: (context) =>

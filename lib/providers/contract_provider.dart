@@ -20,11 +20,15 @@ class ContractProvider extends ChangeNotifier {
   DateTime? _trackingStartDate; // Date from which to calculate balances
   int _openingFlexMinutes = 0; // Signed: positive = credit, negative = deficit
   
+  // Employer mode (V1: affects validation strictness, not calculations yet)
+  String _employerMode = 'standard'; // 'standard', 'strict', 'flexible'
+  
   // SharedPreferences keys
   static const String _contractPercentKey = 'contract_percent';
   static const String _fullTimeHoursKey = 'full_time_hours';
   static const String _trackingStartDateKey = 'tracking_start_date';
   static const String _openingFlexMinutesKey = 'opening_flex_minutes';
+  static const String _employerModeKey = 'employer_mode';
   
   // Getters
   
@@ -247,6 +251,15 @@ class ContractProvider extends ChangeNotifier {
     } else {
       debugPrint('ContractProvider: Using default opening flex: 0');
     }
+
+    // Load employer mode
+    final savedMode = prefs.getString(_employerModeKey);
+    if (savedMode != null && ['standard', 'strict', 'flexible'].contains(savedMode)) {
+      _employerMode = savedMode;
+      debugPrint('ContractProvider: Loaded employer mode: $_employerMode');
+    } else {
+      debugPrint('ContractProvider: Using default employer mode: standard');
+    }
     
     debugPrint('ContractProvider: Calculated allowed hours: $allowedHours ($_fullTimeHours * $_contractPercent% / 100)');
     
@@ -284,6 +297,25 @@ class ContractProvider extends ChangeNotifier {
     await prefs.setInt(_openingFlexMinutesKey, _openingFlexMinutes);
   }
   
+  /// Employer mode setting 
+  /// 'standard' (default), 'strict' (warnings), 'flexible' (no warnings)
+  String get employerMode => _employerMode;
+
+  /// Set employer mode and persist
+  Future<void> setEmployerMode(String mode) async {
+    if (_employerMode != mode) {
+      _employerMode = mode;
+      await _saveEmployerMode();
+      notifyListeners();
+    }
+  }
+
+  /// Save employer mode to SharedPreferences
+  Future<void> _saveEmployerMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_employerModeKey, _employerMode);
+  }
+
   // Utility methods
   
   /// Get contract percentage as a decimal (0.0 to 1.0)
@@ -356,6 +388,7 @@ class ContractProvider extends ChangeNotifier {
     _fullTimeHours = 40;
     _trackingStartDate = null; // Will default to Jan 1 of current year
     _openingFlexMinutes = 0;
+    _employerMode = 'standard';
     
     // Clear from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
@@ -363,6 +396,7 @@ class ContractProvider extends ChangeNotifier {
     await prefs.remove(_fullTimeHoursKey);
     await prefs.remove(_trackingStartDateKey);
     await prefs.remove(_openingFlexMinutesKey);
+    await prefs.remove(_employerModeKey);
     
     notifyListeners();
   }

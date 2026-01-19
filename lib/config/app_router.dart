@@ -11,7 +11,7 @@ import '../screens/admin_users_screen.dart';
 import '../screens/contract_settings_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/analytics_screen.dart';
-import '../screens/enhanced_history_screen.dart';
+import '../screens/history_screen.dart';
 import '../screens/edit_entry_screen.dart';
 import '../screens/manage_locations_screen.dart';
 import '../screens/time_balance_screen.dart';
@@ -151,7 +151,7 @@ class AppRouter {
           GoRoute(
             path: historyPath,
             name: historyName,
-            builder: (context, state) => const EnhancedHistoryScreen(),
+            builder: (context, state) => const HistoryScreen(),
           ),
 
           // Reports tab

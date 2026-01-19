@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/entry_provider.dart';
 import '../models/entry.dart';
+import '../services/travel_cache_service.dart';
 import '../l10n/generated/app_localizations.dart';
 
 /// Edit Entry screen for both travel and work entries.
@@ -149,11 +150,47 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     });
   }
 
+  void _checkForCachedRoute(_TravelEntry entry) {
+    if (!mounted) return;
+    
+    final from = entry.fromController.text.trim();
+    final to = entry.toController.text.trim();
+    
+    if (from.isEmpty || to.isEmpty) return;
+    
+    // Only auto-fill if duration is empty or zero
+    final currentHours = int.tryParse(entry.durationHoursController.text) ?? 0;
+    final currentMinutes = int.tryParse(entry.durationMinutesController.text) ?? 0;
+    
+    if (currentHours > 0 || currentMinutes > 0) return;
+    
+    final cache = context.read<TravelCacheService>();
+    final cachedMinutes = cache.getRouteDuration(from, to);
+    
+    if (cachedMinutes != null && cachedMinutes > 0) {
+      final h = cachedMinutes ~/ 60;
+      final m = cachedMinutes % 60;
+      
+      entry.durationHoursController.text = h > 0 ? h.toString() : '';
+      entry.durationMinutesController.text = m > 0 ? m.toString() : '';
+      _validateForm();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Duration auto-filled from history ($cachedMinutes min)'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   void _addTravelEntry() {
     setState(() {
       final travelEntry = _TravelEntry(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         onChanged: _validateForm,
+        onRouteChanged: _checkForCachedRoute,
       );
       _travelEntries.add(travelEntry);
       _validateForm();
@@ -184,6 +221,16 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       shift.dispose();
       _shifts.remove(shift);
       _validateForm();
+    });
+  }
+
+  /// Swap From and To locations for a travel entry
+  void _swapRoute(_TravelEntry travelEntry) {
+    final fromText = travelEntry.fromController.text;
+    final toText = travelEntry.toController.text;
+    setState(() {
+      travelEntry.fromController.text = toText;
+      travelEntry.toController.text = fromText;
     });
   }
 
@@ -224,6 +271,11 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         );
 
         await context.read<EntryProvider>().updateEntry(entry);
+
+        // Save route to cache
+        if (entry.from != null && entry.to != null && entry.travelMinutes != null) {
+          context.read<TravelCacheService>().saveRoute(entry.from!, entry.to!, entry.travelMinutes!);
+        }
       } else if (_currentEntryType == EntryType.work && _shifts.isNotEmpty) {
         final s = _shifts.first;
         final start = _parseTimeOfDay(s.startTimeController.text);
@@ -480,6 +532,27 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Quick Duration Chips
+        Text(
+          'Quick Duration',
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildDurationChip(theme, 2),
+            _buildDurationChip(theme, 4),
+            _buildDurationChip(theme, 6),
+            _buildDurationChip(theme, 8),
+            _buildCopyYesterdayChip(theme),
+          ],
+        ),
+        const SizedBox(height: 24),
+
         // Shifts
         ..._shifts.map((shift) => _buildShiftRow(theme, shift)),
 
@@ -514,6 +587,112 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           maxLines: 4,
         ),
       ],
+    );
+  }
+
+  /// Build a duration chip that sets shift times
+  Widget _buildDurationChip(ThemeData theme, int hours) {
+    return Material(
+      color: theme.colorScheme.primaryContainer.withOpacity(0.5),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: () => _applyQuickDuration(hours),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Text(
+            '+${hours}h',
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onPrimaryContainer,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Apply quick duration by setting shift start to 08:00 and end based on hours
+  void _applyQuickDuration(int hours) {
+    if (_shifts.isEmpty) {
+      _addShift();
+    }
+    
+    final shift = _shifts.first;
+    // Default start at 08:00
+    shift.startTimeController.text = '08:00';
+    // End at start + hours
+    final endHour = 8 + hours;
+    shift.endTimeController.text = '${endHour.toString().padLeft(2, '0')}:00';
+    _validateForm();
+  }
+
+  /// Build a Copy Yesterday chip
+  Widget _buildCopyYesterdayChip(ThemeData theme) {
+    return Material(
+      color: theme.colorScheme.secondaryContainer.withOpacity(0.5),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: _copyYesterday,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.content_copy_rounded,
+                size: 16,
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Copy Yesterday',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSecondaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Copy yesterday's work shift times to current entry
+  void _copyYesterday() {
+    final entryProvider = context.read<EntryProvider>();
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    
+    // Find yesterday's work entry
+    final yesterdayEntry = entryProvider.entries.where((entry) =>
+        entry.type == EntryType.work &&
+        entry.date.year == yesterday.year &&
+        entry.date.month == yesterday.month &&
+        entry.date.day == yesterday.day
+    ).firstOrNull;
+    
+    if (yesterdayEntry == null || yesterdayEntry.shifts == null || yesterdayEntry.shifts!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No work entry found for yesterday')),
+      );
+      return;
+    }
+    
+    // Apply yesterday's shift times
+    if (_shifts.isEmpty) {
+      _addShift();
+    }
+    
+    final yesterdayShift = yesterdayEntry.shifts!.first;
+    final shift = _shifts.first;
+    shift.startTimeController.text = _formatTimeOfDay(TimeOfDay.fromDateTime(yesterdayShift.start));
+    shift.endTimeController.text = _formatTimeOfDay(TimeOfDay.fromDateTime(yesterdayShift.end));
+    _validateForm();
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Copied yesterday\'s shift times')),
     );
   }
 
@@ -640,14 +819,21 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
+              // Swap Route Button
               Container(
                 margin: const EdgeInsets.only(top: 20),
-                child: Icon(
-                  Icons.arrow_forward,
+                child: IconButton(
+                  onPressed: () => _swapRoute(travelEntry),
+                  icon: const Icon(Icons.swap_horiz_rounded),
                   color: theme.colorScheme.primary,
+                  tooltip: 'Swap From/To',
+                  style: IconButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primaryContainer.withOpacity(0.5),
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -968,16 +1154,24 @@ class _TravelEntry {
   final TextEditingController durationHoursController;
   final TextEditingController durationMinutesController;
   final VoidCallback onChanged;
+  final Function(_TravelEntry) onRouteChanged;
 
   _TravelEntry({
     required this.id,
     required this.onChanged,
+    required this.onRouteChanged,
   })  : fromController = TextEditingController(),
         toController = TextEditingController(),
         durationHoursController = TextEditingController(),
         durationMinutesController = TextEditingController() {
-    fromController.addListener(onChanged);
-    toController.addListener(onChanged);
+    fromController.addListener(() {
+      onChanged();
+      onRouteChanged(this);
+    });
+    toController.addListener(() {
+      onChanged();
+      onRouteChanged(this);
+    });
     durationHoursController.addListener(onChanged);
     durationMinutesController.addListener(onChanged);
   }

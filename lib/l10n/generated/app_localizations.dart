@@ -614,6 +614,48 @@ abstract class AppLocalizations {
   /// **'Contract settings reset to defaults'**
   String get contract_resetSuccess;
 
+  /// No description provided for @contract_employerMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Employer Mode'**
+  String get contract_employerMode;
+
+  /// No description provided for @contract_modeStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get contract_modeStandard;
+
+  /// No description provided for @contract_modeStrict.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict'**
+  String get contract_modeStrict;
+
+  /// No description provided for @contract_modeFlexible.
+  ///
+  /// In en, this message translates to:
+  /// **'Flexible'**
+  String get contract_modeFlexible;
+
+  /// No description provided for @contract_modeStrictDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict validation of hours'**
+  String get contract_modeStrictDesc;
+
+  /// No description provided for @contract_modeFlexibleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'No warnings for overages'**
+  String get contract_modeFlexibleDesc;
+
+  /// No description provided for @contract_modeStandardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard balance tracking'**
+  String get contract_modeStandardDesc;
+
   /// No description provided for @balance_title.
   ///
   /// In en, this message translates to:
@@ -1405,6 +1447,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter a valid number'**
   String get common_invalidNumber;
+
+  /// No description provided for @common_noDataToExport.
+  ///
+  /// In en, this message translates to:
+  /// **'No data to export'**
+  String get common_noDataToExport;
+
+  /// No description provided for @common_exportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Export successful'**
+  String get common_exportSuccess;
+
+  /// No description provided for @common_exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed'**
+  String get common_exportFailed;
 
   /// No description provided for @home_title.
   ///

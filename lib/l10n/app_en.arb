@@ -115,6 +115,13 @@
   "contract_saveSettings": "Save Settings",
   "contract_savedSuccess": "Contract settings saved successfully!",
   "contract_resetSuccess": "Contract settings reset to defaults",
+  "contract_employerMode": "Employer Mode",
+  "contract_modeStandard": "Standard",
+  "contract_modeStrict": "Strict",
+  "contract_modeFlexible": "Flexible",
+  "contract_modeStrictDesc": "Strict validation of hours",
+  "contract_modeFlexibleDesc": "No warnings for overages",
+  "contract_modeStandardDesc": "Standard balance tracking",
 
   "balance_title": "Time Balance",
   "balance_myTimeBalance": "My Time Balance ({year})",
@@ -358,6 +365,9 @@
     }
   },
   "common_invalidNumber": "Please enter a valid number",
+  "common_noDataToExport": "No data to export",
+  "common_exportSuccess": "Export successful",
+  "common_exportFailed": "Export failed",
 
   "home_title": "Time Tracker",
   "home_subtitle": "Track your productivity",
