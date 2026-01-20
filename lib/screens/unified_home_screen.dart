@@ -1217,18 +1217,48 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       }
       return;
     }
+
+    // Show format selection dialog
+    final format = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t.export_chooseFormat),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.description),
+              title: const Text('CSV'),
+              onTap: () => Navigator.of(context).pop('csv'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: const Text('Excel (XLSX)'),
+              onTap: () => Navigator.of(context).pop('xlsx'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (format == null) return;
     
     try {
       final fileName = reportType == 'travel' 
           ? 'travel_report_${now.year}_${now.month}'
           : 'time_report_${now.year}_${now.month}';
       
-      await ExportService.exportEntriesToCSV(
-        entries: entries,
-        fileName: fileName,
-        startDate: monthStart,
-        endDate: monthEnd,
-      );
+      if (format == 'csv') {
+        await ExportService.exportEntriesToCSV(
+          entries: entries,
+          fileName: fileName,
+        );
+      } else {
+        await ExportService.exportEntriesToExcel(
+          entries: entries,
+          fileName: fileName,
+        );
+      }
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

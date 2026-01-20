@@ -44,7 +44,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
   // Work-specific fields
   String? _workLocation;
-  Shift? _shift;
+  List<Shift> _shifts = [];
 
   String? get _currentUserId =>
       context.read<SupabaseAuthService>().currentUser?.id;
@@ -72,10 +72,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         // For travel entries, set start time to current time (not used for saving, just for display if needed)
         _startTime = TimeOfDay.now();
       } else if (entry.type == EntryType.work) {
-        // Initialize work fields from first shift if present
-        final Shift? firstShift = entry.shift;
-        _workLocation = firstShift?.location ?? entry.workLocation;
-        if (firstShift != null) {
+        // Initialize work fields from existing shifts if present
+        if (entry.shifts != null && entry.shifts!.isNotEmpty) {
+          _shifts = List<Shift>.from(entry.shifts!);
+          final firstShift = _shifts.first;
+          _workLocation = firstShift.location ?? entry.workLocation;
           _selectedDate = DateTime(
             firstShift.start.year,
             firstShift.start.month,
@@ -88,6 +89,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         }
       } else {
         _startTime = TimeOfDay.fromDateTime(entry.date);
+      }
+    } else {
+      // Add one default shift for new work entries
+      if (widget.entryType == EntryType.work) {
+        _addShift();
       }
     }
   }
@@ -167,7 +173,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               const SizedBox(height: 20),
 
               // Work-specific fields
-              if (!isTravel) _buildWorkSpecificFields(theme),
+              if (!isTravel) ..._buildWorkSpecificFields(theme),
 
               // Notes Section
               _buildNotesSection(theme),
@@ -265,68 +271,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       const SizedBox(width: 8),
                       Text(
                         '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: InkWell(
-                onTap: _selectStartTime,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.play_arrow,
-                        size: 20,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _startTime.format(context),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: InkWell(
-                onTap: _selectEndTime,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.stop,
-                        size: 20,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _endTime != null
-                            ? _endTime!.format(context)
-                            : AppLocalizations.of(context)!.entry_endTime,
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
@@ -701,45 +645,114 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     );
   }
 
-  Widget _buildWorkSpecificFields(ThemeData theme) {
+  void _addShift() {
+    setState(() {
+      _shifts.add(Shift(
+        start: DateTime.now(),
+        end: DateTime.now().add(const Duration(hours: 8)),
+      ));
+    });
+  }
+
+  void _removeShift(int index) {
+    setState(() {
+      _shifts.removeAt(index);
+    });
+  }
+
+  List<Widget> _buildWorkSpecificFields(ThemeData theme) {
+    return [
+      Text(
+        AppLocalizations.of(context)!.form_workDetails,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(height: 12),
+      ..._shifts.asMap().entries.map((entry) {
+        int index = entry.key;
+        Shift shift = entry.value;
+        return _buildShiftRow(theme, index, shift);
+      }).toList(),
+      const SizedBox(height: 12),
+      if (_shifts.length < 2)
+        OutlinedButton.icon(
+          onPressed: _addShift,
+          icon: const Icon(Icons.add),
+          label: Text(AppLocalizations.of(context)!.entry_addShift),
+        ),
+      const SizedBox(height: 20),
+    ];
+  }
+
+  Widget _buildShiftRow(ThemeData theme, int index, Shift shift) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          AppLocalizations.of(context)!.form_workDetails,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () => _selectShiftStartTime(index),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.play_arrow,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        TimeOfDay.fromDateTime(shift.start).format(context),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: InkWell(
+                onTap: () => _selectShiftEndTime(index),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: theme.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.stop,
+                        size: 20,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        TimeOfDay.fromDateTime(shift.end).format(context),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (index > 0)
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                onPressed: () => _removeShift(index),
+              ),
+          ],
         ),
         const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          value: _shift?.description,
-          decoration: InputDecoration(
-            labelText: AppLocalizations.of(context)!.entry_shift,
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.schedule),
-          ),
-          items: Shift.values.map((shiftType) {
-            return DropdownMenuItem(
-              value: shiftType,
-              child: Text(_getShiftDisplayName(shiftType)),
-            );
-          }).toList(),
-          onChanged: (shiftType) {
-            if (shiftType != null) {
-              // Create a basic shift for the selected type
-              final now = DateTime.now();
-              final shift = Shift(
-                start: now,
-                end: now.add(const Duration(hours: 8)),
-                description: shiftType,
-                location: _workLocation,
-              );
-              setState(() => _shift = shift);
-            }
-          },
-        ),
-        const SizedBox(height: 20),
       ],
     );
   }
@@ -818,45 +831,33 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     }
   }
 
-  Future<void> _selectStartTime() async {
+  Future<void> _selectShiftStartTime(int index) async {
     final time = await showTimePicker(
       context: context,
-      initialTime: _startTime,
-      builder: (context, child) {
-        return Localizations.override(
-          context: context,
-          locale: const Locale('en', 'US'),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-            child: child!,
-          ),
-        );
-      },
+      initialTime: TimeOfDay.fromDateTime(_shifts[index].start),
     );
     if (time != null && mounted) {
-      setState(() => _startTime = time);
+      setState(() {
+        final now = _shifts[index].start;
+        _shifts[index] = _shifts[index].copyWith(
+          start: DateTime(now.year, now.month, now.day, time.hour, time.minute),
+        );
+      });
     }
   }
 
-  Future<void> _selectEndTime() async {
-    final initial =
-        _endTime ?? _startTime.replacing(minute: (_startTime.minute + 30) % 60);
+  Future<void> _selectShiftEndTime(int index) async {
     final time = await showTimePicker(
       context: context,
-      initialTime: initial,
-      builder: (context, child) {
-        return Localizations.override(
-          context: context,
-          locale: const Locale('en', 'US'),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-            child: child!,
-          ),
-        );
-      },
+      initialTime: TimeOfDay.fromDateTime(_shifts[index].end),
     );
     if (time != null && mounted) {
-      setState(() => _endTime = time);
+      setState(() {
+        final now = _shifts[index].end;
+        _shifts[index] = _shifts[index].copyWith(
+          end: DateTime(now.year, now.month, now.day, time.hour, time.minute),
+        );
+      });
     }
   }
 
@@ -887,19 +888,17 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         );
         return;
       }
-      if (_endTime == null) {
+      if (_shifts.isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(t.error_selectEndTime),
+            content: Text(t.error_addAtLeastOneShift),
             backgroundColor: Colors.red,
           ),
         );
         return;
       }
     }
-
-    // For Work: duration is derived from start/end; no manual minutes required
 
     setState(() => _isLoading = true);
 
@@ -916,90 +915,34 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       }
       final entryProvider = context.read<EntryProvider>();
 
-      // For travel entries, use date only (no time). For work entries, include time.
-      final entryDateTime = widget.entryType == EntryType.travel
-          ? DateTime(
-              _selectedDate.year,
-              _selectedDate.month,
-              _selectedDate.day,
-            )
-          : DateTime(
-              _selectedDate.year,
-              _selectedDate.month,
-              _selectedDate.day,
-              _startTime.hour,
-              _startTime.minute,
-            );
-
-      // For travel entries, use calculated duration or manual duration input
-      int? finalTravelMinutes;
-      if (widget.entryType == EntryType.travel) {
-        // Use calculated duration (from Mapbox API) or manual duration input
-        finalTravelMinutes = _durationMinutes > 0 ? _durationMinutes : null;
-      }
-
-      // Check if this is holiday work (work entry on a red day - auto or personal)
-      final holidayService = context.read<HolidayService>();
-      final redDayInfo = holidayService.getRedDayInfo(_selectedDate);
-      final isHolidayWork =
-          widget.entryType == EntryType.work && redDayInfo.isRedDay;
-      // Get holiday name (prefer auto holiday name, fallback to personal reason)
-      final holidayName = redDayInfo.autoHolidayName ??
-          redDayInfo.personalRedDay?.reason ??
-          (redDayInfo.personalRedDay != null ? AppLocalizations.of(context)!.entry_personalRedDay : null);
+      final entryDateTime = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+      );
 
       final entry = Entry(
-        id: widget.existingEntry?.id, // Let Entry model generate UUID if null
+        id: widget.existingEntry?.id,
         userId: _currentUserId!,
         type: widget.entryType,
         date: entryDateTime,
         from: widget.entryType == EntryType.travel ? _departureLocation : null,
         to: widget.entryType == EntryType.travel ? _arrivalLocation : null,
-        travelMinutes: finalTravelMinutes,
-        shifts: widget.entryType == EntryType.work
-            ? [
-                Shift(
-                  start: DateTime(
-                    _selectedDate.year,
-                    _selectedDate.month,
-                    _selectedDate.day,
-                    _startTime.hour,
-                    _startTime.minute,
-                  ),
-                  end: DateTime(
-                    _selectedDate.year,
-                    _selectedDate.month,
-                    _selectedDate.day,
-                    _endTime!.hour,
-                    _endTime!.minute,
-                  ),
-                  description: _shift?.description,
-                  location: _workLocation,
-                ),
-              ]
-            : null,
+        travelMinutes: widget.entryType == EntryType.travel ? _durationMinutes : null,
+        shifts: widget.entryType == EntryType.work ? _shifts : null,
         notes: _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
         createdAt: widget.existingEntry?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
-        isHolidayWork: isHolidayWork,
-        holidayName: isHolidayWork ? holidayName : null,
+        isHolidayWork: false, // This will be handled by a backend process or cloud function
+        holidayName: null,
       );
 
       if (widget.existingEntry != null) {
         await entryProvider.updateEntry(entry);
       } else {
         await entryProvider.addEntry(entry);
-      }
-
-      if (kDebugMode) {
-        print('✅ UnifiedEntryForm: Saved ${entry.type} entry');
-        print('✅ UnifiedEntryForm: Entry ID: ${entry.id}');
-        print('✅ UnifiedEntryForm: Duration: ${entry.totalDuration}');
-        print('✅ UnifiedEntryForm: Work Duration: ${entry.workDuration}');
-        print('✅ UnifiedEntryForm: Travel Duration: ${entry.travelDuration}');
-        print('✅ UnifiedEntryForm: Shifts count: ${entry.shifts?.length ?? 0}');
       }
 
       if (mounted) {

@@ -10,6 +10,7 @@ import 'package:myapp/models/admin_user.dart';
 @GenerateMocks([AdminApiService])
 import 'admin_users_screen_test.mocks.dart';
 
+@Tags(['admin'])
 void main() {
   late MockAdminApiService mockAdminApiService;
   late List<AdminUser> mockUsers;

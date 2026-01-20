@@ -1,37 +1,33 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:myapp/services/export_service.dart';
 import 'package:myapp/models/entry.dart';
+import 'package:myapp/services/export_service.dart';
 
 void main() {
   group('ExportService Tests', () {
-    test('should generate CSV with correct headers', () {
+    test('should prepare export data with correct headers', () {
       final entries = <Entry>[];
-      final csvData = ExportService.convertEntriesToCSV(
-        entries,
-        null,
-        null,
-      );
+      final exportData = ExportService.prepareExportData(entries);
 
-      // The CSV should contain headers
-      expect(csvData, contains('Entry ID'));
-      expect(csvData, contains('Type'));
-      expect(csvData, contains('Date'));
-      expect(csvData, contains('From'));
-      expect(csvData, contains('To'));
-      expect(csvData, contains('Duration (Hours)'));
-      expect(csvData, contains('Duration (Minutes)'));
-      expect(csvData, contains('Notes'));
-      expect(csvData, contains('Created At'));
-      expect(csvData, contains('Updated At'));
-      expect(csvData, contains('Journey ID'));
-      expect(csvData, contains('Segment Order'));
-      expect(csvData, contains('Total Segments'));
-      expect(csvData, contains('Work Hours'));
-      expect(csvData, contains('Shifts Count'));
-      expect(csvData, contains('Shift Details'));
+      // The exportData should contain headers
+      expect(exportData.headers, contains('Entry ID'));
+      expect(exportData.headers, contains('Type'));
+      expect(exportData.headers, contains('Date'));
+      expect(exportData.headers, contains('From'));
+      expect(exportData.headers, contains('To'));
+      expect(exportData.headers, contains('Duration (Hours)'));
+      expect(exportData.headers, contains('Duration (Minutes)'));
+      expect(exportData.headers, contains('Notes'));
+      expect(exportData.headers, contains('Created At'));
+      expect(exportData.headers, contains('Updated At'));
+      expect(exportData.headers, contains('Journey ID'));
+      expect(exportData.headers, contains('Segment Order'));
+      expect(exportData.headers, contains('Total Segments'));
+      expect(exportData.headers, contains('Work Hours'));
+      expect(exportData.headers, contains('Shifts Count'));
+      expect(exportData.headers, contains('Shift Details'));
     });
 
-    test('should generate CSV with travel entry data', () {
+    test('should prepare export data with travel entry data', () {
       final entries = [
         Entry(
           id: 'test-id-1',
@@ -47,24 +43,20 @@ void main() {
         ),
       ];
 
-      final csvData = ExportService.convertEntriesToCSV(
-        entries,
-        null,
-        null,
-      );
+      final exportData = ExportService.prepareExportData(entries);
 
       // Should contain the travel entry data
-      expect(csvData, contains('test-id-1'));
-      expect(csvData, contains('travel'));
-      expect(csvData, contains('2024-01-15'));
-      expect(csvData, contains('Home'));
-      expect(csvData, contains('Office'));
-      expect(csvData, contains('0')); // 0 hours
-      expect(csvData, contains('30')); // 30 minutes
-      expect(csvData, contains('Morning commute'));
+      expect(exportData.rows[0], contains('test-id-1'));
+      expect(exportData.rows[0], contains('travel'));
+      expect(exportData.rows[0], contains('2024-01-15'));
+      expect(exportData.rows[0], contains('Home'));
+      expect(exportData.rows[0], contains('Office'));
+      expect(exportData.rows[0], contains(0)); // 0 hours
+      expect(exportData.rows[0], contains(30)); // 30 minutes
+      expect(exportData.rows[0], contains('Morning commute'));
     });
 
-    test('should generate CSV with work entry data', () {
+    test('should prepare export data with work entry data', () {
       final entries = [
         Entry(
           id: 'test-id-2',
@@ -85,20 +77,16 @@ void main() {
         ),
       ];
 
-      final csvData = ExportService.convertEntriesToCSV(
-        entries,
-        null,
-        null,
-      );
+      final exportData = ExportService.prepareExportData(entries);
 
       // Should contain the work entry data
-      expect(csvData, contains('test-id-2'));
-      expect(csvData, contains('work'));
-      expect(csvData, contains('2024-01-15'));
-      expect(csvData, contains('8')); // 8 hours
-      expect(csvData, contains('480')); // 480 minutes
-      expect(csvData, contains('Productive day'));
-      expect(csvData, contains('1')); // 1 shift
+      expect(exportData.rows[0], contains('test-id-2'));
+      expect(exportData.rows[0], contains('work'));
+      expect(exportData.rows[0], contains('2024-01-15'));
+      expect(exportData.rows[0], contains(8)); // 8 hours
+      expect(exportData.rows[0], contains(480)); // 480 minutes
+      expect(exportData.rows[0], contains('Productive day'));
+      expect(exportData.rows[0], contains(1)); // 1 shift
     });
 
     test('should generate filename correctly', () {

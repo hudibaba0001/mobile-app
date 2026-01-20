@@ -12,10 +12,26 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:myapp/repositories/repository_provider.dart';
 import 'package:myapp/services/supabase_auth_service.dart';
 
+import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'flexsaldo_card_test.mocks.dart';
 
 @GenerateMocks([RepositoryProvider, SupabaseAuthService])
 void main() {
+  
+  setUpAll(() async {
+    HttpOverrides.global = null;
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+  
+    await Supabase.initialize(
+      url: 'https://dummy.supabase.co',
+      anonKey: 'dummy',
+    );
+  });
+
   group('FlexsaldoCard', () {
     late MockRepositoryProvider mockRepositoryProvider;
     late MockSupabaseAuthService mockSupabaseAuthService;

@@ -8,6 +8,7 @@ import 'package:myapp/viewmodels/admin_users_view_model.dart';
 @GenerateMocks([AdminApiService])
 import 'admin_users_view_model_test.mocks.dart';
 
+@Tags(['admin'])
 void main() {
   late MockAdminApiService mockAdminApiService;
   late AdminUsersViewModel viewModel;
