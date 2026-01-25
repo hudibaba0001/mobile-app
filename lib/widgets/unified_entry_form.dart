@@ -128,8 +128,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             );
           }
         }
-        // For travel entries, set start time to current time (not used for saving, just for display if needed)
-        _startTime = TimeOfDay.now();
       } else if (entry.type == EntryType.work) {
         // Initialize work fields from existing shifts if present
         if (entry.shifts != null && entry.shifts!.isNotEmpty) {
@@ -151,13 +149,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             firstShift.start.month,
             firstShift.start.day,
           );
-          _startTime = TimeOfDay.fromDateTime(firstShift.start);
-          _endTime = TimeOfDay.fromDateTime(firstShift.end);
-        } else {
-          _startTime = TimeOfDay.fromDateTime(entry.date);
         }
-      } else {
-        _startTime = TimeOfDay.fromDateTime(entry.date);
       }
     } else {
       // Add one default shift for new work entries
