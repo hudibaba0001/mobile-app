@@ -235,7 +235,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                   value: 'edit',
                   child: ListTile(
                     leading: const Icon(Icons.edit, size: 20),
-                    title: Text(AppLocalizations.of(context)!.common_edit),
+                    title: Text(AppLocalizations.of(context).common_edit),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -243,7 +243,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                   value: 'delete',
                   child: ListTile(
                     leading: const Icon(Icons.delete, color: Colors.red, size: 20),
-                    title: Text(AppLocalizations.of(context)!.common_delete, style: const TextStyle(color: Colors.red)),
+                    title: Text(AppLocalizations.of(context).common_delete, style: const TextStyle(color: Colors.red)),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -333,7 +333,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                       value: 'edit',
                       child: ListTile(
                         leading: const Icon(Icons.edit),
-                        title: Text(AppLocalizations.of(context)!.common_edit),
+                        title: Text(AppLocalizations.of(context).common_edit),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -341,7 +341,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                       value: 'delete',
                       child: ListTile(
                         leading: const Icon(Icons.delete, color: Colors.red),
-                        title: Text(AppLocalizations.of(context)!.common_delete, style: const TextStyle(color: Colors.red)),
+                        title: Text(AppLocalizations.of(context).common_delete, style: const TextStyle(color: Colors.red)),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),

@@ -2,17 +2,16 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import '../models/entry.dart';
-import '../models/travel_entry.dart';
-import '../repositories/travel_repository.dart';
+import '../providers/entry_provider.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/retry_helper.dart';
 
 class ImportService {
-  final TravelRepository _travelRepository;
+  final EntryProvider _entryProvider;
 
-  ImportService({required TravelRepository travelRepository})
-      : _travelRepository = travelRepository;
+  ImportService({required EntryProvider entryProvider})
+      : _entryProvider = entryProvider;
 
   /// Import travel entries from CSV file
   Future<ImportResult> importFromCSV(String filePath) async {
@@ -62,20 +61,20 @@ class ImportService {
           continue;
         }
 
-        // Convert Entry to TravelEntry for storage
-        final travelEntry = TravelEntry(
-          id: entry.id,
-          userId: entry.userId,
-          date: entry.date,
-          fromLocation: entry.from ?? '',
-          toLocation: entry.to ?? '',
-          travelMinutes: entry.minutes ?? 0,
-          remarks: entry.notes ?? '',
-          createdAt: entry.createdAt,
-          updatedAt: entry.updatedAt,
-        );
+        // Use EntryProvider instead of legacy TravelEntry repository
+        // Entry is already in the correct format, just ensure it's atomic
+        final atomicEntry = entry.travelLegs != null && entry.travelLegs!.isNotEmpty
+            ? entry // Already has travel legs
+            : Entry.makeTravelAtomicFromLeg(
+                userId: entry.userId,
+                date: entry.date,
+                from: entry.from ?? '',
+                to: entry.to ?? '',
+                minutes: entry.travelMinutes ?? 0,
+                dayNotes: entry.notes,
+              );
 
-        await _travelRepository.add(travelEntry);
+        await _entryProvider.addEntry(atomicEntry);
         result.successCount++;
       } catch (error) {
         result.addError(i + 2, error.toString());
@@ -223,20 +222,20 @@ class ImportService {
           continue;
         }
 
-        // Convert Entry to TravelEntry for storage
-        final travelEntry = TravelEntry(
-          id: entry.id,
-          userId: entry.userId,
-          date: entry.date,
-          fromLocation: entry.from ?? '',
-          toLocation: entry.to ?? '',
-          travelMinutes: entry.minutes ?? 0,
-          remarks: entry.notes ?? '',
-          createdAt: entry.createdAt,
-          updatedAt: entry.updatedAt,
-        );
+        // Use EntryProvider instead of legacy TravelEntry repository
+        // Entry is already in the correct format, just ensure it's atomic
+        final atomicEntry = entry.travelLegs != null && entry.travelLegs!.isNotEmpty
+            ? entry // Already has travel legs
+            : Entry.makeTravelAtomicFromLeg(
+                userId: entry.userId,
+                date: entry.date,
+                from: entry.from ?? '',
+                to: entry.to ?? '',
+                minutes: entry.travelMinutes ?? 0,
+                dayNotes: entry.notes,
+              );
 
-        await _travelRepository.add(travelEntry);
+        await _entryProvider.addEntry(atomicEntry);
         result.successCount++;
       } catch (error) {
         result.addError(i + 1, error.toString());

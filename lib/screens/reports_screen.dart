@@ -7,10 +7,12 @@ import '../widgets/standard_app_bar.dart';
 import '../widgets/export_dialog.dart';
 import '../services/export_service.dart';
 import '../models/entry.dart';
-import '../models/travel_entry.dart';
 import '../services/supabase_auth_service.dart';
-import '../repositories/repository_provider.dart';
+import '../providers/entry_provider.dart';
+import '../models/travel_entry.dart';
 import '../models/work_entry.dart';
+import '../repositories/work_repository.dart';
+import '../repositories/travel_repository.dart';
 import 'reports/overview_tab.dart';
 import 'reports/trends_tab.dart';
 import 'reports/time_balance_tab.dart';
@@ -44,7 +46,7 @@ class _ReportsScreenState extends State<ReportsScreen>
     // Show loading indicator while fetching entries
     if (!mounted) return;
 
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
 
     showDialog(
       context: context,
@@ -99,7 +101,7 @@ class _ReportsScreenState extends State<ReportsScreen>
 
   Future<List<Entry>> _getAllEntries() async {
     try {
-      final repositoryProvider = context.read<RepositoryProvider>();
+      final entryProvider = context.read<EntryProvider>();
       final authService = context.read<SupabaseAuthService>();
       final userId = authService.currentUser?.id;
 
@@ -107,70 +109,23 @@ class _ReportsScreenState extends State<ReportsScreen>
         return [];
       }
 
-      // Get travel entries
-      List<TravelEntry> travelEntries = [];
-      List<WorkEntry> workEntries = [];
-
-      final travelRepo = repositoryProvider.travelRepository;
-      final workRepo = repositoryProvider.workRepository;
-
-      if (travelRepo != null) {
-        travelEntries = travelRepo.getAllForUser(userId);
-      }
-      if (workRepo != null) {
-        workEntries = workRepo.getAllForUser(userId);
+      // Ensure entries are loaded
+      if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+        await entryProvider.loadEntries();
       }
 
-      // Convert to unified Entry objects
-      final allEntries = <Entry>[];
-
-      // Convert travel entries
-      for (final travelEntry in travelEntries) {
-        allEntries.add(Entry(
-          id: travelEntry.id,
-          userId: travelEntry.userId,
-          type: EntryType.travel,
-          from: travelEntry.fromLocation,
-          to: travelEntry.toLocation,
-          travelMinutes: travelEntry.travelMinutes,
-          date: travelEntry.date,
-          notes: travelEntry.remarks,
-          createdAt: travelEntry.createdAt,
-          updatedAt: travelEntry.updatedAt,
-        ));
-      }
-
-      // Convert work entries
-      for (final workEntry in workEntries) {
-        // Convert workMinutes to a Shift object
-        final List<Shift> shifts = workEntry.workMinutes > 0
-            ? [
-                Shift(
-                  start: workEntry.date,
-                  end: workEntry.date
-                      .add(Duration(minutes: workEntry.workMinutes)),
-                  description: workEntry.remarks.isNotEmpty
-                      ? workEntry.remarks
-                      : 'Work Session',
-                  location: 'Work Location', // Default location
-                ),
-              ]
-            : [];
-
-        allEntries.add(Entry(
-          id: workEntry.id,
-          userId: workEntry.userId,
-          type: EntryType.work,
-          shifts: shifts,
-          date: workEntry.date,
-          notes: workEntry.remarks,
-          createdAt: workEntry.createdAt,
-          updatedAt: workEntry.updatedAt,
-        ));
-      }
+      // Get all entries from EntryProvider (already in unified Entry format)
+      final allEntries = List<Entry>.from(entryProvider.entries);
 
       // Sort by date (most recent first)
-      allEntries.sort((a, b) => b.date.compareTo(a.date));
+      allEntries.sort((a, b) {
+        final dateCompare = b.date.compareTo(a.date);
+        if (dateCompare != 0) return dateCompare;
+        // If same date, sort by updatedAt or createdAt
+        final aTime = a.updatedAt ?? a.createdAt;
+        final bTime = b.updatedAt ?? b.createdAt;
+        return bTime.compareTo(aTime);
+      });
 
       return allEntries;
     } catch (e) {
@@ -182,7 +137,7 @@ class _ReportsScreenState extends State<ReportsScreen>
   Future<void> _performExport(Map<String, dynamic> exportConfig) async {
     if (!mounted) return;
 
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context, rootNavigator: true);
 
@@ -227,15 +182,11 @@ class _ReportsScreenState extends State<ReportsScreen>
           filePath = await ExportService.exportEntriesToExcel(
             entries: entries,
             fileName: fileName,
-            startDate: startDate,
-            endDate: endDate,
           );
         } else {
           filePath = await ExportService.exportEntriesToCSV(
             entries: entries,
             fileName: fileName,
-            startDate: startDate,
-            endDate: endDate,
           );
         }
       } catch (e) {
@@ -282,7 +233,7 @@ class _ReportsScreenState extends State<ReportsScreen>
     if (!mounted) return;
 
     final theme = Theme.of(context);
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
 
     await showDialog(
       context: context,
@@ -347,17 +298,64 @@ class _ReportsScreenState extends State<ReportsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
 
     return ChangeNotifierProvider(
       create: (context) {
         final viewModel = CustomerAnalyticsViewModel();
-        final repositoryProvider = context.read<RepositoryProvider>();
+        final entryProvider = context.read<EntryProvider>();
         final authService = context.read<SupabaseAuthService>();
         final userId = authService.currentUser?.id;
+        
+        // Ensure entries are loaded
+        if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+          entryProvider.loadEntries();
+        }
+        
+        // Convert Entry objects to legacy WorkEntry/TravelEntry for viewmodel compatibility
+        // TODO: Refactor CustomerAnalyticsViewModel to use Entry model directly
+        final workEntries = entryProvider.entries
+            .where((e) => e.type == EntryType.work)
+            .map((entry) {
+              final shift = entry.atomicShift ?? entry.shifts?.first;
+              final workMinutes = entry.totalWorkDuration?.inMinutes ?? 0;
+              return WorkEntry(
+                id: entry.id,
+                userId: entry.userId,
+                date: entry.date,
+                workMinutes: workMinutes,
+                remarks: entry.notes ?? shift?.notes ?? shift?.description ?? '',
+                createdAt: entry.createdAt,
+                updatedAt: entry.updatedAt,
+              );
+            })
+            .toList();
+        
+        final travelEntries = entryProvider.entries
+            .where((e) => e.type == EntryType.travel)
+            .map((entry) {
+              return TravelEntry(
+                id: entry.id,
+                userId: entry.userId,
+                date: entry.date,
+                fromLocation: entry.from ?? '',
+                toLocation: entry.to ?? '',
+                travelMinutes: entry.travelMinutes ?? 0,
+                remarks: entry.notes ?? '',
+                createdAt: entry.createdAt,
+                updatedAt: entry.updatedAt,
+              );
+            })
+            .toList();
+        
+        // Create mock repositories that return the converted entries
+        // This is a temporary solution until CustomerAnalyticsViewModel is refactored
+        final mockWorkRepo = _MockWorkRepository(workEntries);
+        final mockTravelRepo = _MockTravelRepository(travelEntries);
+        
         viewModel.initialize(
-          repositoryProvider.workRepository,
-          repositoryProvider.travelRepository,
+          mockWorkRepo,
+          mockTravelRepo,
           userId: userId,
         );
         return viewModel;
@@ -452,5 +450,74 @@ class _ReportsScreenState extends State<ReportsScreen>
         );
       },
     );
+  }
+}
+
+// Temporary mock repositories to convert EntryProvider data for CustomerAnalyticsViewModel
+// TODO: Refactor CustomerAnalyticsViewModel to use Entry model directly
+// Note: These are read-only wrappers that convert Entry objects to legacy models
+class _MockWorkRepository {
+  final List<WorkEntry> _entries;
+  
+  _MockWorkRepository(this._entries);
+  
+  List<WorkEntry> getAllForUser(String userId) {
+    return _entries.where((e) => e.userId == userId).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+  
+  List<WorkEntry> getForUserInRange(String userId, DateTime start, DateTime end) {
+    return _entries.where((e) =>
+        e.userId == userId &&
+        e.date.isAfter(start.subtract(const Duration(days: 1))) &&
+        e.date.isBefore(end.add(const Duration(days: 1))))
+      .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+  
+  WorkEntry? getById(String id) {
+    try {
+      return _entries.firstWhere((e) => e.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  int getTotalMinutesInRange(String userId, DateTime start, DateTime end) {
+    return getForUserInRange(userId, start, end)
+        .fold(0, (sum, entry) => sum + entry.workMinutes);
+  }
+}
+
+class _MockTravelRepository {
+  final List<TravelEntry> _entries;
+  
+  _MockTravelRepository(this._entries);
+  
+  List<TravelEntry> getAllForUser(String userId) {
+    return _entries.where((e) => e.userId == userId).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+  
+  List<TravelEntry> getForUserInRange(String userId, DateTime start, DateTime end) {
+    return _entries.where((e) =>
+        e.userId == userId &&
+        e.date.isAfter(start.subtract(const Duration(days: 1))) &&
+        e.date.isBefore(end.add(const Duration(days: 1))))
+      .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+  
+  TravelEntry? getById(String id) {
+    try {
+      return _entries.firstWhere((e) => e.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  int getTotalMinutesInRange(String userId, DateTime start, DateTime end) {
+    return getForUserInRange(userId, start, end)
+        .fold(0, (sum, entry) => sum + entry.travelMinutes);
   }
 }

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
-import '../services/entry_service.dart';
 import '../services/holiday_service.dart';
 import '../widgets/standard_app_bar.dart';
 import '../widgets/unified_entry_form.dart';
@@ -67,7 +66,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
 
     try {
-      await EntryService().getMoreEntries();
+      // EntryProvider already loads all entries, so pagination is handled client-side
+      // If needed in future, implement pagination in EntryProvider
+      final entryProvider = context.read<EntryProvider>();
+      await entryProvider.loadEntries();
     } finally {
       setState(() {
         _isLoadingMore = false;
@@ -80,7 +82,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: StandardAppBar(title: t.history_title),
@@ -119,7 +121,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildSegmentedControl(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
 
     return ValueListenableBuilder<EntryType?>(
       valueListenable: _selectedTypeNotifier,
@@ -180,8 +182,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       label: '$label entries filter',
       hint:
           isSelected 
-            ? AppLocalizations.of(context)!.history_currentlySelected 
-            : AppLocalizations.of(context)!.history_tapToFilter(label),
+            ? AppLocalizations.of(context).history_currentlySelected 
+            : AppLocalizations.of(context).history_tapToFilter(label),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -238,7 +240,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           scrollDirection: Axis.horizontal,
           child: Builder(
             builder: (context) {
-              final t = AppLocalizations.of(context)!;
+              final t = AppLocalizations.of(context);
               return Row(
                 children: [
                   _buildDateChip(context, t.common_today, DateRange.today, selectedRange),
@@ -309,7 +311,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     return TextField(
       controller: _searchController,
       decoration: InputDecoration(
@@ -376,7 +378,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    AppLocalizations.of(context)!.history_loadingEntries,
+                    AppLocalizations.of(context).history_loadingEntries,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -402,6 +404,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
               }
 
               final entry = entries[index];
+              // For work entries with multiple shifts, show each shift as a row
+              if (entry.type == EntryType.work && 
+                  entry.shifts != null && 
+                  entry.shifts!.length > 1) {
+                return _buildWorkEntryWithShifts(context, entry);
+              }
+              // For travel entries with multiple legs, show each leg as a row
+              if (entry.type == EntryType.travel && 
+                  entry.travelLegs != null && 
+                  entry.travelLegs!.length > 1) {
+                return _buildTravelEntryWithLegs(context, entry);
+              }
               return _buildEntryCard(context, entry);
             },
           );
@@ -465,8 +479,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         children: [
                           Text(
                             isWorkEntry 
-                                ? AppLocalizations.of(context)!.history_work 
-                                : AppLocalizations.of(context)!.history_travel,
+                                ? AppLocalizations.of(context).history_work 
+                                : AppLocalizations.of(context).history_travel,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -497,8 +511,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           if (entry.isHolidayWork) ...[
                             const SizedBox(width: 6),
                             Tooltip(
-                              message: AppLocalizations.of(context)!.history_holidayWork(
-                                entry.holidayName ?? AppLocalizations.of(context)!.history_redDay
+                              message: AppLocalizations.of(context).history_holidayWork(
+                                entry.holidayName ?? AppLocalizations.of(context).history_redDay
                               ),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -510,7 +524,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  AppLocalizations.of(context)!.history_holidayWorkBadge,
+                                  AppLocalizations.of(context).history_holidayWorkBadge,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -524,7 +538,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             if (holidayInfo != null) ...[
                               const SizedBox(width: 6),
                               Tooltip(
-                                message: AppLocalizations.of(context)!.history_autoMarked(holidayInfo.name),
+                                message: AppLocalizations.of(context).history_autoMarked(holidayInfo.name),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 6,
@@ -535,7 +549,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    AppLocalizations.of(context)!.history_autoBadge,
+                                    AppLocalizations.of(context).history_autoBadge,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 10,
@@ -550,7 +564,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        entry.description ?? AppLocalizations.of(context)!.history_noDescription,
+                        entry.description ?? AppLocalizations.of(context).history_noDescription,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -652,14 +666,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            AppLocalizations.of(context)!.history_noEntriesFound,
+            AppLocalizations.of(context).history_noEntriesFound,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.history_tryAdjustingFilters,
+            AppLocalizations.of(context).history_tryAdjustingFilters,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant.withOpacity(0.7),
             ),
@@ -706,7 +720,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   void _showDeleteConfirmation(BuildContext context, Entry entry) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final typeStr = entry.type == EntryType.travel ? t.entry_travel : t.entry_work;
     showDialog(
       context: context,
@@ -781,5 +795,321 @@ class _HistoryScreenState extends State<HistoryScreen> {
     
     // For travel entries, just show the date
     return dateStr;
+  }
+
+  /// Build a work entry showing each shift as a separate row
+  Widget _buildWorkEntryWithShifts(BuildContext context, Entry entry) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context);
+    final holidayService = context.read<HolidayService>();
+    final holidayInfo = holidayService.getHolidayInfo(entry.date);
+    final dateStr = DateFormat('dd/MM').format(entry.date);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Individual shift rows
+        ...entry.shifts!.asMap().entries.map((shiftEntry) {
+          final shiftIndex = shiftEntry.key;
+          final shift = shiftEntry.value;
+          final shiftNumber = shiftIndex + 1;
+          
+          return Card(
+            elevation: 1,
+            margin: EdgeInsets.only(
+              bottom: shiftIndex < entry.shifts!.length - 1 ? 8 : 12,
+              left: 16,
+              right: 16,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _openQuickView(entry),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      // Date and shift number
+                      SizedBox(
+                        width: 60,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              dateStr,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              t.form_shiftLabel(shiftNumber),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Time range and location
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${DateFormat('HH:mm').format(shift.start)}–${DateFormat('HH:mm').format(shift.end)}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            if (shift.location != null && shift.location!.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 14,
+                                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      shift.location!.length > 25
+                                          ? '${shift.location!.substring(0, 25)}...'
+                                          : shift.location!,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      // Notes indicator and worked duration
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (shift.notes != null && shift.notes!.isNotEmpty)
+                            Icon(
+                              Icons.note,
+                              size: 16,
+                              color: colorScheme.primary.withOpacity(0.7),
+                            ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.secondary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${t.history_worked} ${_formatDuration(shift.workedDuration)}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.secondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+        
+        // Daily total line
+        Container(
+          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Text(
+                t.history_totalWorked,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                _formatDuration(entry.totalWorkDuration ?? Duration.zero),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.secondary,
+                ),
+              ),
+              if (entry.travelMinutes != null && entry.travelMinutes! > 0) ...[
+                const SizedBox(width: 12),
+                Text(
+                  '(+ ${t.history_travel} ${_formatDuration(Duration(minutes: entry.travelMinutes!))})',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build a travel entry showing each leg as a separate row
+  Widget _buildTravelEntryWithLegs(BuildContext context, Entry entry) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context);
+    final dateStr = DateFormat('dd/MM').format(entry.date);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Individual leg rows
+        ...entry.travelLegs!.asMap().entries.map((legEntry) {
+          final legIndex = legEntry.key;
+          final leg = legEntry.value;
+          final legNumber = legIndex + 1;
+          
+          return Card(
+            elevation: 1,
+            margin: EdgeInsets.only(
+              bottom: legIndex < entry.travelLegs!.length - 1 ? 8 : 12,
+              left: 16,
+              right: 16,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _openQuickView(entry),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      // Date and leg number
+                      SizedBox(
+                        width: 60,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              dateStr,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              t.travel_legLabel(legNumber),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Route
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${leg.fromText} → ${leg.toText}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Text(
+                                  _formatDuration(Duration(minutes: leg.minutes)),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: leg.source == 'auto'
+                                        ? Colors.green.shade50
+                                        : Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    leg.source == 'auto' ? t.travel_sourceAuto : t.travel_sourceManual,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: leg.source == 'auto'
+                                          ? Colors.green.shade700
+                                          : Colors.blue.shade700,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+        
+        // Daily total line
+        Container(
+          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Text(
+                t.travel_total,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                _formatDuration(entry.travelDuration),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

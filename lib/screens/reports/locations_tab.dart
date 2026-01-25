@@ -29,7 +29,7 @@ class LocationsTab extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.locations_errorLoading,
+              AppLocalizations.of(context).locations_errorLoading,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -52,7 +52,7 @@ class LocationsTab extends StatelessWidget {
       children: [
         // Location Distribution Chart
         Text(
-          AppLocalizations.of(context)!.locations_distribution,
+          AppLocalizations.of(context).locations_distribution,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
@@ -77,7 +77,7 @@ class LocationsTab extends StatelessWidget {
 
         // Location List
         Text(
-          AppLocalizations.of(context)!.locations_details,
+          AppLocalizations.of(context).locations_details,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
@@ -95,14 +95,14 @@ class LocationsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  AppLocalizations.of(context)!.locations_noData,
+                  AppLocalizations.of(context).locations_noData,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  AppLocalizations.of(context)!.locations_noDataDescription,
+                  AppLocalizations.of(context).locations_noDataDescription,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                   ),
@@ -126,7 +126,7 @@ class LocationsTab extends StatelessWidget {
     if (locations.isEmpty) {
       return Center(
         child: Text(
-          AppLocalizations.of(context)!.locations_noDataAvailable,
+          AppLocalizations.of(context).locations_noDataAvailable,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -215,7 +215,7 @@ class LocationsTab extends StatelessWidget {
                   context,
                   theme,
                   icon: Icons.timer_rounded,
-                  label: AppLocalizations.of(context)!.locations_totalHours,
+                  label: AppLocalizations.of(context).locations_totalHours,
                   value: '${totalHours.toStringAsFixed(1)}h',
                   color: colorScheme.primary,
                 ),
@@ -225,7 +225,7 @@ class LocationsTab extends StatelessWidget {
                   context,
                   theme,
                   icon: Icons.assignment_rounded,
-                  label: AppLocalizations.of(context)!.locations_entries,
+                  label: AppLocalizations.of(context).locations_entries,
                   value: '${workMinutes + travelMinutes}',
                   color: colorScheme.secondary,
                 ),
@@ -240,7 +240,7 @@ class LocationsTab extends StatelessWidget {
                   context,
                   theme,
                   icon: Icons.work_rounded,
-                  label: AppLocalizations.of(context)!.locations_workTime,
+                  label: AppLocalizations.of(context).locations_workTime,
                   value: _formatMinutes(workMinutes),
                   color: colorScheme.error,
                 ),
@@ -250,7 +250,7 @@ class LocationsTab extends StatelessWidget {
                   context,
                   theme,
                   icon: Icons.directions_car_rounded,
-                  label: AppLocalizations.of(context)!.locations_travelTime,
+                  label: AppLocalizations.of(context).locations_travelTime,
                   value: _formatMinutes(travelMinutes),
                   color: colorScheme.tertiary,
                 ),

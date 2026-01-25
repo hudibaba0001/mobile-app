@@ -87,7 +87,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
       }
     } catch (e) {
       if (mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.auth_signupFailed(e.toString())),
@@ -106,7 +106,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
       }
     } catch (e) {
       if (mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.auth_subscriptionFailed(e.toString())),
@@ -168,7 +168,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  AppLocalizations.of(context)!.common_error,
+                  AppLocalizations.of(context).common_error,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
@@ -180,7 +180,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _loadProfile,
-                  child: Text(AppLocalizations.of(context)!.common_retry),
+                  child: Text(AppLocalizations.of(context).common_retry),
                 ),
               ],
             ),
@@ -222,7 +222,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                 ElevatedButton.icon(
                   onPressed: _openSignupPage,
                   icon: const Icon(Icons.open_in_new),
-                  label: Text(AppLocalizations.of(context)!.auth_completeRegistration),
+                  label: Text(AppLocalizations.of(context).auth_completeRegistration),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -236,7 +236,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                       context.goNamed(AppRouter.loginName);
                     }
                   },
-                  child: Text(AppLocalizations.of(context)!.auth_signOut),
+                  child: Text(AppLocalizations.of(context).auth_signOut),
                 ),
               ],
             ),
@@ -262,7 +262,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  AppLocalizations.of(context)!.auth_legalRequired,
+                  AppLocalizations.of(context).auth_legalRequired,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -270,13 +270,13 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  AppLocalizations.of(context)!.auth_legalDescription,
+                  AppLocalizations.of(context).auth_legalDescription,
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  AppLocalizations.of(context)!.auth_legalVisitSignup,
+                  AppLocalizations.of(context).auth_legalVisitSignup,
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -284,7 +284,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                 ElevatedButton.icon(
                   onPressed: _openSignupPage,
                   icon: const Icon(Icons.open_in_new),
-                  label: Text(AppLocalizations.of(context)!.auth_openSignupPage),
+                  label: Text(AppLocalizations.of(context).auth_openSignupPage),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -298,7 +298,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                       context.goNamed(AppRouter.loginName);
                     }
                   },
-                  child: Text(AppLocalizations.of(context)!.auth_signOut),
+                  child: Text(AppLocalizations.of(context).auth_signOut),
                 ),
               ],
             ),
@@ -340,7 +340,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                 ElevatedButton.icon(
                   onPressed: _openManageSubscription,
                   icon: const Icon(Icons.open_in_new),
-                  label: Text(AppLocalizations.of(context)!.settings_manageSubscription),
+                  label: Text(AppLocalizations.of(context).settings_manageSubscription),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -354,7 +354,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                       context.goNamed(AppRouter.loginName);
                     }
                   },
-                  child: Text(AppLocalizations.of(context)!.auth_signOut),
+                  child: Text(AppLocalizations.of(context).auth_signOut),
                 ),
               ],
             ),

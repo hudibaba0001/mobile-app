@@ -1,7 +1,12 @@
 import 'package:flutter/foundation.dart';
 import '../models/entry.dart';
 import '../models/travel_summary.dart';
+import 'entry_provider.dart';
+import 'package:provider/provider.dart';
+import '../config/app_router.dart';
 
+/// TravelProvider - Legacy provider that wraps EntryProvider
+/// TODO: Migrate consumers to use EntryProvider directly
 class TravelProvider extends ChangeNotifier {
   List<Entry> _entries = [];
   List<Entry> _filteredEntries = [];
@@ -14,6 +19,17 @@ class TravelProvider extends ChangeNotifier {
 
   TravelProvider() {
     _loadEntries();
+  }
+  
+  /// Get EntryProvider from context
+  EntryProvider? _getEntryProvider() {
+    try {
+      final ctx = AppRouter.navigatorKey.currentContext;
+      if (ctx != null) {
+        return Provider.of<EntryProvider>(ctx, listen: false);
+      }
+    } catch (_) {}
+    return null;
   }
 
   // Getters
@@ -38,13 +54,25 @@ class TravelProvider extends ChangeNotifier {
     return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
   }
 
-  // Load all entries - Updated to use RepositoryProvider
+  // Load all entries - Updated to use EntryProvider
   Future<void> _loadEntries() async {
     _setLoading(true);
     try {
-      // For now, we'll use a simple approach - in the future, we can integrate with RepositoryProvider
-      // This is a placeholder implementation
-      _entries = [];
+      // Load from EntryProvider instead of legacy repositories
+      final entryProvider = _getEntryProvider();
+      if (entryProvider != null) {
+        // Ensure entries are loaded
+        if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+          await entryProvider.loadEntries();
+        }
+        
+        // Filter to travel entries only
+        _entries = entryProvider.entries
+            .where((e) => e.type == EntryType.travel)
+            .toList();
+      } else {
+        _entries = [];
+      }
       _applyFilters();
       _clearError();
     } catch (error) {

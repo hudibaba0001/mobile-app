@@ -100,7 +100,7 @@ class WeeklyStatusCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocalizations.of(context)!
+              AppLocalizations.of(context)
                   .balance_thisWeek(weekRange.toUpperCase()),
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w600,
@@ -110,7 +110,7 @@ class WeeklyStatusCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.balance_hoursWorked(
+              AppLocalizations.of(context).balance_hoursWorked(
                 hoursWorked.toStringAsFixed(1),
                 targetHours.toStringAsFixed(1),
               ),
@@ -130,11 +130,11 @@ class WeeklyStatusCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!.balance_status(
+                  AppLocalizations.of(context).balance_status(
                     '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)}',
                     isOverTarget
-                        ? AppLocalizations.of(context)!.balance_over
-                        : AppLocalizations.of(context)!.balance_under,
+                        ? AppLocalizations.of(context).balance_over
+                        : AppLocalizations.of(context).balance_under,
                   ),
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: isOverTarget ? positiveColor : warningColor,
@@ -157,7 +157,7 @@ class WeeklyStatusCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)!
+              AppLocalizations.of(context)
                   .balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -216,7 +216,7 @@ class MonthlyStatusCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocalizations.of(context)!
+              AppLocalizations.of(context)
                   .balance_thisMonth(monthName.toUpperCase()),
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w600,
@@ -226,7 +226,7 @@ class MonthlyStatusCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.balance_hoursWorked(
+              AppLocalizations.of(context).balance_hoursWorked(
                 hoursWorked.toStringAsFixed(1),
                 targetHours.toStringAsFixed(1),
               ),
@@ -237,7 +237,7 @@ class MonthlyStatusCard extends StatelessWidget {
             if (creditHours != null && creditHours! > 0) ...[
               const SizedBox(height: 4),
               Text(
-                AppLocalizations.of(context)!
+                AppLocalizations.of(context)
                     .balance_creditedHours(creditHours!.toStringAsFixed(1)),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.primary,
@@ -256,11 +256,11 @@ class MonthlyStatusCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!.balance_status(
+                  AppLocalizations.of(context).balance_status(
                     '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)}',
                     isOverTarget
-                        ? AppLocalizations.of(context)!.balance_over
-                        : AppLocalizations.of(context)!.balance_under,
+                        ? AppLocalizations.of(context).balance_over
+                        : AppLocalizations.of(context).balance_under,
                   ),
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: isOverTarget ? positiveColor : warningColor,
@@ -283,7 +283,7 @@ class MonthlyStatusCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)!
+              AppLocalizations.of(context)
                   .balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -338,7 +338,7 @@ class YearlyStatusCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocalizations.of(context)!.balance_thisYear(year),
+              AppLocalizations.of(context).balance_thisYear(year),
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -347,7 +347,7 @@ class YearlyStatusCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.balance_hoursWorked(
+              AppLocalizations.of(context).balance_hoursWorked(
                 hoursWorked.toStringAsFixed(1),
                 targetHours.toStringAsFixed(1),
               ),
@@ -367,11 +367,11 @@ class YearlyStatusCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!.balance_status(
+                  AppLocalizations.of(context).balance_status(
                     '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)}',
                     isOverTarget
-                        ? AppLocalizations.of(context)!.balance_over
-                        : AppLocalizations.of(context)!.balance_under,
+                        ? AppLocalizations.of(context).balance_over
+                        : AppLocalizations.of(context).balance_under,
                   ),
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: isOverTarget ? positiveColor : warningColor,
@@ -394,7 +394,7 @@ class YearlyStatusCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)!
+              AppLocalizations.of(context)
                   .balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -474,7 +474,7 @@ class YearlyBalanceCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocalizations.of(context)!.balance_thisYear(year),
+              AppLocalizations.of(context).balance_thisYear(year),
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -483,7 +483,7 @@ class YearlyBalanceCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.balance_hoursWorked(
+              AppLocalizations.of(context).balance_hoursWorked(
                 hoursWorked.toStringAsFixed(1),
                 targetHours.toStringAsFixed(1),
               ),
@@ -494,7 +494,7 @@ class YearlyBalanceCard extends StatelessWidget {
             if (creditHours != null && creditHours! > 0) ...[
               const SizedBox(height: 4),
               Text(
-                AppLocalizations.of(context)!
+                AppLocalizations.of(context)
                     .balance_creditedHours(creditHours!.toStringAsFixed(1)),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.primary,
@@ -513,11 +513,11 @@ class YearlyBalanceCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!.balance_status(
+                  AppLocalizations.of(context).balance_status(
                     '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)}',
                     isOverTarget
-                        ? AppLocalizations.of(context)!.balance_over
-                        : AppLocalizations.of(context)!.balance_under,
+                        ? AppLocalizations.of(context).balance_over
+                        : AppLocalizations.of(context).balance_under,
                   ),
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: isOverTarget ? positiveColor : warningColor,
@@ -540,7 +540,7 @@ class YearlyBalanceCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)!
+              AppLocalizations.of(context)
                   .balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -550,7 +550,7 @@ class YearlyBalanceCard extends StatelessWidget {
             Divider(color: theme.colorScheme.outline.withOpacity(0.3)),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.balance_yearlyRunningBalance,
+              AppLocalizations.of(context).balance_yearlyRunningBalance,
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -559,7 +559,7 @@ class YearlyBalanceCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.balance_totalAccumulation,
+              AppLocalizations.of(context).balance_totalAccumulation,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -586,8 +586,8 @@ class YearlyBalanceCard extends StatelessWidget {
                 Flexible(
                   child: Text(
                     isPositive
-                        ? AppLocalizations.of(context)!.balance_inCredit
-                        : AppLocalizations.of(context)!.balance_timeDebt,
+                        ? AppLocalizations.of(context).balance_inCredit
+                        : AppLocalizations.of(context).balance_timeDebt,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: isPositive
                           ? Colors.green.shade800
@@ -623,13 +623,13 @@ class YearlyBalanceCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         trackingStartDate != null
-                            ? AppLocalizations.of(context)!
+                            ? AppLocalizations.of(context)
                                 .balance_includesOpeningBalance(
                                 openingBalanceFormatted!,
                                 DateFormat('MMM d, yyyy')
                                     .format(trackingStartDate!),
                               )
-                            : AppLocalizations.of(context)!
+                            : AppLocalizations.of(context)
                                 .balance_includesOpeningBalanceShort(
                                     openingBalanceFormatted!),
                         style: theme.textTheme.bodySmall?.copyWith(

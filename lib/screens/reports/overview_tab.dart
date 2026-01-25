@@ -29,7 +29,7 @@ class OverviewTab extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.overview_errorLoadingData,
+              AppLocalizations.of(context).overview_errorLoadingData,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -59,9 +59,9 @@ class OverviewTab extends StatelessWidget {
                 icon: Icons.timer_rounded,
                 iconColor: colorScheme.primary,
                 iconBgColor: colorScheme.primary.withOpacity(0.1),
-                title: AppLocalizations.of(context)!.overview_totalHours,
+                title: AppLocalizations.of(context).overview_totalHours,
                 value: '${overviewData['totalHours'].toStringAsFixed(1)}h',
-                subtitle: AppLocalizations.of(context)!.overview_allActivities,
+                subtitle: AppLocalizations.of(context).overview_allActivities,
               ),
             ),
             const SizedBox(width: 12),
@@ -71,9 +71,9 @@ class OverviewTab extends StatelessWidget {
                 icon: Icons.assignment_rounded,
                 iconColor: colorScheme.secondary,
                 iconBgColor: colorScheme.secondary.withOpacity(0.1),
-                title: AppLocalizations.of(context)!.overview_totalEntries,
+                title: AppLocalizations.of(context).overview_totalEntries,
                 value: '${overviewData['totalEntries']}',
-                subtitle: AppLocalizations.of(context)!.overview_thisPeriod,
+                subtitle: AppLocalizations.of(context).overview_thisPeriod,
               ),
             ),
           ],
@@ -87,9 +87,9 @@ class OverviewTab extends StatelessWidget {
                 icon: Icons.directions_car_rounded,
                 iconColor: colorScheme.tertiary,
                 iconBgColor: colorScheme.tertiary.withOpacity(0.1),
-                title: AppLocalizations.of(context)!.overview_travelTime,
+                title: AppLocalizations.of(context).overview_travelTime,
                 value: _formatMinutes(overviewData['totalTravelMinutes']),
-                subtitle: AppLocalizations.of(context)!.overview_totalCommute,
+                subtitle: AppLocalizations.of(context).overview_totalCommute,
               ),
             ),
             const SizedBox(width: 12),
@@ -99,9 +99,9 @@ class OverviewTab extends StatelessWidget {
                 icon: Icons.work_rounded,
                 iconColor: colorScheme.error,
                 iconBgColor: colorScheme.error.withOpacity(0.1),
-                title: AppLocalizations.of(context)!.overview_workTime,
+                title: AppLocalizations.of(context).overview_workTime,
                 value: _formatMinutes(overviewData['totalWorkMinutes']),
-                subtitle: AppLocalizations.of(context)!.overview_totalWork,
+                subtitle: AppLocalizations.of(context).overview_totalWork,
               ),
             ),
           ],
@@ -110,7 +110,7 @@ class OverviewTab extends StatelessWidget {
 
         // Quick Insights
         Text(
-          AppLocalizations.of(context)!.overview_quickInsights,
+          AppLocalizations.of(context).overview_quickInsights,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
@@ -124,7 +124,7 @@ class OverviewTab extends StatelessWidget {
 
         // Activity Distribution
         Text(
-          AppLocalizations.of(context)!.overview_activityDistribution,
+          AppLocalizations.of(context).overview_activityDistribution,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
@@ -155,12 +155,12 @@ class OverviewTab extends StatelessWidget {
                     _buildLegendItem(
                       theme,
                       color: colorScheme.tertiary,
-                      label: AppLocalizations.of(context)!.overview_travel,
+                      label: AppLocalizations.of(context).overview_travel,
                     ),
                     _buildLegendItem(
                       theme,
                       color: colorScheme.error,
-                      label: AppLocalizations.of(context)!.overview_work,
+                      label: AppLocalizations.of(context).overview_work,
                     ),
                   ],
                 ),
@@ -175,7 +175,7 @@ class OverviewTab extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                AppLocalizations.of(context)!.overview_recentActivity,
+                AppLocalizations.of(context).overview_recentActivity,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colorScheme.onSurface,
@@ -188,7 +188,7 @@ class OverviewTab extends StatelessWidget {
                 // TODO: Navigate to history screen
               },
               child: Text(
-                AppLocalizations.of(context)!.overview_viewAll,
+                AppLocalizations.of(context).overview_viewAll,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -271,7 +271,7 @@ class OverviewTab extends StatelessWidget {
   }
 
   Widget _buildInsightCard(BuildContext context, ThemeData theme, Map<String, dynamic> insight) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final colorScheme = theme.colorScheme;
     
     // Get insight key (new structured format) or fallback to old title-based format
@@ -371,7 +371,7 @@ class OverviewTab extends StatelessWidget {
     if (totalMinutes == 0) {
       return Center(
         child: Text(
-          AppLocalizations.of(context)!.overview_noDataAvailable,
+          AppLocalizations.of(context).overview_noDataAvailable,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),

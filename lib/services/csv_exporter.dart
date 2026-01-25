@@ -7,6 +7,6 @@ class CsvExporter {
     rows.add(data.headers);
     rows.addAll(data.rows);
 
-    return const ListToCsvConverter().convert(rows) + '\r\n';
+    return '${const ListToCsvConverter().convert(rows)}\r\n';
   }
 }

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/entry_provider.dart';
 import '../models/entry.dart';
 import '../services/travel_cache_service.dart';
+import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
 
 /// Edit Entry screen for both travel and work entries.
@@ -90,6 +91,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
       if (existing.type == EntryType.travel) {
         _currentEntryType = EntryType.travel;
+        // In edit mode, only load first leg (atomic entry = 1 leg)
         _addTravelEntry();
         if (_travelEntries.isNotEmpty) {
           _travelEntries[0].fromController.text = existing.from ?? '';
@@ -105,18 +107,13 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         return;
       } else if (existing.type == EntryType.work) {
         _currentEntryType = EntryType.work;
+        // In edit mode, only load first shift (atomic entry = 1 shift)
         _addShift();
         if (_shifts.isNotEmpty) {
-          final firstShift = existing.shifts?.isNotEmpty == true
-              ? existing.shifts!.first
-              : null;
-          final start = firstShift?.start ?? existing.date;
-          final end =
-              firstShift?.end ?? existing.date.add(existing.workDuration);
-          _shifts[0].startTimeController.text =
-              _formatTimeOfDay(TimeOfDay.fromDateTime(start));
-          _shifts[0].endTimeController.text =
-              _formatTimeOfDay(TimeOfDay.fromDateTime(end));
+          // _shifts[0].startTimeController.text =
+          //     _formatTimeOfDay(TimeOfDay.fromDateTime(start));
+          // _shifts[0].endTimeController.text =
+          //     _formatTimeOfDay(TimeOfDay.fromDateTime(end));
         }
         _workNotesController.text = existing.notes ?? '';
         _validateForm();
@@ -197,14 +194,6 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     });
   }
 
-  void _removeTravelEntry(_TravelEntry travelEntry) {
-    setState(() {
-      travelEntry.dispose();
-      _travelEntries.remove(travelEntry);
-      _validateForm();
-    });
-  }
-
   void _addShift() {
     setState(() {
       final shift = _Shift(
@@ -212,14 +201,6 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         onChanged: _validateForm,
       );
       _shifts.add(shift);
-      _validateForm();
-    });
-  }
-
-  void _removeShift(_Shift shift) {
-    setState(() {
-      shift.dispose();
-      _shifts.remove(shift);
       _validateForm();
     });
   }
@@ -249,55 +230,137 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     });
 
     try {
-      // Build unified Entry and update via EntryProvider
-      if (_currentEntryType == EntryType.travel && _travelEntries.isNotEmpty) {
-        final t = _travelEntries.first;
-        final totalMinutes =
-            (int.tryParse(t.durationHoursController.text) ?? 0) * 60 +
-                (int.tryParse(t.durationMinutesController.text) ?? 0);
+      final t = AppLocalizations.of(context);
+      final entryProvider = context.read<EntryProvider>();
+      final cacheService = context.read<TravelCacheService>();
+      final auth = context.read<SupabaseAuthService>();
+      final userId = auth.currentUser?.id;
+      if (userId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(t.error_signInRequired),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
 
-        final entry = Entry(
-          id: widget.entryId,
-          userId: '', // userId is resolved inside EntryProvider via AuthService
-          type: EntryType.travel,
-          from: t.fromController.text.trim(),
-          to: t.toController.text.trim(),
-          travelMinutes: totalMinutes,
-          date: _originalDate ?? DateTime.now(),
-          notes: _travelNotesController.text.trim().isEmpty
+      final dayNotes = _currentEntryType == EntryType.travel
+          ? (_travelNotesController.text.trim().isEmpty
               ? null
-              : _travelNotesController.text.trim(),
+              : _travelNotesController.text.trim())
+          : (_workNotesController.text.trim().isEmpty
+              ? null
+              : _workNotesController.text.trim());
+      final entryDate = _originalDate ?? DateTime.now();
+
+      if (_currentEntryType == EntryType.travel && _travelEntries.isNotEmpty) {
+        // Update existing entry with first draft, then create new entries for additional drafts
+        final drafts = List<_TravelEntry>.from(_travelEntries);
+        final firstTravel = drafts.first;
+        final firstTotalMinutes =
+            (int.tryParse(firstTravel.durationHoursController.text) ?? 0) * 60 +
+                (int.tryParse(firstTravel.durationMinutesController.text) ?? 0);
+
+        final updatedEntry = Entry(
+          id: widget.entryId,
+          userId: userId,
+          type: EntryType.travel,
+          from: firstTravel.fromController.text.trim(),
+          to: firstTravel.toController.text.trim(),
+          travelMinutes: firstTotalMinutes,
+          date: entryDate,
+          notes: dayNotes,
+          segmentOrder: 1,
+          totalSegments: drafts.length,
           createdAt: _originalCreatedAt ?? DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
-        await context.read<EntryProvider>().updateEntry(entry);
+        await entryProvider.updateEntry(updatedEntry);
+        if (updatedEntry.from != null &&
+            updatedEntry.to != null &&
+            updatedEntry.travelMinutes != null) {
+          await cacheService.saveRouteLegacy(
+            updatedEntry.from!,
+            updatedEntry.to!,
+            updatedEntry.travelMinutes!,
+          );
+        }
 
-        // Save route to cache
-        if (entry.from != null && entry.to != null && entry.travelMinutes != null) {
-          context.read<TravelCacheService>().saveRoute(entry.from!, entry.to!, entry.travelMinutes!);
+        if (drafts.length > 1) {
+          for (var i = 1; i < drafts.length; i++) {
+            final leg = drafts[i];
+            final minutes =
+                (int.tryParse(leg.durationHoursController.text) ?? 0) * 60 +
+                    (int.tryParse(leg.durationMinutesController.text) ?? 0);
+
+            final newEntry = Entry.makeTravelAtomicFromLeg(
+              userId: userId,
+              date: entryDate,
+              from: leg.fromController.text.trim(),
+              to: leg.toController.text.trim(),
+              minutes: minutes,
+              dayNotes: dayNotes,
+              segmentOrder: i + 1,
+              totalSegments: drafts.length,
+            );
+            await entryProvider.addEntry(newEntry);
+            await cacheService.saveRouteLegacy(
+              newEntry.from ?? '',
+              newEntry.to ?? '',
+              newEntry.travelMinutes ?? 0,
+            );
+          }
         }
       } else if (_currentEntryType == EntryType.work && _shifts.isNotEmpty) {
-        final s = _shifts.first;
-        final start = _parseTimeOfDay(s.startTimeController.text);
-        final end = _parseTimeOfDay(s.endTimeController.text);
+        // Update existing entry with first draft, then create new entries for additional drafts
+        final drafts = List<_Shift>.from(_shifts);
+        final firstShift = drafts.first;
+        final firstStart =
+            _parseTimeOfDay(firstShift.startTimeController.text, baseDate: entryDate);
+        final firstEnd =
+            _parseTimeOfDay(firstShift.endTimeController.text, baseDate: entryDate);
 
-        final shift =
-            start != null && end != null ? Shift(start: start, end: end) : null;
+        if (firstStart != null && firstEnd != null) {
+          final updatedEntry = Entry(
+            id: widget.entryId,
+            userId: userId,
+            type: EntryType.work,
+            shifts: [Shift(start: firstStart, end: firstEnd)],
+            date: entryDate,
+            notes: dayNotes,
+            createdAt: _originalCreatedAt ?? DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
 
-        final entry = Entry(
-          id: widget.entryId,
-          userId: '',
-          type: EntryType.work,
-          shifts: shift != null ? [shift] : [],
-          date: _originalDate ?? start ?? DateTime.now(),
-          notes: _workNotesController.text.trim().isEmpty
-              ? null
-              : _workNotesController.text.trim(),
-          createdAt: _originalCreatedAt ?? DateTime.now(),
-        );
+          await entryProvider.updateEntry(updatedEntry);
+        }
 
-        // Ensure minutes reflected in shifts; EntryProvider will compute workMinutes
-        await context.read<EntryProvider>().updateEntry(entry);
+        if (drafts.length > 1) {
+          for (var i = 1; i < drafts.length; i++) {
+            final shiftDraft = drafts[i];
+            final start = _parseTimeOfDay(
+              shiftDraft.startTimeController.text,
+              baseDate: entryDate,
+            );
+            final end = _parseTimeOfDay(
+              shiftDraft.endTimeController.text,
+              baseDate: entryDate,
+            );
+            if (start == null || end == null) continue;
+
+            final newEntry = Entry.makeWorkAtomicFromShift(
+              userId: userId,
+              date: entryDate,
+              shift: Shift(start: start, end: end),
+              dayNotes: dayNotes,
+            );
+            await entryProvider.addEntry(newEntry);
+          }
+        }
       }
 
       if (!mounted) return;
@@ -310,7 +373,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       });
     } catch (e) {
       if (mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.edit_errorSaving(e.toString())),
@@ -333,14 +396,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     return '$h:$m';
   }
 
-  DateTime? _parseTimeOfDay(String text) {
+  DateTime? _parseTimeOfDay(String text, {DateTime? baseDate}) {
     final parts = text.split(':');
     if (parts.length != 2) return null;
     final h = int.tryParse(parts[0]);
     final m = int.tryParse(parts[1]);
     if (h == null || m == null) return null;
-    final now = DateTime.now();
-    return DateTime(now.year, now.month, now.day, h, m);
+    final date = baseDate ?? DateTime.now();
+    return DateTime(date.year, date.month, date.day, h, m);
   }
 
   void _cancelEdit() {
@@ -356,11 +419,11 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       backgroundColor: colorScheme.surface,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.edit_title),
+        title: Text(AppLocalizations.of(context).edit_title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
-          tooltip: AppLocalizations.of(context)!.common_back,
+          tooltip: AppLocalizations.of(context).common_back,
         ),
       ),
       body: Column(
@@ -415,7 +478,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             Expanded(
               child: _buildToggleButton(
                 theme,
-                AppLocalizations.of(context)!.edit_travel,
+                AppLocalizations.of(context).edit_travel,
                 Icons.directions_car,
                 EntryType.travel,
                 _currentEntryType == EntryType.travel,
@@ -424,7 +487,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             Expanded(
               child: _buildToggleButton(
                 theme,
-                AppLocalizations.of(context)!.edit_work,
+                AppLocalizations.of(context).edit_work,
                 Icons.work,
                 EntryType.work,
                 _currentEntryType == EntryType.work,
@@ -494,34 +557,34 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         ..._travelEntries
             .map((travelEntry) => _buildTravelEntryRow(theme, travelEntry)),
 
-        // Add Travel Entry Button
-        Container(
+        SizedBox(
           width: double.infinity,
-          height: 48,
-          margin: const EdgeInsets.only(bottom: 24),
           child: OutlinedButton.icon(
             onPressed: _addTravelEntry,
             icon: const Icon(Icons.add),
-            label: Text(AppLocalizations.of(context)!.edit_addTravelEntry),
+            label: Text(AppLocalizations.of(context).travel_addLeg),
             style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.primary,
-              side: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 2,
-                style: BorderStyle.solid,
-              ),
+              minimumSize: const Size(0, 48),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        if (_travelEntries.length > 1)
+          Text(
+            'First leg updates this entry; extra legs become new entries.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
 
         _buildTextField(
           theme,
-          AppLocalizations.of(context)!.edit_notes,
+          AppLocalizations.of(context).edit_notes,
           _travelNotesController,
-          AppLocalizations.of(context)!.edit_travelNotesHint,
+          AppLocalizations.of(context).edit_travelNotesHint,
           maxLines: 4,
         ),
       ],
@@ -556,34 +619,34 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         // Shifts
         ..._shifts.map((shift) => _buildShiftRow(theme, shift)),
 
-        // Add Shift Button
-        Container(
+        SizedBox(
           width: double.infinity,
-          height: 48,
-          margin: const EdgeInsets.only(bottom: 24),
           child: OutlinedButton.icon(
             onPressed: _addShift,
             icon: const Icon(Icons.add),
-            label: Text(AppLocalizations.of(context)!.edit_addShift),
+            label: const Text('Add another shift'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.primary,
-              side: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 2,
-                style: BorderStyle.solid,
-              ),
+              minimumSize: const Size(0, 48),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        if (_shifts.length > 1)
+          Text(
+            'First shift updates this entry; extra shifts become new entries.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
 
         _buildTextField(
           theme,
-          AppLocalizations.of(context)!.edit_notes,
+          AppLocalizations.of(context).edit_notes,
           _workNotesController,
-          AppLocalizations.of(context)!.edit_notesHint,
+          AppLocalizations.of(context).edit_notesHint,
           maxLines: 4,
         ),
       ],
@@ -771,7 +834,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    AppLocalizations.of(context)!.edit_trip(_travelEntries.indexOf(travelEntry) + 1),
+                    AppLocalizations.of(context).edit_trip(_travelEntries.indexOf(travelEntry) + 1),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: theme.colorScheme.primary,
@@ -779,16 +842,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   ),
                 ],
               ),
-              if (_travelEntries.length > 1)
-                IconButton(
-                  onPressed: () => _removeTravelEntry(travelEntry),
-                  icon: const Icon(Icons.delete),
-                  style: IconButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
-                    backgroundColor: theme.colorScheme.error.withOpacity(0.1),
-                    minimumSize: const Size(32, 32),
-                  ),
-                ),
+              // Remove button disabled in edit mode (only one entry allowed)
+              // Edit mode always has exactly 1 entry, so no remove button needed
             ],
           ),
           const SizedBox(height: 16),
@@ -801,14 +856,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.edit_from,
+                      AppLocalizations.of(context).edit_from,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
                     TextFormField(
                       controller: travelEntry.fromController,
                       decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.edit_departureHint,
+                        hintText: AppLocalizations.of(context).edit_departureHint,
                         prefixIcon: const Icon(Icons.my_location, size: 20),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -840,14 +895,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.edit_to,
+                      AppLocalizations.of(context).edit_to,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
                     TextFormField(
                       controller: travelEntry.toController,
                       decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.edit_destinationHint,
+                        hintText: AppLocalizations.of(context).edit_destinationHint,
                         prefixIcon: const Icon(Icons.location_on, size: 20),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -871,7 +926,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.edit_hours,
+                      AppLocalizations.of(context).edit_hours,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -900,7 +955,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.edit_minutes,
+                      AppLocalizations.of(context).edit_minutes,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -929,7 +984,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.edit_total,
+                      AppLocalizations.of(context).edit_total,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -980,22 +1035,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                AppLocalizations.of(context)!.edit_shift(_shifts.indexOf(shift) + 1),
+                AppLocalizations.of(context).edit_shift(_shifts.indexOf(shift) + 1),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.primary,
                 ),
               ),
-              if (_shifts.length > 1)
-                IconButton(
-                  onPressed: () => _removeShift(shift),
-                  icon: const Icon(Icons.delete),
-                  style: IconButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
-                    backgroundColor: theme.colorScheme.error.withOpacity(0.1),
-                    minimumSize: const Size(32, 32),
-                  ),
-                ),
+              // Remove button disabled in edit mode (only one entry allowed)
+              // Edit mode always has exactly 1 entry, so no remove button needed
             ],
           ),
           const SizedBox(height: 16),
@@ -1006,7 +1053,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.edit_startTime,
+                      AppLocalizations.of(context).edit_startTime,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -1016,7 +1063,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       onTap: () =>
                           _selectTime(context, shift.startTimeController),
                       decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.edit_selectTime,
+                        hintText: AppLocalizations.of(context).edit_selectTime,
                         suffixIcon: const Icon(Icons.access_time),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -1029,7 +1076,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               ),
               const SizedBox(width: 16),
               Text(
-                AppLocalizations.of(context)!.edit_toLabel,
+                AppLocalizations.of(context).edit_toLabel,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -1040,7 +1087,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.edit_endTime,
+                      AppLocalizations.of(context).edit_endTime,
                       style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: 4),
@@ -1050,7 +1097,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       onTap: () =>
                           _selectTime(context, shift.endTimeController),
                       decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.edit_selectTime,
+                        hintText: AppLocalizations.of(context).edit_selectTime,
                         suffixIcon: const Icon(Icons.access_time),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -1079,44 +1126,66 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           ),
         ),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-              child: OutlinedButton(
-              onPressed: _isSaving ? null : _cancelEdit,
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          // Add new entry button
+          // SizedBox(
+          //   width: double.infinity,
+          //   child: OutlinedButton.icon(
+          //     onPressed: _isSaving ? null : _openCreateEntryForDate,
+          //     icon: const Icon(Icons.add),
+          //     label: Text(AppLocalizations.of(context).editMode_addNewEntryForDate),
+          //     style: OutlinedButton.styleFrom(
+          //       minimumSize: const Size(0, 48),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(12),
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          const SizedBox(height: 12),
+          // Save and Cancel buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _isSaving ? null : _cancelEdit,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(AppLocalizations.of(context).edit_cancel),
                 ),
               ),
-              child: Text(AppLocalizations.of(context)!.edit_cancel),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: ElevatedButton(
-              onPressed: _isFormValid && !_isSaving ? _saveEntry : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-                minimumSize: const Size(0, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: _isFormValid && !_isSaving ? _saveEntry : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    minimumSize: const Size(0, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text(AppLocalizations.of(context).edit_save),
                 ),
               ),
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(AppLocalizations.of(context)!.edit_save),
-            ),
+            ],
           ),
         ],
       ),

@@ -24,7 +24,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -147,7 +147,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   /// Validate email field
   String? _validateEmail(String? value) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     if (value == null || value.trim().isEmpty) {
       return t.password_emailRequired;
     }
@@ -172,12 +172,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
 
     try {
-      await context.read<SupabaseAuthService>().sendPasswordResetEmail(
-            _emailController.text.trim(),
-          );
+      final email = _emailController.text.trim();
+      print('ForgotPasswordScreen: Attempting password reset for email: $email');
+      
+      await context.read<SupabaseAuthService>().sendPasswordResetEmail(email);
 
       if (mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.password_resetLinkSent),
@@ -189,19 +190,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
           ),
         );
+        print('ForgotPasswordScreen: Password reset email sent successfully');
         AppRouter.goToLogin(context);
       }
     } catch (e) {
+      print('ForgotPasswordScreen: Password reset error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
+            duration: const Duration(seconds: 5),
           ),
         );
       }

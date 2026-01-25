@@ -66,7 +66,7 @@ class _AppScaffoldState extends State<AppScaffold> {
         body: widget.child,
         bottomNavigationBar: Builder(
           builder: (context) {
-            final t = AppLocalizations.of(context)!;
+            final t = AppLocalizations.of(context);
             return NavigationBar(
               selectedIndex: _calculateSelectedIndex(widget.currentPath),
               onDestinationSelected: (index) => _onItemTapped(index, context),

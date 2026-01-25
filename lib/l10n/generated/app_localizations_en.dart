@@ -66,6 +66,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_ok => 'OK';
 
   @override
+  String get common_optional => '(optional)';
+
+  @override
   String get common_loading => 'Loading...';
 
   @override
@@ -623,6 +626,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entry_work => 'Work';
 
   @override
+  String travel_legLabel(int number) {
+    return 'Travel $number';
+  }
+
+  @override
+  String get travel_addLeg => 'Add Travel Leg';
+
+  @override
+  String get travel_addAnotherLeg => 'Add Another Travel';
+
+  @override
+  String get travel_sourceAuto => 'Auto';
+
+  @override
+  String get travel_sourceManual => 'Manual';
+
+  @override
+  String get travel_total => 'Total travel';
+
+  @override
   String get entry_from => 'From';
 
   @override
@@ -898,6 +921,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get error_invalidHours => 'Hours must be a non-negative number';
+
+  @override
+  String get error_invalidMinutes => 'Minutes must be between 0 and 59';
+
+  @override
+  String get error_durationRequired =>
+      'Please enter a valid duration (greater than 0)';
+
+  @override
+  String get error_endTimeBeforeStart => 'End time must be after start time';
+
+  @override
+  String error_invalidShiftTime(int number) {
+    return 'Shift $number has invalid times (end must be after start)';
+  }
+
+  @override
   String get form_departure => 'Departure';
 
   @override
@@ -935,6 +976,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get form_minutes => 'Minutes';
+
+  @override
+  String get form_unpaidBreakMinutes => 'Unpaid break (min)';
+
+  @override
+  String form_shiftLabel(int number) {
+    return 'Shift $number';
+  }
+
+  @override
+  String get form_span => 'Span';
+
+  @override
+  String get form_break => 'Break';
+
+  @override
+  String get form_worked => 'Worked';
+
+  @override
+  String get form_useLocationForAllShifts => 'Use this location for all shifts';
+
+  @override
+  String get form_shiftLocation => 'Shift location';
+
+  @override
+  String get form_shiftNotes => 'Shift notes';
+
+  @override
+  String get form_shiftNotesHint =>
+      'Add notes for this shift (e.g., specific tasks, issues)';
+
+  @override
+  String get form_sameAsDefault => 'Same as default';
+
+  @override
+  String get form_dayNotes => 'Day notes';
 
   @override
   String get export_includeAllData => 'Include all data';
@@ -1295,6 +1372,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get editMode_singleEntryInfo_work =>
+      'Editing one entry. To add another shift for this date, create a new entry.';
+
+  @override
+  String get editMode_singleEntryInfo_travel =>
+      'Editing one entry. To add another travel leg for this date, create a new entry.';
+
+  @override
+  String get editMode_addNewEntryForDate => 'Add new entry for this date';
+
+  @override
   String get dateRange_title => 'Select Date Range';
 
   @override
@@ -1446,6 +1534,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get history_travel => 'Travel';
+
+  @override
+  String get history_worked => 'Worked';
+
+  @override
+  String get history_totalWorked => 'Total worked';
 
   @override
   String get history_work => 'Work';
@@ -1816,6 +1910,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entry_personalRedDay => 'Personal red day';
 
   @override
+  String get error_addAtLeastOneShift => 'Please add at least one shift.';
+
+  @override
   String get shift_morning => 'Morning Shift';
 
   @override
@@ -1996,4 +2093,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dateRange_last90Days => 'Last 90 Days';
+
+  @override
+  String get form_shiftLocationHint => 'Enter shift location';
+
+  @override
+  String error_negativeBreakMinutes(Object number) {
+    return 'Shift $number: Break minutes cannot be negative';
+  }
+
+  @override
+  String error_breakExceedsSpan(
+      Object number, Object breakMinutes, Object spanMinutes) {
+    return 'Shift $number: Break minutes ($breakMinutes) cannot exceed span (${spanMinutes}m)';
+  }
+
+  @override
+  String get home_trackWorkShifts => 'Track your work shifts';
+
+  @override
+  String get travel_removeLeg => 'Remove travel leg';
+
+  @override
+  String get error_addAtLeastOneTravelLeg =>
+      'Please add at least one travel leg';
+
+  @override
+  String error_selectTravelLocations(Object number) {
+    return 'Travel $number: Please select both from and to locations';
+  }
+
+  @override
+  String error_invalidTravelDuration(Object number) {
+    return 'Travel $number: Please enter a valid duration (greater than 0)';
+  }
+
+  @override
+  String get travel_notesHint => 'Add details about your travel...';
 }

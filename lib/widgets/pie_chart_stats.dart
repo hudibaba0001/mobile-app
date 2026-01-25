@@ -140,7 +140,7 @@ class _PieChartStatsState extends State<PieChartStats>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppLocalizations.of(context)!.chart_timeDistribution,
+                AppLocalizations.of(context).chart_timeDistribution,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -239,7 +239,7 @@ class _PieChartStatsState extends State<PieChartStats>
         _buildLegendItem(
           theme,
           color: colorScheme.secondary,
-          label: AppLocalizations.of(context)!.chart_workTime,
+          label: AppLocalizations.of(context).chart_workTime,
           value: _formatDuration(stats.workMinutes),
           percentage: stats.totalMinutes > 0 
               ? (stats.workMinutes / stats.totalMinutes * 100).toInt()
@@ -250,7 +250,7 @@ class _PieChartStatsState extends State<PieChartStats>
         _buildLegendItem(
           theme,
           color: colorScheme.primary,
-          label: AppLocalizations.of(context)!.chart_travelTime,
+          label: AppLocalizations.of(context).chart_travelTime,
           value: _formatDuration(stats.travelMinutes),
           percentage: stats.totalMinutes > 0 
               ? (stats.travelMinutes / stats.totalMinutes * 100).toInt()
@@ -264,7 +264,7 @@ class _PieChartStatsState extends State<PieChartStats>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              AppLocalizations.of(context)!.chart_totalTime,
+              AppLocalizations.of(context).chart_totalTime,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -361,14 +361,14 @@ class _PieChartStatsState extends State<PieChartStats>
           ),
           const SizedBox(height: 16),
           Text(
-            AppLocalizations.of(context)!.chart_noDataAvailable,
+            AppLocalizations.of(context).chart_noDataAvailable,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.chart_startTracking,
+            AppLocalizations.of(context).chart_startTracking,
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.5),
             ),
@@ -389,7 +389,7 @@ class _PieChartStatsState extends State<PieChartStats>
   }
 
   String _getDateRangeText(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     if (widget.startDate == null && widget.endDate == null) {
       return t.chart_allTime;
     }

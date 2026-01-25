@@ -3,6 +3,115 @@ import 'package:uuid/uuid.dart';
 
 part 'entry.g.dart';
 
+/// Travel leg model for multiple travel segments per day
+@HiveType(typeId: 8)
+class TravelLeg extends HiveObject {
+  @HiveField(0)
+  final String id;
+
+  @HiveField(1)
+  final String fromText;
+
+  @HiveField(2)
+  final String toText;
+
+  @HiveField(3)
+  final String? fromPlaceId;
+
+  @HiveField(4)
+  final String? toPlaceId;
+
+  @HiveField(5)
+  final int minutes;
+
+  @HiveField(6)
+  final String source; // "manual" | "auto"
+
+  @HiveField(7)
+  final double? distanceKm;
+
+  @HiveField(8)
+  final DateTime? calculatedAt;
+
+  TravelLeg({
+    String? id,
+    required this.fromText,
+    required this.toText,
+    this.fromPlaceId,
+    this.toPlaceId,
+    required this.minutes,
+    this.source = 'manual',
+    this.distanceKm,
+    this.calculatedAt,
+  }) : id = id ?? const Uuid().v4();
+
+  /// Convert to map for Supabase
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'from_text': fromText,
+      'to_text': toText,
+      'from_place_id': fromPlaceId,
+      'to_place_id': toPlaceId,
+      'minutes': minutes,
+      'source': source,
+      'distance_km': distanceKm,
+      'calculated_at': calculatedAt?.toIso8601String(),
+    };
+  }
+
+  /// Create from Supabase map
+  factory TravelLeg.fromJson(Map<String, dynamic> data) {
+    return TravelLeg(
+      id: data['id'] as String? ?? const Uuid().v4(),
+      fromText:
+          data['from_text'] as String? ?? data['fromText'] as String? ?? '',
+      toText: data['to_text'] as String? ?? data['toText'] as String? ?? '',
+      fromPlaceId:
+          data['from_place_id'] as String? ?? data['fromPlaceId'] as String?,
+      toPlaceId: data['to_place_id'] as String? ?? data['toPlaceId'] as String?,
+      minutes: data['minutes'] as int? ?? 0,
+      source: data['source'] as String? ?? 'manual',
+      distanceKm:
+          data['distance_km'] as double? ?? data['distanceKm'] as double?,
+      calculatedAt: data['calculated_at'] != null
+          ? DateTime.parse(data['calculated_at'] as String)
+          : data['calculatedAt'] != null
+              ? DateTime.parse(data['calculatedAt'] as String)
+              : null,
+    );
+  }
+
+  TravelLeg copyWith({
+    String? id,
+    String? fromText,
+    String? toText,
+    String? fromPlaceId,
+    String? toPlaceId,
+    int? minutes,
+    String? source,
+    double? distanceKm,
+    DateTime? calculatedAt,
+  }) {
+    return TravelLeg(
+      id: id ?? this.id,
+      fromText: fromText ?? this.fromText,
+      toText: toText ?? this.toText,
+      fromPlaceId: fromPlaceId ?? this.fromPlaceId,
+      toPlaceId: toPlaceId ?? this.toPlaceId,
+      minutes: minutes ?? this.minutes,
+      source: source ?? this.source,
+      distanceKm: distanceKm ?? this.distanceKm,
+      calculatedAt: calculatedAt ?? this.calculatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'TravelLeg(id: $id, from: $fromText, to: $toText, minutes: $minutes, source: $source)';
+  }
+}
+
 /// Entry type enumeration for different kinds of entries
 @HiveType(typeId: 6)
 enum EntryType {
@@ -34,15 +143,34 @@ class Shift extends HiveObject {
   @HiveField(3)
   final String? location;
 
+  @HiveField(4)
+  final int unpaidBreakMinutes;
+
+  @HiveField(5)
+  final String? notes;
+
   Shift({
     required this.start,
     required this.end,
     this.description,
     this.location,
+    this.unpaidBreakMinutes = 0,
+    this.notes,
   });
 
-  /// Duration of this shift
+  /// Duration of this shift (span from start to end)
   Duration get duration => end.difference(start);
+
+  /// Worked minutes (duration minus unpaid break)
+  int get workedMinutes {
+    final spanMinutes = duration.inMinutes;
+    final breakMinutes = unpaidBreakMinutes;
+    final worked = spanMinutes - breakMinutes;
+    return worked > 0 ? worked : 0; // Never negative
+  }
+
+  /// Worked duration (as Duration object)
+  Duration get workedDuration => Duration(minutes: workedMinutes);
 
   /// Convert to map for Supabase
   Map<String, dynamic> toJson() {
@@ -51,6 +179,8 @@ class Shift extends HiveObject {
       'end': end.toIso8601String(),
       'description': description,
       'location': location,
+      'unpaid_break_minutes': unpaidBreakMinutes,
+      'notes': notes,
     };
   }
 
@@ -61,6 +191,11 @@ class Shift extends HiveObject {
       end: DateTime.parse(data['end']),
       description: data['description'],
       location: data['location'],
+      // Backward compatible: default to 0 if missing
+      unpaidBreakMinutes: data['unpaid_break_minutes'] as int? ??
+          data['unpaidBreakMinutes'] as int? ??
+          0,
+      notes: data['notes'] as String?,
     );
   }
 
@@ -69,12 +204,16 @@ class Shift extends HiveObject {
     DateTime? end,
     String? description,
     String? location,
+    int? unpaidBreakMinutes,
+    String? notes,
   }) {
     return Shift(
       start: start ?? this.start,
       end: end ?? this.end,
       description: description ?? this.description,
       location: location ?? this.location,
+      unpaidBreakMinutes: unpaidBreakMinutes ?? this.unpaidBreakMinutes,
+      notes: notes ?? this.notes,
     );
   }
 
@@ -139,6 +278,9 @@ class Entry extends HiveObject {
   @HiveField(15)
   final String? holidayName;
 
+  @HiveField(16)
+  final List<TravelLeg>? travelLegs;
+
   Entry({
     String? id,
     required this.userId,
@@ -156,6 +298,7 @@ class Entry extends HiveObject {
     this.totalSegments,
     this.isHolidayWork = false,
     this.holidayName,
+    this.travelLegs,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -181,9 +324,19 @@ class Entry extends HiveObject {
 
     // Add type-specific fields
     if (type == EntryType.travel) {
-      if (from != null) data['from_location'] = from;
-      if (to != null) data['to_location'] = to;
-      if (travelMinutes != null) data['travel_minutes'] = travelMinutes;
+      // Support both legacy single travel and new travelLegs
+      if (travelLegs != null && travelLegs!.isNotEmpty) {
+        data['travel_legs'] = travelLegs!.map((leg) => leg.toJson()).toList();
+        // Also store total for backward compatibility
+        final totalMinutes =
+            travelLegs!.fold<int>(0, (sum, leg) => sum + leg.minutes);
+        data['travel_minutes'] = totalMinutes;
+      } else {
+        // Legacy single travel fields
+        if (from != null) data['from_location'] = from;
+        if (to != null) data['to_location'] = to;
+        if (travelMinutes != null) data['travel_minutes'] = travelMinutes;
+      }
       if (journeyId != null) data['journey_id'] = journeyId;
       if (segmentOrder != null) data['segment_order'] = segmentOrder;
       if (totalSegments != null) data['total_segments'] = totalSegments;
@@ -231,6 +384,27 @@ class Entry extends HiveObject {
       return entry.copyWith(shifts: shifts);
     }
 
+    // Parse travel legs for travel entries
+    if (type == EntryType.travel && json['travel_legs'] != null) {
+      final legsList = json['travel_legs'] as List;
+      final travelLegs = legsList
+          .map((leg) => TravelLeg.fromJson(leg as Map<String, dynamic>))
+          .toList();
+      return entry.copyWith(travelLegs: travelLegs);
+    } else if (type == EntryType.travel &&
+        entry.from != null &&
+        entry.to != null &&
+        entry.travelMinutes != null) {
+      // Backward compatibility: convert legacy single travel to travelLegs
+      final leg = TravelLeg(
+        fromText: entry.from!,
+        toText: entry.to!,
+        minutes: entry.travelMinutes!,
+        source: 'manual',
+      );
+      return entry.copyWith(travelLegs: [leg]);
+    }
+
     return entry;
   }
 
@@ -252,6 +426,7 @@ class Entry extends HiveObject {
     int? totalSegments,
     bool? isHolidayWork,
     String? holidayName,
+    List<TravelLeg>? travelLegs,
   }) {
     return Entry(
       id: id ?? this.id,
@@ -270,21 +445,22 @@ class Entry extends HiveObject {
       totalSegments: totalSegments ?? this.totalSegments,
       isHolidayWork: isHolidayWork ?? this.isHolidayWork,
       holidayName: holidayName ?? this.holidayName,
+      travelLegs: travelLegs ?? this.travelLegs,
     );
   }
 
-  /// Get total duration for work entries
+  /// Get total duration for work entries (worked minutes, excluding unpaid breaks)
   Duration? get totalWorkDuration {
     if (type != EntryType.work || shifts == null || shifts!.isEmpty) {
       return null;
     }
 
-    var totalDuration = Duration.zero;
+    var totalWorkedMinutes = 0;
     for (final shift in shifts!) {
-      totalDuration += shift.duration;
+      totalWorkedMinutes += shift.workedMinutes;
     }
 
-    return totalDuration;
+    return Duration(minutes: totalWorkedMinutes);
   }
 
   /// Get total duration for any entry type
@@ -292,6 +468,12 @@ class Entry extends HiveObject {
     if (type == EntryType.work) {
       return totalWorkDuration ?? Duration.zero;
     } else if (type == EntryType.travel) {
+      // Use travelLegs if available, otherwise fall back to legacy travelMinutes
+      if (travelLegs != null && travelLegs!.isNotEmpty) {
+        final totalMinutes =
+            travelLegs!.fold<int>(0, (sum, leg) => sum + leg.minutes);
+        return Duration(minutes: totalMinutes);
+      }
       return Duration(minutes: travelMinutes ?? 0);
     }
     return Duration.zero;
@@ -303,13 +485,22 @@ class Entry extends HiveObject {
   /// Check if entry is a valid travel entry
   bool get isValidTravel {
     if (type != EntryType.travel) return false;
-    return from != null && from!.isNotEmpty && 
-           to != null && to!.isNotEmpty &&
-           (travelMinutes != null && travelMinutes! > 0);
+    return from != null &&
+        from!.isNotEmpty &&
+        to != null &&
+        to!.isNotEmpty &&
+        (travelMinutes != null && travelMinutes! > 0);
   }
 
   /// Get travel duration
-  Duration get travelDuration => Duration(minutes: travelMinutes ?? 0);
+  Duration get travelDuration {
+    if (travelLegs != null && travelLegs!.isNotEmpty) {
+      final totalMinutes =
+          travelLegs!.fold<int>(0, (sum, leg) => sum + leg.minutes);
+      return Duration(minutes: totalMinutes);
+    }
+    return Duration(minutes: travelMinutes ?? 0);
+  }
 
   /// Get total hours for work entries
   double? get totalWorkHours {
@@ -366,6 +557,109 @@ class Entry extends HiveObject {
 
   /// Get description (alias for notes)
   String? get description => notes;
+
+  /// Check if this is an atomic work entry (exactly 1 shift)
+  /// New entries should be atomic (1 shift = 1 Entry)
+  bool get isAtomicWork =>
+      type == EntryType.work && shifts != null && shifts!.length == 1;
+
+  /// Get the single shift for atomic work entries
+  /// Returns null if not atomic work
+  Shift? get atomicShift => isAtomicWork ? shifts!.first : null;
+
+  /// Check if this is a legacy multi-shift entry (work with >1 shift)
+  /// Legacy entries may have multiple shifts in one Entry
+  bool get isLegacyMultiShift =>
+      type == EntryType.work && shifts != null && shifts!.length > 1;
+
+  /// Check if this is an atomic travel entry (single leg)
+  /// New entries should be atomic (1 leg = 1 Entry)
+  bool get isAtomicTravel {
+    if (type != EntryType.travel) return false;
+    // Atomic if it has single from/to/minutes (legacy) or single travelLeg
+    if (travelLegs != null && travelLegs!.isNotEmpty) {
+      return travelLegs!.length == 1;
+    }
+    // Legacy single travel entry is atomic
+    return from != null && to != null && travelMinutes != null;
+  }
+
+  /// Create an atomic work entry from a single shift
+  /// This is the canonical way to create new work entries (1 shift = 1 Entry)
+  factory Entry.makeWorkAtomicFromShift({
+    required String userId,
+    required DateTime date,
+    required Shift shift,
+    String? dayNotes,
+    String? id,
+    DateTime? createdAt,
+  }) {
+    final entry = Entry(
+      id: id,
+      userId: userId,
+      type: EntryType.work,
+      date: date,
+      shifts: [shift], // Exactly 1 shift for atomic entry
+      notes: dayNotes,
+      createdAt: createdAt,
+      updatedAt: DateTime.now(),
+    );
+    assert(entry.shifts!.length == 1,
+        'Work entries created via makeWorkAtomicFromShift must have exactly one shift.');
+    return entry;
+  }
+
+  /// Create an atomic travel entry from a single leg
+  /// This is the canonical way to create new travel entries (1 leg = 1 Entry)
+  factory Entry.makeTravelAtomicFromLeg({
+    required String userId,
+    required DateTime date,
+    required String from,
+    required String to,
+    required int minutes,
+    String? dayNotes,
+    String? fromPlaceId,
+    String? toPlaceId,
+    String? source,
+    double? distanceKm,
+    DateTime? calculatedAt,
+    String? id,
+    DateTime? createdAt,
+    int? segmentOrder,
+    int? totalSegments,
+  }) {
+    final entry = Entry(
+      id: id,
+      userId: userId,
+      type: EntryType.travel,
+      date: date,
+      from: from,
+      to: to,
+      travelMinutes: minutes,
+      notes: dayNotes,
+      segmentOrder: segmentOrder,
+      totalSegments: totalSegments,
+      createdAt: createdAt,
+      updatedAt: DateTime.now(),
+      // Optionally store as travelLegs for consistency
+      travelLegs: [
+        TravelLeg(
+          id: id,
+          fromText: from,
+          toText: to,
+          fromPlaceId: fromPlaceId,
+          toPlaceId: toPlaceId,
+          minutes: minutes,
+          source: source ?? 'manual',
+          distanceKm: distanceKm,
+          calculatedAt: calculatedAt,
+        ),
+      ],
+    );
+    assert(entry.travelLegs!.length == 1,
+        'Travel entries created via makeTravelAtomicFromLeg must have exactly one travel leg.');
+    return entry;
+  }
 
   @override
   String toString() {

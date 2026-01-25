@@ -85,7 +85,16 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
   Future<void> sendPasswordResetEmail(String email) async {
     print('SupabaseAuthService: Sending password reset email to: $email');
     try {
-      await _supabase.auth.resetPasswordForEmail(email);
+      // Get redirect URL - use a deep link that opens the app
+      // For mobile apps, this should be a custom URL scheme or universal link
+      // For now, we'll use a placeholder that Supabase will handle
+      // The actual redirect URL should be configured in Supabase dashboard
+      final redirectTo = 'kviktime://reset-password';
+      
+      await _supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo: redirectTo,
+      );
       print('SupabaseAuthService: Password reset email sent');
     } catch (e) {
       print('SupabaseAuthService: Password reset failed: $e');

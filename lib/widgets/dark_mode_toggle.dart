@@ -112,7 +112,7 @@ class DarkModeToggle extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          AppLocalizations.of(context)!.settings_darkMode,
+          AppLocalizations.of(context).settings_darkMode,
           style: theme.textTheme.titleMedium?.copyWith(
             color: colorScheme.onSurface,
             fontWeight: FontWeight.w600,
@@ -121,8 +121,8 @@ class DarkModeToggle extends StatelessWidget {
         const SizedBox(height: 2.0),
         Text(
           isDarkMode 
-              ? AppLocalizations.of(context)!.settings_darkModeActive
-              : AppLocalizations.of(context)!.settings_switchToDark,
+              ? AppLocalizations.of(context).settings_darkModeActive
+              : AppLocalizations.of(context).settings_switchToDark,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
             height: 1.3,
@@ -179,7 +179,7 @@ class DarkModeToggle extends StatelessWidget {
 
   /// Shows a brief confirmation message
   void _showToggleConfirmation(BuildContext context, bool isDarkMode) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final message = isDarkMode 
         ? t.settings_darkModeEnabled
         : t.settings_lightModeEnabled;

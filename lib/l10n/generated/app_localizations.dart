@@ -212,6 +212,12 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get common_ok;
 
+  /// No description provided for @common_optional.
+  ///
+  /// In en, this message translates to:
+  /// **'(optional)'**
+  String get common_optional;
+
   /// No description provided for @common_loading.
   ///
   /// In en, this message translates to:
@@ -1178,6 +1184,42 @@ abstract class AppLocalizations {
   /// **'Work'**
   String get entry_work;
 
+  /// No description provided for @travel_legLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel {number}'**
+  String travel_legLabel(int number);
+
+  /// No description provided for @travel_addLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Travel Leg'**
+  String get travel_addLeg;
+
+  /// No description provided for @travel_addAnotherLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Another Travel'**
+  String get travel_addAnotherLeg;
+
+  /// No description provided for @travel_sourceAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get travel_sourceAuto;
+
+  /// No description provided for @travel_sourceManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get travel_sourceManual;
+
+  /// No description provided for @travel_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total travel'**
+  String get travel_total;
+
   /// No description provided for @entry_from.
   ///
   /// In en, this message translates to:
@@ -1664,6 +1706,36 @@ abstract class AppLocalizations {
   /// **'Failed to calculate travel time: {error}'**
   String error_calculatingTravelTime(String error);
 
+  /// No description provided for @error_invalidHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours must be a non-negative number'**
+  String get error_invalidHours;
+
+  /// No description provided for @error_invalidMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes must be between 0 and 59'**
+  String get error_invalidMinutes;
+
+  /// No description provided for @error_durationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid duration (greater than 0)'**
+  String get error_durationRequired;
+
+  /// No description provided for @error_endTimeBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'End time must be after start time'**
+  String get error_endTimeBeforeStart;
+
+  /// No description provided for @error_invalidShiftTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {number} has invalid times (end must be after start)'**
+  String error_invalidShiftTime(int number);
+
   /// No description provided for @form_departure.
   ///
   /// In en, this message translates to:
@@ -1741,6 +1813,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Minutes'**
   String get form_minutes;
+
+  /// No description provided for @form_unpaidBreakMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid break (min)'**
+  String get form_unpaidBreakMinutes;
+
+  /// No description provided for @form_shiftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {number}'**
+  String form_shiftLabel(int number);
+
+  /// No description provided for @form_span.
+  ///
+  /// In en, this message translates to:
+  /// **'Span'**
+  String get form_span;
+
+  /// No description provided for @form_break.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get form_break;
+
+  /// No description provided for @form_worked.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked'**
+  String get form_worked;
+
+  /// No description provided for @form_useLocationForAllShifts.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this location for all shifts'**
+  String get form_useLocationForAllShifts;
+
+  /// No description provided for @form_shiftLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift location'**
+  String get form_shiftLocation;
+
+  /// No description provided for @form_shiftNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift notes'**
+  String get form_shiftNotes;
+
+  /// No description provided for @form_shiftNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add notes for this shift (e.g., specific tasks, issues)'**
+  String get form_shiftNotesHint;
+
+  /// No description provided for @form_sameAsDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as default'**
+  String get form_sameAsDefault;
+
+  /// No description provided for @form_dayNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Day notes'**
+  String get form_dayNotes;
 
   /// No description provided for @export_includeAllData.
   ///
@@ -2378,6 +2516,24 @@ abstract class AppLocalizations {
   /// **'Error saving entry: {error}'**
   String edit_errorSaving(String error);
 
+  /// No description provided for @editMode_singleEntryInfo_work.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing one entry. To add another shift for this date, create a new entry.'**
+  String get editMode_singleEntryInfo_work;
+
+  /// No description provided for @editMode_singleEntryInfo_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing one entry. To add another travel leg for this date, create a new entry.'**
+  String get editMode_singleEntryInfo_travel;
+
+  /// No description provided for @editMode_addNewEntryForDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new entry for this date'**
+  String get editMode_addNewEntryForDate;
+
   /// No description provided for @dateRange_title.
   ///
   /// In en, this message translates to:
@@ -2647,6 +2803,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Travel'**
   String get history_travel;
+
+  /// No description provided for @history_worked.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked'**
+  String get history_worked;
+
+  /// No description provided for @history_totalWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Total worked'**
+  String get history_totalWorked;
 
   /// No description provided for @history_work.
   ///
@@ -3332,6 +3500,12 @@ abstract class AppLocalizations {
   /// **'Personal red day'**
   String get entry_personalRedDay;
 
+  /// No description provided for @error_addAtLeastOneShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add at least one shift.'**
+  String get error_addAtLeastOneShift;
+
   /// No description provided for @shift_morning.
   ///
   /// In en, this message translates to:
@@ -3691,6 +3865,61 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last 90 Days'**
   String get dateRange_last90Days;
+
+  /// No description provided for @form_shiftLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter shift location'**
+  String get form_shiftLocationHint;
+
+  /// No description provided for @error_negativeBreakMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {number}: Break minutes cannot be negative'**
+  String error_negativeBreakMinutes(Object number);
+
+  /// No description provided for @error_breakExceedsSpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {number}: Break minutes ({breakMinutes}) cannot exceed span ({spanMinutes}m)'**
+  String error_breakExceedsSpan(
+      Object number, Object breakMinutes, Object spanMinutes);
+
+  /// No description provided for @home_trackWorkShifts.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your work shifts'**
+  String get home_trackWorkShifts;
+
+  /// No description provided for @travel_removeLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove travel leg'**
+  String get travel_removeLeg;
+
+  /// No description provided for @error_addAtLeastOneTravelLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add at least one travel leg'**
+  String get error_addAtLeastOneTravelLeg;
+
+  /// No description provided for @error_selectTravelLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel {number}: Please select both from and to locations'**
+  String error_selectTravelLocations(Object number);
+
+  /// No description provided for @error_invalidTravelDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel {number}: Please enter a valid duration (greater than 0)'**
+  String error_invalidTravelDuration(Object number);
+
+  /// No description provided for @travel_notesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details about your travel...'**
+  String get travel_notesHint;
 }
 
 class _AppLocalizationsDelegate

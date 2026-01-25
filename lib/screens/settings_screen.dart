@@ -27,7 +27,7 @@ class SettingsScreen extends StatelessWidget {
     final uid = auth.currentUser?.id;
     if (uid == null) {
       if (context.mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(t.dev_signInRequired)),
         );
@@ -163,7 +163,7 @@ class SettingsScreen extends StatelessWidget {
       }
 
       if (context.mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.dev_sampleDataAdded),
@@ -173,7 +173,7 @@ class SettingsScreen extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.dev_sampleDataFailed(e.toString())),
@@ -185,7 +185,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _clearDemoData(BuildContext context) async {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -235,7 +235,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _clearAllData(BuildContext context) async {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -291,7 +291,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showHolidayInfoDialog(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final holidayService = context.read<HolidayService>();
     final holidays = holidayService.getHolidaysWithNamesForYear(DateTime.now().year);
     
@@ -395,12 +395,68 @@ class SettingsScreen extends StatelessWidget {
     final themeProvider = context.watch<ThemeProvider>();
     final localeProvider = context.watch<LocaleProvider>();
     final holidayService = context.watch<HolidayService>();
+    final authService = context.watch<SupabaseAuthService>();
+    final user = authService.currentUser;
     final t = AppLocalizations.of(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: StandardAppBar(title: t.settings_title),
       body: ListView(
         children: [
+          // User Info Section
+          if (user != null) ...[
+            Card(
+              margin: const EdgeInsets.all(16),
+              elevation: 0,
+              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.account_circle,
+                      size: 48,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.userMetadata?['full_name'] ?? 
+                            user.email?.split('@').first ?? 
+                            'User',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user.email ?? '—',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right),
+                      onPressed: () => AppRouter.goToProfile(context),
+                      tooltip: t.profile_title,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(),
+          ],
+          
           // Theme Settings
           ListTile(
             leading: Icon(
@@ -452,11 +508,11 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 DropdownMenuItem<Locale>(
                   value: const Locale('en'),
-                  child: Text(AppLocalizations.of(context)!.settings_languageEnglish),
+                  child: Text(AppLocalizations.of(context).settings_languageEnglish),
                 ),
                 DropdownMenuItem<Locale>(
                   value: const Locale('sv'),
-                  child: Text(AppLocalizations.of(context)!.settings_languageSwedish),
+                  child: Text(AppLocalizations.of(context).settings_languageSwedish),
                 ),
               ],
               onChanged: (Locale? locale) {
@@ -589,7 +645,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             Builder(builder: (context) {
-              final t = AppLocalizations.of(context)!;
+              final t = AppLocalizations.of(context);
               return Column(
                 children: [
                   ListTile(
@@ -634,7 +690,7 @@ class SettingsScreen extends StatelessWidget {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     
     // Show loading dialog
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -657,7 +713,7 @@ class SettingsScreen extends StatelessWidget {
         if (navigator.canPop()) {
           navigator.pop();
         }
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(t.dev_syncSuccess),
@@ -672,7 +728,7 @@ class SettingsScreen extends StatelessWidget {
         if (navigator.canPop()) {
           navigator.pop();
         }
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(t.dev_syncFailed(e.toString())),

@@ -31,9 +31,9 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   // User ID
   String _userId = 'default_user';
 
-  // Repositories
-  WorkRepository? _workRepository;
-  TravelRepository? _travelRepository;
+  // Repositories (can be WorkRepository/TravelRepository or mock objects)
+  dynamic _workRepository;
+  dynamic _travelRepository;
 
   // Getters
   bool get isLoading => _isLoading;
@@ -133,7 +133,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
 
   // Initialize with repositories
   void initialize(
-      WorkRepository? workRepository, TravelRepository? travelRepository,
+      dynamic workRepository, dynamic travelRepository,
       {String? userId}) {
     _workRepository = workRepository;
     _travelRepository = travelRepository;

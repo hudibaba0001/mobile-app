@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../widgets/app_scaffold.dart';
 import '../screens/login_screen.dart';
+import '../screens/forgot_password_screen.dart';
 import '../screens/unified_home_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/reports_screen.dart';
@@ -21,6 +22,7 @@ import '../screens/account_status_gate.dart';
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   static const String loginPath = '/login';
+  static const String forgotPasswordPath = '/forgot-password';
   static const String homePath = '/';
   static const String settingsPath = '/settings';
   static const String reportsPath = '/reports';
@@ -35,6 +37,7 @@ class AppRouter {
   static const String absenceManagementPath = '/absences';
 
   static const String loginName = 'login';
+  static const String forgotPasswordName = 'forgot-password';
   static const String homeName = 'home';
   static const String settingsName = 'settings';
   static const String reportsName = 'reports';
@@ -56,11 +59,17 @@ class AppRouter {
       final isAuthenticated = authService.isAuthenticated;
       final isInitialized = authService.isInitialized;
       final isLoggingIn = state.matchedLocation == loginPath;
+      final isForgotPassword = state.matchedLocation == forgotPasswordPath;
       final isAnalyticsRoute = state.matchedLocation == analyticsPath;
 
       // Wait for AuthService to be initialized
       if (!isInitialized) {
         return null; // Don't redirect yet
+      }
+
+      // Allow access to forgot password without authentication
+      if (isForgotPassword) {
+        return null;
       }
 
       // Protect analytics route - require authentication AND admin privileges
@@ -94,6 +103,13 @@ class AppRouter {
           final email = state.uri.queryParameters['email'];
           return LoginScreen(initialEmail: email);
         },
+      ),
+
+      // Forgot Password (outside shell)
+      GoRoute(
+        path: forgotPasswordPath,
+        name: forgotPasswordName,
+        builder: (context, state) => const ForgotPasswordScreen(),
       ),
 
       // Admin analytics (outside shell)
@@ -200,6 +216,9 @@ class AppRouter {
       context.goNamed(loginName);
     }
   }
+
+  static void goToForgotPassword(BuildContext context) =>
+      context.goNamed(forgotPasswordName);
 
   static void goToHome(BuildContext context) => context.goNamed(homeName);
   static void goToSettings(BuildContext context) =>

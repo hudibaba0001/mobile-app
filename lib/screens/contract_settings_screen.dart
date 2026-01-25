@@ -80,13 +80,13 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       // Validate contract percentage
       final contractPercentText = _contractPercentController.text.trim();
       if (contractPercentText.isEmpty) {
-        _contractPercentError = t?.common_required(t.contract_percentage) ?? 'Contract percentage is required';
+        _contractPercentError = t.common_required(t.contract_percentage) ?? 'Contract percentage is required';
       } else {
         final contractPercent = int.tryParse(contractPercentText);
         if (contractPercent == null) {
-          _contractPercentError = t?.common_invalidNumber ?? 'Please enter a valid number';
+          _contractPercentError = t.common_invalidNumber ?? 'Please enter a valid number';
         } else if (contractPercent < 0 || contractPercent > 100) {
-          _contractPercentError = t?.contract_percentageError ?? 'Percentage must be between 0 and 100';
+          _contractPercentError = t.contract_percentageError ?? 'Percentage must be between 0 and 100';
         } else {
           _contractPercentError = null;
         }
@@ -95,15 +95,15 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       // Validate full-time hours
       final fullTimeHoursText = _fullTimeHoursController.text.trim();
       if (fullTimeHoursText.isEmpty) {
-        _fullTimeHoursError = t?.common_required(t.contract_fullTimeHours) ?? 'Full-time hours is required';
+        _fullTimeHoursError = t.common_required(t.contract_fullTimeHours) ?? 'Full-time hours is required';
       } else {
         final fullTimeHours = int.tryParse(fullTimeHoursText);
         if (fullTimeHours == null) {
-          _fullTimeHoursError = t?.common_invalidNumber ?? 'Please enter a valid number';
+          _fullTimeHoursError = t.common_invalidNumber ?? 'Please enter a valid number';
         } else if (fullTimeHours <= 0) {
-          _fullTimeHoursError = t?.contract_fullTimeHoursError ?? 'Hours must be greater than 0';
+          _fullTimeHoursError = t.contract_fullTimeHoursError ?? 'Hours must be greater than 0';
         } else if (fullTimeHours > 168) { // 24 hours * 7 days
-          _fullTimeHoursError = t?.contract_maxHoursError ?? 'Hours cannot exceed 168 per week';
+          _fullTimeHoursError = t.contract_maxHoursError ?? 'Hours cannot exceed 168 per week';
         } else {
           _fullTimeHoursError = null;
         }
@@ -121,9 +121,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
         final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText);
         
         if (hours == null || hours < 0) {
-          _openingBalanceError = t?.contract_invalidHours ?? 'Invalid hours';
+          _openingBalanceError = t.contract_invalidHours ?? 'Invalid hours';
         } else if (minutes == null || minutes < 0 || minutes >= 60) {
-          _openingBalanceError = t?.contract_minutesError ?? 'Minutes must be 0-59';
+          _openingBalanceError = t.contract_minutesError ?? 'Minutes must be 0-59';
         } else {
           _openingBalanceError = null;
         }
@@ -173,7 +173,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   }
 
   void _saveSettings() {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     if (_isFormValid) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -186,7 +186,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   }
 
   void _resetToDefaults() {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -233,7 +233,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -888,7 +888,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   }
   
   Future<void> _selectStartDate(BuildContext context) async {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,

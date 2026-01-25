@@ -279,8 +279,8 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                 readOnly: true,
                 onTap: _selectStartDate,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.dateRange_startDate,
-                  hintText: AppLocalizations.of(context)!.dateRange_startDate,
+                  labelText: AppLocalizations.of(context).dateRange_startDate,
+                  hintText: AppLocalizations.of(context).dateRange_startDate,
                   prefixIcon: const Icon(Icons.calendar_today),
                   border: const OutlineInputBorder(),
                 ),
@@ -293,8 +293,8 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                 readOnly: true,
                 onTap: _selectEndDate,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.dateRange_endDate,
-                  hintText: AppLocalizations.of(context)!.dateRange_endDate,
+                  labelText: AppLocalizations.of(context).dateRange_endDate,
+                  hintText: AppLocalizations.of(context).dateRange_endDate,
                   prefixIcon: const Icon(Icons.calendar_today),
                   border: const OutlineInputBorder(),
                 ),
@@ -307,7 +307,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
         if (widget.showQuickSelects) ...[
           const SizedBox(height: AppConstants.defaultPadding),
           Text(
-            AppLocalizations.of(context)!.dateRange_quickSelect,
+            AppLocalizations.of(context).dateRange_quickSelect,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -330,7 +330,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
   }
 
   String _getQuickRangeLabel(QuickDateRange range) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     switch (range) {
       case QuickDateRange.today:
         return t.common_today;

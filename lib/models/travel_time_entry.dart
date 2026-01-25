@@ -1,100 +1,49 @@
 import 'package:hive/hive.dart';
-import 'package:uuid/uuid.dart';
 
 part 'travel_time_entry.g.dart';
 
-@HiveType(typeId: 0)
+@HiveType(typeId: 1)
 class TravelTimeEntry extends HiveObject {
   @HiveField(0)
-  final DateTime date;
-  
-  @HiveField(1)
-  final String departure;
-  
-  @HiveField(2)
-  final String arrival;
-  
-  @HiveField(3)
-  final String? info;
-  
-  @HiveField(4)
-  final int minutes;
-  
-  @HiveField(5)
   final String id;
-  
+
+  @HiveField(1)
+  final DateTime date;
+
+  @HiveField(2)
+  final String departure;
+
+  @HiveField(3)
+  final String arrival;
+
+  @HiveField(4)
+  final String? info;
+
+  @HiveField(5)
+  final int minutes;
+
   @HiveField(6)
   final DateTime createdAt;
-  
+
   @HiveField(7)
   final DateTime? updatedAt;
-  
+
   @HiveField(8)
   final String? departureLocationId;
-  
+
   @HiveField(9)
   final String? arrivalLocationId;
-  
-  @HiveField(10)
-  final String? journeyId;
-  
-  @HiveField(11)
-  final int? segmentOrder;
-  
-  @HiveField(12)
-  final int? totalSegments;
 
   TravelTimeEntry({
+    required this.id,
     required this.date,
     required this.departure,
     required this.arrival,
     this.info,
     required this.minutes,
-    String? id,
-    DateTime? createdAt,
+    required this.createdAt,
     this.updatedAt,
     this.departureLocationId,
     this.arrivalLocationId,
-    this.journeyId,
-    this.segmentOrder,
-    this.totalSegments,
-  }) : id = id ?? const Uuid().v4(),
-       createdAt = createdAt ?? DateTime.now();
-
-  TravelTimeEntry copyWith({
-    DateTime? date,
-    String? departure,
-    String? arrival,
-    String? info,
-    int? minutes,
-    String? id,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    String? departureLocationId,
-    String? arrivalLocationId,
-    String? journeyId,
-    int? segmentOrder,
-    int? totalSegments,
-  }) {
-    return TravelTimeEntry(
-      date: date ?? this.date,
-      departure: departure ?? this.departure,
-      arrival: arrival ?? this.arrival,
-      info: info ?? this.info,
-      minutes: minutes ?? this.minutes,
-      id: id ?? this.id,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? DateTime.now(),
-      departureLocationId: departureLocationId ?? this.departureLocationId,
-      arrivalLocationId: arrivalLocationId ?? this.arrivalLocationId,
-      journeyId: journeyId ?? this.journeyId,
-      segmentOrder: segmentOrder ?? this.segmentOrder,
-      totalSegments: totalSegments ?? this.totalSegments,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'TravelTimeEntry(id: $id, date: $date, departure: $departure, arrival: $arrival, minutes: $minutes)';
-  }
+  });
 }

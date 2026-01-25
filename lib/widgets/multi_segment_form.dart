@@ -135,7 +135,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
   }
 
   bool _validateCurrentSegment() {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     if (_departureController.text.trim().isEmpty) {
       _showError(t.multiSegment_pleaseEnterDeparture);
       return false;
@@ -318,8 +318,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                   const SizedBox(width: 8),
                   Text(
                     widget.editingJourneyId != null
-                        ? AppLocalizations.of(context)!.multiSegment_editJourney
-                        : AppLocalizations.of(context)!.multiSegment_journey,
+                        ? AppLocalizations.of(context).multiSegment_editJourney
+                        : AppLocalizations.of(context).multiSegment_journey,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -371,7 +371,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               // Existing segments
               if (_segments.isNotEmpty) ...[
                 Text(
-                  AppLocalizations.of(context)!.multiSegment_journeySegments,
+                  AppLocalizations.of(context).multiSegment_journeySegments,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -401,8 +401,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               // Add new segment form
               Text(
                 _segments.isEmpty 
-                    ? AppLocalizations.of(context)!.multiSegment_firstSegment
-                    : AppLocalizations.of(context)!.multiSegment_addNextSegment,
+                    ? AppLocalizations.of(context).multiSegment_firstSegment
+                    : AppLocalizations.of(context).multiSegment_addNextSegment,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -413,13 +413,13 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               TextFormField(
                 controller: _departureController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.entry_from,
-                  hintText: AppLocalizations.of(context)!.form_departureLocation,
+                  labelText: AppLocalizations.of(context).entry_from,
+                  hintText: AppLocalizations.of(context).form_departureLocation,
                   prefixIcon: const Icon(Icons.location_on),
                   border: const OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                    Validators.validateRequired(value, AppLocalizations.of(context)!.form_departureLocation),
+                    Validators.validateRequired(value, AppLocalizations.of(context).form_departureLocation),
               ),
 
               const SizedBox(height: AppConstants.smallPadding),
@@ -428,13 +428,13 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               TextFormField(
                 controller: _arrivalController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.entry_to,
-                  hintText: AppLocalizations.of(context)!.form_arrivalLocation,
+                  labelText: AppLocalizations.of(context).entry_to,
+                  hintText: AppLocalizations.of(context).form_arrivalLocation,
                   prefixIcon: const Icon(Icons.location_on),
                   border: const OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                    Validators.validateRequired(value, AppLocalizations.of(context)!.form_arrivalLocation),
+                    Validators.validateRequired(value, AppLocalizations.of(context).form_arrivalLocation),
               ),
 
               const SizedBox(height: AppConstants.smallPadding),
@@ -443,8 +443,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               TextFormField(
                 controller: _minutesController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.multiSegment_travelTimeMinutes,
-                  hintText: AppLocalizations.of(context)!.multiSegment_travelTimeHint,
+                  labelText: AppLocalizations.of(context).multiSegment_travelTimeMinutes,
+                  hintText: AppLocalizations.of(context).multiSegment_travelTimeHint,
                   prefixIcon: const Icon(Icons.access_time),
                   border: const OutlineInputBorder(),
                 ),
@@ -458,8 +458,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               TextFormField(
                 controller: _infoController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.entry_notes,
-                  hintText: AppLocalizations.of(context)!.form_additionalInformation,
+                  labelText: AppLocalizations.of(context).entry_notes,
+                  hintText: AppLocalizations.of(context).form_additionalInformation,
                   prefixIcon: const Icon(Icons.note),
                   border: const OutlineInputBorder(),
                 ),
@@ -477,8 +477,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                       onPressed: _addSegment,
                       icon: const Icon(Icons.add),
                       label: Text(_segments.isEmpty
-                          ? AppLocalizations.of(context)!.multiSegment_addFirstSegment
-                          : AppLocalizations.of(context)!.multiSegment_addNextSegment),
+                          ? AppLocalizations.of(context).multiSegment_addFirstSegment
+                          : AppLocalizations.of(context).multiSegment_addNextSegment),
                     ),
                   ),
 
@@ -496,8 +496,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                             )
                           : const Icon(Icons.save),
                       label: Text(_isLoading 
-                          ? AppLocalizations.of(context)!.multiSegment_saving
-                          : AppLocalizations.of(context)!.multiSegment_saveJourney),
+                          ? AppLocalizations.of(context).multiSegment_saving
+                          : AppLocalizations.of(context).multiSegment_saveJourney),
                     ),
                   ),
                 ],

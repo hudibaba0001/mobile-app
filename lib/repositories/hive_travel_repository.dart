@@ -37,6 +37,12 @@ class HiveTravelRepository implements TravelRepository {
 
   @override
   Future<TravelEntry> add(TravelEntry entry) async {
+    assert(() {
+      throw StateError(
+        'Legacy TravelEntry write path (HiveTravelRepository) is disabled. Use EntryProvider.addEntry() instead. '
+        'This prevents missing break/notes and timezone issues.'
+      );
+    }());
     final newEntry = entry.copyWith(
       id: entry.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : entry.id,
       updatedAt: DateTime.now(),
@@ -47,6 +53,12 @@ class HiveTravelRepository implements TravelRepository {
 
   @override
   Future<TravelEntry> update(TravelEntry entry) async {
+    assert(() {
+      throw StateError(
+        'Legacy TravelEntry write path (HiveTravelRepository) is disabled. Use EntryProvider.updateEntry() instead. '
+        'This prevents missing break/notes and timezone issues.'
+      );
+    }());
     final updatedEntry = entry.copyWith(
       updatedAt: DateTime.now(),
     );
@@ -56,6 +68,12 @@ class HiveTravelRepository implements TravelRepository {
 
   @override
   Future<void> delete(String id) async {
+    assert(() {
+      throw StateError(
+        'Legacy TravelEntry write path (HiveTravelRepository) is disabled. Use EntryProvider.deleteEntry() instead. '
+        'This prevents missing break/notes and timezone issues.'
+      );
+    }());
     await _box.delete(id);
   }
 

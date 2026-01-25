@@ -74,7 +74,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
   }
 
   Future<void> _save() async {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     // Validate
     final hoursText = _hoursController.text.trim();
     final minutesText = _minutesController.text.trim();
@@ -131,7 +131,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
   }
 
   Future<void> _delete() async {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     if (!_isEditing || widget.existingAdjustment?.id == null) return;
     
     final confirmed = await showDialog<bool>(
@@ -177,7 +177,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final dateFormat = DateFormat('MMMM d, yyyy');

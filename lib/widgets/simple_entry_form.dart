@@ -102,8 +102,8 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   const SizedBox(width: 12),
                   Text(
                     isTravel
-                        ? AppLocalizations.of(context)!.entry_logTravelEntry
-                        : AppLocalizations.of(context)!.entry_logWorkEntry,
+                        ? AppLocalizations.of(context).entry_logTravelEntry
+                        : AppLocalizations.of(context).entry_logWorkEntry,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -126,13 +126,13 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                 TextFormField(
                   controller: _fromController,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.simpleEntry_fromLocation,
+                    labelText: AppLocalizations.of(context).simpleEntry_fromLocation,
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.my_location),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context)!.simpleEntry_pleaseEnterDeparture;
+                      return AppLocalizations.of(context).simpleEntry_pleaseEnterDeparture;
                     }
                     return null;
                   },
@@ -141,13 +141,13 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                 TextFormField(
                   controller: _toController,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.simpleEntry_toLocation,
+                    labelText: AppLocalizations.of(context).simpleEntry_toLocation,
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.location_on),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context)!.simpleEntry_pleaseEnterArrival;
+                      return AppLocalizations.of(context).simpleEntry_pleaseEnterArrival;
                     }
                     return null;
                   },
@@ -226,7 +226,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text(AppLocalizations.of(context)!.common_cancel),
+                      child: Text(AppLocalizations.of(context).common_cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -239,7 +239,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(AppLocalizations.of(context)!.entry_saveEntry),
+                          : Text(AppLocalizations.of(context).entry_saveEntry),
                     ),
                   ),
                 ],
@@ -374,7 +374,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
       final totalMinutes = (hours * 60) + minutes;
 
       if (totalMinutes <= 0) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.simpleEntry_validDuration),
@@ -438,7 +438,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
       }
 
       if (mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         Navigator.of(context).pop();
         final typeStr = widget.entryType == EntryType.travel
             ? t.entry_travel
@@ -455,7 +455,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
       }
     } catch (e) {
       if (mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.edit_errorSaving(e.toString())),

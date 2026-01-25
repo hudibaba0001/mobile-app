@@ -24,7 +24,7 @@ class FlexsaldoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     
     return Consumer<TimeProvider>(
       builder: (context, timeProvider, _) {
@@ -63,6 +63,7 @@ class FlexsaldoCard extends StatelessWidget {
         final targetText = '${(targetMinutes / 60.0).toStringAsFixed(1)} h';
         
         return Container(
+          key: const Key('card_balance'),
           width: double.infinity,
           padding: AppSpacing.cardPadding,
           decoration: BoxDecoration(
@@ -189,6 +190,7 @@ class FlexsaldoCard extends StatelessWidget {
 
 class _ExportButton extends StatelessWidget {
   const _ExportButton({
+    super.key,
     required this.icon,
     required this.label,
     this.onTap,

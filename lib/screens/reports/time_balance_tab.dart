@@ -80,7 +80,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _loadBalances,
-                  child: Text(AppLocalizations.of(context)!.common_retry),
+                  child: Text(AppLocalizations.of(context).common_retry),
                 ),
               ],
             ),
@@ -231,7 +231,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
             OutlinedButton.icon(
               onPressed: () => _showAddAdjustmentDialog(context),
               icon: const Icon(Icons.add),
-              label: Text(AppLocalizations.of(context)!.adjustment_addAdjustment),
+              label: Text(AppLocalizations.of(context).adjustment_addAdjustment),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(

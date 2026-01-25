@@ -22,6 +22,7 @@
   "common_yes": "Ja",
   "common_no": "Nej",
   "common_ok": "OK",
+  "common_optional": "(valfritt)",
   "common_loading": "Laddar...",
   "common_error": "Fel",
   "common_success": "Klart",
@@ -187,6 +188,17 @@
 
   "entry_travel": "Resa",
   "entry_work": "Arbete",
+  "travel_legLabel": "Resa {number}",
+  "@travel_legLabel": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "travel_addLeg": "Lägg till reseben",
+  "travel_addAnotherLeg": "Lägg till ytterligare resa",
+  "travel_sourceAuto": "Auto",
+  "travel_sourceManual": "Manuell",
+  "travel_total": "Total resa",
   "entry_from": "Från",
   "entry_to": "Till",
   "entry_duration": "Längd",
@@ -200,6 +212,7 @@
   "error_userNotAuth": "Användaren är inte inloggad",
   "error_generic": "Något gick fel",
   "error_networkError": "Nätverksfel. Kontrollera din anslutning.",
+  "error_addAtLeastOneShift": "Vänligen lägg till minst ett skift.",
 
   "absence_title": "Frånvaro",
   "absence_addAbsence": "Lägg till frånvaro",
@@ -274,6 +287,16 @@
   "error_signInRequired": "Logga in för att spara poster",
   "error_savingEntry": "Fel vid sparande av post: {error}",
   "error_calculatingTravelTime": "Kunde inte beräkna restid: {error}",
+  "error_invalidHours": "Timmar måste vara ett icke-negativt tal",
+  "error_invalidMinutes": "Minuter måste vara mellan 0 och 59",
+  "error_durationRequired": "Ange en giltig längd (större än 0)",
+  "error_endTimeBeforeStart": "Sluttid måste vara efter starttid",
+  "error_invalidShiftTime": "Skift {number} har ogiltiga tider (sluttid måste vara efter starttid)",
+  "@error_invalidShiftTime": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
 
   "form_departure": "Avgång",
   "form_arrival": "Ankomst",
@@ -288,6 +311,22 @@
   "form_manualDuration": "Manuell längd",
   "form_hours": "Timmar",
   "form_minutes": "Minuter",
+  "form_unpaidBreakMinutes": "Obetald rast (min)",
+  "form_shiftLabel": "Skift {number}",
+  "@form_shiftLabel": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "form_span": "Spann",
+  "form_break": "Rast",
+  "form_worked": "Arbetat",
+  "form_useLocationForAllShifts": "Använd denna plats för alla skift",
+  "form_shiftLocation": "Skiftplats",
+  "form_shiftNotes": "Skiftanteckningar",
+  "form_shiftNotesHint": "Lägg till anteckningar för detta skift (t.ex. specifika uppgifter, problem)",
+  "form_sameAsDefault": "Samma som standard",
+  "form_dayNotes": "Daganteckningar",
 
   "export_title": "Exportera data",
   "export_dateRange": "Datumintervall",
@@ -411,6 +450,9 @@
   "edit_save": "Spara",
   "edit_cancel": "Avbryt",
   "edit_errorSaving": "Fel vid sparande av post: {error}",
+  "editMode_singleEntryInfo_work": "Redigerar en post. För att lägga till ytterligare ett skift för detta datum, skapa en ny post.",
+  "editMode_singleEntryInfo_travel": "Redigerar en post. För att lägga till ytterligare en resa för detta datum, skapa en ny post.",
+  "editMode_addNewEntryForDate": "Lägg till ny post för detta datum",
 
   "dateRange_title": "Välj datumintervall",
   "dateRange_description": "Välj en tidsperiod att analysera",
@@ -463,6 +505,8 @@
   "history_noDescription": "Ingen beskrivning",
   "history_title": "Historik",
   "history_travel": "Resa",
+  "history_worked": "Arbetat",
+  "history_totalWorked": "Totalt arbetat",
   "history_work": "Arbete",
   "history_all": "Alla",
   "history_yesterday": "Igår",
@@ -687,5 +731,39 @@
   "form_arrivalLocation": "Ankomstplats",
   "form_additionalInformation": "Ytterligare information",
   "form_pleaseSelectDate": "Vänligen välj ett datum",
-  "dateRange_last90Days": "Senaste 90 dagarna"
+  "dateRange_last90Days": "Senaste 90 dagarna",
+  "form_shiftLocationHint": "Ange skiftplats",
+  "error_negativeBreakMinutes": "Skift {number}: Rastminuter kan inte vara negativa",
+  "@error_negativeBreakMinutes": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "error_breakExceedsSpan": "Skift {number}: Rastminuter ({breakMinutes}) kan inte överstiga tidsintervallet ({spanMinutes}m)",
+  "@error_breakExceedsSpan": {
+    "placeholders": {
+      "number": {},
+      "breakMinutes": {},
+      "spanMinutes": {}
+    }
+  },
+  "home_trackWorkShifts": "Spåra dina arbetspass",
+  "travel_removeLeg": "Ta bort reseben",
+  "error_addAtLeastOneTravelLeg": "Vänligen lägg till minst ett reseben",
+  "error_selectTravelLocations": "Resa {number}: Vänligen välj både från- och till-platser",
+  "@error_selectTravelLocations": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "error_invalidTravelDuration": "Resa {number}: Ange en giltig varaktighet (större än 0)",
+  "@error_invalidTravelDuration": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "travel_notesHint": "Lägg till detaljer om din resa...",
+  "form_span": "Spann",
+  "form_break": "Rast",
+  "form_worked": "Arbetat"
 }

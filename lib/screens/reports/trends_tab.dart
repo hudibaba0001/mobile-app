@@ -29,7 +29,7 @@ class TrendsTab extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.overview_errorLoadingData,
+              AppLocalizations.of(context).overview_errorLoadingData,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -65,7 +65,7 @@ class TrendsTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.trends_monthlyComparison,
+                  AppLocalizations.of(context).trends_monthlyComparison,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.onSurface,
@@ -78,11 +78,11 @@ class TrendsTab extends StatelessWidget {
                       child: _buildComparisonCard(
                         theme,
                         title:
-                            AppLocalizations.of(context)!.trends_currentMonth,
+                            AppLocalizations.of(context).trends_currentMonth,
                         value:
                             '${(trendsData['monthlyComparison']?['currentMonth'] as double? ?? 0.0).toStringAsFixed(1)}h',
                         subtitle:
-                            AppLocalizations.of(context)!.trends_workHours,
+                            AppLocalizations.of(context).trends_workHours,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -90,11 +90,11 @@ class TrendsTab extends StatelessWidget {
                       child: _buildComparisonCard(
                         theme,
                         title:
-                            AppLocalizations.of(context)!.trends_previousMonth,
+                            AppLocalizations.of(context).trends_previousMonth,
                         value:
                             '${(trendsData['monthlyComparison']?['previousMonth'] as double? ?? 0.0).toStringAsFixed(1)}h',
                         subtitle:
-                            AppLocalizations.of(context)!.trends_workHours,
+                            AppLocalizations.of(context).trends_workHours,
                       ),
                     ),
                   ],
@@ -141,7 +141,7 @@ class TrendsTab extends StatelessWidget {
 
           // Weekly Hours Chart
           Text(
-            AppLocalizations.of(context)!.trends_weeklyHours,
+            AppLocalizations.of(context).trends_weeklyHours,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
@@ -169,7 +169,7 @@ class TrendsTab extends StatelessWidget {
 
           // Daily Trends
           Text(
-            AppLocalizations.of(context)!.trends_dailyTrends,
+            AppLocalizations.of(context).trends_dailyTrends,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
@@ -366,7 +366,7 @@ class TrendsTab extends StatelessWidget {
           ),
         ),
         child: Text(
-          AppLocalizations.of(context)!.overview_noDataAvailable,
+          AppLocalizations.of(context).overview_noDataAvailable,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -419,7 +419,7 @@ class TrendsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${totalHours.toStringAsFixed(1)}h ${AppLocalizations.of(context)!.trends_total}',
+                  '${totalHours.toStringAsFixed(1)}h ${AppLocalizations.of(context).trends_total}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -431,14 +431,14 @@ class TrendsTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${workHours.toStringAsFixed(1)}h ${AppLocalizations.of(context)!.trends_work}',
+                '${workHours.toStringAsFixed(1)}h ${AppLocalizations.of(context).trends_work}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.error,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
-                '${travelHours.toStringAsFixed(1)}h ${AppLocalizations.of(context)!.trends_travel}',
+                '${travelHours.toStringAsFixed(1)}h ${AppLocalizations.of(context).trends_travel}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.tertiary,
                   fontWeight: FontWeight.w500,

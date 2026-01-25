@@ -18,29 +18,35 @@ void main() {
     });
 
     test('should save and retrieve route duration', () async {
-      await service.saveRoute('Stockholm', 'Uppsala', 55);
+      await service.saveRoute(from: 'Stockholm', to: 'Uppsala', minutes: 55);
 
       final duration = service.getRouteDuration('Stockholm', 'Uppsala');
       expect(duration, 55);
     });
 
-    test('should save reverse route automatically', () async {
-      await service.saveRoute('Stockholm', 'Uppsala', 55);
+    test('should retrieve reverse route when querying', () async {
+      await service.saveRoute(from: 'Stockholm', to: 'Uppsala', minutes: 55);
 
-      final reverseDuration = service.getRouteDuration('Uppsala', 'Stockholm');
+      // Reverse caching: saving A->B also saves B->A
+      // Use getMinutes for canonical API
+      final reverseDuration = service.getMinutes('Uppsala', 'Stockholm');
       expect(reverseDuration, 55);
+      
+      // getRouteDuration also works (delegates to getMinutes)
+      final reverseDurationLegacy = service.getRouteDuration('Uppsala', 'Stockholm');
+      expect(reverseDurationLegacy, 55);
     });
 
     test('should match routes case-insensitively and ignoring whitespace', () async {
-      await service.saveRoute('  Stockholm  ', 'Uppsala', 55);
+      await service.saveRoute(from: '  Stockholm  ', to: 'Uppsala', minutes: 55);
 
       final duration = service.getRouteDuration('stockholm', 'uppsala');
       expect(duration, 55);
     });
 
     test('should update existing route', () async {
-      await service.saveRoute('Stockholm', 'Uppsala', 55);
-      await service.saveRoute('Stockholm', 'Uppsala', 60);
+      await service.saveRoute(from: 'Stockholm', to: 'Uppsala', minutes: 55);
+      await service.saveRoute(from: 'Stockholm', to: 'Uppsala', minutes: 60);
 
       final duration = service.getRouteDuration('Stockholm', 'Uppsala');
       expect(duration, 60);

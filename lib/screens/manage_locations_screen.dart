@@ -148,7 +148,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                           controller: _addressController,
                           decoration: InputDecoration(
                             labelText: 'Address',
-                            hintText: AppLocalizations.of(context)!.location_fullAddress,
+                            hintText: AppLocalizations.of(context).location_fullAddress,
                             prefixIcon: Icon(
                               Icons.location_on_outlined,
                               color: colorScheme.onSurfaceVariant,
@@ -235,7 +235,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: Text(AppLocalizations.of(context)!.location_addLocation),
+                                child: Text(AppLocalizations.of(context).location_addLocation),
                               ),
                             ),
                           ],
@@ -404,7 +404,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 FilledButton.icon(
                                   onPressed: _showAddLocationDialog,
                                   icon: const Icon(Icons.add),
-                                  label: Text(AppLocalizations.of(context)!.location_addFirstLocation),
+                                  label: Text(AppLocalizations.of(context).location_addFirstLocation),
                                   style: FilledButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24,
@@ -572,7 +572,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
               ),
               onSelected: (value) async {
                 if (value == 'delete') {
-                  final t = AppLocalizations.of(context)!;
+                  final t = AppLocalizations.of(context);
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder: (dialogContext) => AlertDialog(

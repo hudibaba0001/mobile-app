@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import '../config/map_config.dart';
+import 'travel_cache_service.dart';
 
 /// Service for calculating travel time and distance using Mapbox API
 /// 
@@ -15,6 +16,9 @@ class MapService {
   /// 
   /// [origin] - Starting address (e.g., "New York, NY")
   /// [destination] - Destination address (e.g., "Boston, MA")
+  /// [originPlaceId] - Optional place ID for origin (for better caching)
+  /// [destinationPlaceId] - Optional place ID for destination (for better caching)
+  /// [useCache] - Whether to check cache first (default: true)
   /// 
   /// Returns a Map with:
   /// - 'durationMinutes': Travel time in minutes
@@ -26,7 +30,38 @@ class MapService {
   static Future<Map<String, dynamic>> calculateTravelTime({
     required String origin,
     required String destination,
+    String? originPlaceId,
+    String? destinationPlaceId,
+    bool useCache = true,
   }) async {
+    // Check cache first if enabled
+    if (useCache) {
+      final cacheService = TravelCacheService();
+      await cacheService.init();
+      
+      final cached = cacheService.getCachedRoute(
+        fromPlaceId: originPlaceId,
+        toPlaceId: destinationPlaceId,
+        fromText: origin,
+        toText: destination,
+      );
+      
+      if (cached != null) {
+        debugPrint('MapService: ✅ Using cached route: ${cached.minutes} minutes');
+        final distanceMeters = cached.distanceKm != null 
+            ? (cached.distanceKm! * 1000).round()
+            : null;
+        return {
+          'durationMinutes': cached.minutes,
+          'distanceMeters': distanceMeters,
+          'durationText': _formatDuration(cached.minutes),
+          'distanceText': cached.distanceKm != null 
+              ? _formatDistance(cached.distanceKm! * 1000)
+              : '',
+          'distanceKm': cached.distanceKm,
+        };
+      }
+    }
     if (!MapConfig.isConfigured) {
       throw Exception(
         'Mapbox API key not configured. Please add your API key in lib/config/map_config.dart'
@@ -75,15 +110,31 @@ class MapService {
       final durationMinutes = (duration / 60).round();
       final durationText = _formatDuration(durationMinutes);
       final distanceText = _formatDistance(distance);
+      final distanceKm = distance / 1000;
 
       debugPrint('MapService: ✅ Calculated travel time: $durationMinutes minutes ($durationText)');
-      debugPrint('MapService: ✅ Distance: ${(distance / 1000).toStringAsFixed(1)} km ($distanceText)');
+      debugPrint('MapService: ✅ Distance: ${distanceKm.toStringAsFixed(1)} km ($distanceText)');
+
+      // Cache the result
+      if (useCache) {
+        final cacheService = TravelCacheService();
+        await cacheService.init();
+        await cacheService.saveRouteNamed(
+          fromPlaceId: originPlaceId,
+          toPlaceId: destinationPlaceId,
+          fromText: origin,
+          toText: destination,
+          minutes: durationMinutes,
+          distanceKm: distanceKm,
+        );
+      }
 
       return {
         'durationMinutes': durationMinutes,
         'distanceMeters': distance.round(),
         'durationText': durationText,
         'distanceText': distanceText,
+        'distanceKm': distanceKm,
       };
     } catch (e) {
       debugPrint('MapService: ❌ Error calculating travel time: $e');

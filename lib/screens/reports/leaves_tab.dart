@@ -134,7 +134,7 @@ class _LeavesTabState extends State<LeavesTab> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!.leave_summary(year),
+                  AppLocalizations.of(context).leave_summary(year),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.primary,
@@ -184,7 +184,7 @@ class _LeavesTabState extends State<LeavesTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.leave_totalLeaveDays,
+                  AppLocalizations.of(context).leave_totalLeaveDays,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -271,7 +271,7 @@ class _LeavesTabState extends State<LeavesTab> {
             ),
             const SizedBox(width: 8),
             Text(
-              AppLocalizations.of(context)!.leave_recentLeaves,
+              AppLocalizations.of(context).leave_recentLeaves,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -299,14 +299,14 @@ class _LeavesTabState extends State<LeavesTab> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      AppLocalizations.of(context)!.leave_noLeavesRecorded,
+                      AppLocalizations.of(context).leave_noLeavesRecorded,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      AppLocalizations.of(context)!.leave_noLeavesDescription,
+                      AppLocalizations.of(context).leave_noLeavesDescription,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                       ),
@@ -377,7 +377,7 @@ class _LeavesTabState extends State<LeavesTab> {
               ),
               child: Text(
                 absence.minutes == 0 
-                    ? AppLocalizations.of(context)!.leave_fullDay
+                    ? AppLocalizations.of(context).leave_fullDay
                     : '${(absence.minutes / 60).toStringAsFixed(1)}h',
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: typeInfo.color,

@@ -142,7 +142,7 @@ class _BalanceCardState extends State<BalanceCard>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppLocalizations.of(context)!.balance_todaysBalance,
+                AppLocalizations.of(context).balance_todaysBalance,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w600,
@@ -187,8 +187,8 @@ class _BalanceCardState extends State<BalanceCard>
           const SizedBox(width: 4),
           Text(
             isBalanced 
-              ? AppLocalizations.of(context)!.balance_balanced
-              : AppLocalizations.of(context)!.balance_unbalanced,
+              ? AppLocalizations.of(context).balance_balanced
+              : AppLocalizations.of(context).balance_unbalanced,
             style: theme.textTheme.labelSmall?.copyWith(
               color: isBalanced ? colorScheme.tertiary : colorScheme.error,
               fontWeight: FontWeight.w600,
@@ -211,7 +211,7 @@ class _BalanceCardState extends State<BalanceCard>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              AppLocalizations.of(context)!.balance_workVsTravel,
+              AppLocalizations.of(context).balance_workVsTravel,
               style: theme.textTheme.labelMedium?.copyWith(
                 color: colorScheme.onPrimaryContainer.withOpacity(0.8),
               ),
@@ -284,7 +284,7 @@ class _BalanceCardState extends State<BalanceCard>
           child: _buildStatItem(
             theme,
             icon: Icons.work_outline,
-            label: AppLocalizations.of(context)!.balance_work,
+            label: AppLocalizations.of(context).balance_work,
             value: _formatDuration(stats.workMinutes),
             color: colorScheme.secondary,
           ),
@@ -294,7 +294,7 @@ class _BalanceCardState extends State<BalanceCard>
           child: _buildStatItem(
             theme,
             icon: Icons.directions_car,
-            label: AppLocalizations.of(context)!.balance_travel,
+            label: AppLocalizations.of(context).balance_travel,
             value: _formatDuration(stats.travelMinutes),
             color: colorScheme.primary,
           ),
@@ -304,7 +304,7 @@ class _BalanceCardState extends State<BalanceCard>
           child: _buildStatItem(
             theme,
             icon: Icons.timeline,
-            label: AppLocalizations.of(context)!.balance_entries,
+            label: AppLocalizations.of(context).balance_entries,
             value: '${stats.entryCount}',
             color: colorScheme.tertiary,
           ),

@@ -89,7 +89,7 @@ class HolidayService extends ChangeNotifier {
   bool get autoMarkHolidays => _autoMarkHolidays;
   
   /// Current country code for holidays
-  String _countryCode = 'SE';
+  final String _countryCode = 'SE';
   String get countryCode => _countryCode;
   
   /// Initialize with repository and user ID

@@ -34,7 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final user = context.read<SupabaseAuthService>().currentUser;
 
@@ -172,7 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showEditNameDialog(BuildContext context, User user) async {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final controller = TextEditingController(text: user.userMetadata?['full_name'] ?? user.email ?? '');
 

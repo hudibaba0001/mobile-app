@@ -75,7 +75,7 @@ class _ExportDialogState extends State<ExportDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final filteredEntries = _getFilteredEntries();
 
     return AlertDialog(
@@ -360,7 +360,7 @@ class _ExportDialogState extends State<ExportDialog> {
   }
 
   Future<void> _exportData() async {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     if (_customFileName.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(t.export_enterFilename)),

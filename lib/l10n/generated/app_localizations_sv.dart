@@ -66,6 +66,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get common_ok => 'OK';
 
   @override
+  String get common_optional => '(valfritt)';
+
+  @override
   String get common_loading => 'Laddar...';
 
   @override
@@ -623,6 +626,26 @@ class AppLocalizationsSv extends AppLocalizations {
   String get entry_work => 'Arbete';
 
   @override
+  String travel_legLabel(int number) {
+    return 'Resa $number';
+  }
+
+  @override
+  String get travel_addLeg => 'Lägg till reseben';
+
+  @override
+  String get travel_addAnotherLeg => 'Lägg till ytterligare resa';
+
+  @override
+  String get travel_sourceAuto => 'Auto';
+
+  @override
+  String get travel_sourceManual => 'Manuell';
+
+  @override
+  String get travel_total => 'Total resa';
+
+  @override
   String get entry_from => 'Från';
 
   @override
@@ -897,6 +920,23 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
+  String get error_invalidHours => 'Timmar måste vara ett icke-negativt tal';
+
+  @override
+  String get error_invalidMinutes => 'Minuter måste vara mellan 0 och 59';
+
+  @override
+  String get error_durationRequired => 'Ange en giltig längd (större än 0)';
+
+  @override
+  String get error_endTimeBeforeStart => 'Sluttid måste vara efter starttid';
+
+  @override
+  String error_invalidShiftTime(int number) {
+    return 'Skift $number har ogiltiga tider (sluttid måste vara efter starttid)';
+  }
+
+  @override
   String get form_departure => 'Avgång';
 
   @override
@@ -934,6 +974,43 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get form_minutes => 'Minuter';
+
+  @override
+  String get form_unpaidBreakMinutes => 'Obetald rast (min)';
+
+  @override
+  String form_shiftLabel(int number) {
+    return 'Skift $number';
+  }
+
+  @override
+  String get form_span => 'Spann';
+
+  @override
+  String get form_break => 'Rast';
+
+  @override
+  String get form_worked => 'Arbetat';
+
+  @override
+  String get form_useLocationForAllShifts =>
+      'Använd denna plats för alla skift';
+
+  @override
+  String get form_shiftLocation => 'Skiftplats';
+
+  @override
+  String get form_shiftNotes => 'Skiftanteckningar';
+
+  @override
+  String get form_shiftNotesHint =>
+      'Lägg till anteckningar för detta skift (t.ex. specifika uppgifter, problem)';
+
+  @override
+  String get form_sameAsDefault => 'Samma som standard';
+
+  @override
+  String get form_dayNotes => 'Daganteckningar';
 
   @override
   String get export_includeAllData => 'Inkludera all data';
@@ -1294,6 +1371,17 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
+  String get editMode_singleEntryInfo_work =>
+      'Redigerar en post. För att lägga till ytterligare ett skift för detta datum, skapa en ny post.';
+
+  @override
+  String get editMode_singleEntryInfo_travel =>
+      'Redigerar en post. För att lägga till ytterligare en resa för detta datum, skapa en ny post.';
+
+  @override
+  String get editMode_addNewEntryForDate => 'Lägg till ny post för detta datum';
+
+  @override
   String get dateRange_title => 'Välj datumintervall';
 
   @override
@@ -1445,6 +1533,12 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get history_travel => 'Resa';
+
+  @override
+  String get history_worked => 'Arbetat';
+
+  @override
+  String get history_totalWorked => 'Totalt arbetat';
 
   @override
   String get history_work => 'Arbete';
@@ -1814,6 +1908,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get entry_personalRedDay => 'Personlig röd dag';
 
   @override
+  String get error_addAtLeastOneShift => 'Vänligen lägg till minst ett skift.';
+
+  @override
   String get shift_morning => 'Morgonskift';
 
   @override
@@ -1992,4 +2089,41 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get dateRange_last90Days => 'Senaste 90 dagarna';
+
+  @override
+  String get form_shiftLocationHint => 'Ange skiftplats';
+
+  @override
+  String error_negativeBreakMinutes(Object number) {
+    return 'Skift $number: Rastminuter kan inte vara negativa';
+  }
+
+  @override
+  String error_breakExceedsSpan(
+      Object number, Object breakMinutes, Object spanMinutes) {
+    return 'Skift $number: Rastminuter ($breakMinutes) kan inte överstiga tidsintervallet (${spanMinutes}m)';
+  }
+
+  @override
+  String get home_trackWorkShifts => 'Spåra dina arbetspass';
+
+  @override
+  String get travel_removeLeg => 'Ta bort reseben';
+
+  @override
+  String get error_addAtLeastOneTravelLeg =>
+      'Vänligen lägg till minst ett reseben';
+
+  @override
+  String error_selectTravelLocations(Object number) {
+    return 'Resa $number: Vänligen välj både från- och till-platser';
+  }
+
+  @override
+  String error_invalidTravelDuration(Object number) {
+    return 'Resa $number: Ange en giltig varaktighet (större än 0)';
+  }
+
+  @override
+  String get travel_notesHint => 'Lägg till detaljer om din resa...';
 }

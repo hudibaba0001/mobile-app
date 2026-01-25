@@ -68,11 +68,25 @@ class SupabaseEntryService {
                 .order('start_time', ascending: true);
             
             if (shiftsResponse.isNotEmpty) {
-              final shifts = shiftsResponse.map((shift) => {
-                'start': shift['start_time'],
-                'end': shift['end_time'],
-                'location': shift['location'],
-                'description': shift['description'],
+              final shifts = shiftsResponse.map((shift) {
+                // Map DB columns to Shift.fromJson format
+                // Note: 'description' column doesn't exist in DB, use notes instead
+                final dbNotes = shift['notes'] as String?;
+                // Parse UTC times from DB and convert to local
+                final startUtc = DateTime.parse(shift['start_time'] as String);
+                final endUtc = DateTime.parse(shift['end_time'] as String);
+                final startLocal = startUtc.toLocal();
+                final endLocal = endUtc.toLocal();
+                
+                return {
+                  'start': startLocal.toIso8601String(), // Convert to local for UI
+                  'end': endLocal.toIso8601String(), // Convert to local for UI
+                  'location': shift['location'],
+                  'unpaid_break_minutes': shift['unpaid_break_minutes'] ?? 0,
+                  'notes': dbNotes,
+                  // For backward compatibility: if Shift model expects description, use notes
+                  'description': dbNotes, // Map notes to description for Shift.fromJson
+                };
               }).toList();
               entryRow['shifts'] = shifts;
             }
@@ -149,11 +163,25 @@ class SupabaseEntryService {
                 .order('start_time', ascending: true);
             
             if (shiftsResponse.isNotEmpty) {
-              final shifts = shiftsResponse.map((shift) => {
-                'start': shift['start_time'],
-                'end': shift['end_time'],
-                'location': shift['location'],
-                'description': shift['description'],
+              final shifts = shiftsResponse.map((shift) {
+                // Map DB columns to Shift.fromJson format
+                // Note: 'description' column doesn't exist in DB, use notes instead
+                final dbNotes = shift['notes'] as String?;
+                // Parse UTC times from DB and convert to local
+                final startUtc = DateTime.parse(shift['start_time'] as String);
+                final endUtc = DateTime.parse(shift['end_time'] as String);
+                final startLocal = startUtc.toLocal();
+                final endLocal = endUtc.toLocal();
+                
+                return {
+                  'start': startLocal.toIso8601String(), // Convert to local for UI
+                  'end': endLocal.toIso8601String(), // Convert to local for UI
+                  'location': shift['location'],
+                  'unpaid_break_minutes': shift['unpaid_break_minutes'] ?? 0,
+                  'notes': dbNotes,
+                  // For backward compatibility: if Shift model expects description, use notes
+                  'description': dbNotes, // Map notes to description for Shift.fromJson
+                };
               }).toList();
               entryRow['shifts'] = shifts;
             }
@@ -250,15 +278,39 @@ class SupabaseEntryService {
         entryResponse['total_segments'] = entry.totalSegments;
       } else if (entry.type == EntryType.work && entry.shifts != null && entry.shifts!.isNotEmpty) {
         // Insert work shifts
-        final shiftsData = entry.shifts!.map((shift) => {
-          'id': _uuid.v4(),
-          'entry_id': entryId,
-          'start_time': shift.start.toIso8601String(),
-          'end_time': shift.end.toIso8601String(),
-          'location': shift.location,
-          'description': shift.description,
-          'created_at': entry.createdAt.toIso8601String(),
-          'updated_at': entry.updatedAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+        // Map Shift model to DB columns: start_time, end_time, location, unpaid_break_minutes, notes
+        // DO NOT write 'description' column (doesn't exist in DB schema)
+        final shiftsData = entry.shifts!.map((shift) {
+          // Use notes if available, otherwise fall back to description for backward compatibility
+          final dbNotes = shift.notes ?? shift.description;
+          
+          // Convert local DateTime to UTC before storing in DB
+          // Shift start/end are in local time (constructed from entry.date + TimeOfDay)
+          final startLocal = shift.start.isUtc 
+              ? shift.start.toLocal() 
+              : shift.start; // Already local
+          final endLocal = shift.end.isUtc 
+              ? shift.end.toLocal() 
+              : shift.end; // Already local
+          
+          final startUtc = startLocal.toUtc();
+          final endUtc = endLocal.toUtc();
+          
+          debugPrint('SupabaseEntryService: Shift timezone conversion - '
+              'start local: ${startLocal.toIso8601String()}, UTC: ${startUtc.toIso8601String()}, '
+              'break: ${shift.unpaidBreakMinutes}, notes: ${dbNotes}');
+          
+          return {
+            'id': _uuid.v4(),
+            'entry_id': entryId,
+            'start_time': startUtc.toIso8601String(), // Store as UTC
+            'end_time': endUtc.toIso8601String(), // Store as UTC
+            'location': shift.location,
+            'unpaid_break_minutes': shift.unpaidBreakMinutes,
+            'notes': dbNotes,
+            'created_at': entry.createdAt.toIso8601String(),
+            'updated_at': entry.updatedAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+          };
         }).toList();
 
         await _supabase
@@ -268,11 +320,17 @@ class SupabaseEntryService {
         debugPrint('SupabaseEntryService: ✅ ${shiftsData.length} work shift(s) inserted');
         
         // Add shifts data to response for Entry.fromJson
-        entryResponse['shifts'] = entry.shifts!.map((s) => {
-          'start': s.start.toIso8601String(),
-          'end': s.end.toIso8601String(),
-          'location': s.location,
-          'description': s.description,
+        entryResponse['shifts'] = entry.shifts!.map((s) {
+          final dbNotes = s.notes ?? s.description;
+          return {
+            'start': s.start.toIso8601String(),
+            'end': s.end.toIso8601String(),
+            'location': s.location,
+            'unpaid_break_minutes': s.unpaidBreakMinutes,
+            'notes': dbNotes,
+            // For backward compatibility with Shift.fromJson
+            'description': dbNotes,
+          };
         }).toList();
       }
 
@@ -366,15 +424,31 @@ class SupabaseEntryService {
             .eq('entry_id', entry.id);
 
         if (entry.shifts != null && entry.shifts!.isNotEmpty) {
-          final shiftsData = entry.shifts!.map((shift) => {
-            'id': _uuid.v4(),
-            'entry_id': entry.id,
-            'start_time': shift.start.toIso8601String(),
-            'end_time': shift.end.toIso8601String(),
-            'location': shift.location,
-            'description': shift.description,
-            'created_at': entry.createdAt.toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
+          // Map Shift model to DB columns (no description column)
+          final shiftsData = entry.shifts!.map((shift) {
+            final dbNotes = shift.notes ?? shift.description;
+            
+            // Convert local DateTime to UTC before storing in DB
+            final startLocal = shift.start.isUtc ? shift.start.toLocal() : shift.start;
+            final endLocal = shift.end.isUtc ? shift.end.toLocal() : shift.end;
+            final startUtc = startLocal.toUtc();
+            final endUtc = endLocal.toUtc();
+            
+            debugPrint('SupabaseEntryService: Update shift timezone conversion - '
+                'start local: ${startLocal.toIso8601String()}, UTC: ${startUtc.toIso8601String()}, '
+                'break: ${shift.unpaidBreakMinutes}, notes: $dbNotes');
+            
+            return {
+              'id': _uuid.v4(),
+              'entry_id': entry.id,
+              'start_time': startUtc.toIso8601String(), // Store as UTC
+              'end_time': endUtc.toIso8601String(), // Store as UTC
+              'location': shift.location,
+              'unpaid_break_minutes': shift.unpaidBreakMinutes,
+              'notes': dbNotes,
+              'created_at': entry.createdAt.toIso8601String(),
+              'updated_at': DateTime.now().toIso8601String(),
+            };
           }).toList();
 
           await _supabase
@@ -461,15 +535,28 @@ class SupabaseEntryService {
             .eq('entry_id', entryId)
             .order('start_time', ascending: true);
         
-        if (shiftsResponse.isNotEmpty) {
-          final shifts = shiftsResponse.map((shift) => {
-            'start': shift['start_time'],
-            'end': shift['end_time'],
-            'location': shift['location'],
-            'description': shift['description'],
-          }).toList();
-          entryResponse['shifts'] = shifts;
-        }
+            if (shiftsResponse.isNotEmpty) {
+              final shifts = shiftsResponse.map((shift) {
+                final dbNotes = shift['notes'] as String?;
+                
+                // Parse UTC times from DB and convert to local
+                final startUtc = DateTime.parse(shift['start_time'] as String);
+                final endUtc = DateTime.parse(shift['end_time'] as String);
+                final startLocal = startUtc.toLocal();
+                final endLocal = endUtc.toLocal();
+                
+                return {
+                  'start': startLocal.toIso8601String(), // Convert to local for UI
+                  'end': endLocal.toIso8601String(), // Convert to local for UI
+                  'location': shift['location'],
+                  'unpaid_break_minutes': shift['unpaid_break_minutes'] ?? 0,
+                  'notes': dbNotes,
+                  // For backward compatibility with Shift.fromJson
+                  'description': dbNotes,
+                };
+              }).toList();
+              entryResponse['shifts'] = shifts;
+            }
       }
 
       return Entry.fromJson(entryResponse);

@@ -49,7 +49,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
   }
 
   Future<void> _save() async {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     setState(() => _isLoading = true);
 
     try {
@@ -95,7 +95,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
   }
 
   Future<void> _delete() async {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -151,7 +151,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final dateStr = DateFormat('EEEE, MMMM d, y').format(widget.date);
     final redDayInfo = widget.holidayService.getRedDayInfo(widget.date);

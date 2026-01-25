@@ -25,6 +25,7 @@
   "common_yes": "Yes",
   "common_no": "No",
   "common_ok": "OK",
+  "common_optional": "(optional)",
   "common_loading": "Loading...",
   "common_error": "Error",
   "common_success": "Success",
@@ -300,6 +301,17 @@
 
   "entry_travel": "Travel",
   "entry_work": "Work",
+  "travel_legLabel": "Travel {number}",
+  "@travel_legLabel": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "travel_addLeg": "Add Travel Leg",
+  "travel_addAnotherLeg": "Add Another Travel",
+  "travel_sourceAuto": "Auto",
+  "travel_sourceManual": "Manual",
+  "travel_total": "Total travel",
   "entry_from": "From",
   "entry_to": "To",
   "entry_duration": "Duration",
@@ -457,6 +469,16 @@
       "error": {"type": "String"}
     }
   },
+  "error_invalidHours": "Hours must be a non-negative number",
+  "error_invalidMinutes": "Minutes must be between 0 and 59",
+  "error_durationRequired": "Please enter a valid duration (greater than 0)",
+  "error_endTimeBeforeStart": "End time must be after start time",
+  "error_invalidShiftTime": "Shift {number} has invalid times (end must be after start)",
+  "@error_invalidShiftTime": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
 
   "form_departure": "Departure",
   "form_arrival": "Arrival",
@@ -471,6 +493,22 @@
   "form_manualDuration": "Manual Duration",
   "form_hours": "Hours",
   "form_minutes": "Minutes",
+  "form_unpaidBreakMinutes": "Unpaid break (min)",
+  "form_shiftLabel": "Shift {number}",
+  "@form_shiftLabel": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "form_span": "Span",
+  "form_break": "Break",
+  "form_worked": "Worked",
+  "form_useLocationForAllShifts": "Use this location for all shifts",
+  "form_shiftLocation": "Shift location",
+  "form_shiftNotes": "Shift notes",
+  "form_shiftNotesHint": "Add notes for this shift (e.g., specific tasks, issues)",
+  "form_sameAsDefault": "Same as default",
+  "form_dayNotes": "Day notes",
 
   "export_title": "Export Data",
   "export_dateRange": "Date Range",
@@ -674,6 +712,9 @@
   "edit_save": "Save",
   "edit_cancel": "Cancel",
   "edit_errorSaving": "Error saving entry: {error}",
+  "editMode_singleEntryInfo_work": "Editing one entry. To add another shift for this date, create a new entry.",
+  "editMode_singleEntryInfo_travel": "Editing one entry. To add another travel leg for this date, create a new entry.",
+  "editMode_addNewEntryForDate": "Add new entry for this date",
   "@edit_errorSaving": {
     "placeholders": {
       "error": {"type": "String"}
@@ -772,6 +813,8 @@
   "history_noDescription": "No description",
   "history_title": "History",
   "history_travel": "Travel",
+  "history_worked": "Worked",
+  "history_totalWorked": "Total worked",
   "history_work": "Work",
   "history_all": "All",
   "history_yesterday": "Yesterday",
@@ -1005,6 +1048,8 @@
   "entry_redDayWarning": "Red day. Hours entered here may count as holiday work.",
   "entry_personalRedDay": "Personal red day",
 
+  "error_addAtLeastOneShift": "Please add at least one shift.",
+
   "shift_morning": "Morning Shift",
   "shift_afternoon": "Afternoon Shift",
   "shift_evening": "Evening Shift",
@@ -1076,5 +1121,39 @@
   "form_arrivalLocation": "Arrival location",
   "form_additionalInformation": "Additional information",
   "form_pleaseSelectDate": "Please select a date",
-  "dateRange_last90Days": "Last 90 Days"
+  "dateRange_last90Days": "Last 90 Days",
+  "form_shiftLocationHint": "Enter shift location",
+  "error_negativeBreakMinutes": "Shift {number}: Break minutes cannot be negative",
+  "@error_negativeBreakMinutes": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "error_breakExceedsSpan": "Shift {number}: Break minutes ({breakMinutes}) cannot exceed span ({spanMinutes}m)",
+  "@error_breakExceedsSpan": {
+    "placeholders": {
+      "number": {},
+      "breakMinutes": {},
+      "spanMinutes": {}
+    }
+  },
+  "home_trackWorkShifts": "Track your work shifts",
+  "travel_removeLeg": "Remove travel leg",
+  "error_addAtLeastOneTravelLeg": "Please add at least one travel leg",
+  "error_selectTravelLocations": "Travel {number}: Please select both from and to locations",
+  "@error_selectTravelLocations": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "error_invalidTravelDuration": "Travel {number}: Please enter a valid duration (greater than 0)",
+  "@error_invalidTravelDuration": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "travel_notesHint": "Add details about your travel...",
+  "form_span": "Span",
+  "form_break": "Break",
+  "form_worked": "Worked"
 }

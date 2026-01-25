@@ -108,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.auth_signupFailed(e.toString())),
@@ -367,13 +367,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Forgot Password
                           TextButton(
                             onPressed: () {
-                              // TODO: Implement forgot password
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Forgot password feature coming soon!'),
-                                ),
-                              );
+                              AppRouter.goToForgotPassword(context);
                             },
                             child: Text(
                               'Forgot Password?',

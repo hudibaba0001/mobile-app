@@ -1,6 +1,8 @@
 // ignore_for_file: avoid_print
 /// Script to check that all keys from app_en.arb exist in app_sv.arb
 /// Run with: dart run scripts/check_arb_keys.dart
+library;
+
 
 import 'dart:convert';
 import 'dart:io';

@@ -10,7 +10,7 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -170,7 +170,7 @@ class WelcomeScreen extends StatelessWidget {
 
   /// Show error message when URL cannot be launched
   void _showUrlError(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(t.welcome_urlError),

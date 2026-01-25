@@ -71,7 +71,7 @@ class EntryDetailSheet extends StatelessWidget {
             ..._detailWidgets(context, entry),
             const SizedBox(height: 20),
             Builder(builder: (context) {
-              final t = AppLocalizations.of(context)!;
+              final t = AppLocalizations.of(context);
               return Row(
                 children: [
                   Expanded(
@@ -112,7 +112,7 @@ class EntryDetailSheet extends StatelessWidget {
     if (e.type == EntryType.travel) {
       return 'Travel: ${e.from ?? ''} → ${e.to ?? ''}'.trim();
     }
-    return AppLocalizations.of(context)!.entryDetail_workSession;
+    return AppLocalizations.of(context).entryDetail_workSession;
   }
 
   List<Widget> _detailWidgets(BuildContext context, Entry e) {
@@ -150,7 +150,7 @@ class EntryDetailSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(AppLocalizations.of(context)!.edit_shift(i + 1),
+                        Text(AppLocalizations.of(context).edit_shift(i + 1),
                             style: theme.textTheme.labelLarge),
                         const SizedBox(height: 4),
                         Text(

@@ -1,24 +1,42 @@
 import '../models/entry.dart';
-import '../models/travel_entry.dart';
 import '../models/travel_summary.dart';
-import '../repositories/travel_repository.dart';
 import '../repositories/location_repository.dart';
+// Legacy TravelEntry model no longer used - EntryProvider is the only write path
+// import '../models/travel_entry.dart';
 import '../utils/constants.dart';
 import '../services/auth_service.dart';
 import '../config/app_router.dart';
 import 'package:provider/provider.dart';
 import '../utils/error_handler.dart';
 import '../utils/retry_helper.dart';
+import '../providers/entry_provider.dart';
 
 class TravelService {
-  final TravelRepository _travelRepository;
   final LocationRepository _locationRepository;
+  EntryProvider? _entryProvider;
 
   TravelService({
-    required TravelRepository travelRepository,
     required LocationRepository locationRepository,
-  })  : _travelRepository = travelRepository,
-        _locationRepository = locationRepository;
+    EntryProvider? entryProvider,
+  })  : _locationRepository = locationRepository,
+        _entryProvider = entryProvider;
+  
+  /// Set EntryProvider (for dependency injection)
+  void setEntryProvider(EntryProvider entryProvider) {
+    _entryProvider = entryProvider;
+  }
+  
+  /// Get EntryProvider from context if not set
+  EntryProvider? _getEntryProvider() {
+    if (_entryProvider != null) return _entryProvider;
+    try {
+      final ctx = AppRouter.navigatorKey.currentContext;
+      if (ctx != null) {
+        return Provider.of<EntryProvider>(ctx, listen: false);
+      }
+    } catch (_) {}
+    return null;
+  }
 
   /// Generate travel summary for a date range
   Future<TravelSummary> generateSummary(
@@ -36,12 +54,28 @@ class TravelService {
 
   Future<TravelSummary> _generateSummaryInternal(
       DateTime startDate, DateTime endDate) async {
-    // Acquire user from a global provider if available
+    // Use EntryProvider instead of TravelRepository
+    final entryProvider = _getEntryProvider();
+    if (entryProvider == null) {
+      throw Exception('EntryProvider not available');
+    }
+    
+    // Ensure entries are loaded
+    if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+      await entryProvider.loadEntries();
+    }
+    
+    // Filter travel entries in date range
     final userId = _currentUserId();
-    final entries =
-        _travelRepository.getForUserInRange(userId, startDate, endDate);
+    final travelEntries = entryProvider.entries
+        .where((e) => 
+            e.type == EntryType.travel &&
+            e.userId == userId &&
+            e.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
+            e.date.isBefore(endDate.add(const Duration(days: 1))))
+        .toList();
 
-    if (entries.isEmpty) {
+    if (travelEntries.isEmpty) {
       return TravelSummary(
         totalEntries: 0,
         totalMinutes: 0,
@@ -52,23 +86,25 @@ class TravelService {
     }
 
     final totalMinutes =
-        entries.fold(0, (sum, entry) => sum + entry.travelMinutes);
+        travelEntries.fold(0, (sum, entry) => sum + (entry.travelMinutes ?? 0));
     final locationFrequency = <String, int>{};
 
     // Count location frequency
-    for (final entry in entries) {
-      final route = '${entry.fromLocation} → ${entry.toLocation}';
-      locationFrequency[route] = (locationFrequency[route] ?? 0) + 1;
+    for (final entry in travelEntries) {
+      if (entry.from != null && entry.to != null) {
+        final route = '${entry.from} → ${entry.to}';
+        locationFrequency[route] = (locationFrequency[route] ?? 0) + 1;
 
-      // Also count individual locations
-      locationFrequency[entry.fromLocation] =
-          (locationFrequency[entry.fromLocation] ?? 0) + 1;
-      locationFrequency[entry.toLocation] =
-          (locationFrequency[entry.toLocation] ?? 0) + 1;
+        // Also count individual locations
+        locationFrequency[entry.from!] =
+            (locationFrequency[entry.from!] ?? 0) + 1;
+        locationFrequency[entry.to!] =
+            (locationFrequency[entry.to!] ?? 0) + 1;
+      }
     }
 
     return TravelSummary(
-      totalEntries: entries.length,
+      totalEntries: travelEntries.length,
       totalMinutes: totalMinutes,
       startDate: startDate,
       endDate: endDate,
@@ -90,15 +126,31 @@ class TravelService {
   }
 
   Future<List<String>> _getSuggestedRoutesInternal(int limit) async {
+    // Use EntryProvider instead of TravelRepository
+    final entryProvider = _getEntryProvider();
+    if (entryProvider == null) {
+      throw Exception('EntryProvider not available');
+    }
+    
+    // Ensure entries are loaded
+    if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+      await entryProvider.loadEntries();
+    }
+    
     final userId = _currentUserId();
-    final recentEntries = _travelRepository.getAllForUser(userId);
+    final travelEntries = entryProvider.entries
+        .where((e) => e.type == EntryType.travel && e.userId == userId)
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date)); // Most recent first
+    
     final routeFrequency = <String, int>{};
 
-    // Count route frequency
-    for (final entry in recentEntries.take(50)) {
-      // Look at last 50 entries
-      final route = '${entry.fromLocation} → ${entry.toLocation}';
-      routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
+    // Count route frequency (look at last 50 entries)
+    for (final entry in travelEntries.take(50)) {
+      if (entry.from != null && entry.to != null) {
+        final route = '${entry.from} → ${entry.to}';
+        routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
+      }
     }
 
     // Sort by frequency and return top routes
@@ -169,10 +221,23 @@ class TravelService {
   }
 
   Future<Map<String, dynamic>> _getTravelStatisticsInternal() async {
+    // Use EntryProvider instead of TravelRepository
+    final entryProvider = _getEntryProvider();
+    if (entryProvider == null) {
+      throw Exception('EntryProvider not available');
+    }
+    
+    // Ensure entries are loaded
+    if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+      await entryProvider.loadEntries();
+    }
+    
     final userId = _currentUserId();
-    final allEntries = _travelRepository.getAllForUser(userId);
+    final travelEntries = entryProvider.entries
+        .where((e) => e.type == EntryType.travel && e.userId == userId)
+        .toList();
 
-    if (allEntries.isEmpty) {
+    if (travelEntries.isEmpty) {
       return {
         'totalEntries': 0,
         'totalMinutes': 0,
@@ -187,18 +252,26 @@ class TravelService {
     }
 
     final totalMinutes =
-        allEntries.fold(0, (sum, entry) => sum + entry.travelMinutes);
-    final minutes = allEntries.map((e) => e.travelMinutes).toList()..sort();
+        travelEntries.fold(0, (sum, entry) => sum + (entry.travelMinutes ?? 0));
+    final minutes = travelEntries
+        .where((e) => e.travelMinutes != null)
+        .map((e) => e.travelMinutes!)
+        .toList()
+      ..sort();
 
     // Calculate date range
-    final dates = allEntries.map((e) => e.date).toList()..sort();
-    final daysDifference = dates.last.difference(dates.first).inDays + 1;
+    final dates = travelEntries.map((e) => e.date).toList()..sort();
+    final daysDifference = dates.isNotEmpty 
+        ? dates.last.difference(dates.first).inDays + 1
+        : 0;
 
     // Find most frequent route
     final routeFrequency = <String, int>{};
-    for (final entry in allEntries) {
-      final route = '${entry.fromLocation} → ${entry.toLocation}';
-      routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
+    for (final entry in travelEntries) {
+      if (entry.from != null && entry.to != null) {
+        final route = '${entry.from} → ${entry.to}';
+        routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
+      }
     }
 
     final mostFrequentRoute = routeFrequency.isNotEmpty
@@ -206,15 +279,15 @@ class TravelService {
         : 'None';
 
     return {
-      'totalEntries': allEntries.length,
+      'totalEntries': travelEntries.length,
       'totalMinutes': totalMinutes,
       'totalHours': (totalMinutes / 60).round(),
-      'averageMinutesPerTrip': totalMinutes / allEntries.length,
-      'longestTrip': minutes.last,
-      'shortestTrip': minutes.first,
+      'averageMinutesPerTrip': travelEntries.isNotEmpty ? totalMinutes / travelEntries.length : 0.0,
+      'longestTrip': minutes.isNotEmpty ? minutes.last : 0,
+      'shortestTrip': minutes.isNotEmpty ? minutes.first : 0,
       'mostFrequentRoute': mostFrequentRoute,
       'totalDays': daysDifference,
-      'averageTripsPerDay': allEntries.length / daysDifference,
+      'averageTripsPerDay': daysDifference > 0 ? travelEntries.length / daysDifference : 0.0,
     };
   }
 
@@ -232,10 +305,26 @@ class TravelService {
   }
 
   Future<Map<String, dynamic>> _getRecentPatternsInternal(int days) async {
+    // Use EntryProvider instead of TravelRepository
+    final entryProvider = _getEntryProvider();
+    if (entryProvider == null) {
+      throw Exception('EntryProvider not available');
+    }
+    
+    // Ensure entries are loaded
+    if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+      await entryProvider.loadEntries();
+    }
+    
     final cutoffDate = DateTime.now().subtract(Duration(days: days));
     final userId = _currentUserId();
-    final recentEntries =
-        _travelRepository.getForUserInRange(userId, cutoffDate, DateTime.now());
+    final recentEntries = entryProvider.entries
+        .where((e) => 
+            e.type == EntryType.travel &&
+            e.userId == userId &&
+            e.date.isAfter(cutoffDate.subtract(const Duration(days: 1))) &&
+            e.date.isBefore(DateTime.now().add(const Duration(days: 1))))
+        .toList();
 
     if (recentEntries.isEmpty) {
       return {
@@ -254,12 +343,17 @@ class TravelService {
     final dayOfWeekCounts = <int, int>{};
 
     for (final entry in recentEntries) {
-      departures[entry.fromLocation] =
-          (departures[entry.fromLocation] ?? 0) + 1;
-      arrivals[entry.toLocation] = (arrivals[entry.toLocation] ?? 0) + 1;
+      if (entry.from != null) {
+        departures[entry.from!] = (departures[entry.from!] ?? 0) + 1;
+      }
+      if (entry.to != null) {
+        arrivals[entry.to!] = (arrivals[entry.to!] ?? 0) + 1;
+      }
 
-      final route = '${entry.fromLocation} → ${entry.toLocation}';
-      routes[route] = (routes[route] ?? 0) + 1;
+      if (entry.from != null && entry.to != null) {
+        final route = '${entry.from} → ${entry.to}';
+        routes[route] = (routes[route] ?? 0) + 1;
+      }
 
       final dayOfWeek = entry.date.weekday;
       dayOfWeekCounts[dayOfWeek] = (dayOfWeekCounts[dayOfWeek] ?? 0) + 1;
@@ -287,7 +381,7 @@ class TravelService {
         peakDays.take(3).map((e) => dayNames[e.key - 1]).toList();
 
     final averageTripTime =
-        recentEntries.fold(0, (sum, entry) => sum + entry.travelMinutes) /
+        recentEntries.fold<int>(0, (sum, entry) => sum + (entry.travelMinutes ?? 0)) /
             recentEntries.length;
 
     return {
@@ -319,24 +413,18 @@ class TravelService {
   }
 
   Future<void> _saveTravelEntryInternal(Entry entry) async {
-    // Convert Entry to TravelEntry for storage
-    final travelEntry = TravelEntry(
-      id: entry.id,
-      userId: entry.userId,
-      date: entry.date,
-      fromLocation: entry.from ?? '',
-      toLocation: entry.to ?? '',
-      travelMinutes: entry.minutes ?? 0,
-      remarks: entry.notes ?? '',
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-    );
-
-    await _travelRepository.add(travelEntry);
-
-    // Update location usage counts if locations are linked
-    // Note: This would need location IDs, but we don't have them in the current model
-    // TODO: Implement location linking when location system is ready
+    // ⚠️ LEGACY WRITE PATH DISABLED: This method should not be called.
+    // Use EntryProvider.addEntry() instead to ensure break/notes/timezone are preserved.
+    assert(() {
+      throw StateError(
+        'TravelService.saveTravelEntry is disabled. Use EntryProvider.addEntry() instead. '
+        'This prevents missing break/notes and timezone issues.'
+      );
+    }());
+    
+    // This method should never be called - write paths are disabled
+    // The assert above will throw in debug mode, this is just a fallback
+    throw UnimplementedError('TravelService.saveTravelEntry is disabled. Use EntryProvider.addEntry() instead.');
   }
 
   /// Update travel entry
@@ -353,33 +441,36 @@ class TravelService {
   }
 
   Future<void> _updateTravelEntryInternal(Entry entry) async {
-    // Convert Entry to TravelEntry for storage
-    final travelEntry = TravelEntry(
-      id: entry.id,
-      userId: entry.userId,
-      date: entry.date,
-      fromLocation: entry.from ?? '',
-      toLocation: entry.to ?? '',
-      travelMinutes: entry.minutes ?? 0,
-      remarks: entry.notes ?? '',
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-    );
-
-    await _travelRepository.update(travelEntry);
+    // ⚠️ LEGACY WRITE PATH DISABLED: This method should not be called.
+    // Use EntryProvider.updateEntry() instead to ensure break/notes/timezone are preserved.
+    assert(() {
+      throw StateError(
+        'TravelService.updateTravelEntry is disabled. Use EntryProvider.updateEntry() instead. '
+        'This prevents missing break/notes and timezone issues.'
+      );
+    }());
+    
+    // This method should never be called - write paths are disabled
+    // The assert above will throw in debug mode, this is just a fallback
+    throw UnimplementedError('TravelService.updateTravelEntry is disabled. Use EntryProvider.updateEntry() instead.');
   }
 
   /// Delete travel entry
+  /// 
+  /// ⚠️ LEGACY WRITE PATH DISABLED: Use EntryProvider.deleteEntry() instead.
+  /// This method will throw in debug mode to prevent data loss from missing break/notes/timezone.
   Future<void> deleteTravelEntry(String entryId) async {
-    try {
-      await RetryHelper.executeWithRetry(
-        () async => _travelRepository.delete(entryId),
-        shouldRetry: RetryHelper.shouldRetryStorageError,
+    // ⚠️ LEGACY WRITE PATH DISABLED: This method should not be called.
+    // Use EntryProvider.deleteEntry() instead to ensure break/notes/timezone are preserved.
+    assert(() {
+      throw StateError(
+        'TravelService.deleteTravelEntry is disabled. Use EntryProvider.deleteEntry() instead. '
+        'This prevents missing break/notes and timezone issues.'
       );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
+    }());
+    
+    // This method should never be called - write paths are disabled
+    throw UnimplementedError('TravelService.deleteTravelEntry is disabled. Use EntryProvider.deleteEntry() instead.');
   }
 
   /// Search travel entries
@@ -396,32 +487,33 @@ class TravelService {
   }
 
   Future<List<Entry>> _searchEntriesInternal(String query) async {
+    // Use EntryProvider instead of TravelRepository
+    final entryProvider = _getEntryProvider();
+    if (entryProvider == null) {
+      throw Exception('EntryProvider not available');
+    }
+    
+    // Ensure entries are loaded
+    if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+      await entryProvider.loadEntries();
+    }
+    
     final userId = _currentUserId();
-    final allEntries = _travelRepository.getAllForUser(userId);
+    final travelEntries = entryProvider.entries
+        .where((e) => e.type == EntryType.travel && e.userId == userId)
+        .toList();
 
     // Simple search implementation
     final lowercaseQuery = query.toLowerCase();
     final results = <Entry>[];
 
-    for (final travelEntry in allEntries) {
-      // Convert TravelEntry to Entry for consistency
-      final entry = Entry(
-        id: travelEntry.id,
-        userId: travelEntry.userId,
-        type: EntryType.travel,
-        from: travelEntry.fromLocation,
-        to: travelEntry.toLocation,
-        travelMinutes: travelEntry.travelMinutes,
-        date: travelEntry.date,
-        notes: travelEntry.remarks,
-        createdAt: travelEntry.createdAt,
-        updatedAt: travelEntry.updatedAt,
-      );
-
+    for (final entry in travelEntries) {
       // Search in departure, arrival, and notes
-      if (travelEntry.fromLocation.toLowerCase().contains(lowercaseQuery) ||
-          travelEntry.toLocation.toLowerCase().contains(lowercaseQuery) ||
-          travelEntry.remarks.toLowerCase().contains(lowercaseQuery)) {
+      final fromMatch = entry.from?.toLowerCase().contains(lowercaseQuery) ?? false;
+      final toMatch = entry.to?.toLowerCase().contains(lowercaseQuery) ?? false;
+      final notesMatch = entry.notes?.toLowerCase().contains(lowercaseQuery) ?? false;
+      
+      if (fromMatch || toMatch || notesMatch) {
         results.add(entry);
       }
     }

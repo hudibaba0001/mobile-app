@@ -6,6 +6,64 @@ part of 'entry.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
+class TravelLegAdapter extends TypeAdapter<TravelLeg> {
+  @override
+  final int typeId = 8;
+
+  @override
+  TravelLeg read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return TravelLeg(
+      id: fields[0] as String?,
+      fromText: fields[1] as String,
+      toText: fields[2] as String,
+      fromPlaceId: fields[3] as String?,
+      toPlaceId: fields[4] as String?,
+      minutes: fields[5] as int,
+      source: fields[6] as String,
+      distanceKm: fields[7] as double?,
+      calculatedAt: fields[8] as DateTime?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, TravelLeg obj) {
+    writer
+      ..writeByte(9)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.fromText)
+      ..writeByte(2)
+      ..write(obj.toText)
+      ..writeByte(3)
+      ..write(obj.fromPlaceId)
+      ..writeByte(4)
+      ..write(obj.toPlaceId)
+      ..writeByte(5)
+      ..write(obj.minutes)
+      ..writeByte(6)
+      ..write(obj.source)
+      ..writeByte(7)
+      ..write(obj.distanceKm)
+      ..writeByte(8)
+      ..write(obj.calculatedAt);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TravelLegAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
 class ShiftAdapter extends TypeAdapter<Shift> {
   @override
   final int typeId = 7;
@@ -21,13 +79,15 @@ class ShiftAdapter extends TypeAdapter<Shift> {
       end: fields[1] as DateTime,
       description: fields[2] as String?,
       location: fields[3] as String?,
+      unpaidBreakMinutes: fields[4] as int,
+      notes: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Shift obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.start)
       ..writeByte(1)
@@ -35,7 +95,11 @@ class ShiftAdapter extends TypeAdapter<Shift> {
       ..writeByte(2)
       ..write(obj.description)
       ..writeByte(3)
-      ..write(obj.location);
+      ..write(obj.location)
+      ..writeByte(4)
+      ..write(obj.unpaidBreakMinutes)
+      ..writeByte(5)
+      ..write(obj.notes);
   }
 
   @override
@@ -76,13 +140,14 @@ class EntryAdapter extends TypeAdapter<Entry> {
       totalSegments: fields[13] as int?,
       isHolidayWork: fields[14] as bool,
       holidayName: fields[15] as String?,
+      travelLegs: (fields[16] as List?)?.cast<TravelLeg>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Entry obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -114,7 +179,9 @@ class EntryAdapter extends TypeAdapter<Entry> {
       ..writeByte(14)
       ..write(obj.isHolidayWork)
       ..writeByte(15)
-      ..write(obj.holidayName);
+      ..write(obj.holidayName)
+      ..writeByte(16)
+      ..write(obj.travelLegs);
   }
 
   @override

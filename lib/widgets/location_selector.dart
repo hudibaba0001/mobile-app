@@ -551,7 +551,7 @@ class _LocationSelectorState extends State<LocationSelector> {
 
       await locationProvider.addLocation(newLocation);
       if (mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         _selectLocation(newLocation);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -566,7 +566,7 @@ class _LocationSelectorState extends State<LocationSelector> {
   Future<String?> _showSaveLocationDialog(String address) async {
     final controller = TextEditingController();
 
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     return showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(

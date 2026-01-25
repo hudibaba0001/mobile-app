@@ -144,7 +144,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       final uid = auth.currentUser?.id;
       if (uid == null) {
         if (mounted) {
-          final t = AppLocalizations.of(context)!;
+          final t = AppLocalizations.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(t.quickEntry_signInRequired)),
           );
@@ -197,7 +197,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       }
     } catch (error) {
       if (mounted) {
-        final t = AppLocalizations.of(context)!;
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.quickEntry_error(error.toString())),
@@ -265,8 +265,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                   children: [
                     Text(
                       widget.initialEntry != null
-                          ? AppLocalizations.of(context)!.quickEntry_editEntry
-                          : AppLocalizations.of(context)!.quickEntry_quickEntry,
+                          ? AppLocalizations.of(context).quickEntry_editEntry
+                          : AppLocalizations.of(context).quickEntry_quickEntry,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const Spacer(),
@@ -276,7 +276,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       TextButton.icon(
                         onPressed: _showMultiSegmentForm,
                         icon: const Icon(Icons.route, size: 16),
-                        label: Text(AppLocalizations.of(context)!.quickEntry_multiSegment),
+                        label: Text(AppLocalizations.of(context).quickEntry_multiSegment),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                         ),
@@ -288,7 +288,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       IconButton(
                         onPressed: widget.onCancel,
                         icon: const Icon(Icons.close),
-                        tooltip: AppLocalizations.of(context)!.common_close,
+                        tooltip: AppLocalizations.of(context).common_close,
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.grey.withOpacity(0.1),
                         ),
@@ -303,7 +303,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                           }
                         },
                         icon: const Icon(Icons.close),
-                        tooltip: AppLocalizations.of(context)!.common_close,
+                        tooltip: AppLocalizations.of(context).common_close,
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.grey.withOpacity(0.1),
                         ),
@@ -343,12 +343,12 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                 readOnly: true,
                 onTap: _selectDate,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.entry_date,
+                  labelText: AppLocalizations.of(context).entry_date,
                   prefixIcon: const Icon(Icons.calendar_today),
                   border: const OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                    value?.isEmpty == true ? AppLocalizations.of(context)!.form_pleaseSelectDate : null,
+                    value?.isEmpty == true ? AppLocalizations.of(context).form_pleaseSelectDate : null,
               ),
 
               SizedBox(
@@ -362,13 +362,13 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                   TextFormField(
                     controller: _departureController,
                     decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.entry_from,
-                      hintText: AppLocalizations.of(context)!.form_departureLocation,
+                      labelText: AppLocalizations.of(context).entry_from,
+                      hintText: AppLocalizations.of(context).form_departureLocation,
                       prefixIcon: const Icon(Icons.my_location),
                       border: const OutlineInputBorder(),
                     ),
                     validator: (value) => Validators.validateRequired(
-                        value, AppLocalizations.of(context)!.form_departureLocation),
+                        value, AppLocalizations.of(context).form_departureLocation),
                   ),
 
                   // Swap button (centered between fields)
@@ -382,7 +382,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                           child: IconButton(
                             onPressed: _swapLocations,
                             icon: const Icon(Icons.swap_vert),
-                            tooltip: AppLocalizations.of(context)!.common_swapLocations,
+                            tooltip: AppLocalizations.of(context).common_swapLocations,
                             style: IconButton.styleFrom(
                               backgroundColor: Theme.of(context)
                                   .colorScheme
@@ -401,13 +401,13 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                   TextFormField(
                     controller: _arrivalController,
                     decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.entry_to,
-                      hintText: AppLocalizations.of(context)!.form_arrivalLocation,
+                      labelText: AppLocalizations.of(context).entry_to,
+                      hintText: AppLocalizations.of(context).form_arrivalLocation,
                       prefixIcon: const Icon(Icons.location_on),
                       border: const OutlineInputBorder(),
                     ),
                     validator: (value) =>
-                        Validators.validateRequired(value, AppLocalizations.of(context)!.form_arrivalLocation),
+                        Validators.validateRequired(value, AppLocalizations.of(context).form_arrivalLocation),
                   ),
                 ],
               ),
@@ -419,8 +419,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
               TextFormField(
                 controller: _minutesController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.quickEntry_travelTimeMinutes,
-                  hintText: AppLocalizations.of(context)!.quickEntry_travelTimeHint,
+                  labelText: AppLocalizations.of(context).quickEntry_travelTimeMinutes,
+                  hintText: AppLocalizations.of(context).quickEntry_travelTimeHint,
                   prefixIcon: const Icon(Icons.access_time),
                   border: const OutlineInputBorder(),
                 ),
@@ -435,8 +435,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
               TextFormField(
                 controller: _infoController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.quickEntry_additionalInfo,
-                  hintText: AppLocalizations.of(context)!.quickEntry_additionalInfoHint,
+                  labelText: AppLocalizations.of(context).quickEntry_additionalInfo,
+                  hintText: AppLocalizations.of(context).quickEntry_additionalInfoHint,
                   prefixIcon: const Icon(Icons.note),
                   border: const OutlineInputBorder(),
                 ),
@@ -455,7 +455,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                       child: OutlinedButton.icon(
                         onPressed: _isLoading ? null : _clearForm,
                         icon: const Icon(Icons.clear),
-                        label: Text(AppLocalizations.of(context)!.quickEntry_clear),
+                        label: Text(AppLocalizations.of(context).quickEntry_clear),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -475,10 +475,10 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                               : Icons.add),
                       label: Text(
                         _isLoading
-                            ? AppLocalizations.of(context)!.quickEntry_saving
+                            ? AppLocalizations.of(context).quickEntry_saving
                             : widget.initialEntry != null
-                                ? AppLocalizations.of(context)!.quickEntry_updateEntry
-                                : AppLocalizations.of(context)!.quickEntry_addEntry,
+                                ? AppLocalizations.of(context).quickEntry_updateEntry
+                                : AppLocalizations.of(context).quickEntry_addEntry,
                       ),
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.all(widget.isCompact

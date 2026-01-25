@@ -32,7 +32,16 @@ class WorkRepository {
   }
 
   /// Add a new work entry
+  /// 
+  /// ⚠️ LEGACY WRITE PATH DISABLED: Use EntryProvider.addEntry() instead.
+  /// This method will throw in debug mode to prevent data loss from missing break/notes/timezone.
   Future<WorkEntry> add(WorkEntry entry) async {
+    assert(() {
+      throw StateError(
+        'Legacy WorkEntry write path is disabled. Use EntryProvider.addEntry() instead. '
+        'This prevents missing break/notes and timezone issues.'
+      );
+    }());
     final assignedId = (entry.id.isEmpty) ? _uuid.v4() : entry.id;
     final newEntry = entry.copyWith(id: assignedId);
     await _box.put(newEntry.id, newEntry);
@@ -54,7 +63,16 @@ class WorkRepository {
   }
 
   /// Delete a work entry
+  /// 
+  /// ⚠️ LEGACY WRITE PATH DISABLED: Use EntryProvider.deleteEntry() instead.
+  /// This method will throw in debug mode to prevent data loss from missing break/notes/timezone.
   Future<void> delete(String id) async {
+    assert(() {
+      throw StateError(
+        'Legacy WorkEntry write path is disabled. Use EntryProvider.deleteEntry() instead. '
+        'This prevents missing break/notes and timezone issues.'
+      );
+    }());
     await _box.delete(id);
   }
 

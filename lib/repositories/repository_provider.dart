@@ -7,6 +7,7 @@ import '../models/work_entry.dart';
 import '../models/contract_settings.dart';
 import '../models/leave_entry.dart';
 import '../models/location.dart';
+import '../models/entry.dart';
 import 'travel_repository.dart';
 import 'hive_travel_repository.dart';
 import 'work_repository.dart';
@@ -80,6 +81,8 @@ class RepositoryProvider {
     Hive.registerAdapter(ContractSettingsAdapter());
     Hive.registerAdapter(LeaveEntryAdapter());
     Hive.registerAdapter(LocationAdapter());
+    // Register Entry adapter for direct Entry storage in local cache
+    Hive.registerAdapter(EntryAdapter());
 
     // Open user-specific boxes
     _travelBox = await Hive.openBox<TravelEntry>(_getTravelBoxName(userId));

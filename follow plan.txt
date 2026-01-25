@@ -1,0 +1,185 @@
+Goal (must match UX):
+- User can log MULTIPLE work shifts in one modal (same day), and MULTIPLE travel legs in one modal.
+- BUT storage must be ATOMIC:
+  - 1 work shift = 1 Entry row (type=work) with exactly 1 Shift
+  - 1 travel leg = 1 Entry row (type=travel) with exactly 1 segment (from/to/minutes)
+- History + exports must show them as separate items (not “Shift 1/2 inside one entry”).
+- For travel: “Add another travel” should auto-fill From = previous leg’s To to reduce typing and map calls.
+
+Work in these files (inspect current code first):
+- lib/models/entry.dart
+- lib/widgets/unified_entry_form.dart
+- lib/screens/edit_entry_screen.dart
+- lib/services/supabase_entry_service.dart
+- lib/providers/entry_provider.dart
+- lib/screens/history_screen.dart
+- lib/screens/unified_home_screen.dart
+
+--------------------------------------------------------------------
+1) Data contract: make “Entry is atomic” the default (keep backward compatibility)
+--------------------------------------------------------------------
+In lib/models/entry.dart:
+- Keep existing structure for reading legacy data (entries that contain multiple shifts).
+- But enforce this rule for NEW writes:
+  - Work Entry should be written with shifts.length == 1
+  - Travel Entry should be written as single from/to/minutes (ignore travelLegs for persistence unless repo actually uses it)
+- Add helpers (non-breaking) to simplify UI/exports:
+  - Entry.isAtomicWork => type==work && shifts?.length==1
+  - Entry.atomicShift => shifts?.first (nullable)
+  - Entry.isLegacyMultiShift => type==work && shifts != null && shifts.length > 1
+
+--------------------------------------------------------------------
+2) UnifiedEntryForm: allow multiple draft items, save as multiple Entries
+--------------------------------------------------------------------
+In lib/widgets/unified_entry_form.dart (current form is single-type, single-entry save):
+A) WORK MODE
+- Replace the concept of “_shifts list inside one Entry” with “_workDrafts list where each draft becomes its own Entry”.
+- Each work draft card must contain:
+  - start/end
+  - unpaidBreakMinutes
+  - location (per shift)
+  - notes (per shift)
+- UI:
+  - “Add another shift” adds another *work draft card* (not just opening time picker)
+  - Optional: new card defaults:
+    - start/end copied from previous shift OR sensible default
+    - location copied from previous shift (fast path)
+- Save behavior:
+  - If creating new (existingEntry == null):
+    - For each draft => build Entry(type=work, date=selectedDate, shifts=[thatShift], notes=optional-day-notes-or-null)
+    - Call entryProvider.addEntry for each (sequential is fine).
+  - If editing an existing entry (existingEntry != null):
+    - Update the existing entry using the FIRST draft (keep same id)
+    - For additional drafts:
+      - create NEW entries via addEntry (id null so service generates UUID)
+- IMPORTANT: date must be date-only (midnight) as you already do.
+
+B) TRAVEL MODE
+- Replace single from/to fields with a list: _travelDrafts.
+- Each travel draft card must contain:
+  - from, to, minutes (or hours+minutes)
+  - optional notes (can be global notes or per-leg; pick simplest: global notes applied to all entries)
+- UI:
+  - “Add another travel” button:
+    - new draft.from = previousDraft.to (auto-copy)
+    - new draft.to = empty
+    - duration blank/0
+  - Map calculate should run per-leg (button inside each card), NOT global.
+  - If you already have TravelCacheService in the project, auto-fill duration from cache when from+to changes and duration is empty (same behavior as EditEntryScreen has).
+- Save:
+  - Creating new: each draft => separate Entry(type=travel, from/to/minutes, date=selectedDate)
+    - set segmentOrder = index+1 and totalSegments = travelDrafts.length (optional but helpful)
+  - Editing existing: update existing with first draft, create new entries for the rest.
+
+--------------------------------------------------------------------
+3) EditEntryScreen: it currently ignores extra drafts — fix it
+--------------------------------------------------------------------
+In lib/screens/edit_entry_screen.dart:
+Right now _saveEntry() uses ONLY:
+- travel: _travelEntries.first
+- work: _shifts.first
+Fix:
+- Travel:
+  - Update existing entryId with first travel draft
+  - For drafts 2..N => create new travel Entries via entryProvider.addEntry
+  - Save each route into TravelCacheService (each leg)
+- Work:
+  - Update existing entryId with first shift draft
+  - For shifts 2..N => create new work Entries via addEntry
+- Keep navigation success behavior the same (pop true).
+
+--------------------------------------------------------------------
+4) SupabaseEntryService: ensure new shift fields aren’t lost
+--------------------------------------------------------------------
+In lib/services/supabase_entry_service.dart:
+Your current mapping only includes:
+- work_shifts: start_time, end_time, location, description
+But your Shift model now includes unpaidBreakMinutes + notes (and maybe uses description too).
+Do this:
+- Inspect Supabase migrations/schema for work_shifts columns.
+- Update INSERT + UPDATE shift payload to include:
+  - unpaid_break_minutes (or whatever the real column is)
+  - notes (or shift_notes) if present
+- Update getAllEntries/getEntriesInRange/getEntryById shift mapping to include the same keys that Entry.fromJson expects:
+  - 'unpaid_break_minutes'
+  - 'notes'
+  - keep 'description' if still used
+If DB doesn’t have these columns yet:
+- Add a migration SQL (in supabase/migrations) to add them with defaults:
+  - unpaid_break_minutes int not null default 0
+  - notes text null
+
+--------------------------------------------------------------------
+5) EntryProvider local cache: stop dropping details
+--------------------------------------------------------------------
+In lib/providers/entry_provider.dart:
+Right now _saveToLocalCache() converts Entry -> WorkEntry/TravelEntry and loses:
+- shift times, unpaid breaks, per-shift notes/location, multi travel legs, etc.
+Fix minimally:
+- Store Entry objects directly in Hive (Entry already has @HiveType(typeId: 5)).
+- Create/open a Hive box like: Hive.openBox<Entry>('entries_box')
+- Implement local cache CRUD against that box:
+  - save entries list
+  - load entries list
+  - upsert on add/update
+  - delete on delete
+- Then remove/stop relying on TravelEntry/WorkEntry repositories for “source of truth”.
+
+--------------------------------------------------------------------
+6) unified_home_screen: recent entries must come from EntryProvider, not old repos
+--------------------------------------------------------------------
+In lib/screens/unified_home_screen.dart:
+Currently it loads from repositoryProvider.travelRepository/workRepository.
+Change:
+- Build recent list from entryProvider.entries (already loaded on startup)
+- Sort by date desc then updatedAt/createdAt desc
+- Render:
+  - Travel: “from → to” + minutes
+  - Work: show shift time range + location (and worked minutes)
+This prevents mismatch when we move to atomic Entries.
+
+--------------------------------------------------------------------
+7) History + Exports: ensure “separate entries” is what users see
+--------------------------------------------------------------------
+History (lib/screens/history_screen.dart):
+- If you still have UI flattening for multi-shift entries, keep it for legacy.
+- For new atomic entries (1 shift), just show 1 row per entry (no “Shift 1/2” label needed unless you want it).
+
+Exports:
+- Ensure CSV + XLSX output produces:
+  - work: 1 row per Entry (or per shift for legacy multi-shift)
+  - travel: 1 row per Entry (each leg)
+- Totals must match existing balance calculations.
+
+--------------------------------------------------------------------
+Acceptance checklist (must pass)
+--------------------------------------------------------------------
+MANUAL TESTS:
+1) Work:
+- Log Work -> add 2 shifts with different locations + different notes + breaks.
+- Save.
+- History shows 2 separate work rows for that date.
+- Reload app: both still present with correct break/notes/location.
+- Supabase has 2 entries rows + 2 work_shifts rows.
+
+2) Travel:
+- Log Travel -> add 2 legs:
+  - Leg1: Torslanda -> Frölunda
+  - Add another: From auto-copies “Frölunda”, user sets “Askim”
+- Save.
+- History shows 2 separate travel rows.
+- Supabase has 2 entries rows + 2 travel_segments rows.
+
+3) Edit screen:
+- Edit a travel entry, add another leg, save.
+- Verify it updates first and creates second as new entry.
+
+ENGINE:
+- Month totals still sum correctly across multiple entries on same day.
+
+Run:
+- flutter analyze
+- flutter test (or at least ensure no build errors)
+
+Deliverable:
+- Clean commits with a short summary of changes + any DB migration added.

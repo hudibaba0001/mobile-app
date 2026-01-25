@@ -21,7 +21,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
   late int _selectedPresetIndex;
 
   List<_DateRangePreset> _getPresets(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     return [
       _DateRangePreset(
         name: t.dateRange_last7Days,
@@ -142,7 +142,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final presets = _getPresets(context);

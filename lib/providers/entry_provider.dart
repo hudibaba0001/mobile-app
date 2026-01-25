@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../models/entry.dart';
 import '../repositories/repository_provider.dart';
-import '../models/travel_entry.dart';
-import '../models/work_entry.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/supabase_entry_service.dart';
 
@@ -20,7 +19,22 @@ class EntryProvider extends ChangeNotifier {
   DateTime? _startDate;
   DateTime? _endDate;
 
+  // Hive box for local cache (Entry objects directly)
+  static const String _entriesBoxName = 'entries_cache';
+  Box<Entry>? _entriesBox;
+
   EntryProvider(this._repositoryProvider, this._authService);
+
+  /// Initialize the Hive box for local cache
+  Future<void> _initEntriesBox() async {
+    if (_entriesBox != null && _entriesBox!.isOpen) return;
+    try {
+      _entriesBox = await Hive.openBox<Entry>(_entriesBoxName);
+    } catch (e) {
+      debugPrint('EntryProvider: Error opening entries box: $e');
+      // Box might not be registered, but that's okay - we'll handle it gracefully
+    }
+  }
 
   List<Entry> get entries => _entries;
   List<Entry> get filteredEntries => _filteredEntries;
@@ -39,17 +53,6 @@ class EntryProvider extends ChangeNotifier {
       final userId = _authService.currentUser?.id;
       if (userId == null) {
         _error = 'User not authenticated';
-        _isLoading = false;
-        notifyListeners();
-        return;
-      }
-
-      // Check if repositories are initialized
-      if (_repositoryProvider.currentUserId != userId) {
-        debugPrint('EntryProvider: Repositories not initialized for user $userId, skipping load');
-        _entries = [];
-        _filteredEntries = [];
-        _error = null;
         _isLoading = false;
         notifyListeners();
         return;
@@ -195,6 +198,71 @@ class EntryProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('EntryProvider: Error adding entry: $e');
       throw Exception('Unable to add entry. Please try again.');
+    }
+  }
+
+  /// Add multiple entries in a batch (for atomic entries from unified form)
+  /// Saves entries sequentially to maintain deterministic ordering
+  /// Shows a single success message for the batch
+  Future<void> addEntries(List<Entry> entries) async {
+    if (entries.isEmpty) return;
+
+    try {
+      final userId = _authService.currentUser?.id;
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      debugPrint('EntryProvider: Adding ${entries.length} entries in batch...');
+
+      final List<Entry> savedEntries = [];
+      int successCount = 0;
+      int failureCount = 0;
+
+      // Save entries sequentially (deterministic ordering)
+      for (final entry in entries) {
+        try {
+          Entry savedEntry;
+          
+          try {
+            debugPrint('EntryProvider: Saving entry ${entry.type} to Supabase...');
+            savedEntry = await _supabaseService.addEntry(entry);
+            debugPrint('EntryProvider: Entry saved to Supabase successfully with ID: ${savedEntry.id}');
+            
+            // CACHE: Save to local Hive cache
+            await _saveToLocalCache(savedEntry, userId);
+          } catch (e) {
+            debugPrint('EntryProvider: ❌ ERROR saving entry to Supabase: $e');
+            
+            // If Supabase fails, still save locally for offline support
+            await _saveToLocalCache(entry, userId);
+            savedEntry = entry;
+            debugPrint('EntryProvider: ⚠️ Saved to local cache only (offline mode)');
+          }
+
+          savedEntries.add(savedEntry);
+          successCount++;
+        } catch (e) {
+          failureCount++;
+          debugPrint('EntryProvider: Error adding entry in batch: $e');
+          // Continue with other entries even if one fails
+        }
+      }
+
+      // Add all saved entries to local list
+      _entries.addAll(savedEntries);
+      _applyFilters();
+      notifyListeners();
+
+      debugPrint(
+          'EntryProvider: Batch add complete - Success: $successCount, Failed: $failureCount');
+      
+      if (failureCount > 0) {
+        throw Exception('Some entries failed to save ($failureCount of ${entries.length})');
+      }
+    } catch (e) {
+      debugPrint('EntryProvider: Error adding entries in batch: $e');
+      rethrow;
     }
   }
 
@@ -420,25 +488,15 @@ class EntryProvider extends ChangeNotifier {
       final allEntries = List<Entry>.from(_entries);
       debugPrint('EntryProvider: Deleting ${allEntries.length} entries from Supabase and local cache');
 
-      // Delete entries from Supabase and local repositories
+      // Delete entries from Supabase and local cache
       for (final entry in allEntries) {
         try {
           // Delete from Supabase first
           await _supabaseService.deleteEntry(entry.id, userId);
           debugPrint('EntryProvider: Deleted ${entry.id} from Supabase');
           
-          // Then delete from local cache
-          if (entry.type == EntryType.travel) {
-            final travelRepo = _repositoryProvider.travelRepository;
-            if (travelRepo != null) {
-              await travelRepo.delete(entry.id);
-            }
-          } else if (entry.type == EntryType.work) {
-            final workRepo = _repositoryProvider.workRepository;
-            if (workRepo != null) {
-              await workRepo.delete(entry.id);
-            }
-          }
+          // Then delete from local cache (Entry directly)
+          await _deleteFromLocalCache(entry, userId);
         } catch (e) {
           debugPrint('Failed to delete entry ${entry.id}: $e');
           // Continue with other entries even if one fails
@@ -465,56 +523,18 @@ class EntryProvider extends ChangeNotifier {
   // Helper methods for local cache sync
 
   /// Sync entries from Supabase to local Hive cache
+  /// Stores Entry objects directly in Hive (no conversion to TravelEntry/WorkEntry)
   Future<void> _syncToLocalCache(List<Entry> entries, String userId) async {
     try {
-      final travelRepo = _repositoryProvider.travelRepository;
-      final workRepo = _repositoryProvider.workRepository;
+      await _initEntriesBox();
+      if (_entriesBox == null) {
+        debugPrint('EntryProvider: Entries box not available, skipping cache sync');
+        return;
+      }
 
       for (final entry in entries) {
-        if (entry.type == EntryType.travel) {
-          if (travelRepo != null) {
-            final travelEntry = TravelEntry(
-              id: entry.id,
-              userId: entry.userId,
-              fromLocation: entry.from ?? '',
-              toLocation: entry.to ?? '',
-              travelMinutes: entry.travelMinutes ?? 0,
-              date: entry.date,
-              remarks: entry.notes ?? '',
-              createdAt: entry.createdAt,
-              updatedAt: entry.updatedAt,
-            );
-            // Check if exists, update if yes, add if no
-            final existing = travelRepo.getById(entry.id);
-            if (existing != null) {
-              await travelRepo.update(travelEntry);
-            } else {
-              await travelRepo.add(travelEntry);
-            }
-          }
-        } else if (entry.type == EntryType.work) {
-          if (workRepo != null) {
-            final workMinutes = entry.shifts?.fold<int>(
-                    0, (sum, shift) => sum + shift.duration.inMinutes) ??
-                0;
-            final workEntry = WorkEntry(
-              id: entry.id,
-              userId: entry.userId,
-              workMinutes: workMinutes,
-              date: entry.date,
-              remarks: entry.notes ?? '',
-              createdAt: entry.createdAt,
-              updatedAt: entry.updatedAt,
-            );
-            // Check if exists, update if yes, add if no
-            final existing = workRepo.getById(entry.id);
-            if (existing != null) {
-              await workRepo.update(workEntry);
-            } else {
-              await workRepo.add(workEntry);
-            }
-          }
-        }
+        // Store Entry directly in Hive (preserves all fields: shifts, unpaid breaks, notes, travel legs, etc.)
+        await _entriesBox!.put(entry.id, entry);
       }
       debugPrint('EntryProvider: Synced ${entries.length} entries to local cache');
     } catch (e) {
@@ -524,64 +544,22 @@ class EntryProvider extends ChangeNotifier {
   }
 
   /// Load entries from local Hive cache (fallback when Supabase is unavailable)
+  /// Loads Entry objects directly from Hive (preserves all fields)
   Future<List<Entry>> _loadFromLocalCache(String userId) async {
     try {
-      final travelRepo = _repositoryProvider.travelRepository;
-      final workRepo = _repositoryProvider.workRepository;
-
-      final List<Entry> entries = [];
-
-      // Load travel entries
-      if (travelRepo != null) {
-        final travelEntries = travelRepo.getAllForUser(userId);
-        for (final travelEntry in travelEntries) {
-          entries.add(Entry(
-            id: travelEntry.id,
-            userId: travelEntry.userId,
-            type: EntryType.travel,
-            from: travelEntry.fromLocation,
-            to: travelEntry.toLocation,
-            travelMinutes: travelEntry.travelMinutes,
-            date: travelEntry.date,
-            notes: travelEntry.remarks,
-            createdAt: travelEntry.createdAt,
-            updatedAt: travelEntry.updatedAt,
-          ));
-        }
+      await _initEntriesBox();
+      if (_entriesBox == null) {
+        debugPrint('EntryProvider: Entries box not available, returning empty list');
+        return [];
       }
 
-      // Load work entries
-      if (workRepo != null) {
-        final workEntries = workRepo.getAllForUser(userId);
-        for (final workEntry in workEntries) {
-          final List<Shift> shifts = workEntry.workMinutes > 0
-              ? [
-                  Shift(
-                    start: workEntry.date,
-                    end: workEntry.date.add(Duration(minutes: workEntry.workMinutes)),
-                    description: workEntry.remarks.isNotEmpty
-                        ? workEntry.remarks
-                        : 'Work Session',
-                    location: 'Work Location',
-                  ),
-                ]
-              : [];
+      // Load all entries from Hive and filter by userId
+      final allEntries = _entriesBox!.values
+          .where((entry) => entry.userId == userId)
+          .toList();
 
-          entries.add(Entry(
-            id: workEntry.id,
-            userId: workEntry.userId,
-            type: EntryType.work,
-            shifts: shifts,
-            date: workEntry.date,
-            notes: workEntry.remarks,
-            createdAt: workEntry.createdAt,
-            updatedAt: workEntry.updatedAt,
-          ));
-        }
-      }
-
-      debugPrint('EntryProvider: Loaded ${entries.length} entries from local cache');
-      return entries;
+      debugPrint('EntryProvider: Loaded ${allEntries.length} entries from local cache');
+      return allEntries;
     } catch (e) {
       debugPrint('EntryProvider: Error loading from local cache: $e');
       return [];
@@ -589,42 +567,18 @@ class EntryProvider extends ChangeNotifier {
   }
 
   /// Save a single entry to local Hive cache
+  /// Stores Entry object directly (preserves all fields: shifts, unpaid breaks, notes, travel legs, etc.)
   Future<void> _saveToLocalCache(Entry entry, String userId) async {
     try {
-      if (entry.type == EntryType.travel) {
-        final travelRepo = _repositoryProvider.travelRepository;
-        if (travelRepo != null) {
-          final travelEntry = TravelEntry(
-            id: entry.id,
-            userId: userId,
-            fromLocation: entry.from ?? '',
-            toLocation: entry.to ?? '',
-            travelMinutes: entry.travelMinutes ?? 0,
-            date: entry.date,
-            remarks: entry.notes ?? '',
-            createdAt: entry.createdAt,
-            updatedAt: entry.updatedAt,
-          );
-          await travelRepo.add(travelEntry);
-        }
-      } else if (entry.type == EntryType.work) {
-        final workRepo = _repositoryProvider.workRepository;
-        if (workRepo != null) {
-          final workMinutes = entry.shifts?.fold<int>(
-                  0, (sum, shift) => sum + shift.duration.inMinutes) ??
-              0;
-          final workEntry = WorkEntry(
-            id: entry.id,
-            userId: userId,
-            workMinutes: workMinutes,
-            date: entry.date,
-            remarks: entry.notes ?? '',
-            createdAt: entry.createdAt,
-            updatedAt: entry.updatedAt,
-          );
-          await workRepo.add(workEntry);
-        }
+      await _initEntriesBox();
+      if (_entriesBox == null) {
+        debugPrint('EntryProvider: Entries box not available, skipping cache save');
+        return;
       }
+
+      // Store Entry directly in Hive
+      await _entriesBox!.put(entry.id, entry);
+      debugPrint('EntryProvider: Saved entry ${entry.id} to local cache');
     } catch (e) {
       debugPrint('EntryProvider: Error saving to local cache: $e');
       // Don't throw - cache save failure shouldn't break the app
@@ -632,42 +586,18 @@ class EntryProvider extends ChangeNotifier {
   }
 
   /// Update a single entry in local Hive cache
+  /// Stores Entry object directly (preserves all fields)
   Future<void> _updateInLocalCache(Entry entry, String userId) async {
     try {
-      if (entry.type == EntryType.travel) {
-        final travelRepo = _repositoryProvider.travelRepository;
-        if (travelRepo != null) {
-          final travelEntry = TravelEntry(
-            id: entry.id,
-            userId: userId,
-            fromLocation: entry.from ?? '',
-            toLocation: entry.to ?? '',
-            travelMinutes: entry.travelMinutes ?? 0,
-            date: entry.date,
-            remarks: entry.notes ?? '',
-            createdAt: entry.createdAt,
-            updatedAt: entry.updatedAt,
-          );
-          await travelRepo.update(travelEntry);
-        }
-      } else if (entry.type == EntryType.work) {
-        final workRepo = _repositoryProvider.workRepository;
-        if (workRepo != null) {
-          final workMinutes = entry.shifts?.fold<int>(
-                  0, (sum, shift) => sum + shift.duration.inMinutes) ??
-              0;
-          final workEntry = WorkEntry(
-            id: entry.id,
-            userId: userId,
-            workMinutes: workMinutes,
-            date: entry.date,
-            remarks: entry.notes ?? '',
-            createdAt: entry.createdAt,
-            updatedAt: entry.updatedAt,
-          );
-          await workRepo.update(workEntry);
-        }
+      await _initEntriesBox();
+      if (_entriesBox == null) {
+        debugPrint('EntryProvider: Entries box not available, skipping cache update');
+        return;
       }
+
+      // Update Entry directly in Hive
+      await _entriesBox!.put(entry.id, entry);
+      debugPrint('EntryProvider: Updated entry ${entry.id} in local cache');
     } catch (e) {
       debugPrint('EntryProvider: Error updating in local cache: $e');
       // Don't throw - cache update failure shouldn't break the app
@@ -675,19 +605,18 @@ class EntryProvider extends ChangeNotifier {
   }
 
   /// Delete a single entry from local Hive cache
+  /// Deletes Entry object directly from Hive
   Future<void> _deleteFromLocalCache(Entry entry, String userId) async {
     try {
-      if (entry.type == EntryType.travel) {
-        final travelRepo = _repositoryProvider.travelRepository;
-        if (travelRepo != null) {
-          await travelRepo.delete(entry.id);
-        }
-      } else if (entry.type == EntryType.work) {
-        final workRepo = _repositoryProvider.workRepository;
-        if (workRepo != null) {
-          await workRepo.delete(entry.id);
-        }
+      await _initEntriesBox();
+      if (_entriesBox == null) {
+        debugPrint('EntryProvider: Entries box not available, skipping cache delete');
+        return;
       }
+
+      // Delete Entry directly from Hive
+      await _entriesBox!.delete(entry.id);
+      debugPrint('EntryProvider: Deleted entry ${entry.id} from local cache');
     } catch (e) {
       debugPrint('EntryProvider: Error deleting from local cache: $e');
       // Don't throw - cache delete failure shouldn't break the app

@@ -1,0 +1,671 @@
+diff --git a/lib/l10n/app_en.arb b/lib/l10n/app_en.arb
+index 6ca4130..595e17b 100644
+--- a/lib/l10n/app_en.arb
++++ b/lib/l10n/app_en.arb
+@@ -25,6 +25,7 @@
+   "common_yes": "Yes",
+   "common_no": "No",
+   "common_ok": "OK",
++  "common_optional": "(optional)",
+   "common_loading": "Loading...",
+   "common_error": "Error",
+   "common_success": "Success",
+@@ -300,6 +301,17 @@
+ 
+   "entry_travel": "Travel",
+   "entry_work": "Work",
++  "travel_legLabel": "Travel {number}",
++  "@travel_legLabel": {
++    "placeholders": {
++      "number": {"type": "int"}
++    }
++  },
++  "travel_addLeg": "Add Travel Leg",
++  "travel_addAnotherLeg": "Add Another Travel",
++  "travel_sourceAuto": "Auto",
++  "travel_sourceManual": "Manual",
++  "travel_total": "Total travel",
+   "entry_from": "From",
+   "entry_to": "To",
+   "entry_duration": "Duration",
+@@ -457,6 +469,16 @@
+       "error": {"type": "String"}
+     }
+   },
++  "error_invalidHours": "Hours must be a non-negative number",
++  "error_invalidMinutes": "Minutes must be between 0 and 59",
++  "error_durationRequired": "Please enter a valid duration (greater than 0)",
++  "error_endTimeBeforeStart": "End time must be after start time",
++  "error_invalidShiftTime": "Shift {number} has invalid times (end must be after start)",
++  "@error_invalidShiftTime": {
++    "placeholders": {
++      "number": {"type": "int"}
++    }
++  },
+ 
+   "form_departure": "Departure",
+   "form_arrival": "Arrival",
+@@ -471,6 +493,22 @@
+   "form_manualDuration": "Manual Duration",
+   "form_hours": "Hours",
+   "form_minutes": "Minutes",
++  "form_unpaidBreakMinutes": "Unpaid break (min)",
++  "form_shiftLabel": "Shift {number}",
++  "@form_shiftLabel": {
++    "placeholders": {
++      "number": {"type": "int"}
++    }
++  },
++  "form_span": "Span",
++  "form_break": "Break",
++  "form_worked": "Worked",
++  "form_useLocationForAllShifts": "Use this location for all shifts",
++  "form_shiftLocation": "Shift location",
++  "form_shiftNotes": "Shift notes",
++  "form_shiftNotesHint": "Add notes for this shift (e.g., specific tasks, issues)",
++  "form_sameAsDefault": "Same as default",
++  "form_dayNotes": "Day notes",
+ 
+   "export_title": "Export Data",
+   "export_dateRange": "Date Range",
+@@ -674,6 +712,9 @@
+   "edit_save": "Save",
+   "edit_cancel": "Cancel",
+   "edit_errorSaving": "Error saving entry: {error}",
++  "editMode_singleEntryInfo_work": "Editing one entry. To add another shift for this date, create a new entry.",
++  "editMode_singleEntryInfo_travel": "Editing one entry. To add another travel leg for this date, create a new entry.",
++  "editMode_addNewEntryForDate": "Add new entry for this date",
+   "@edit_errorSaving": {
+     "placeholders": {
+       "error": {"type": "String"}
+@@ -772,6 +813,8 @@
+   "history_noDescription": "No description",
+   "history_title": "History",
+   "history_travel": "Travel",
++  "history_worked": "Worked",
++  "history_totalWorked": "Total worked",
+   "history_work": "Work",
+   "history_all": "All",
+   "history_yesterday": "Yesterday",
+@@ -1005,6 +1048,8 @@
+   "entry_redDayWarning": "Red day. Hours entered here may count as holiday work.",
+   "entry_personalRedDay": "Personal red day",
+ 
++  "error_addAtLeastOneShift": "Please add at least one shift.",
++
+   "shift_morning": "Morning Shift",
+   "shift_afternoon": "Afternoon Shift",
+   "shift_evening": "Evening Shift",
+@@ -1076,5 +1121,39 @@
+   "form_arrivalLocation": "Arrival location",
+   "form_additionalInformation": "Additional information",
+   "form_pleaseSelectDate": "Please select a date",
+-  "dateRange_last90Days": "Last 90 Days"
++  "dateRange_last90Days": "Last 90 Days",
++  "form_shiftLocationHint": "Enter shift location",
++  "error_negativeBreakMinutes": "Shift {number}: Break minutes cannot be negative",
++  "@error_negativeBreakMinutes": {
++    "placeholders": {
++      "number": {}
++    }
++  },
++  "error_breakExceedsSpan": "Shift {number}: Break minutes ({breakMinutes}) cannot exceed span ({spanMinutes}m)",
++  "@error_breakExceedsSpan": {
++    "placeholders": {
++      "number": {},
++      "breakMinutes": {},
++      "spanMinutes": {}
++    }
++  },
++  "home_trackWorkShifts": "Track your work shifts",
++  "travel_removeLeg": "Remove travel leg",
++  "error_addAtLeastOneTravelLeg": "Please add at least one travel leg",
++  "error_selectTravelLocations": "Travel {number}: Please select both from and to locations",
++  "@error_selectTravelLocations": {
++    "placeholders": {
++      "number": {}
++    }
++  },
++  "error_invalidTravelDuration": "Travel {number}: Please enter a valid duration (greater than 0)",
++  "@error_invalidTravelDuration": {
++    "placeholders": {
++      "number": {}
++    }
++  },
++  "travel_notesHint": "Add details about your travel...",
++  "form_span": "Span",
++  "form_break": "Break",
++  "form_worked": "Worked"
+ }
+diff --git a/lib/l10n/app_sv.arb b/lib/l10n/app_sv.arb
+index bbf0cbc..e8139d4 100644
+--- a/lib/l10n/app_sv.arb
++++ b/lib/l10n/app_sv.arb
+@@ -22,6 +22,7 @@
+   "common_yes": "Ja",
+   "common_no": "Nej",
+   "common_ok": "OK",
++  "common_optional": "(valfritt)",
+   "common_loading": "Laddar...",
+   "common_error": "Fel",
+   "common_success": "Klart",
+@@ -187,6 +188,17 @@
+ 
+   "entry_travel": "Resa",
+   "entry_work": "Arbete",
++  "travel_legLabel": "Resa {number}",
++  "@travel_legLabel": {
++    "placeholders": {
++      "number": {"type": "int"}
++    }
++  },
++  "travel_addLeg": "Lägg till reseben",
++  "travel_addAnotherLeg": "Lägg till ytterligare resa",
++  "travel_sourceAuto": "Auto",
++  "travel_sourceManual": "Manuell",
++  "travel_total": "Total resa",
+   "entry_from": "Från",
+   "entry_to": "Till",
+   "entry_duration": "Längd",
+@@ -200,6 +212,7 @@
+   "error_userNotAuth": "Användaren är inte inloggad",
+   "error_generic": "Något gick fel",
+   "error_networkError": "Nätverksfel. Kontrollera din anslutning.",
++  "error_addAtLeastOneShift": "Vänligen lägg till minst ett skift.",
+ 
+   "absence_title": "Frånvaro",
+   "absence_addAbsence": "Lägg till frånvaro",
+@@ -274,6 +287,16 @@
+   "error_signInRequired": "Logga in för att spara poster",
+   "error_savingEntry": "Fel vid sparande av post: {error}",
+   "error_calculatingTravelTime": "Kunde inte beräkna restid: {error}",
++  "error_invalidHours": "Timmar måste vara ett icke-negativt tal",
++  "error_invalidMinutes": "Minuter måste vara mellan 0 och 59",
++  "error_durationRequired": "Ange en giltig längd (större än 0)",
++  "error_endTimeBeforeStart": "Sluttid måste vara efter starttid",
++  "error_invalidShiftTime": "Skift {number} har ogiltiga tider (sluttid måste vara efter starttid)",
++  "@error_invalidShiftTime": {
++    "placeholders": {
++      "number": {"type": "int"}
++    }
++  },
+ 
+   "form_departure": "Avgång",
+   "form_arrival": "Ankomst",
+@@ -288,6 +311,22 @@
+   "form_manualDuration": "Manuell längd",
+   "form_hours": "Timmar",
+   "form_minutes": "Minuter",
++  "form_unpaidBreakMinutes": "Obetald rast (min)",
++  "form_shiftLabel": "Skift {number}",
++  "@form_shiftLabel": {
++    "placeholders": {
++      "number": {"type": "int"}
++    }
++  },
++  "form_span": "Spann",
++  "form_break": "Rast",
++  "form_worked": "Arbetat",
++  "form_useLocationForAllShifts": "Använd denna plats för alla skift",
++  "form_shiftLocation": "Skiftplats",
++  "form_shiftNotes": "Skiftanteckningar",
++  "form_shiftNotesHint": "Lägg till anteckningar för detta skift (t.ex. specifika uppgifter, problem)",
++  "form_sameAsDefault": "Samma som standard",
++  "form_dayNotes": "Daganteckningar",
+ 
+   "export_title": "Exportera data",
+   "export_dateRange": "Datumintervall",
+@@ -411,6 +450,9 @@
+   "edit_save": "Spara",
+   "edit_cancel": "Avbryt",
+   "edit_errorSaving": "Fel vid sparande av post: {error}",
++  "editMode_singleEntryInfo_work": "Redigerar en post. För att lägga till ytterligare ett skift för detta datum, skapa en ny post.",
++  "editMode_singleEntryInfo_travel": "Redigerar en post. För att lägga till ytterligare en resa för detta datum, skapa en ny post.",
++  "editMode_addNewEntryForDate": "Lägg till ny post för detta datum",
+ 
+   "dateRange_title": "Välj datumintervall",
+   "dateRange_description": "Välj en tidsperiod att analysera",
+@@ -463,6 +505,8 @@
+   "history_noDescription": "Ingen beskrivning",
+   "history_title": "Historik",
+   "history_travel": "Resa",
++  "history_worked": "Arbetat",
++  "history_totalWorked": "Totalt arbetat",
+   "history_work": "Arbete",
+   "history_all": "Alla",
+   "history_yesterday": "Igår",
+@@ -687,5 +731,39 @@
+   "form_arrivalLocation": "Ankomstplats",
+   "form_additionalInformation": "Ytterligare information",
+   "form_pleaseSelectDate": "Vänligen välj ett datum",
+-  "dateRange_last90Days": "Senaste 90 dagarna"
++  "dateRange_last90Days": "Senaste 90 dagarna",
++  "form_shiftLocationHint": "Ange skiftplats",
++  "error_negativeBreakMinutes": "Skift {number}: Rastminuter kan inte vara negativa",
++  "@error_negativeBreakMinutes": {
++    "placeholders": {
++      "number": {}
++    }
++  },
++  "error_breakExceedsSpan": "Skift {number}: Rastminuter ({breakMinutes}) kan inte överstiga tidsintervallet ({spanMinutes}m)",
++  "@error_breakExceedsSpan": {
++    "placeholders": {
++      "number": {},
++      "breakMinutes": {},
++      "spanMinutes": {}
++    }
++  },
++  "home_trackWorkShifts": "Spåra dina arbetspass",
++  "travel_removeLeg": "Ta bort reseben",
++  "error_addAtLeastOneTravelLeg": "Vänligen lägg till minst ett reseben",
++  "error_selectTravelLocations": "Resa {number}: Vänligen välj både från- och till-platser",
++  "@error_selectTravelLocations": {
++    "placeholders": {
++      "number": {}
++    }
++  },
++  "error_invalidTravelDuration": "Resa {number}: Ange en giltig varaktighet (större än 0)",
++  "@error_invalidTravelDuration": {
++    "placeholders": {
++      "number": {}
++    }
++  },
++  "travel_notesHint": "Lägg till detaljer om din resa...",
++  "form_span": "Spann",
++  "form_break": "Rast",
++  "form_worked": "Arbetat"
+ }
+diff --git a/lib/models/entry.dart b/lib/models/entry.dart
+index 65dd830..8c4d76f 100644
+--- a/lib/models/entry.dart
++++ b/lib/models/entry.dart
+@@ -587,13 +587,16 @@
+     String? id,
+     DateTime? createdAt,
+   }) {
+-    return Entry(
++    final entry = Entry(
+       id: id,
+       userId: userId,
+       type: EntryType.work,
+       date: date,
+       shifts: [shift], // Exactly 1 shift for atomic entry
+       notes: dayNotes,
+       createdAt: createdAt,
+       updatedAt: DateTime.now(),
+     );
++    assert(entry.shifts!.length == 1,
++        'Work entries created via makeWorkAtomicFromShift must have exactly one shift.');
++    return entry;
+   }
+ 
+   /// Create an atomic travel entry from a single leg
+@@ -613,7 +616,7 @@
+     int? segmentOrder,
+     int? totalSegments,
+   }) {
+-    return Entry(
++    final entry = Entry(
+       id: id,
+       userId: userId,
+       type: EntryType.travel,
+@@ -638,6 +641,9 @@
+         ),
+       ],
+     );
++    assert(entry.travelLegs!.length == 1,
++        'Travel entries created via makeTravelAtomicFromLeg must have exactly one travel leg.');
++    return entry;
+   }
+ 
+   @override
+diff --git a/lib/screens/history_screen.dart b/lib/screens/history_screen.dart
+index 6fa4727..91875b7 100644
+--- a/lib/screens/history_screen.dart
++++ b/lib/screens/history_screen.dart
+@@ -850,8 +850,8 @@
+                               ),
+                             ),
+                             Text(
+-                              // TODO: Use form_shiftLabel when localization is regenerated
+-                              'Shift $shiftNumber',
++                              t.form_shiftLabel(shiftNumber),
+                               style: theme.textTheme.labelSmall?.copyWith(
+                                 color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                               ),
+@@ -916,8 +916,7 @@
+                               borderRadius: BorderRadius.circular(8),
+                             ),
+                             child: Text(
+-                              // TODO: Use history_worked when localization is regenerated
+-                              'Worked ${_formatDuration(shift.workedDuration)}',
++                              '${t.history_worked} ${_formatDuration(shift.workedDuration)}',
+                               style: theme.textTheme.labelSmall?.copyWith(
+                                 color: colorScheme.secondary,
+                                 fontWeight: FontWeight.w600,
+@@ -941,8 +940,7 @@
+           ),
+           child: Row(
+             children: [
+               Text(
+-                // TODO: Use history_totalWorked when localization is regenerated
+-                'Total worked',
++                t.history_totalWorked,
+                 style: theme.textTheme.bodyMedium?.copyWith(
+                   fontWeight: FontWeight.w600,
+                 ),
+@@ -1026,8 +1024,7 @@
+                               ),
+                             ),
+                             Text(
+-                              // TODO: Use travel_legLabel when localization is regenerated
+-                              'Travel $legNumber',
++                              t.travel_legLabel(legNumber),
+                               style: theme.textTheme.labelSmall?.copyWith(
+                                 color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                               ),
+@@ -1059,8 +1056,7 @@
+                                     borderRadius: BorderRadius.circular(4),
+                                   ),
+                                   child: Text(
+-                                    // TODO: Use travel_sourceAuto/travel_sourceManual when localization is 
+-                                    leg.source == 'auto' ? 'Auto' : 'Manual',
++                                    leg.source == 'auto' ? t.travel_sourceAuto : t.travel_sourceManual,
+                                     style: theme.textTheme.labelSmall?.copyWith(
+                                       color: leg.source == 'auto'
+                                           ? Colors.green.shade700
+@@ -1090,8 +1086,7 @@
+           ),
+           child: Row(
+             children: [
+               Text(
+-                // TODO: Use travel_total when localization is regenerated
+-                'Total travel',
++                t.travel_total,
+                 style: theme.textTheme.bodyMedium?.copyWith(
+                   fontWeight: FontWeight.w600,
+                 ),
+diff --git a/lib/widgets/simple_entry_form.dart b/lib/widgets/simple_entry_form.dart
+index fa59e38..ace67a8 100644
+--- a/lib/widgets/simple_entry_form.dart
++++ b/lib/widgets/simple_entry_form.dart
+@@ -210,7 +210,7 @@
+         // Notes Section
+         TextFormField(
+           controller: _notesController,
+           decoration: const InputDecoration(
+-            labelText: 'Notes (Optional)',
++            labelText: AppLocalizations.of(context).form_notesOptional,
+             border: OutlineInputBorder(),
+           ),
+           maxLines: 3,
+diff --git a/lib/widgets/unified_entry_form.dart b/lib/widgets/unified_entry_form.dart
+index 75d433e..82aa195 100644
+--- a/lib/widgets/unified_entry_form.dart
++++ b/lib/widgets/unified_entry_form.dart
+@@ -528,10 +528,8 @@
+         if (!_isEditMode) ...[
+           OutlinedButton.icon(
+             onPressed: _addTravelLeg,
+             icon: const Icon(Icons.add),
+-            label: Text(_travelLegs.isEmpty
+-                ? // TODO: Use travel_addLeg when localization is regenerated
+-                  'Add Travel Leg'
+-                : // TODO: Use travel_addAnotherLeg when localization is regenerated
+-                  'Add Another Travel'),
++            label: Text(_travelLegs.isEmpty
++                ? AppLocalizations.of(context).travel_addLeg
++                : AppLocalizations.of(context).travel_addAnotherLeg),
+             style: OutlinedButton.styleFrom(
+               minimumSize: const Size(double.infinity, 48),
+             ),
+@@ -567,20 +565,18 @@
+             // Leg header
+             Row(
+               children: [
+                 Text(
+-                  // TODO: Use travel_legLabel when localization is regenerated
+-                  'Travel ${index + 1}',
++                  t.travel_legLabel(index + 1),
+                   style: theme.textTheme.titleSmall?.copyWith(
+                     fontWeight: FontWeight.w600,
+                   ),
+                 ),
+                 const Spacer(),
+                 // Remove button only in create mode and if more than one leg
+                 if (!_isEditMode && _travelLegs.length > 1)
+                   IconButton(
+                     icon: const Icon(Icons.delete_outline, size: 20),
+                     onPressed: () => _removeTravelLeg(index),
+-                    tooltip: 'Remove travel leg',
++                    tooltip: t.travel_removeLeg,
+                   ),
+                 // Source badge
+                 Container(
+@@ -596,8 +592,7 @@
+                     ),
+                   ),
+                   child: Text(
+-                    // TODO: Use travel_sourceAuto/travel_sourceManual when localization is regenerated
+-                    leg.source == 'auto' ? 'Auto' : 'Manual',
++                    leg.source == 'auto' ? t.travel_sourceAuto : t.travel_sourceManual,
+                     style: theme.textTheme.labelSmall?.copyWith(
+                       color: leg.source == 'auto'
+                           ? Colors.green.shade700
+@@ -957,8 +952,7 @@
+                   });
+                 },
+                 child: Text(
+-                  // TODO: Use form_useLocationForAllShifts when localization is regenerated
+-                  'Use this location for all shifts',
++                  AppLocalizations.of(context).form_useLocationForAllShifts,
+                   style: theme.textTheme.bodyMedium,
+                 ),
+               ),
+@@ -1104,8 +1098,7 @@
+             // Shift header
+             Row(
+               children: [
+                 Text(
+-                  // TODO: Use form_shiftLabel when localization is regenerated
+-                  'Shift ${index + 1}',
++                  t.form_shiftLabel(index + 1),
+                   style: theme.textTheme.titleSmall?.copyWith(
+                     fontWeight: FontWeight.w600,
+                   ),
+@@ -1186,8 +1179,7 @@
+             
+             // Break control
+             Text(
+-              // TODO: Use form_unpaidBreakMinutes when localization is regenerated
+-              'Unpaid break (min)',
++              t.form_unpaidBreakMinutes,
+               style: theme.textTheme.bodyMedium?.copyWith(
+                 fontWeight: FontWeight.w500,
+               ),
+@@ -1218,22 +1210,19 @@
+                 children: [
+                   _buildComputedValue(
+                     theme,
+-                    // TODO: Use form_span when localization is regenerated
+-                    'Span',
++                    t.form_span,
+                     _formatDuration(spanMinutes),
+                   ),
+                   _buildComputedValue(
+                     theme,
+-                    // TODO: Use form_break when localization is regenerated
+-                    'Break',
++                    t.form_break,
+                     _formatDuration(breakMinutes),
+                   ),
+                   _buildComputedValue(
+                     theme,
+-                    // TODO: Use form_worked when localization is regenerated
+-                    'Worked',
++                    t.form_worked,
+                     _formatDuration(workedMinutes),
+                     isHighlighted: true,
+                   ),
+@@ -1243,12 +1232,9 @@
+             const SizedBox(height: 16),
+             
+             // Shift location
+             LocationSelector(
+-              labelText: // TODO: Use form_shiftLocation when localization is regenerated
+-                  'Shift location',
++              labelText: AppLocalizations.of(context).form_shiftLocation,
+               hintText: _useLocationForAllShifts && _workLocation != null
+-                  ? // TODO: Use form_sameAsDefault when localization is regenerated
+-                    'Same as default (${_workLocation!.length > 30 ? '${_workLocation!.substring(0, 30)}..
+.' : _workLocation})'
+-                  : // TODO: Use entry_locationHint when localization is regenerated
+-                    'Enter shift location',
++                  ? AppLocalizations.of(context).form_sameAsDefault
++                  : AppLocalizations.of(context).form_shiftLocationHint,
+               // When toggle is ON and shift has no specific location, show default
+               initialValue: shift.location ?? (_useLocationForAllShifts ? _workLocation : null),
+               onLocationSelected: (location) {
+@@ -1286,22 +1272,19 @@
+             size: 20,
+             color: theme.colorScheme.onSurfaceVariant,
+           ),
+           const SizedBox(width: 8),
+           Text(
+-            // TODO: Use form_shiftNotes when localization is regenerated
+-            'Shift notes',
++            AppLocalizations.of(context).form_shiftNotes,
+             style: theme.textTheme.bodyMedium?.copyWith(
+               fontWeight: FontWeight.w500,
+             ),
+           ),
+           if (!hasNotes) ...[
+             const SizedBox(width: 8),
+             Text(
+-              // TODO: Use common_optional when localization is regenerated
+-              '(optional)',
++              AppLocalizations.of(context).common_optional,
+               style: theme.textTheme.bodySmall?.copyWith(
+                 color: theme.colorScheme.onSurfaceVariant,
+               ),
+@@ -1316,8 +1299,7 @@
+           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+           child: TextFormField(
+             controller: controller,
+             decoration: InputDecoration(
+-              hintText: // TODO: Use form_shiftNotesHint when localization is regenerated
+-                  'Add notes for this shift (e.g., specific tasks, issues)',
++              hintText: AppLocalizations.of(context).form_shiftNotesHint,
+               border: const OutlineInputBorder(),
+               prefixIcon: const Icon(Icons.note),
+             ),
+@@ -1589,8 +1571,7 @@
+           if (!mounted) return;
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(
+-              // TODO: Use error_endTimeBeforeStart when localization is regenerated
+-              content: Text('End time must be after start time'),
++              content: Text(t.error_endTimeBeforeStart),
+               backgroundColor: Colors.red,
+             ),
+           );
+@@ -1607,56 +1588,51 @@
+     if (widget.entryType == EntryType.travel) {
+       if (_travelLegs.isEmpty) {
+         if (!mounted) return;
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+-            content: Text('Please add at least one travel leg'),
++            content: Text(t.error_addAtLeastOneTravelLeg),
+             backgroundColor: Colors.red,
+           ),
+         );
+         return;
+       }
+       // Validate each leg
+       for (var i = 0; i < _travelLegs.length; i++) {
+         final leg = _travelLegs[i];
+         if (leg.fromText.isEmpty || leg.toText.isEmpty) {
+           if (!mounted) return;
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(
+-              content: Text('Travel ${i + 1}: Please select both from and to locations'),
++              content: Text(t.error_selectTravelLocations(i + 1)),
+               backgroundColor: Colors.red,
+             ),
+           );
+           return;
+         }
+         if (leg.minutes <= 0) {
+           if (!mounted) return;
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(
+-              content: Text('Travel ${i + 1}: Please enter a valid duration (greater than 0)'),
++              content: Text(t.error_invalidTravelDuration(i + 1)),
+               backgroundColor: Colors.red,
+             ),
+           );
+           return;
+         }
+       }
+     } else {
+-      if (_workLocation == null || _workLocation!.isEmpty) {
+-        if (!mounted) return;
+-        ScaffoldMessenger.of(context).showSnackBar(
+-          SnackBar(
+-            content: Text(t.error_selectWorkLocation),
+-            backgroundColor: Colors.red,
+-          ),
+-        );
+-        return;
+-      }
+       if (_shifts.isEmpty) {
+         if (!mounted) return;
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+             content: Text(t.error_addAtLeastOneShift),
+             backgroundColor: Colors.red,
+           ),
+         );
+         return;
+       }
+       // Validate all shifts have valid times and break minutes
+       for (var i = 0; i < _shifts.length; i++) {
+         final shift = _shifts[i];
+         if (shift.end.isBefore(shift.start) ||
+             shift.end.isAtSameMomentAs(shift.start)) {
+           if (!mounted) return;
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(
+-              // TODO: Use error_invalidShiftTime when localization is regenerated
+-              content: Text('Shift ${i + 1} has invalid times (end must be after start)'),
++              content: Text(t.error_invalidShiftTime(i + 1)),
+               backgroundColor: Colors.red,
+             ),
+           );
+@@ -1667,23 +1643,19 @@
+         if (shift.unpaidBreakMinutes < 0) {
+           if (!mounted) return;
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(
+-              content: Text('Shift ${i + 1}: Break minutes cannot be negative'),
++              content: Text(t.error_negativeBreakMinutes(i + 1)),
+               backgroundColor: Colors.red,
+             ),
+           );
+           return;
+         }
+         if (shift.unpaidBreakMinutes > spanMinutes) {
+           if (!mounted) return;
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(
+-              content: Text('Shift ${i + 1}: Break minutes (${shift.unpaidBreakMinutes}) cannot exceed sp
+an (${spanMinutes}m)'),
++              content: Text(t.error_breakExceedsSpan(i + 1, shift.unpaidBreakMinutes, spanMinutes)),     
+               backgroundColor: Colors.red,
+             ),
+           );
+           return;
+         }
+       }
+     }
