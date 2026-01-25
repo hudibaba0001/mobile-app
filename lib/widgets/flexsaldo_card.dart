@@ -190,7 +190,6 @@ class FlexsaldoCard extends StatelessWidget {
 
 class _ExportButton extends StatelessWidget {
   const _ExportButton({
-    super.key,
     required this.icon,
     required this.label,
     this.onTap,

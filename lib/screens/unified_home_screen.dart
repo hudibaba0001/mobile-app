@@ -6,7 +6,6 @@ import '../models/entry.dart';
 import '../models/absence.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import '../config/app_router.dart';
 import '../models/autocomplete_suggestion.dart';
 // RepositoryProvider no longer needed - EntryProvider is the only write path
@@ -1000,52 +999,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     }
   }
 
-  Widget _buildNavItem(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                  size: 24,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: isSelected
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   void _startTravelEntry() {
     // Show a simple dialog instead of navigating to complex screen
     _showQuickEntryDialog('travel');
@@ -1424,91 +1377,6 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
       case SuggestionType.custom:
         return theme.colorScheme.tertiary;
     }
-  }
-
-  Widget _buildLocationField(
-    ThemeData theme, {
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required Color iconColor,
-  }) {
-    if (!widget.enableSuggestions) {
-      // Suggestions disabled for tests: render a plain TextField without overlay plumbing
-      return TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          prefixIcon: Icon(
-            icon,
-            color: iconColor,
-            size: 20,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: iconColor,
-              width: 2,
-            ),
-          ),
-        ),
-        onChanged: (_) {
-          // Trigger rebuild so _isValid() re-evaluates and enables the button
-          setState(() {});
-        },
-      );
-    }
-
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          prefixIcon: Icon(
-            icon,
-            color: iconColor,
-            size: 20,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: iconColor,
-              width: 2,
-            ),
-          ),
-        ),
-        onChanged: (value) {
-          final locationProvider = context.read<LocationProvider>();
-          final suggestions =
-              locationProvider.getAutocompleteSuggestions(value);
-
-          if (suggestions.isNotEmpty) {
-            _showSuggestions(theme, controller, suggestions);
-          } else {
-            _overlayEntry?.remove();
-            _overlayEntry = null;
-          }
-        },
-        onTap: () {
-          final locationProvider = context.read<LocationProvider>();
-          final suggestions = locationProvider.getAutocompleteSuggestions('');
-
-          if (suggestions.isNotEmpty) {
-            _showSuggestions(theme, controller, suggestions);
-          }
-        },
-      ),
-    );
   }
 
   @override
@@ -3388,12 +3256,6 @@ class _ShiftData {
     } else {
       return '${remainingMinutes}m';
     }
-  }
-
-  String _formatTimeOfDay(TimeOfDay time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
   }
 
   TimeOfDay? _parseTimeOfDay(String timeString) {

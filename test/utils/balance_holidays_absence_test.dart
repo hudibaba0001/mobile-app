@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myapp/utils/target_hours_calculator.dart';
 import 'package:myapp/calendar/sweden_holidays.dart';
-import 'package:myapp/providers/absence_provider.dart';
 
 void main() {
   group('Balance Calculations with Holidays and Absences', () {

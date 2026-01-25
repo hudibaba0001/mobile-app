@@ -45,8 +45,6 @@ class _LocationSelectorState extends State<LocationSelector> {
   List<Location> _suggestions = [];
   List<String> _addressSuggestions = [];
   List<String> _mapboxSuggestions = [];
-  bool _isShowingOverlay = false;
-  Location? _selectedLocation;
   Timer? _debounceTimer;
   bool _isLoadingMapboxSuggestions = false;
 
@@ -119,7 +117,6 @@ class _LocationSelectorState extends State<LocationSelector> {
       // Refresh overlay contents when typing
       _overlayEntry?.markNeedsBuild();
     } else {
-      _selectedLocation = null;
       widget.onLocationObjectSelected?.call(null);
       _removeOverlay();
     }
@@ -188,7 +185,6 @@ class _LocationSelectorState extends State<LocationSelector> {
     if (_overlayEntry == null) {
       _overlayEntry = _createOverlayEntry();
       Overlay.of(context).insert(_overlayEntry!);
-      _isShowingOverlay = true;
     } else {
       // If already showing, just mark it to rebuild with latest suggestions
       _overlayEntry!.markNeedsBuild();
@@ -199,7 +195,6 @@ class _LocationSelectorState extends State<LocationSelector> {
     if (_overlayEntry != null) {
       _overlayEntry!.remove();
       _overlayEntry = null;
-      _isShowingOverlay = false;
     }
   }
 
@@ -510,7 +505,6 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   void _selectLocation(Location location) {
     setState(() {
-      _selectedLocation = location;
       _controller.text = location.address;
     });
 
@@ -626,7 +620,6 @@ class _LocationSelectorState extends State<LocationSelector> {
                   icon: const Icon(Icons.clear),
                   onPressed: () {
                     _controller.clear();
-                    _selectedLocation = null;
                     widget.onLocationSelected('');
                     widget.onLocationObjectSelected?.call(null);
                   },

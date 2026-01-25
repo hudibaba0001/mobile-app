@@ -867,14 +867,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     }
   }
 
-  // Legacy method - kept for backward compatibility but not used with travel legs
-  // @deprecated Use _calculateTravelLeg instead
-  Future<void> _calculateTravelTime() async {
-    // This method is no longer used - travel legs use _calculateTravelLeg instead
-  }
-
   Widget _buildWorkLocationSection(ThemeData theme) {
-    final t = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -937,12 +930,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
       ],
     );
-  }
-
-  // Legacy method - kept for backward compatibility but not used with travel legs
-  // @deprecated Duration is now handled per leg in _buildTravelLegCard
-  Widget _buildDurationSection(ThemeData theme) {
-    return const SizedBox.shrink();
   }
 
   void _addShift() {
@@ -1442,12 +1429,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     
     // Get the date from the entry being edited
     final editDate = widget.existingEntry!.date;
-    
-    // For travel: optionally prefill "from" with current entry's "to"
-    String? prefillFrom;
-    if (widget.entryType == EntryType.travel && widget.existingEntry != null) {
-      prefillFrom = widget.existingEntry!.to;
-    }
     
     // Show create form in a bottom sheet with same date
     showModalBottomSheet(

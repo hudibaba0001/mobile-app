@@ -142,8 +142,6 @@ class _ReportsScreenState extends State<ReportsScreen>
     try {
       final entries = exportConfig['entries'] as List<Entry>;
       final fileName = exportConfig['fileName'] as String;
-      final startDate = exportConfig['startDate'] as DateTime?;
-      final endDate = exportConfig['endDate'] as DateTime?;
       final format = exportConfig['format'] as String? ?? 'excel';
 
       // Validate entries
