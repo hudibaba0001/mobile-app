@@ -28,8 +28,7 @@ void main() {
         notes: 'DBG',
         location: 'Office',
       );
-      
-      // Create entry via factory
+      expect(shift.location, 'Office');
       // When converting to UTC for storage (as SupabaseEntryService does):
       final startUtc = localStart.toUtc();
       final endUtc = localEnd.toUtc();
@@ -67,8 +66,7 @@ void main() {
         unpaidBreakMinutes: 30,
         notes: 'DBG',
       );
-      
-      // Create entry via factory
+      expect(shift.notes, 'DBG');
       // When converting to UTC for storage:
       final startUtc = localStart.toUtc();
       final endUtc = localEnd.toUtc();
@@ -98,7 +96,6 @@ void main() {
 
     test('timezone conversion preserves date when crossing midnight', () {
       // Edge case: Shift that starts late and ends early next day
-      final localDate = DateTime(2025, 1, 15);
       final localStart = DateTime(2025, 1, 15, 23, 0); // 23:00 local
       final localEnd = DateTime(2025, 1, 16, 1, 0); // 01:00 next day local
       

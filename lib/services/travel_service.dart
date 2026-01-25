@@ -12,6 +12,8 @@ import '../utils/retry_helper.dart';
 import '../providers/entry_provider.dart';
 
 class TravelService {
+  // TODO: Remove once legacy location lookup is fully retired
+  // ignore: unused_field
   final LocationRepository _locationRepository;
   EntryProvider? _entryProvider;
 

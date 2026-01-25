@@ -8,15 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../config/app_router.dart';
-import '../models/travel_entry.dart';
-import '../models/work_entry.dart';
 import '../models/autocomplete_suggestion.dart';
 // RepositoryProvider no longer needed - EntryProvider is the only write path
 // import '../repositories/repository_provider.dart'; // Removed: legacy write path disabled
 import '../providers/entry_provider.dart';
 import '../providers/absence_provider.dart';
 import '../providers/location_provider.dart';
-import '../providers/time_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/export_service.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -39,7 +36,6 @@ class UnifiedHomeScreen extends StatefulWidget {
 }
 
 class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
-  int _selectedIndex = 0;
   List<_EntryData> _recentEntries = [];
   bool _isLoadingRecent = false;
   Timer? _recentLoadDebounce;
@@ -65,32 +61,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         _loadRecentEntries();
       }
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _updateSelectedIndex();
-  }
-
-  void _updateSelectedIndex() {
-    final currentRoute = AppRouter.getCurrentRouteName(context);
-    switch (currentRoute) {
-      case AppRouter.homeName:
-        _selectedIndex = 0;
-        break;
-      case AppRouter.historyName:
-        _selectedIndex = 1;
-        break;
-      case AppRouter.settingsName:
-        _selectedIndex = 2;
-        break;
-      case AppRouter.contractSettingsName:
-        _selectedIndex = 3;
-        break;
-      default:
-        _selectedIndex = 0;
-    }
   }
 
   void _loadRecentEntries() {
@@ -259,27 +229,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     final h = tod.hour.toString().padLeft(2, '0');
     final m = tod.minute.toString().padLeft(2, '0');
     return '$h:$m';
-  }
-
-  void _onTabTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        context.push(AppRouter.homePath);
-        break;
-      case 1:
-        context.push(AppRouter.historyPath);
-        break;
-      case 2:
-        context.push(AppRouter.settingsPath);
-        break;
-      case 3:
-        context.push(AppRouter.contractSettingsPath);
-        break;
-    }
   }
 
   @override

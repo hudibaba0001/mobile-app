@@ -13,7 +13,6 @@ import 'package:myapp/models/user_profile.dart'; // Import UserProfile
 import 'package:myapp/services/profile_service.dart'; // Import ProfileService
 import 'package:myapp/screens/login_screen.dart';
 import 'package:myapp/screens/unified_home_screen.dart';
-import 'package:myapp/widgets/flexsaldo_card.dart';
 import 'package:myapp/providers/locale_provider.dart';
 import 'package:myapp/l10n/generated/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

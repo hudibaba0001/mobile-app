@@ -11,8 +11,6 @@ import '../services/supabase_auth_service.dart';
 import '../providers/entry_provider.dart';
 import '../models/travel_entry.dart';
 import '../models/work_entry.dart';
-import '../repositories/work_repository.dart';
-import '../repositories/travel_repository.dart';
 import 'reports/overview_tab.dart';
 import 'reports/trends_tab.dart';
 import 'reports/time_balance_tab.dart';

@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/work_entry.dart';
 import '../models/travel_entry.dart';
-import '../repositories/work_repository.dart';
-import '../repositories/travel_repository.dart';
 import '../config/app_config.dart';
 import '../features/reports/analytics_models.dart';
 import '../services/analytics_api.dart';

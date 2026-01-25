@@ -6,13 +6,9 @@ import 'package:myapp/providers/absence_provider.dart';
 void main() {
   group('Balance Calculations with Holidays and Absences', () {
     late SwedenHolidayCalendar holidays;
-    late AbsenceProvider absenceProvider;
 
     setUp(() {
       holidays = SwedenHolidayCalendar();
-      // Create a mock AbsenceProvider for testing
-      // Note: In real tests, you'd use a mock SupabaseAuthService and SupabaseAbsenceService
-      // For now, we'll test the logic directly
     });
 
     test('Weekday holiday: scheduled=0', () {
@@ -153,4 +149,3 @@ void main() {
     });
   });
 }
-

@@ -2100,7 +2100,10 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String error_breakExceedsSpan(
-      Object number, Object breakMinutes, Object spanMinutes) {
+    Object number,
+    Object breakMinutes,
+    Object spanMinutes,
+  ) {
     return 'Skift $number: Rastminuter ($breakMinutes) kan inte överstiga tidsintervallet (${spanMinutes}m)';
   }
 
