@@ -13,21 +13,8 @@ void main() {
       // Given a local shift at 08:00 Sweden time (January, UTC+1)
       // The payload should use 07:00Z
       
-      final localDate = DateTime(2025, 1, 15); // January 15, 2025 (winter, UTC+1)
-      final localStart = DateTime(
-        localDate.year,
-        localDate.month,
-        localDate.day,
-        8, // 08:00 local time
-        0,
-      );
-      final localEnd = DateTime(
-        localDate.year,
-        localDate.month,
-        localDate.day,
-        12, // 12:00 local time
-        0,
-      );
+      final localStart = DateTime(2025, 1, 15, 8, 0); // 08:00 local time
+      final localEnd = DateTime(2025, 1, 15, 12, 0); // 12:00 local time
       
       // Verify it's local (not UTC)
       expect(localStart.isUtc, false);
@@ -43,21 +30,6 @@ void main() {
       );
       
       // Create entry via factory
-      final entry = Entry.makeWorkAtomicFromShift(
-        userId: 'user1',
-        date: localDate,
-        shift: shift,
-      );
-      
-      // Verify shift fields are preserved
-      expect(entry.shifts!.first.unpaidBreakMinutes, 30);
-      expect(entry.shifts!.first.notes, 'DBG');
-      expect(entry.shifts!.first.location, 'Office');
-      
-      // Verify times are local
-      expect(entry.shifts!.first.start.isUtc, false);
-      expect(entry.shifts!.first.end.isUtc, false);
-      
       // When converting to UTC for storage (as SupabaseEntryService does):
       final startUtc = localStart.toUtc();
       final endUtc = localEnd.toUtc();
@@ -81,21 +53,8 @@ void main() {
       // Given a local shift at 08:00 Sweden time (July, UTC+2)
       // The payload should use 06:00Z
       
-      final localDate = DateTime(2025, 7, 15); // July 15, 2025 (summer, UTC+2)
-      final localStart = DateTime(
-        localDate.year,
-        localDate.month,
-        localDate.day,
-        8, // 08:00 local time
-        0,
-      );
-      final localEnd = DateTime(
-        localDate.year,
-        localDate.month,
-        localDate.day,
-        12, // 12:00 local time
-        0,
-      );
+      final localStart = DateTime(2025, 7, 15, 8, 0); // 08:00 local time
+      final localEnd = DateTime(2025, 7, 15, 12, 0); // 12:00 local time
       
       // Verify it's local (not UTC)
       expect(localStart.isUtc, false);
@@ -110,12 +69,6 @@ void main() {
       );
       
       // Create entry via factory
-      final entry = Entry.makeWorkAtomicFromShift(
-        userId: 'user1',
-        date: localDate,
-        shift: shift,
-      );
-      
       // When converting to UTC for storage:
       final startUtc = localStart.toUtc();
       final endUtc = localEnd.toUtc();

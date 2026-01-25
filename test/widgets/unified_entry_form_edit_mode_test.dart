@@ -13,14 +13,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class FakeEntryProvider extends Mock implements EntryProvider {
-  @override
-  Future<void> addEntries(List<Entry> entries) async {}
-
-  @override
-  Future<void> addEntry(Entry entry) async {}
-}
-
+class MockEntryProvider extends Mock implements EntryProvider {}
 class MockSupabaseAuthService extends Mock implements SupabaseAuthService {}
 class FakeHolidayService extends Mock implements HolidayService {
   @override
@@ -39,12 +32,12 @@ void main() {
   });
 
   group('UnifiedEntryForm Edit Mode Restrictions', () {
-    late FakeEntryProvider mockEntryProvider;
+    late EntryProvider mockEntryProvider;
     late MockSupabaseAuthService mockAuthService;
     late FakeHolidayService mockHolidayService;
 
     setUp(() {
-      mockEntryProvider = FakeEntryProvider();
+      mockEntryProvider = MockEntryProvider();
       mockAuthService = MockSupabaseAuthService();
       mockHolidayService = FakeHolidayService();
       

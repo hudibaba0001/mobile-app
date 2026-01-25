@@ -37,8 +37,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
   // Common fields
   DateTime _selectedDate = DateTime.now();
-  TimeOfDay _startTime = TimeOfDay.now();
-  TimeOfDay? _endTime;
   int _durationMinutes = 0;
 
   // Travel-specific fields (legacy single travel - kept for backward compatibility)
