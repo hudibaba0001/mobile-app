@@ -1894,20 +1894,4 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       return '${mins}m';
     }
   }
-
-  String _getShiftDisplayName(String shiftType) {
-    final t = AppLocalizations.of(context);
-    switch (shiftType) {
-      case 'morning':
-        return t.shift_morning;
-      case 'afternoon':
-        return t.shift_afternoon;
-      case 'evening':
-        return t.shift_evening;
-      case 'night':
-        return t.shift_night;
-      default:
-        return t.shift_unknown;
-    }
-  }
 }
