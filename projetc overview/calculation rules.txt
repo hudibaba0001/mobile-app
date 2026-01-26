@@ -1,0 +1,168 @@
+<!-- docs/CALCULATION_RULES.md -->
+
+# Calculation Rules — Time Balance, Targets, Red Days, Absence
+
+This document defines the **rules the app uses** to calculate:
+- worked minutes
+- contract targets per day/month/year
+- daily variance
+- running time balance
+- effects of red days and absences (VAB, sickness, vacation)
+
+> Goal: one clear source of truth so we can test and ship confidently.
+
+---
+
+## Definitions
+
+### Worked minutes (per shift)
+- `spanMinutes = end - start`
+- `workedMinutes = max(0, spanMinutes - unpaidBreakMinutes)`
+
+Notes:
+- unpaid breaks reduce worked time.
+- if break > span, worked clamps to 0 (never negative).
+
+### Travel minutes
+Travel time is tracked separately.
+By default travel minutes do **not** change time balance variance (configurable later).
+
+---
+
+## Daily target (what the worker “should” have worked)
+A day has a target based on the user’s contract settings.
+
+### Default contract model (MVP)
+- `weeklyHours` (e.g., 40h/week)
+- `workDaysPerWeek` (default 5)
+- `dailyTargetMinutes = (weeklyHours * 60) / workDaysPerWeek`
+
+For a normal 40h/5d contract:
+- daily target = 480 minutes (8h)
+
+### Weekday schedule model (more accurate, optional)
+Some contracts vary by weekday (e.g., 10h Mon–Thu, 0 Fri).
+Then:
+- `targetMinutes(date)` depends on weekday mapping.
+
+---
+
+## Red days (Swedish “röda dagar”)
+### Default rule
+If a date is a red day:
+- `targetMinutes(date) = 0`
+
+So:
+- no work logged => variance 0 (you don’t “owe” hours)
+- work logged => positive variance (often overtime / extra work)
+
+### Optional setting (future)
+Some industries treat red days like normal working days.
+Add a setting:
+- `treatRedDaysAsNormalWorkingDays`
+If true:
+- targetMinutes(date) behaves like a normal weekday.
+
+---
+
+## Absence types and “credited minutes”
+Absences can add **credited minutes** so the user does not lose balance unfairly.
+
+### Key concept
+For each date:
+- `effectiveMinutes = workedMinutes + creditedAbsenceMinutes`
+- `varianceMinutes = effectiveMinutes - targetMinutes(date)`
+
+This is the core rule that keeps balance fair.
+
+### Default absence crediting (recommended)
+| Absence Type | Typical Swedish expectation | Credited minutes |
+|---|---|---|
+| Vacation (Paid leave) | counts as planned work day | targetMinutes(date) |
+| Sickness | should not reduce flex target | targetMinutes(date) |
+| VAB | should not reduce flex target | targetMinutes(date) |
+| Unpaid leave | should reduce balance vs target | 0 |
+| Parental leave | varies by employer | configurable (0 or target) |
+
+### Partial-day absence
+If user logs partial-day absence:
+- creditedAbsenceMinutes = entered minutes (capped to target)
+Example:
+- target 480
+- worked 240
+- sick 240
+- effective 480 => variance 0
+
+---
+
+## Daily summary aggregation rule (CRITICAL)
+If there are multiple work entries in the same date:
+- **Target is applied once per date**, not per entry.
+
+Algorithm:
+1) group entries by date (date-only key)
+2) sum workedMinutes across all work entries that day
+3) sum creditedAbsenceMinutes across all absence entries that day (if supported)
+4) compute targetMinutes(date) once
+5) variance = (worked + credited) - target
+
+This prevents a major regression:
+> two shifts same day incorrectly subtract target twice.
+
+---
+
+## Monthly and yearly expected hours
+Do NOT use 4.33 weeks approximation for correctness.
+
+### Correct calendar-based method
+For a period (month/year):
+- `expectedMinutes = Σ targetMinutes(date)` across all dates in the period
+
+Because months differ by:
+- number of weekdays
+- red days
+- weekends distribution
+
+---
+
+## Running time balance
+Time balance is a cumulative sum of daily variance.
+
+- `balance(day N) = balance(day N-1) + variance(day N)`
+
+Usually displayed as:
+- minutes and formatted hours (e.g., +3h 15m)
+
+---
+
+## Travel integration (default)
+Travel minutes:
+- are tracked and exported
+- can be displayed in daily totals
+- do not affect variance unless a future setting enables it:
+  - `countTravelAsWork = true` => add travel minutes to effectiveMinutes
+
+---
+
+## Timezone rule (Sweden)
+To avoid “shift times moved by 1 hour” bugs:
+
+- Store timestamps in Supabase as UTC.
+- Convert to local for UI.
+- On write: local -> UTC
+- On read: UTC -> local
+
+Test should verify Sweden winter time (January: UTC+1):
+- 08:00 local stored as 07:00 UTC.
+
+---
+
+## Required regression tests (minimum set)
+1) Two atomic work entries same date => target applied once.
+2) Break reduces worked minutes (span 300, break 30 => worked 270).
+3) Red day => target 0.
+4) Sick/VAB/vacation credited minutes => variance 0 on full-day absence.
+5) Monthly expected minutes equals sum of day targets (calendar-based).
+6) UTC/local round-trip for shifts in Sweden.
+
+> If any of these fail, we do not ship.
