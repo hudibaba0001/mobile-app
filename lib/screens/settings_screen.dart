@@ -296,6 +296,8 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
 
+    if (!context.mounted) return;
+
     if (confirmed == true) {
       try {
         final entryProvider = context.read<EntryProvider>();
@@ -345,6 +347,8 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+
+    if (!context.mounted) return;
 
     if (confirmed == true) {
       try {
@@ -452,7 +456,7 @@ class SettingsScreen extends StatelessWidget {
                   color: Theme.of(dialogContext)
                       .colorScheme
                       .primaryContainer
-                      .withOpacity(0.4),
+                      .withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
@@ -506,7 +510,7 @@ class SettingsScreen extends StatelessWidget {
             if (user != null) ...[
               AppCard(
                 margin: AppSpacing.pagePadding,
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 child: Row(
                   children: [
                     Icon(
@@ -577,61 +581,9 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                SegmentedButton<ThemeMode>(
-                  segments: [
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      icon: const Icon(Icons.light_mode, size: 18),
-                      label: Text(t.settings_themeLight, style: const TextStyle(fontSize: 11)),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.system,
-                      icon: const Icon(Icons.brightness_auto, size: 18),
-                      label: Text(t.settings_themeSystem, style: const TextStyle(fontSize: 11)),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.dark,
-                      icon: const Icon(Icons.dark_mode, size: 18),
-                      label: Text(t.settings_themeDark, style: const TextStyle(fontSize: 11)),
-                    ),
-                  ],
-                  selected: {themeProvider.themeMode},
-                  onSelectionChanged: (Set<ThemeMode> selection) {
-                    themeProvider.setThemeMode(selection.first);
-                  },
-                  showSelectedIcon: false,
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                  ),
-          ListTile(
-            leading: Icon(
-              themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-            ),
-            title: Text(t.settings_theme),
-            subtitle: Text(themeProvider.themeModeDisplayName),
-<<<<<<< HEAD
-            trailing: _buildThemeModeSelector(context, themeProvider, t),
-=======
-            trailing: SegmentedButton<ThemeMode>(
-              segments: [
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  icon: const Icon(Icons.light_mode, size: 18),
-                  label: Text(t.settings_themeLight),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  icon: const Icon(Icons.brightness_auto, size: 18),
-                  label: Text(t.settings_themeSystem),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  icon: const Icon(Icons.dark_mode, size: 18),
-                  label: Text(t.settings_themeDark),
-                ),
+                _buildThemeModeSelector(context, themeProvider, t),
               ],
             ),
->>>>>>> fce380130c4b209387add1a18f37b3fa23693e11
           ),
 
           // Language Settings
