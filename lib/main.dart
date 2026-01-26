@@ -219,20 +219,21 @@ class MyApp extends StatelessWidget {
             return BalanceAdjustmentProvider(authService, repository);
           },
         ),
-        // TimeProvider depends on EntryProvider, ContractProvider, AbsenceProvider, and BalanceAdjustmentProvider
-        // Use ChangeNotifierProxyProvider4 since TimeProvider is a ChangeNotifier
-        ChangeNotifierProxyProvider4<EntryProvider, ContractProvider, AbsenceProvider,
-            BalanceAdjustmentProvider, TimeProvider>(
+        // TimeProvider depends on EntryProvider, ContractProvider, AbsenceProvider, BalanceAdjustmentProvider, and HolidayService
+        // Use ChangeNotifierProxyProvider5 since TimeProvider is a ChangeNotifier
+        ChangeNotifierProxyProvider5<EntryProvider, ContractProvider, AbsenceProvider,
+            BalanceAdjustmentProvider, HolidayService, TimeProvider>(
           create: (context) => TimeProvider(
             context.read<EntryProvider>(),
             context.read<ContractProvider>(),
             context.read<AbsenceProvider>(),
             context.read<BalanceAdjustmentProvider>(),
+            context.read<HolidayService>(),
           ),
           update: (context, entryProvider, contractProvider, absenceProvider,
-                  adjustmentProvider, previous) =>
+                  adjustmentProvider, holidayService, previous) =>
               previous ??
-              TimeProvider(entryProvider, contractProvider, absenceProvider, adjustmentProvider),
+              TimeProvider(entryProvider, contractProvider, absenceProvider, adjustmentProvider, holidayService),
         ),
         // Services
         Provider(create: (_) => AdminApiService()),
