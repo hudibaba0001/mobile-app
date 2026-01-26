@@ -22,6 +22,92 @@ import '../models/work_entry.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
+  Widget _buildThemeModeSelector(
+    BuildContext context,
+    ThemeProvider themeProvider,
+    AppLocalizations t,
+  ) {
+    final theme = Theme.of(context);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final useDropdown = screenWidth < 360 || textScale > 1.1;
+
+    final modes = [ThemeMode.light, ThemeMode.system, ThemeMode.dark];
+    final icons = [
+      Icons.light_mode,
+      Icons.brightness_auto,
+      Icons.dark_mode,
+    ];
+    final labels = [
+      t.settings_themeLight,
+      t.settings_themeSystem,
+      t.settings_themeDark,
+    ];
+
+    if (useDropdown) {
+      return DropdownButtonHideUnderline(
+        child: DropdownButton<ThemeMode>(
+          value: themeProvider.themeMode,
+          isDense: true,
+          alignment: AlignmentDirectional.centerEnd,
+          borderRadius: AppRadius.buttonRadius,
+          style: theme.textTheme.labelLarge,
+          items: [
+            for (int i = 0; i < modes.length; i++)
+              DropdownMenuItem<ThemeMode>(
+                value: modes[i],
+                child: Row(
+                  children: [
+                    Icon(icons[i], size: AppIconSize.sm),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(labels[i]),
+                  ],
+                ),
+              ),
+          ],
+          selectedItemBuilder: (context) => [
+            Text(labels[0], style: theme.textTheme.labelLarge),
+            Text(labels[1], style: theme.textTheme.labelLarge),
+            Text(labels[2], style: theme.textTheme.labelLarge),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              themeProvider.setThemeMode(value);
+            }
+          },
+        ),
+      );
+    }
+
+    return SegmentedButton<ThemeMode>(
+      segments: [
+        ButtonSegment(
+          value: ThemeMode.light,
+          icon: const Icon(Icons.light_mode, size: 18),
+          label: Text(t.settings_themeLight),
+        ),
+        ButtonSegment(
+          value: ThemeMode.system,
+          icon: const Icon(Icons.brightness_auto, size: 18),
+          label: Text(t.settings_themeSystem),
+        ),
+        ButtonSegment(
+          value: ThemeMode.dark,
+          icon: const Icon(Icons.dark_mode, size: 18),
+          label: Text(t.settings_themeDark),
+        ),
+      ],
+      selected: {themeProvider.themeMode},
+      onSelectionChanged: (Set<ThemeMode> selection) {
+        themeProvider.setThemeMode(selection.first);
+      },
+      showSelectedIcon: false,
+      style: const ButtonStyle(
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+
   Future<void> _addSampleData(BuildContext context) async {
     final entryProvider = context.read<EntryProvider>();
     final auth = context.read<SupabaseAuthService>();
@@ -464,85 +550,13 @@ class SettingsScreen extends StatelessWidget {
             ],
           
           // Theme Settings
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(t.settings_theme, style: theme.textTheme.bodyLarge),
-                        const SizedBox(height: 2),
-                        Text(
-                          themeProvider.themeModeDisplayName,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                SegmentedButton<ThemeMode>(
-                  segments: [
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      icon: const Icon(Icons.light_mode, size: 18),
-                      label: Text(t.settings_themeLight, style: const TextStyle(fontSize: 11)),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.system,
-                      icon: const Icon(Icons.brightness_auto, size: 18),
-                      label: Text(t.settings_themeSystem, style: const TextStyle(fontSize: 11)),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.dark,
-                      icon: const Icon(Icons.dark_mode, size: 18),
-                      label: Text(t.settings_themeDark, style: const TextStyle(fontSize: 11)),
-                    ),
-                  ],
-                  selected: {themeProvider.themeMode},
-                  onSelectionChanged: (Set<ThemeMode> selection) {
-                    themeProvider.setThemeMode(selection.first);
-                  },
-                  showSelectedIcon: false,
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                  ),
           ListTile(
             leading: Icon(
               themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
             ),
             title: Text(t.settings_theme),
             subtitle: Text(themeProvider.themeModeDisplayName),
-            trailing: SegmentedButton<ThemeMode>(
-              segments: [
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  icon: const Icon(Icons.light_mode, size: 18),
-                  label: Text(t.settings_themeLight),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  icon: const Icon(Icons.brightness_auto, size: 18),
-                  label: Text(t.settings_themeSystem),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  icon: const Icon(Icons.dark_mode, size: 18),
-                  label: Text(t.settings_themeDark),
-                ),
-              ],
-            ),
+            trailing: _buildThemeModeSelector(context, themeProvider, t),
           ),
 
           // Language Settings
