@@ -297,6 +297,8 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
 
+    if (!context.mounted) return;
+
     if (confirmed == true) {
       try {
         final entryProvider = context.read<EntryProvider>();
@@ -346,6 +348,8 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
+
+    if (!context.mounted) return;
 
     if (confirmed == true) {
       try {
@@ -453,7 +457,7 @@ class SettingsScreen extends StatelessWidget {
                   color: Theme.of(dialogContext)
                       .colorScheme
                       .primaryContainer
-                      .withOpacity(0.4),
+                      .withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
@@ -507,7 +511,7 @@ class SettingsScreen extends StatelessWidget {
             if (user != null) ...[
               AppCard(
                 margin: AppSpacing.pagePadding,
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 child: Row(
                   children: [
                     Icon(
@@ -550,13 +554,37 @@ class SettingsScreen extends StatelessWidget {
             ],
           
           // Theme Settings
-          ListTile(
-            leading: Icon(
-              themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(t.settings_theme, style: theme.textTheme.bodyLarge),
+                        const SizedBox(height: 2),
+                        Text(
+                          themeProvider.themeModeDisplayName,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildThemeModeSelector(context, themeProvider, t),
+              ],
             ),
-            title: Text(t.settings_theme),
-            subtitle: Text(themeProvider.themeModeDisplayName),
-            trailing: _buildThemeModeSelector(context, themeProvider, t),
           ),
 
           // Language Settings
