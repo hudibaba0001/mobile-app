@@ -80,13 +80,13 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       // Validate contract percentage
       final contractPercentText = _contractPercentController.text.trim();
       if (contractPercentText.isEmpty) {
-        _contractPercentError = t.common_required(t.contract_percentage) ?? 'Contract percentage is required';
+        _contractPercentError = t.common_required(t.contract_percentage);
       } else {
         final contractPercent = int.tryParse(contractPercentText);
         if (contractPercent == null) {
-          _contractPercentError = t.common_invalidNumber ?? 'Please enter a valid number';
+          _contractPercentError = t.common_invalidNumber;
         } else if (contractPercent < 0 || contractPercent > 100) {
-          _contractPercentError = t.contract_percentageError ?? 'Percentage must be between 0 and 100';
+          _contractPercentError = t.contract_percentageError;
         } else {
           _contractPercentError = null;
         }
@@ -95,15 +95,15 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       // Validate full-time hours
       final fullTimeHoursText = _fullTimeHoursController.text.trim();
       if (fullTimeHoursText.isEmpty) {
-        _fullTimeHoursError = t.common_required(t.contract_fullTimeHours) ?? 'Full-time hours is required';
+        _fullTimeHoursError = t.common_required(t.contract_fullTimeHours);
       } else {
         final fullTimeHours = int.tryParse(fullTimeHoursText);
         if (fullTimeHours == null) {
-          _fullTimeHoursError = t.common_invalidNumber ?? 'Please enter a valid number';
+          _fullTimeHoursError = t.common_invalidNumber;
         } else if (fullTimeHours <= 0) {
-          _fullTimeHoursError = t.contract_fullTimeHoursError ?? 'Hours must be greater than 0';
+          _fullTimeHoursError = t.contract_fullTimeHoursError;
         } else if (fullTimeHours > 168) { // 24 hours * 7 days
-          _fullTimeHoursError = t.contract_maxHoursError ?? 'Hours cannot exceed 168 per week';
+          _fullTimeHoursError = t.contract_maxHoursError;
         } else {
           _fullTimeHoursError = null;
         }
@@ -121,9 +121,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
         final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText);
         
         if (hours == null || hours < 0) {
-          _openingBalanceError = t.contract_invalidHours ?? 'Invalid hours';
+          _openingBalanceError = t.contract_invalidHours;
         } else if (minutes == null || minutes < 0 || minutes >= 60) {
-          _openingBalanceError = t.contract_minutesError ?? 'Minutes must be 0-59';
+          _openingBalanceError = t.contract_minutesError;
         } else {
           _openingBalanceError = null;
         }
@@ -367,21 +367,21 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           DropdownMenuItem(
                             value: 'standard',
                             child: Text(
-                              t.contract_modeStandard ?? 'Standard',
+                              t.contract_modeStandard,
                               style: theme.textTheme.bodyLarge,
                             ),
                           ),
                           DropdownMenuItem(
                             value: 'strict',
                             child: Text(
-                              t.contract_modeStrict ?? 'Strict',
+                              t.contract_modeStrict,
                               style: theme.textTheme.bodyLarge,
                             ),
                           ),
                           DropdownMenuItem(
                             value: 'flexible',
                             child: Text(
-                              t.contract_modeFlexible ?? 'Flexible',
+                              t.contract_modeFlexible,
                               style: theme.textTheme.bodyLarge,
                             ),
                           ),
@@ -400,10 +400,10 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _employerMode == 'strict' 
-                        ? (t.contract_modeStrictDesc ?? 'Strict validation of hours')
+                        ? t.contract_modeStrictDesc
                         : _employerMode == 'flexible'
-                            ? (t.contract_modeFlexibleDesc ?? 'No warnings for overages')
-                            : (t.contract_modeStandardDesc ?? 'Standard balance tracking'),
+                            ? t.contract_modeFlexibleDesc
+                            : t.contract_modeStandardDesc,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),

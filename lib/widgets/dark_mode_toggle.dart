@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../design/design.dart';
 import '../providers/theme_provider.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -18,8 +19,6 @@ class DarkModeToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
-        final theme = Theme.of(context);
-        final colorScheme = theme.colorScheme;
         final isDarkMode = themeProvider.isDarkMode;
 
         return Semantics(
@@ -27,32 +26,29 @@ class DarkModeToggle extends StatelessWidget {
           hint: isDarkMode 
               ? 'Currently enabled. Tap to switch to light mode'
               : 'Currently disabled. Tap to switch to dark mode',
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _toggleDarkMode(context, themeProvider),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 12.0,
-                ),
-                constraints: const BoxConstraints(
-                  minHeight: 72.0, // Ensures 48px+ tap target with padding
-                ),
-                child: Row(
-                  children: [
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _toggleDarkMode(context, themeProvider),
+                borderRadius: AppRadius.buttonRadius,
+                child: Container(
+                  padding: AppSpacing.listItemPadding,
+                  constraints: const BoxConstraints(
+                    minHeight: AppSpacing.tileHeight,
+                  ),
+                  child: Row(
+                    children: [
                     // Leading Icon Container
                     _buildLeadingIcon(context, isDarkMode),
                     
-                    const SizedBox(width: 16.0),
+                    const SizedBox(width: AppSpacing.lg),
                     
                     // Title and Subtitle
                     Expanded(
                       child: _buildTitleSection(context, isDarkMode),
                     ),
                     
-                    const SizedBox(width: 16.0),
+                    const SizedBox(width: AppSpacing.lg),
                     
                     // Toggle Switch
                     _buildToggleSwitch(context, themeProvider, isDarkMode),
@@ -74,11 +70,11 @@ class DarkModeToggle extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOutCubic,
-      width: 48.0,
-      height: 48.0,
+      width: AppIconSize.xl,
+      height: AppIconSize.xl,
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: AppRadius.buttonRadius,
       ),
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
@@ -95,7 +91,7 @@ class DarkModeToggle extends StatelessWidget {
           isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
           key: ValueKey(isDarkMode),
           color: colorScheme.primary,
-          size: 24.0,
+          size: AppIconSize.md,
           semanticLabel: isDarkMode ? 'Dark mode icon' : 'Light mode icon',
         ),
       ),
@@ -113,20 +109,14 @@ class DarkModeToggle extends StatelessWidget {
       children: [
         Text(
           AppLocalizations.of(context).settings_darkMode,
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTypography.cardTitle(colorScheme.onSurface),
         ),
-        const SizedBox(height: 2.0),
+        const SizedBox(height: AppSpacing.xs),
         Text(
-          isDarkMode 
+          isDarkMode
               ? AppLocalizations.of(context).settings_darkModeActive
               : AppLocalizations.of(context).settings_switchToDark,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            height: 1.3,
-          ),
+          style: AppTypography.body(colorScheme.onSurfaceVariant),
         ),
       ],
     );
@@ -152,7 +142,7 @@ class DarkModeToggle extends StatelessWidget {
         inactiveThumbColor: colorScheme.outline,
         inactiveTrackColor: colorScheme.surfaceContainerHighest,
         materialTapTargetSize: MaterialTapTargetSize.padded,
-        splashRadius: 24.0,
+        splashRadius: AppIconSize.md,
       ),
     );
   }
@@ -189,9 +179,9 @@ class DarkModeToggle extends StatelessWidget {
         content: Text(message),
         duration: const Duration(seconds: 1),
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16.0),
+        margin: AppSpacing.pagePadding,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: AppRadius.buttonRadius,
         ),
       ),
     );

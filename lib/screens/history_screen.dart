@@ -802,8 +802,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final t = AppLocalizations.of(context);
-    final holidayService = context.read<HolidayService>();
-    final holidayInfo = holidayService.getHolidayInfo(entry.date);
     final dateStr = DateFormat('dd/MM').format(entry.date);
     
     return Column(

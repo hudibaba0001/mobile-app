@@ -26,8 +26,6 @@ void main() {
     });
 
     test('Paid sick day with no work: credit=scheduled → variance=0', () {
-      // Create a test scenario: normal weekday with paid sick leave
-      final date = DateTime(2025, 3, 15); // Saturday, but let's use a weekday
       // Use a weekday that's not a holiday
       final weekday = DateTime(2025, 3, 17); // Monday, March 17, 2025
       expect(weekday.weekday, 1); // Monday

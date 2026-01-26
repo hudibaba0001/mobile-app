@@ -1,3 +1,5 @@
+// ignore_for_file: dead_code, unused_local_variable
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myapp/utils/target_hours_calculator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -277,4 +279,3 @@ class _MockEntry {
   
   _MockEntry(this.date, this.minutes);
 }
-
