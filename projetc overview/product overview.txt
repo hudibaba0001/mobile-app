@@ -1,0 +1,147 @@
+<!-- docs/PRODUCT_OVERVIEW.md -->
+
+# Product Overview — Swedish Time Balance App
+
+## One-liner
+A mobile app for Swedish shift/hourly workers to log work + travel and instantly see their **time balance vs contract target**, with exports that hold up in payroll disputes.
+
+## The problem we solve
+Many shift workers (cleaning, construction, field services) work:
+- split shifts across one day
+- multiple job sites (different locations)
+- unpaid breaks
+- travel between sites
+- absences (VAB, sickness, vacation)
+
+Payroll and “flexsaldo” mistakes happen because the data is scattered (notes apps, memory, paper). This app becomes the **single source of truth**.
+
+## Primary users
+- Cleaning staff (multiple client homes/offices per day)
+- Construction workers (site changes, varying hours)
+- Field workers (service visits + travel legs)
+
+## What “success” looks like for a user
+- Log a day in < 30 seconds (fast path).
+- If needed, log detailed proof (locations, notes, legs, breaks).
+- Instantly understand:
+  - total worked time
+  - daily/monthly target
+  - variance (over/under)
+  - running time balance
+- Export a clean CSV/XLSX that matches history.
+
+---
+
+## Core features
+
+### 1) Work logging
+- Log **one or multiple shifts** in one session.
+- Each shift supports:
+  - start/end time
+  - **unpaid break minutes** (reduces worked minutes)
+  - **per-shift location**
+  - **per-shift notes**
+
+### 2) Travel logging
+- Log travel as multiple **legs** (A→B, B→C).
+- Optional travel-time estimation (maps) with caching to reduce cost.
+
+### 3) History (audit trail)
+- Clear, readable list of what happened.
+- Designed for proof:
+  - shift times
+  - location displayed (shortened)
+  - notes indicator
+  - daily totals
+
+### 4) Exports
+- CSV + XLSX
+- **One row per atomic entry** (one shift = one row, one travel leg = one row)
+- Includes break/worked minutes and location/notes fields.
+
+### 5) Account + subscription gating
+- Signup on web; mobile is login-only.
+- Mobile gates access via subscription status stored in Supabase.
+
+### 6) Offline-first behavior
+- Entries saved locally (Hive) when offline.
+- Sync to Supabase when online.
+
+---
+
+## Product principles
+- **Trust > fancy**: calculations must be correct and test-covered.
+- **Auditability**: history + export should match exactly.
+- **Fast path**: common case (single shift, same location) should be minimal taps.
+- **Privacy-safe**: no background GPS tracking; travel estimation on-demand + cached.
+
+---
+
+## Technical stack (high level)
+- Flutter + Dart
+- Supabase (Postgres + Auth + RLS + migrations)
+- Maps/Places optional (autocomplete + travel time estimation, on-demand)
+- Reporting exports: CSV + XLSX
+- Stripe: web only (Checkout + Customer Portal); mobile gates by subscription_status.
+
+---
+
+## Data model (conceptual)
+
+### Entry (unified)
+An `Entry` is one stored record and has a `type`:
+- Work
+- Travel
+- (Absence / Adjustment are supported or planned depending on codebase)
+
+### Work shift
+A Work entry contains one or more shifts historically, but the **current direction** is:
+- **Atomic work**: 1 shift = 1 Entry (preferred for history/export simplicity)
+
+Shift fields:
+- start_time, end_time
+- unpaid_break_minutes
+- location
+- notes
+
+### Travel leg
+Similarly:
+- **Atomic travel**: 1 leg = 1 Entry
+
+Travel fields:
+- from, to
+- minutes
+- optional distance / source
+
+---
+
+## Why “Atomic Entries” matters
+We allow users to add multiple shifts/legs in one UI session,
+but we **store them as separate entries** so that:
+- history is clean (each line is a real unit)
+- export is clean (each row maps to one real thing)
+- edit behavior is safer (no accidental multi-edit side effects)
+
+---
+
+## How the engine fits together (mental model)
+
+UI (forms/screens)
+  -> Domain Model (Entry/Shift/TravelLeg)
+    -> Provider layer (EntryProvider)
+      -> Storage:
+          - Local cache (Hive)
+          - Remote (Supabase)
+    -> Calculation layer (Time balance calculator)
+      (daily summaries, targets, variance, running balance)
+
+---
+
+## Status notes (migration reality)
+The app has legacy models (`WorkEntry`, `TravelEntry`) and repositories still present.
+We are in a migration toward a unified `Entry` model.
+Deletion of legacy files should happen only after:
+1) no write paths use legacy models
+2) read/report/import flows are migrated
+3) Hive stored legacy data is migrated or supported
+4) then remove legacy code safely

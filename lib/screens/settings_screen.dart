@@ -518,28 +518,6 @@ class SettingsScreen extends StatelessWidget {
                   style: const ButtonStyle(
                     visualDensity: VisualDensity.compact,
                   ),
-          ListTile(
-            leading: Icon(
-              themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-            ),
-            title: Text(t.settings_theme),
-            subtitle: Text(themeProvider.themeModeDisplayName),
-            trailing: SegmentedButton<ThemeMode>(
-              segments: [
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  icon: const Icon(Icons.light_mode, size: 18),
-                  label: Text(t.settings_themeLight),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  icon: const Icon(Icons.brightness_auto, size: 18),
-                  label: Text(t.settings_themeSystem),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  icon: const Icon(Icons.dark_mode, size: 18),
-                  label: Text(t.settings_themeDark),
                 ),
               ],
             ),
