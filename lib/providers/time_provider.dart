@@ -5,6 +5,7 @@ import '../utils/time_balance_calculator.dart';
 import '../utils/target_hours_calculator.dart';
 import '../models/entry.dart';
 import '../calendar/sweden_holidays.dart';
+import '../services/holiday_service.dart';
 import 'entry_provider.dart';
 import 'contract_provider.dart';
 import 'absence_provider.dart';
@@ -29,7 +30,11 @@ class TimeProvider extends ChangeNotifier {
       _absenceProvider; // Optional for backward compatibility
   final BalanceAdjustmentProvider?
       _adjustmentProvider; // Optional for balance adjustments
+  final HolidayService? _holidayService; // For personal red days + half-day support
   final SwedenHolidayCalendar _holidays = SwedenHolidayCalendar();
+
+  // Listener tracking for auto-refresh
+  bool _isListening = false;
 
   // State
   double _currentMonthlyVariance = 0.0;
@@ -45,7 +50,7 @@ class TimeProvider extends ChangeNotifier {
 
   // Store monthly credit minutes for UI display
   final Map<String, int> _monthlyCreditMinutes = {}; // Key: "year-month"
-  
+
   // Store monthly adjustment minutes for UI display
   final Map<String, int> _monthlyAdjustmentMinutes = {}; // Key: "year-month"
 
@@ -54,7 +59,86 @@ class TimeProvider extends ChangeNotifier {
     this._contractProvider, [
     this._absenceProvider,
     this._adjustmentProvider,
-  ]);
+    this._holidayService,
+  ]) {
+    // Auto-refresh: Listen to EntryProvider changes
+    _setupListeners();
+  }
+
+  /// Setup listeners for auto-refresh when entries change
+  void _setupListeners() {
+    if (_isListening) return;
+    _isListening = true;
+
+    // Listen to entry changes and recalculate balances
+    _entryProvider.addListener(_onEntriesChanged);
+
+    // Listen to holiday service changes (personal red days)
+    _holidayService?.addListener(_onHolidaysChanged);
+
+    debugPrint('TimeProvider: Auto-refresh listeners enabled');
+  }
+
+  /// Handle entry changes - debounced recalculation
+  void _onEntriesChanged() {
+    // Only recalculate if we have already done initial calculation
+    if (_monthlySummaries.isNotEmpty) {
+      debugPrint('TimeProvider: Entries changed, recalculating balances...');
+      calculateBalances();
+    }
+  }
+
+  /// Handle holiday changes - recalculate balances
+  void _onHolidaysChanged() {
+    if (_monthlySummaries.isNotEmpty) {
+      debugPrint('TimeProvider: Holidays changed, recalculating balances...');
+      calculateBalances();
+    }
+  }
+
+  @override
+  void dispose() {
+    // Remove listeners to prevent memory leaks
+    _entryProvider.removeListener(_onEntriesChanged);
+    _holidayService?.removeListener(_onHolidaysChanged);
+    _isListening = false;
+    super.dispose();
+  }
+
+  /// Get scheduled minutes for a date with full red day support
+  ///
+  /// Uses HolidayService when available to check:
+  /// - Auto holidays (Swedish public holidays)
+  /// - Personal red days (user-defined)
+  /// - Half-day red day support (50% of normal scheduled)
+  ///
+  /// Falls back to basic holiday calendar if HolidayService is not available.
+  int _getScheduledMinutesForDate({
+    required DateTime date,
+    required int weeklyTargetMinutes,
+  }) {
+    // If HolidayService is available, use it for full red day support
+    if (_holidayService != null) {
+      final redDayInfo = _holidayService!.getRedDayInfo(date);
+
+      if (redDayInfo.isRedDay) {
+        // Use scheduledMinutesWithRedDayInfo for half-day support
+        return TargetHoursCalculator.scheduledMinutesWithRedDayInfo(
+          date: date,
+          weeklyTargetMinutes: weeklyTargetMinutes,
+          isFullRedDay: redDayInfo.isFullDay,
+          isHalfRedDay: redDayInfo.halfDay != null,
+        );
+      }
+    }
+
+    // Fallback: Use basic holiday calendar (auto holidays only)
+    return TargetHoursCalculator.scheduledMinutesForDate(
+      date: date,
+      weeklyTargetMinutes: weeklyTargetMinutes,
+      holidays: _holidays,
+    );
+  }
 
   // Getters
   double get currentMonthlyVariance => _currentMonthlyVariance;
@@ -122,9 +206,12 @@ class TimeProvider extends ChangeNotifier {
 
       // Load absences for the year if AbsenceProvider is available
       await _absenceProvider?.loadAbsences(year: targetYear);
-      
+
       // Load adjustments for the year if BalanceAdjustmentProvider is available
       await _adjustmentProvider?.loadAdjustments(year: targetYear);
+
+      // Load personal red days for the year if HolidayService is available
+      await _holidayService?.loadPersonalRedDays(targetYear);
 
       // Filter entries for the target year AND on/after tracking start date
       final yearEntries = allEntries.where((entry) {
@@ -174,11 +261,10 @@ class TimeProvider extends ChangeNotifier {
             continue;
           }
 
-          // Scheduled minutes (holiday-aware) - calculate once and reuse
-          final scheduled = TargetHoursCalculator.scheduledMinutesForDate(
+          // Scheduled minutes (holiday-aware with personal red days support)
+          final scheduled = _getScheduledMinutesForDate(
             date: date,
             weeklyTargetMinutes: weeklyTargetMinutes,
-            holidays: _holidays,
           );
           monthScheduledMinutes += scheduled;
 
@@ -277,21 +363,14 @@ class TimeProvider extends ChangeNotifier {
           continue;
         }
         
-        currentMonthScheduled += TargetHoursCalculator.scheduledMinutesForDate(
+        final scheduled = _getScheduledMinutesForDate(
           date: date,
           weeklyTargetMinutes: weeklyTargetMinutes,
-          holidays: _holidays,
         );
+        currentMonthScheduled += scheduled;
         currentMonthActual += actualByDate[date] ?? 0;
-        currentMonthCredit += _absenceProvider?.paidAbsenceMinutesForDate(
-              date,
-              TargetHoursCalculator.scheduledMinutesForDate(
-                date: date,
-                weeklyTargetMinutes: weeklyTargetMinutes,
-                holidays: _holidays,
-              ),
-            ) ??
-            0;
+        currentMonthCredit +=
+            _absenceProvider?.paidAbsenceMinutesForDate(date, scheduled) ?? 0;
       }
 
       _currentMonthlyVariance =
@@ -681,10 +760,9 @@ class TimeProvider extends ChangeNotifier {
 
     DateTime current = start;
     while (!current.isAfter(end)) {
-      final scheduled = TargetHoursCalculator.scheduledMinutesForDate(
+      final scheduled = _getScheduledMinutesForDate(
         date: current,
         weeklyTargetMinutes: weeklyTargetMinutes,
-        holidays: _holidays,
       );
       totalCredit +=
           absenceProvider.paidAbsenceMinutesForDate(current, scheduled);
@@ -734,10 +812,9 @@ class TimeProvider extends ChangeNotifier {
 
     DateTime current = start;
     while (!current.isAfter(end)) {
-      final scheduled = TargetHoursCalculator.scheduledMinutesForDate(
+      final scheduled = _getScheduledMinutesForDate(
         date: current,
         weeklyTargetMinutes: weeklyTargetMinutes,
-        holidays: _holidays,
       );
       totalCredit +=
           absenceProvider.paidAbsenceMinutesForDate(current, scheduled);

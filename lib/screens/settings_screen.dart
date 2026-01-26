@@ -549,13 +549,89 @@ class SettingsScreen extends StatelessWidget {
             ],
           
           // Theme Settings
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(t.settings_theme, style: theme.textTheme.bodyLarge),
+                        const SizedBox(height: 2),
+                        Text(
+                          themeProvider.themeModeDisplayName,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SegmentedButton<ThemeMode>(
+                  segments: [
+                    ButtonSegment(
+                      value: ThemeMode.light,
+                      icon: const Icon(Icons.light_mode, size: 18),
+                      label: Text(t.settings_themeLight, style: const TextStyle(fontSize: 11)),
+                    ),
+                    ButtonSegment(
+                      value: ThemeMode.system,
+                      icon: const Icon(Icons.brightness_auto, size: 18),
+                      label: Text(t.settings_themeSystem, style: const TextStyle(fontSize: 11)),
+                    ),
+                    ButtonSegment(
+                      value: ThemeMode.dark,
+                      icon: const Icon(Icons.dark_mode, size: 18),
+                      label: Text(t.settings_themeDark, style: const TextStyle(fontSize: 11)),
+                    ),
+                  ],
+                  selected: {themeProvider.themeMode},
+                  onSelectionChanged: (Set<ThemeMode> selection) {
+                    themeProvider.setThemeMode(selection.first);
+                  },
+                  showSelectedIcon: false,
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                  ),
           ListTile(
             leading: Icon(
               themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
             ),
             title: Text(t.settings_theme),
             subtitle: Text(themeProvider.themeModeDisplayName),
+<<<<<<< HEAD
             trailing: _buildThemeModeSelector(context, themeProvider, t),
+=======
+            trailing: SegmentedButton<ThemeMode>(
+              segments: [
+                ButtonSegment(
+                  value: ThemeMode.light,
+                  icon: const Icon(Icons.light_mode, size: 18),
+                  label: Text(t.settings_themeLight),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.system,
+                  icon: const Icon(Icons.brightness_auto, size: 18),
+                  label: Text(t.settings_themeSystem),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.dark,
+                  icon: const Icon(Icons.dark_mode, size: 18),
+                  label: Text(t.settings_themeDark),
+                ),
+              ],
+            ),
+>>>>>>> fce380130c4b209387add1a18f37b3fa23693e11
           ),
 
           // Language Settings
