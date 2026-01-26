@@ -272,24 +272,6 @@ class ExportService {
     }
   }
 
-  /// Format shifts for export (legacy method, kept for backward compatibility)
-  /// Note: This is no longer used in the main export, but kept for potential future use
-  static String _formatShiftsForExport(List<Shift>? shifts) {
-    if (shifts == null || shifts.isEmpty) return '';
-
-    return shifts.map((shift) {
-      final start = DateFormat('HH:mm').format(shift.start);
-      final end = DateFormat('HH:mm').format(shift.end);
-      final spanMinutes = shift.duration.inMinutes;
-      final breakMinutes = shift.unpaidBreakMinutes;
-      final workedMinutes = shift.workedMinutes;
-      final location = shift.location ?? '';
-      final description = shift.description ?? '';
-
-      return '$start-$end (Span: ${spanMinutes}m, Break: ${breakMinutes}m, Worked: ${workedMinutes}m) $location $description'.trim();
-    }).join('; ');
-  }
-
   /// Generate a descriptive filename based on export parameters
   static String generateFileName({
     DateTime? startDate,
@@ -357,4 +339,3 @@ class ExportService {
     web_download.downloadFileWeb(bytes, fileName, mimeType);
   }
 }
-

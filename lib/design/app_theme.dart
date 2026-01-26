@@ -23,12 +23,32 @@ class AppSpacing {
   
   /// Standard page padding
   static const EdgeInsets pagePadding = EdgeInsets.all(lg);
+
+  /// List tile padding
+  static const EdgeInsets listItemPadding = EdgeInsets.symmetric(
+    horizontal: lg,
+    vertical: sm,
+  );
+
+  /// Sheet padding
+  static const EdgeInsets sheetPadding = EdgeInsets.fromLTRB(
+    lg,
+    md,
+    lg,
+    lg,
+  );
+
+  /// Dialog padding
+  static const EdgeInsets dialogPadding = EdgeInsets.all(lg);
   
   /// Card internal padding
   static const EdgeInsets cardPadding = EdgeInsets.all(lg);
   
   /// Section spacing (between cards/sections)
   static const double sectionGap = xl;
+
+  /// Standard list tile height
+  static const double tileHeight = 72.0;
 }
 
 /// Border radius tokens for consistent rounded corners.
@@ -74,6 +94,16 @@ class FlexsaldoColors {
   /// Neutral (exactly on target)
   static const Color neutral = Color(0xFF6B7280);
   static const Color neutralLight = Color(0xFFF3F4F6);
+}
+
+/// Absence type colors (single source for leave UI)
+class AbsenceColors {
+  AbsenceColors._();
+
+  static const Color paidVacation = AppColors.primary;
+  static const Color sickLeave = AppColors.error;
+  static const Color vab = AppColors.accent;
+  static const Color unpaid = AppColors.neutral500;
 }
 
 // =============================================================================
@@ -259,6 +289,11 @@ class AppThemeData {
       dialogTheme: _buildDialogTheme(),
       snackBarTheme: _buildSnackBarTheme(),
       chipTheme: _buildChipTheme(),
+      listTileTheme: _buildListTileTheme(AppColors.neutral700),
+      dividerTheme: _buildDividerTheme(AppColors.neutral200),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(),
+      navigationBarTheme: _buildNavigationBarTheme(),
+      bottomSheetTheme: _buildBottomSheetTheme(),
     );
   }
   
@@ -307,6 +342,11 @@ class AppThemeData {
       dialogTheme: _buildDialogTheme(),
       snackBarTheme: _buildSnackBarTheme(),
       chipTheme: _buildChipTheme(),
+      listTileTheme: _buildListTileTheme(AppColors.neutral200),
+      dividerTheme: _buildDividerTheme(AppColors.neutral700),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(),
+      navigationBarTheme: _buildNavigationBarTheme(),
+      bottomSheetTheme: _buildBottomSheetTheme(),
     );
   }
   
@@ -604,6 +644,68 @@ class AppThemeData {
       labelStyle: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
+  static ListTileThemeData _buildListTileTheme(Color iconColor) {
+    return ListTileThemeData(
+      contentPadding: AppSpacing.listItemPadding,
+      minVerticalPadding: AppSpacing.sm,
+      horizontalTitleGap: AppSpacing.md,
+      iconColor: iconColor,
+    );
+  }
+
+  static DividerThemeData _buildDividerTheme(Color color) {
+    return DividerThemeData(
+      color: color,
+      thickness: 1,
+      space: AppSpacing.lg,
+    );
+  }
+
+  static SegmentedButtonThemeData _buildSegmentedButtonTheme() {
+    return SegmentedButtonThemeData(
+      style: ButtonStyle(
+        padding: const MaterialStatePropertyAll(
+          EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+        ),
+        textStyle: const MaterialStatePropertyAll(
+          TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.1,
+          ),
+        ),
+        shape: MaterialStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: AppRadius.buttonRadius,
+          ),
+        ),
+      ),
+    );
+  }
+
+  static NavigationBarThemeData _buildNavigationBarTheme() {
+    return NavigationBarThemeData(
+      height: 72,
+      indicatorColor: AppColors.primaryContainer,
+      labelTextStyle: const MaterialStatePropertyAll(
+        TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  static BottomSheetThemeData _buildBottomSheetTheme() {
+    return const BottomSheetThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.xl),
+        ),
       ),
     );
   }

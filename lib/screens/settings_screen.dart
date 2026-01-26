@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import '../design/design.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -199,8 +200,10 @@ class SettingsScreen extends StatelessWidget {
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
+              backgroundColor:
+                  Theme.of(dialogContext).colorScheme.tertiary,
+              foregroundColor:
+                  Theme.of(dialogContext).colorScheme.onTertiary,
             ),
             child: Text(t.settings_clearDemoData),
           ),
@@ -217,7 +220,7 @@ class SettingsScreen extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(t.common_success),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
           );
         }
@@ -226,7 +229,7 @@ class SettingsScreen extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${t.common_error}: $e'),
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -249,8 +252,8 @@ class SettingsScreen extends StatelessWidget {
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
             ),
             child: Text(t.common_delete),
           ),
@@ -273,7 +276,7 @@ class SettingsScreen extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(t.common_success),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
           );
         }
@@ -282,7 +285,7 @@ class SettingsScreen extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${t.common_error}: $e'),
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -301,7 +304,7 @@ class SettingsScreen extends StatelessWidget {
         title: Row(
           children: [
             Icon(Icons.event_available, color: Theme.of(dialogContext).colorScheme.primary),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Flexible(child: Text(t.settings_publicHolidays)),
           ],
         ),
@@ -317,7 +320,7 @@ class SettingsScreen extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 300),
                 child: ListView.separated(
@@ -331,10 +334,13 @@ class SettingsScreen extends StatelessWidget {
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                       leading: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs,
+                          vertical: AppSpacing.xs,
+                        ),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade600,
-                          borderRadius: BorderRadius.circular(4),
+                          color: Theme.of(itemContext).colorScheme.error,
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: Text(
                           t.redDay_auto,
@@ -354,22 +360,29 @@ class SettingsScreen extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: AppSpacing.cardPadding,
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
+                  color: Theme.of(dialogContext)
+                      .colorScheme
+                      .primaryContainer
+                      .withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, size: 18, color: Colors.blue.shade700),
-                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.info_outline,
+                      size: AppIconSize.sm,
+                      color: Theme.of(dialogContext).colorScheme.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
                         t.redDay_holidayWorkNotice,
                         style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
-                          color: Colors.blue.shade800,
+                          color: Theme.of(dialogContext).colorScheme.primary,
                         ),
                       ),
                     ),
@@ -404,42 +417,36 @@ class SettingsScreen extends StatelessWidget {
       appBar: StandardAppBar(title: t.settings_title),
       body: ListView(
         children: [
-          // User Info Section
-          if (user != null) ...[
-            Card(
-              margin: const EdgeInsets.all(16),
-              elevation: 0,
-              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+            // User Info Section
+            if (user != null) ...[
+              AppCard(
+                margin: AppSpacing.pagePadding,
+                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 child: Row(
                   children: [
                     Icon(
                       Icons.account_circle,
-                      size: 48,
+                      size: AppIconSize.xl,
                       color: theme.colorScheme.primary,
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: AppSpacing.lg),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            user.userMetadata?['full_name'] ?? 
-                            user.email?.split('@').first ?? 
-                            'User',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                            user.userMetadata?['full_name'] ??
+                                user.email?.split('@').first ??
+                                'User',
+                            style: AppTypography.cardTitle(
+                              theme.colorScheme.onSurface,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             user.email ?? '—',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                            style: AppTypography.body(
+                              theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -453,9 +460,8 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-            const Divider(),
-          ],
+              const SizedBox(height: AppSpacing.lg),
+            ],
           
           // Theme Settings
           ListTile(
@@ -469,17 +475,17 @@ class SettingsScreen extends StatelessWidget {
                 ButtonSegment(
                   value: ThemeMode.light,
                   icon: const Icon(Icons.light_mode, size: 18),
-                  label: Text(t.settings_themeLight, style: const TextStyle(fontSize: 11)),
+                  label: Text(t.settings_themeLight),
                 ),
                 ButtonSegment(
                   value: ThemeMode.system,
                   icon: const Icon(Icons.brightness_auto, size: 18),
-                  label: Text(t.settings_themeSystem, style: const TextStyle(fontSize: 11)),
+                  label: Text(t.settings_themeSystem),
                 ),
                 ButtonSegment(
                   value: ThemeMode.dark,
                   icon: const Icon(Icons.dark_mode, size: 18),
-                  label: Text(t.settings_themeDark, style: const TextStyle(fontSize: 11)),
+                  label: Text(t.settings_themeDark),
                 ),
               ],
               selected: {themeProvider.themeMode},
@@ -524,16 +530,7 @@ class SettingsScreen extends StatelessWidget {
           const Divider(),
 
           // Holiday Settings Section
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              t.settings_publicHolidays,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          AppSectionHeader(title: t.settings_publicHolidays),
 
           // Auto-mark holidays toggle
           ListTile(
@@ -608,22 +605,20 @@ class SettingsScreen extends StatelessWidget {
                 final url = Uri.parse(ExternalLinks.manageSubscriptionUrl);
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
-                } else {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(t.common_error),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
+                } else if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(t.common_error),
+                      backgroundColor: theme.colorScheme.error,
+                    ),
+                  );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${t.common_error}: $e'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: theme.colorScheme.error,
                     ),
                   );
                 }
@@ -634,16 +629,8 @@ class SettingsScreen extends StatelessWidget {
           // Developer Options (only in debug mode)
           if (kDebugMode) ...[
             const Divider(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'Developer Options',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppSectionHeader(title: 'Developer Options'),
             Builder(builder: (context) {
               final t = AppLocalizations.of(context);
               return Column(
@@ -655,24 +642,48 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () => _addSampleData(context),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.cleaning_services, color: Colors.orange),
-                    title: Text(t.settings_clearDemoData, style: const TextStyle(color: Colors.orange)),
-                    subtitle: Text(t.settings_clearDemoDataConfirm,
-                                  style: const TextStyle(color: Colors.orange)),
+                    leading: Icon(
+                      Icons.cleaning_services,
+                      color: theme.colorScheme.tertiary,
+                    ),
+                    title: Text(
+                      t.settings_clearDemoData,
+                      style: TextStyle(color: theme.colorScheme.tertiary),
+                    ),
+                    subtitle: Text(
+                      t.settings_clearDemoDataConfirm,
+                      style: TextStyle(color: theme.colorScheme.tertiary),
+                    ),
                     onTap: () => _clearDemoData(context),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.delete_sweep, color: Colors.red),
-                    title: Text(t.settings_clearAllData, style: const TextStyle(color: Colors.red)),
-                    subtitle: Text(t.settings_clearAllDataConfirm, 
-                                  style: const TextStyle(color: Colors.red)),
+                    leading: Icon(
+                      Icons.delete_sweep,
+                      color: theme.colorScheme.error,
+                    ),
+                    title: Text(
+                      t.settings_clearAllData,
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
+                    subtitle: Text(
+                      t.settings_clearAllDataConfirm,
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
                     onTap: () => _clearAllData(context),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.sync, color: Colors.blue),
-                    title: Text(t.dev_syncToSupabase, style: const TextStyle(color: Colors.blue)),
-                    subtitle: Text(t.dev_syncToSupabaseDesc,
-                                  style: const TextStyle(color: Colors.blue)),
+                    leading: Icon(
+                      Icons.sync,
+                      color: theme.colorScheme.primary,
+                    ),
+                    title: Text(
+                      t.dev_syncToSupabase,
+                      style: TextStyle(color: theme.colorScheme.primary),
+                    ),
+                    subtitle: Text(
+                      t.dev_syncToSupabaseDesc,
+                      style: TextStyle(color: theme.colorScheme.primary),
+                    ),
                     onTap: () => _syncToSupabase(context),
                   ),
                 ],
@@ -717,7 +728,7 @@ class SettingsScreen extends StatelessWidget {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(t.dev_syncSuccess),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -732,7 +743,7 @@ class SettingsScreen extends StatelessWidget {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(t.dev_syncFailed(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 5),
           ),
         );

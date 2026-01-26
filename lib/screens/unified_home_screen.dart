@@ -1,6 +1,10 @@
+// ignore_for_file: unused_element
+
+import '../design/design.dart';
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
 import '../widgets/flexsaldo_card.dart';
+import '../widgets/absence_entry_dialog.dart';
 import 'dart:async';
 import '../models/entry.dart';
 import '../models/absence.dart';
@@ -1009,6 +1013,18 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     _showQuickEntryDialog('work');
   }
 
+  void _startAbsenceEntry() {
+    showAbsenceEntryDialog(
+      context,
+      year: DateTime.now().year,
+    ).then((saved) {
+      if (!mounted) return;
+      if (saved == true) {
+        _loadRecentEntries();
+      }
+    });
+  }
+
   void _showQuickEntryDialog(String type) {
     if (type == 'travel') {
       _showTravelEntryDialog();
@@ -1083,18 +1099,20 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext sheetContext) {
+        final theme = Theme.of(sheetContext);
+        final colorScheme = theme.colorScheme;
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: AppSpacing.sheetPadding,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 t.home_quickEntry,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: AppTypography.sectionTitle(colorScheme.onSurface),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
               ListTile(
-                leading: const Icon(Icons.directions_car, color: Colors.blue),
+                leading: Icon(Icons.directions_car, color: colorScheme.primary),
                 title: Text(t.home_logTravel),
                 subtitle: Text(t.home_quickTravelEntry),
                 onTap: () {
@@ -1103,7 +1121,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.work, color: Colors.green),
+                leading: Icon(Icons.work, color: colorScheme.secondary),
                 title: Text(t.home_logWork),
                 subtitle: Text(t.home_quickWorkEntry),
                 onTap: () {
@@ -1111,7 +1129,16 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   _startWorkEntry();
                 },
               ),
-              const SizedBox(height: 10),
+              ListTile(
+                leading: Icon(Icons.event_busy, color: colorScheme.tertiary),
+                title: Text(t.absence_addAbsence),
+                subtitle: Text(t.settings_absencesDesc),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _startAbsenceEntry();
+                },
+              ),
+              const SizedBox(height: AppSpacing.sm),
             ],
           ),
         );
@@ -1257,6 +1284,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
 
+  // ignore: unused_element
   void _showSuggestions(
     ThemeData theme,
     TextEditingController controller,
@@ -1377,6 +1405,76 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
       case SuggestionType.custom:
         return theme.colorScheme.tertiary;
     }
+  }
+
+  // ignore: unused_element
+  Widget _buildLocationField(
+    ThemeData theme, {
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    if (!widget.enableSuggestions) {
+      // Suggestions disabled for tests: render a plain TextField without overlay plumbing
+      return TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(icon, color: iconColor, size: 20),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: iconColor, width: 2),
+          ),
+        ),
+        onChanged: (_) => setState(() {}),
+      );
+    }
+
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(icon, color: iconColor, size: 20),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: iconColor, width: 2),
+          ),
+        ),
+        onChanged: (value) {
+          final locationProvider = context.read<LocationProvider>();
+          final suggestions =
+              locationProvider.getAutocompleteSuggestions(value);
+
+          if (suggestions.isNotEmpty) {
+            _showSuggestions(theme, controller, suggestions);
+          } else {
+            _overlayEntry?.remove();
+            _overlayEntry = null;
+          }
+        },
+        onTap: () {
+          final locationProvider = context.read<LocationProvider>();
+          final suggestions =
+              locationProvider.getAutocompleteSuggestions('');
+
+          if (suggestions.isNotEmpty) {
+            _showSuggestions(theme, controller, suggestions);
+          }
+        },
+      ),
+    );
   }
 
   @override

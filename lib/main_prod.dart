@@ -244,6 +244,17 @@ class MyApp extends StatelessWidget {
             themeMode: themeProvider.themeMode,
             routerConfig: AppRouter.router,
             debugShowCheckedModeBanner: false,
+            builder: (context, child) {
+              final mediaQuery = MediaQuery.of(context);
+              return MediaQuery(
+                data: mediaQuery.copyWith(
+                  textScaler: TextScaler.linear(
+                    themeProvider.textScaleFactor,
+                  ),
+                ),
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
             // Localization configuration
             locale: localeProvider.locale,
             supportedLocales: AppLocalizations.supportedLocales,
