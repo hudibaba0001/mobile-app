@@ -20,30 +20,38 @@ class ExportService {
   static const String _excelFileExtension = '.xlsx';
 
   static ExportData prepareExportData(List<Entry> entries) {
-    final headers = [
-      'Entry ID',
+    final hasTravel = entries.any((entry) => entry.type == EntryType.travel);
+    final hasWork = entries.any((entry) => entry.type == EntryType.work);
+    final includeTravelColumns = hasTravel;
+    final includeWorkColumns = hasWork;
+
+    final headers = <String>[
       'Type',
       'Date',
-      'From',
-      'To',
-      'Travel Minutes',
-      'Travel Source',
-      'Travel Distance (km)',
-      'Leg Number',
-      'Shift Number',
-      'Shift Start',
-      'Shift End',
-      'Span Minutes',
-      'Unpaid Break Minutes',
-      'Worked Minutes',
-      'Worked Hours',
-      'Shift Location',
-      'Shift Notes',
+      if (includeTravelColumns) ...[
+        'From',
+        'To',
+        'Travel Minutes',
+        'Travel Source',
+        'Travel Distance (km)',
+        'Leg Number',
+        'Journey ID',
+        'Total Legs',
+      ],
+      if (includeWorkColumns) ...[
+        'Shift Number',
+        'Shift Start',
+        'Shift End',
+        'Span Minutes',
+        'Unpaid Break Minutes',
+        'Worked Minutes',
+        'Worked Hours',
+        'Shift Location',
+        'Shift Notes',
+      ],
       'Entry Notes',
       'Created At',
       'Updated At',
-      'Journey ID',
-      'Total Legs',
       'Holiday Work',
       'Holiday Name',
     ];
@@ -52,36 +60,34 @@ class ExportService {
 
     for (final entry in entries) {
       if (entry.type == EntryType.travel) {
+        final createdAtStr =
+            DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt);
+        final updatedAtStr = entry.updatedAt != null
+            ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
+            : '';
+
         // Travel entry: one row per leg (prefer travelLegs, fallback to legacy)
         if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
-          for (var i = 0; i < entry.travelLegs!.length; i++) {
-            final leg = entry.travelLegs![i];
+          final legs = entry.travelLegs!;
+          for (var i = 0; i < legs.length; i++) {
+            final leg = legs[i];
             rows.add([
-              entry.id,
               entry.type.name,
               DateFormat('yyyy-MM-dd').format(entry.date),
-              leg.fromText, // From
-              leg.toText, // To
-              leg.minutes, // Travel Minutes
-              leg.source, // Travel Source (Auto/Manual)
-              leg.distanceKm ?? 0.0, // Travel Distance (km) - use 0 instead of '' for consistency
-              i + 1, // Leg Number
-              '', // Shift Number
-              '', // Shift Start
-              '', // Shift End
-              '', // Span Minutes
-              '', // Unpaid Break Minutes
-              '', // Worked Minutes
-              '', // Worked Hours
-              '', // Shift Location
-              '', // Shift Notes
+              if (includeTravelColumns) ...[
+                leg.fromText, // From
+                leg.toText, // To
+                leg.minutes, // Travel Minutes
+                leg.source, // Travel Source (Auto/Manual)
+                leg.distanceKm ?? 0.0, // Travel Distance (km)
+                i + 1, // Leg Number
+                entry.journeyId ?? '',
+                legs.length, // Total Legs
+              ],
+              if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
               entry.notes ?? '', // Entry Notes
-              DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
-              entry.updatedAt != null
-                  ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-                  : '',
-              entry.journeyId ?? '',
-              entry.travelLegs!.length, // Total Legs
+              createdAtStr,
+              updatedAtStr,
               '', // Holiday Work (not applicable for travel)
               '', // Holiday Name
             ]);
@@ -89,36 +95,29 @@ class ExportService {
         } else {
           // Legacy single travel entry: one row
           rows.add([
-            entry.id,
             entry.type.name,
             DateFormat('yyyy-MM-dd').format(entry.date),
-            entry.from ?? '',
-            entry.to ?? '',
-            entry.travelMinutes ?? 0,
-            'manual', // Travel Source (legacy entries are manual)
-            0.0, // Travel Distance (not available for legacy) - use 0 instead of ''
-            1, // Leg Number
-            '', // Shift Number
-            '', // Shift Start
-            '', // Shift End
-            '', // Span Minutes
-            '', // Unpaid Break Minutes
-            '', // Worked Minutes
-            '', // Worked Hours
-            '', // Shift Location
-            '', // Shift Notes
+            if (includeTravelColumns) ...[
+              entry.from ?? '',
+              entry.to ?? '',
+              entry.travelMinutes ?? 0,
+              'manual', // Travel Source (legacy entries are manual)
+              0.0, // Travel Distance (not available for legacy)
+              1, // Leg Number
+              entry.journeyId ?? '',
+              1, // Total Legs (legacy = 1)
+            ],
+            if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
             entry.notes ?? '', // Entry Notes
-            DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
-            entry.updatedAt != null
-                ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-                : '',
-            entry.journeyId ?? '',
-            1, // Total Legs (legacy = 1)
+            createdAtStr,
+            updatedAtStr,
             entry.isHolidayWork ? 'Yes' : 'No',
             entry.holidayName ?? '',
           ]);
         }
-      } else if (entry.type == EntryType.work && entry.shifts != null && entry.shifts!.isNotEmpty) {
+      } else if (entry.type == EntryType.work &&
+          entry.shifts != null &&
+          entry.shifts!.isNotEmpty) {
         // Work entry: one row per shift
         for (var i = 0; i < entry.shifts!.length; i++) {
           final shift = entry.shifts![i];
@@ -126,33 +125,27 @@ class ExportService {
           final breakMinutes = shift.unpaidBreakMinutes;
           final workedMinutes = shift.workedMinutes;
           final workedHours = workedMinutes / 60.0;
-          
+
           rows.add([
-            entry.id,
             entry.type.name,
             DateFormat('yyyy-MM-dd').format(entry.date),
-            '', // From (not applicable for work)
-            '', // To (not applicable for work)
-            '', // Travel Minutes
-            '', // Travel Source (not applicable for work)
-            '', // Travel Distance (not applicable for work)
-            '', // Leg Number (not applicable for work)
-            i + 1, // Shift Number
-            DateFormat('HH:mm').format(shift.start), // Shift Start
-            DateFormat('HH:mm').format(shift.end), // Shift End
-            spanMinutes, // Span Minutes
-            breakMinutes, // Unpaid Break Minutes
-            workedMinutes, // Worked Minutes
-            workedHours.toStringAsFixed(2), // Worked Hours
-            shift.location ?? '', // Shift Location
-            shift.notes ?? '', // Shift Notes
+            if (includeTravelColumns) ...List.filled(8, ''), // Travel placeholders
+            if (includeWorkColumns) ...[
+              i + 1, // Shift Number
+              DateFormat('HH:mm').format(shift.start), // Shift Start
+              DateFormat('HH:mm').format(shift.end), // Shift End
+              spanMinutes, // Span Minutes
+              breakMinutes, // Unpaid Break Minutes
+              workedMinutes, // Worked Minutes
+              workedHours.toStringAsFixed(2), // Worked Hours
+              shift.location ?? '', // Shift Location
+              shift.notes ?? '', // Shift Notes
+            ],
             entry.notes ?? '', // Entry Notes (day-level)
             DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
             entry.updatedAt != null
                 ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
                 : '',
-            '', // Journey ID (not applicable for work)
-            '', // Total Legs (not applicable for work)
             entry.isHolidayWork ? 'Yes' : 'No',
             entry.holidayName ?? '',
           ]);
@@ -160,31 +153,15 @@ class ExportService {
       } else {
         // Work entry with no shifts: one row with empty shift data
         rows.add([
-          entry.id,
           entry.type.name,
           DateFormat('yyyy-MM-dd').format(entry.date),
-          '', // From
-          '', // To
-          '', // Travel Minutes
-          '', // Travel Source
-          '', // Travel Distance
-          '', // Leg Number
-          '', // Shift Number
-          '', // Shift Start
-          '', // Shift End
-          '', // Span Minutes
-          '', // Unpaid Break Minutes
-          '', // Worked Minutes
-          '', // Worked Hours
-          '', // Shift Location
-          '', // Shift Notes
+          if (includeTravelColumns) ...List.filled(8, ''), // Travel placeholders
+          if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
           entry.notes ?? '', // Entry Notes
           DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
           entry.updatedAt != null
               ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
               : '',
-          '', // Journey ID
-          '', // Total Legs
           entry.isHolidayWork ? 'Yes' : 'No',
           entry.holidayName ?? '',
         ]);
