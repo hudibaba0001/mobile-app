@@ -85,7 +85,7 @@ class _PieChartStatsState extends State<PieChartStats>
         
         return Card(
           elevation: 2,
-          shadowColor: colorScheme.shadow.withOpacity(0.1),
+          shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -148,7 +148,7 @@ class _PieChartStatsState extends State<PieChartStats>
               Text(
                 _getDateRangeText(context),
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -258,7 +258,7 @@ class _PieChartStatsState extends State<PieChartStats>
           isSelected: touchedIndex == 1,
         ),
         const SizedBox(height: 16),
-        Divider(color: colorScheme.outline.withOpacity(0.2)),
+        Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
         const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -297,11 +297,11 @@ class _PieChartStatsState extends State<PieChartStats>
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isSelected 
-            ? color.withOpacity(0.1)
+            ? color.withValues(alpha: 0.1)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         border: isSelected 
-            ? Border.all(color: color.withOpacity(0.3))
+            ? Border.all(color: color.withValues(alpha: 0.3))
             : null,
       ),
       child: Row(
@@ -337,7 +337,7 @@ class _PieChartStatsState extends State<PieChartStats>
                 Text(
                   '$percentage%',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
             ],
@@ -357,20 +357,20 @@ class _PieChartStatsState extends State<PieChartStats>
           Icon(
             Icons.pie_chart_outline,
             size: 64,
-            color: colorScheme.outline.withOpacity(0.5),
+            color: colorScheme.outline.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context).chart_noDataAvailable,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.7),
+              color: colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             AppLocalizations.of(context).chart_startTracking,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.5),
+              color: colorScheme.onSurface.withValues(alpha: 0.5),
             ),
             textAlign: TextAlign.center,
           ),

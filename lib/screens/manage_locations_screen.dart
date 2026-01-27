@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/location.dart';
@@ -54,7 +55,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.1),
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(28),
                       topRight: Radius.circular(28),
@@ -65,7 +66,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.2),
+                          color: colorScheme.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -343,13 +344,13 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: colorScheme.outline.withOpacity(0.2),
+                          color: colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: colorScheme.outline.withOpacity(0.2),
+                          color: colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       filled: true,
@@ -374,7 +375,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(24),
                                   decoration: BoxDecoration(
-                                    color: colorScheme.primary.withOpacity(0.1),
+                                    color: colorScheme.primary.withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -456,7 +457,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: colorScheme.outline.withOpacity(0.2),
+          color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Padding(
@@ -467,7 +468,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -506,7 +507,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: colorScheme.outline.withOpacity(0.2),
+          color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: ListTile(
@@ -514,7 +515,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: location.isFavorite
-                ? colorScheme.primary.withOpacity(0.1)
+                ? colorScheme.primary.withValues(alpha: 0.1)
                 : colorScheme.surfaceContainerHighest,
             shape: BoxShape.circle,
           ),

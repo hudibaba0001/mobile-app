@@ -218,7 +218,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                 ),
               ),
               child: _buildSuggestionsList(),
@@ -342,7 +342,7 @@ class _LocationSelectorState extends State<LocationSelector> {
       dense: true,
       leading: CircleAvatar(
         radius: 16,
-        backgroundColor: Colors.blue.withOpacity(0.1),
+        backgroundColor: Colors.blue.withValues(alpha: 0.1),
         child: const Icon(
           Icons.map,
           size: 16,
@@ -415,8 +415,8 @@ class _LocationSelectorState extends State<LocationSelector> {
       leading: CircleAvatar(
         radius: 16,
         backgroundColor: location.isFavorite
-            ? Colors.amber.withOpacity(0.2)
-            : Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            ? Colors.amber.withValues(alpha: 0.2)
+            : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
         child: Icon(
           location.isFavorite ? Icons.star : Icons.location_on,
           size: 16,
@@ -442,7 +442,7 @@ class _LocationSelectorState extends State<LocationSelector> {
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -464,7 +464,7 @@ class _LocationSelectorState extends State<LocationSelector> {
       dense: true,
       leading: CircleAvatar(
         radius: 16,
-        backgroundColor: Colors.grey.withOpacity(0.1),
+        backgroundColor: Colors.grey.withValues(alpha: 0.1),
         child: const Icon(
           Icons.history,
           size: 16,
@@ -485,7 +485,7 @@ class _LocationSelectorState extends State<LocationSelector> {
       dense: true,
       leading: CircleAvatar(
         radius: 16,
-        backgroundColor: Colors.green.withOpacity(0.1),
+        backgroundColor: Colors.green.withValues(alpha: 0.1),
         child: const Icon(
           Icons.add_location,
           size: 16,

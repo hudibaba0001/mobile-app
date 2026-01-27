@@ -8,10 +8,10 @@ class LocationsScreen extends StatefulWidget {
   const LocationsScreen({super.key});
 
   @override
-  _LocationsScreenState createState() => _LocationsScreenState();
+  LocationsScreenState createState() => LocationsScreenState();
 }
 
-class _LocationsScreenState extends State<LocationsScreen> {
+class LocationsScreenState extends State<LocationsScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   late Box<Location> _locationsBox;

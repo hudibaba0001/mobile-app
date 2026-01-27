@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import '../models/monthly_summary.dart';
 import '../models/weekly_summary.dart';
@@ -119,7 +120,7 @@ class TimeProvider extends ChangeNotifier {
   }) {
     // If HolidayService is available, use it for full red day support
     if (_holidayService != null) {
-      final redDayInfo = _holidayService!.getRedDayInfo(date);
+      final redDayInfo = _holidayService.getRedDayInfo(date);
 
       if (redDayInfo.isRedDay) {
         // Use scheduledMinutesWithRedDayInfo for half-day support

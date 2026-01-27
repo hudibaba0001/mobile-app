@@ -91,7 +91,7 @@ class WeeklyStatusCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.2),
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Padding(
@@ -207,7 +207,7 @@ class MonthlyStatusCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.2),
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Padding(
@@ -329,7 +329,7 @@ class YearlyStatusCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.2),
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Padding(
@@ -451,8 +451,8 @@ class YearlyBalanceCard extends StatelessWidget {
     final warningColor = isDark ? Colors.amber.shade300 : Colors.amber.shade700;
     final cardBgColor = isDark
         ? (isPositive
-            ? Colors.green.withOpacity(0.15)
-            : Colors.red.withOpacity(0.15))
+            ? Colors.green.withValues(alpha: 0.15)
+            : Colors.red.withValues(alpha: 0.15))
         : (isPositive ? Colors.green.shade50 : Colors.red.shade50);
     final borderColor = isDark
         ? (isPositive ? Colors.green.shade700 : Colors.red.shade700)
@@ -547,7 +547,7 @@ class YearlyBalanceCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Divider(color: theme.colorScheme.outline.withOpacity(0.3)),
+            Divider(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context).balance_yearlyRunningBalance,
@@ -606,10 +606,10 @@ class YearlyBalanceCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerHighest
-                      .withOpacity(0.5),
+                      .withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: theme.colorScheme.outline.withOpacity(0.3),
+                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(

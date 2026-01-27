@@ -121,7 +121,7 @@ class TravelSegmentCard extends StatelessWidget {
               const SizedBox(height: 8),
               Container(
                 height: 1,
-                color: theme.colorScheme.outline.withOpacity(0.2),
+                color: theme.colorScheme.outline.withValues(alpha: 0.2),
               ),
             ],
           ],

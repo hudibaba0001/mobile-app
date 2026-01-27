@@ -67,7 +67,7 @@ class LocationsTab extends StatelessWidget {
               color: colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: colorScheme.outline.withOpacity(0.2),
+                color: colorScheme.outline.withValues(alpha: 0.2),
               ),
             ),
             child: _buildLocationDistributionChart(context, theme, locationsData),
@@ -104,7 +104,7 @@ class LocationsTab extends StatelessWidget {
                 Text(
                   AppLocalizations.of(context).locations_noDataDescription,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -172,7 +172,7 @@ class LocationsTab extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
+          color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(

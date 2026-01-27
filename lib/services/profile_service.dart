@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import '../config/supabase_config.dart';
 import '../models/user_profile.dart';
 

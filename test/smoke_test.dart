@@ -16,6 +16,11 @@ import 'package:myapp/screens/unified_home_screen.dart';
 import 'package:myapp/providers/locale_provider.dart';
 import 'package:myapp/l10n/generated/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:myapp/models/location.dart';
+import 'package:myapp/models/entry.dart';
+import 'package:myapp/utils/constants.dart';
+import 'package:myapp/repositories/location_repository.dart';
 
 import 'mocks.mocks.dart';
 
@@ -27,6 +32,7 @@ void main() {
     late MockSupabaseAuthService mockAuthService;
     late MockProfileService mockProfileService;
     late LocaleProvider localeProvider;
+    late LocationRepository locationRepository;
 
     setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +40,15 @@ void main() {
         url: 'https://test.supabase.co',
         anonKey: 'dummy_anon_key',
       );
+      await Hive.initFlutter();
+      if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(TravelLegAdapter());
+      if (!Hive.isAdapterRegistered(6)) Hive.registerAdapter(ShiftAdapter());
+      if (!Hive.isAdapterRegistered(8)) Hive.registerAdapter(EntryAdapter());
+      if (!Hive.isAdapterRegistered(9)) Hive.registerAdapter(EntryTypeAdapter());
+      if (!Hive.isAdapterRegistered(10)) Hive.registerAdapter(LocationAdapter());
+      final locationBox =
+          await Hive.openBox<Location>(AppConstants.locationsBox);
+      locationRepository = LocationRepository(locationBox);
     });
 
     setUp(() async {
@@ -70,7 +85,7 @@ void main() {
     }
 
     testWidgets('App boots successfully', (WidgetTester tester) async {
-      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider)));
+      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider, locationRepository: locationRepository)));
       await tester.pumpAndSettle();
       expect(find.byType(MaterialApp), findsOneWidget);
     });
@@ -79,7 +94,7 @@ void main() {
       when(mockAuthService.isAuthenticated).thenReturn(false);
       when(mockAuthService.isInitialized).thenReturn(true);
 
-      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider)));
+      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider, locationRepository: locationRepository)));
       await tester.pumpAndSettle();
 
       expect(find.byType(LoginScreen), findsOneWidget);
@@ -91,7 +106,7 @@ void main() {
       when(mockAuthService.currentUser).thenReturn(User(id: 'test-user-id', email: 'test@example.com', appMetadata: {}, userMetadata: {}, createdAt: DateTime.now().toIso8601String(), aud: ''));
       when(mockProfileService.fetchProfile()).thenAnswer((_) async => UserProfile(id: 'test-user-id', subscriptionStatus: 'active', termsAcceptedAt: DateTime.now(), privacyAcceptedAt: DateTime.now()));
 
-      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider)));
+      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider, locationRepository: locationRepository)));
       await tester.pumpAndSettle();
 
       expect(find.byType(UnifiedHomeScreen), findsOneWidget);
@@ -103,7 +118,7 @@ void main() {
       when(mockAuthService.currentUser).thenReturn(User(id: 'test-user-id', email: 'test@example.com', appMetadata: {}, userMetadata: {}, createdAt: DateTime.now().toIso8601String(), aud: ''));
       when(mockProfileService.fetchProfile()).thenAnswer((_) async => UserProfile(id: 'test-user-id', subscriptionStatus: 'active', termsAcceptedAt: DateTime.now(), privacyAcceptedAt: DateTime.now()));
 
-      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider)));
+      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider, locationRepository: locationRepository)));
       await tester.pumpAndSettle();
 
       // Use Key for stable finding
@@ -127,7 +142,7 @@ void main() {
       when(mockAuthService.currentUser).thenReturn(User(id: 'test-user-id', email: 'test@example.com', appMetadata: {}, userMetadata: {}, createdAt: DateTime.now().toIso8601String(), aud: ''));
       when(mockProfileService.fetchProfile()).thenAnswer((_) async => UserProfile(id: 'test-user-id', subscriptionStatus: 'active', termsAcceptedAt: DateTime.now(), privacyAcceptedAt: DateTime.now()));
 
-      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider)));
+      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider, locationRepository: locationRepository)));
       await tester.pumpAndSettle();
 
       // Use Key for stable finding (FlexsaldoCard replaced BalanceCard)
@@ -140,7 +155,7 @@ void main() {
       when(mockAuthService.currentUser).thenReturn(User(id: 'test-user-id', email: 'test@example.com', appMetadata: {}, userMetadata: {}, createdAt: DateTime.now().toIso8601String(), aud: ''));
       when(mockProfileService.fetchProfile()).thenAnswer((_) async => UserProfile(id: 'test-user-id', subscriptionStatus: 'active', termsAcceptedAt: DateTime.now(), privacyAcceptedAt: DateTime.now()));
 
-      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider)));
+      await tester.pumpWidget(createTestApp(child: app.MyApp(authService: mockAuthService, localeProvider: localeProvider, locationRepository: locationRepository)));
       await tester.pumpAndSettle();
 
       // Verify home screen loads

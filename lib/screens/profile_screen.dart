@@ -1,9 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
-import '../repositories/repository_provider.dart';
 import '../l10n/generated/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -94,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // User Info Section
           Card(
             elevation: 0,
-            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -157,8 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _handleSignOut() async {
     try {
       final authService = context.read<SupabaseAuthService>();
-      final repositoryProvider = context.read<RepositoryProvider>();
-      await authService.signOutWithCleanup(() => repositoryProvider.dispose());
+      await authService.signOutWithCleanup(() async {});
       if (mounted) {
         AppRouter.goToLogin(context);
       }

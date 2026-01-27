@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -202,10 +203,8 @@ class TravelCacheService {
     final normalizedTo = to.trim().toLowerCase();
     
     var cached = getCachedRoute(fromText: normalizedFrom, toText: normalizedTo);
-    if (cached == null) {
-      // Try reverse direction (should be cached if reverse caching is working)
-      cached = getCachedRoute(fromText: normalizedTo, toText: normalizedFrom);
-    }
+    // Try reverse direction (should be cached if reverse caching is working)
+    cached ??= getCachedRoute(fromText: normalizedTo, toText: normalizedFrom);
     return cached?.minutes;
   }
 

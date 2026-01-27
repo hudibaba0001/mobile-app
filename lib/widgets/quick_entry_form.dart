@@ -290,7 +290,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                         icon: const Icon(Icons.close),
                         tooltip: AppLocalizations.of(context).common_close,
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.grey.withOpacity(0.1),
+                          backgroundColor: Colors.grey.withValues(alpha: 0.1),
                         ),
                       ),
                     ] else ...[
@@ -305,7 +305,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                         icon: const Icon(Icons.close),
                         tooltip: AppLocalizations.of(context).common_close,
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.grey.withOpacity(0.1),
+                          backgroundColor: Colors.grey.withValues(alpha: 0.1),
                         ),
                       ),
                     ],
@@ -328,7 +328,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                               backgroundColor: Theme.of(context)
                                   .colorScheme
                                   .primary
-                                  .withOpacity(0.1),
+                                  .withValues(alpha: 0.1),
                             ))
                         .toList(),
                   ),
@@ -387,7 +387,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                               backgroundColor: Theme.of(context)
                                   .colorScheme
                                   .primary
-                                  .withOpacity(0.1),
+                                  .withValues(alpha: 0.1),
                               padding: const EdgeInsets.all(8),
                             ),
                           ),

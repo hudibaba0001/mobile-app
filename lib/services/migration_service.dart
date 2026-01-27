@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/travel_time_entry.dart';

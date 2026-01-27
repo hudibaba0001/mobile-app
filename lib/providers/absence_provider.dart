@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import '../models/absence.dart';
 import '../services/supabase_absence_service.dart';

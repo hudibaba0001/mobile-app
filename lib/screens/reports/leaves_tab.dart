@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -116,7 +117,7 @@ class _LeavesTabState extends State<LeavesTab> {
   ) {
     return Card(
       elevation: 0,
-      color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -225,7 +226,7 @@ class _LeavesTabState extends State<LeavesTab> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            color: iconColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: iconColor, size: 20),
@@ -283,7 +284,7 @@ class _LeavesTabState extends State<LeavesTab> {
         if (recentAbsences.isEmpty)
           Card(
             elevation: 0,
-            color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -295,7 +296,7 @@ class _LeavesTabState extends State<LeavesTab> {
                     Icon(
                       Icons.event_available,
                       size: 48,
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -308,7 +309,7 @@ class _LeavesTabState extends State<LeavesTab> {
                     Text(
                       AppLocalizations.of(context).leave_noLeavesDescription,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -333,7 +334,7 @@ class _LeavesTabState extends State<LeavesTab> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: colorScheme.outline.withOpacity(0.2),
+          color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Padding(
@@ -343,7 +344,7 @@ class _LeavesTabState extends State<LeavesTab> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: typeInfo.color.withOpacity(0.1),
+                color: typeInfo.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(typeInfo.icon, color: typeInfo.color, size: 24),
@@ -372,7 +373,7 @@ class _LeavesTabState extends State<LeavesTab> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: typeInfo.color.withOpacity(0.1),
+                color: typeInfo.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(

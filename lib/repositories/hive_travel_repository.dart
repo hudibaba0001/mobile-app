@@ -14,10 +14,8 @@ class HiveTravelRepository implements TravelRepository {
 
   @override
   List<TravelEntry> getAllForUser(String userId) {
-    return _box.values
-        .where((entry) => entry.userId == userId)
-        .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    throw StateError(
+        'LEGACY_READ_BLOCKED: use EntryProvider.entries (Entry) instead of HiveTravelRepository');
   }
 
   @override
@@ -26,66 +24,38 @@ class HiveTravelRepository implements TravelRepository {
     DateTime start,
     DateTime end,
   ) {
-    return _box.values
-        .where((entry) =>
-            entry.userId == userId &&
-            entry.date.isAfter(start.subtract(const Duration(days: 1))) &&
-            entry.date.isBefore(end.add(const Duration(days: 1))))
-        .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    throw StateError(
+        'LEGACY_READ_BLOCKED: use EntryProvider.entries (Entry) instead of HiveTravelRepository');
   }
 
   @override
   Future<TravelEntry> add(TravelEntry entry) async {
-    assert(() {
-      throw StateError(
-        'Legacy TravelEntry write path (HiveTravelRepository) is disabled. Use EntryProvider.addEntry() instead. '
-        'This prevents missing break/notes and timezone issues.'
-      );
-    }());
-    final newEntry = entry.copyWith(
-      id: entry.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : entry.id,
-      updatedAt: DateTime.now(),
-    );
-    await _box.put(newEntry.id, newEntry);
-    return newEntry;
+    throw StateError(
+        'LEGACY_WRITE_BLOCKED: use EntryProvider.addEntry/addEntries (Entry)');
   }
 
   @override
   Future<TravelEntry> update(TravelEntry entry) async {
-    assert(() {
-      throw StateError(
-        'Legacy TravelEntry write path (HiveTravelRepository) is disabled. Use EntryProvider.updateEntry() instead. '
-        'This prevents missing break/notes and timezone issues.'
-      );
-    }());
-    final updatedEntry = entry.copyWith(
-      updatedAt: DateTime.now(),
-    );
-    await _box.put(entry.id, updatedEntry);
-    return updatedEntry;
+    throw StateError(
+        'LEGACY_WRITE_BLOCKED: use EntryProvider.updateEntry (Entry)');
   }
 
   @override
   Future<void> delete(String id) async {
-    assert(() {
-      throw StateError(
-        'Legacy TravelEntry write path (HiveTravelRepository) is disabled. Use EntryProvider.deleteEntry() instead. '
-        'This prevents missing break/notes and timezone issues.'
-      );
-    }());
-    await _box.delete(id);
+    throw StateError(
+        'LEGACY_WRITE_BLOCKED: use EntryProvider.deleteEntry (Entry)');
   }
 
   @override
   TravelEntry? getById(String id) {
-    return _box.get(id);
+    throw StateError(
+        'LEGACY_READ_BLOCKED: use EntryProvider.entries (Entry) instead of HiveTravelRepository');
   }
 
   @override
   int getTotalMinutesInRange(String userId, DateTime start, DateTime end) {
-    return getForUserInRange(userId, start, end)
-        .fold(0, (sum, entry) => sum + entry.travelMinutes);
+    throw StateError(
+        'LEGACY_READ_BLOCKED: use EntryProvider.entries (Entry)');
   }
 
   @override

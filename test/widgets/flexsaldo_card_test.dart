@@ -8,7 +8,6 @@ import 'package:myapp/providers/entry_provider.dart';
 import 'package:myapp/providers/contract_provider.dart';
 import 'package:myapp/l10n/generated/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:myapp/repositories/repository_provider.dart';
 import 'package:myapp/services/supabase_auth_service.dart';
 
 import 'dart:io';
@@ -17,7 +16,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'flexsaldo_card_test.mocks.dart';
 
-@GenerateMocks([RepositoryProvider, SupabaseAuthService])
+@GenerateMocks([SupabaseAuthService])
 void main() {
   
   setUpAll(() async {
@@ -32,16 +31,14 @@ void main() {
   });
 
   group('FlexsaldoCard', () {
-    late MockRepositoryProvider mockRepositoryProvider;
     late MockSupabaseAuthService mockSupabaseAuthService;
     late EntryProvider mockEntryProvider;
     late ContractProvider mockContractProvider;
     late TimeProvider timeProvider;
 
     setUp(() {
-      mockRepositoryProvider = MockRepositoryProvider();
       mockSupabaseAuthService = MockSupabaseAuthService();
-      mockEntryProvider = EntryProvider(mockRepositoryProvider, mockSupabaseAuthService);
+      mockEntryProvider = EntryProvider(mockSupabaseAuthService);
       mockContractProvider = ContractProvider();
       timeProvider = TimeProvider(mockEntryProvider, mockContractProvider);
     });

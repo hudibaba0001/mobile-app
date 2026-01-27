@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -128,7 +129,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       builder: (context, selectedType, child) {
         return Container(
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -337,7 +338,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           },
         ),
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -364,7 +365,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      color: colorScheme.surfaceContainerHighest.withOpacity(0.1),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
       child: Consumer<EntryProvider>(
         builder: (context, entryProvider, child) {
           // Show loading indicator when loading entries
@@ -433,7 +434,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Card(
       elevation: 2,
-      shadowColor: colorScheme.shadow.withOpacity(0.1),
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -453,8 +454,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   height: 48,
                   decoration: BoxDecoration(
                     color: isWorkEntry
-                        ? colorScheme.secondary.withOpacity(0.1)
-                        : colorScheme.primary.withOpacity(0.1),
+                        ? colorScheme.secondary.withValues(alpha: 0.1)
+                        : colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -493,8 +494,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: isWorkEntry
-                                  ? colorScheme.secondary.withOpacity(0.1)
-                                  : colorScheme.primary.withOpacity(0.1),
+                                  ? colorScheme.secondary.withValues(alpha: 0.1)
+                                  : colorScheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -576,7 +577,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             child: Text(
                               _formatEntryDateTime(entry),
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                               ),
                             ),
                           ),
@@ -662,7 +663,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Icon(
             Icons.history_rounded,
             size: 64,
-            color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -675,7 +676,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Text(
             AppLocalizations.of(context).history_tryAdjustingFilters,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -847,7 +848,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             Text(
                               t.form_shiftLabel(shiftNumber),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -872,7 +873,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   Icon(
                                     Icons.location_on,
                                     size: 14,
-                                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                                   ),
                                   const SizedBox(width: 4),
                                   Flexible(
@@ -881,7 +882,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                           ? '${shift.location!.substring(0, 25)}...'
                                           : shift.location!,
                                       style: theme.textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -901,7 +902,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             Icon(
                               Icons.note,
                               size: 16,
-                              color: colorScheme.primary.withOpacity(0.7),
+                              color: colorScheme.primary.withValues(alpha: 0.7),
                             ),
                           const SizedBox(height: 4),
                           Container(
@@ -910,7 +911,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: colorScheme.secondary.withOpacity(0.1),
+                              color: colorScheme.secondary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -936,7 +937,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -1021,7 +1022,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             Text(
                               t.travel_legLabel(legNumber),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -1045,7 +1046,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 Text(
                                   _formatDuration(Duration(minutes: leg.minutes)),
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -1085,7 +1086,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(

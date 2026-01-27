@@ -73,7 +73,7 @@ class DarkModeToggle extends StatelessWidget {
       width: AppIconSize.xl,
       height: AppIconSize.xl,
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withOpacity(0.3),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: AppRadius.buttonRadius,
       ),
       child: AnimatedSwitcher(
@@ -138,7 +138,7 @@ class DarkModeToggle extends StatelessWidget {
         value: isDarkMode,
         onChanged: (bool value) => _toggleDarkMode(context, themeProvider),
         activeColor: colorScheme.primary,
-        activeTrackColor: colorScheme.primary.withOpacity(0.5),
+        activeTrackColor: colorScheme.primary.withValues(alpha: 0.5),
         inactiveThumbColor: colorScheme.outline,
         inactiveTrackColor: colorScheme.surfaceContainerHighest,
         materialTapTargetSize: MaterialTapTargetSize.padded,

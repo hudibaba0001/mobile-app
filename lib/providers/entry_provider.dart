@@ -1,12 +1,11 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/entry.dart';
-import '../repositories/repository_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/supabase_entry_service.dart';
 
 class EntryProvider extends ChangeNotifier {
-  final RepositoryProvider _repositoryProvider;
   final SupabaseAuthService _authService;
   final SupabaseEntryService _supabaseService = SupabaseEntryService();
 
@@ -23,7 +22,7 @@ class EntryProvider extends ChangeNotifier {
   static const String _entriesBoxName = 'entries_cache';
   Box<Entry>? _entriesBox;
 
-  EntryProvider(this._repositoryProvider, this._authService);
+  EntryProvider(this._authService);
 
   /// Initialize the Hive box for local cache
   Future<void> _initEntriesBox() async {
@@ -434,22 +433,7 @@ class EntryProvider extends ChangeNotifier {
 
       for (final entry in demoEntries) {
         try {
-          // Delete from Supabase first
-          await _supabaseService.deleteEntry(entry.id, userId);
-          debugPrint('EntryProvider: Deleted ${entry.id} from Supabase');
-          
-          // Then delete from local cache
-          if (entry.type == EntryType.travel) {
-            final travelRepo = _repositoryProvider.travelRepository;
-            if (travelRepo != null) {
-              await travelRepo.delete(entry.id);
-            }
-          } else if (entry.type == EntryType.work) {
-            final workRepo = _repositoryProvider.workRepository;
-            if (workRepo != null) {
-              await workRepo.delete(entry.id);
-            }
-          }
+          await deleteEntry(entry.id);
         } catch (e) {
           debugPrint('Failed to delete demo entry ${entry.id}: $e');
           // Continue with other entries even if one fails

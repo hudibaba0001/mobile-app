@@ -252,7 +252,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             child: Text(
               t.common_save,
               style: TextStyle(
-                color: _isFormValid ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.5),
+                color: _isFormValid ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.5),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -271,7 +271,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   // Header Card
                   Card(
                     elevation: 0,
-                    color: colorScheme.primaryContainer.withOpacity(0.3),
+                    color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -301,7 +301,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           Text(
                             t.contract_headerDescription,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.8),
+                              color: colorScheme.onSurface.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -419,7 +419,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   // Live Preview Card
                   Card(
                     elevation: 0,
-                    color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -658,7 +658,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   ) {
     return Card(
       elevation: 0,
-      color: colorScheme.tertiaryContainer.withOpacity(0.3),
+      color: colorScheme.tertiaryContainer.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -688,7 +688,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             Text(
               t.contract_startingBalanceDescription,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.8),
+                color: colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
             const SizedBox(height: 20),
@@ -857,7 +857,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

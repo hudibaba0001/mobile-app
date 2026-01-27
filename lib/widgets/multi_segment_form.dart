@@ -343,7 +343,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                     color: Theme.of(context)
                         .colorScheme
                         .primaryContainer
-                        .withOpacity(0.3),
+                        .withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(

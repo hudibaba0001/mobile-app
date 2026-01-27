@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import '../models/location.dart';
 import '../models/autocomplete_suggestion.dart';

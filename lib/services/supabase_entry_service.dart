@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/entry.dart';
 import '../config/supabase_config.dart';
@@ -298,7 +299,7 @@ class SupabaseEntryService {
           
           debugPrint('SupabaseEntryService: Shift timezone conversion - '
               'start local: ${startLocal.toIso8601String()}, UTC: ${startUtc.toIso8601String()}, '
-              'break: ${shift.unpaidBreakMinutes}, notes: ${dbNotes}');
+              'break: ${shift.unpaidBreakMinutes}, notes: $dbNotes');
           
           return {
             'id': _uuid.v4(),

@@ -104,7 +104,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   color: Theme.of(context)
                       .colorScheme
                       .onSurfaceVariant
-                      .withOpacity(0.5),
+                      .withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -139,7 +139,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               color: Theme.of(context)
                   .colorScheme
                   .onSurfaceVariant
-                  .withOpacity(0.5),
+                  .withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -187,7 +187,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(

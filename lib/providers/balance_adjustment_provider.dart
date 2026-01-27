@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import '../models/balance_adjustment.dart';
 import '../repositories/balance_adjustment_repository.dart';

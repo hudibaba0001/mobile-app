@@ -668,20 +668,20 @@ class AppThemeData {
   static SegmentedButtonThemeData _buildSegmentedButtonTheme() {
     return SegmentedButtonThemeData(
       style: ButtonStyle(
-        padding: const MaterialStatePropertyAll(
+        padding: const WidgetStatePropertyAll(
           EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.sm,
           ),
         ),
-        textStyle: const MaterialStatePropertyAll(
+        textStyle: const WidgetStatePropertyAll(
           TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.1,
           ),
         ),
-        shape: MaterialStatePropertyAll(
+        shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
             borderRadius: AppRadius.buttonRadius,
           ),
@@ -694,7 +694,7 @@ class AppThemeData {
     return NavigationBarThemeData(
       height: 72,
       indicatorColor: AppColors.primaryContainer,
-      labelTextStyle: const MaterialStatePropertyAll(
+      labelTextStyle: const WidgetStatePropertyAll(
         TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );

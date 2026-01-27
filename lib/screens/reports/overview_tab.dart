@@ -58,7 +58,7 @@ class OverviewTab extends StatelessWidget {
                 theme,
                 icon: Icons.timer_rounded,
                 iconColor: colorScheme.primary,
-                iconBgColor: colorScheme.primary.withOpacity(0.1),
+                iconBgColor: colorScheme.primary.withValues(alpha: 0.1),
                 title: AppLocalizations.of(context).overview_totalHours,
                 value: '${overviewData['totalHours'].toStringAsFixed(1)}h',
                 subtitle: AppLocalizations.of(context).overview_allActivities,
@@ -70,7 +70,7 @@ class OverviewTab extends StatelessWidget {
                 theme,
                 icon: Icons.assignment_rounded,
                 iconColor: colorScheme.secondary,
-                iconBgColor: colorScheme.secondary.withOpacity(0.1),
+                iconBgColor: colorScheme.secondary.withValues(alpha: 0.1),
                 title: AppLocalizations.of(context).overview_totalEntries,
                 value: '${overviewData['totalEntries']}',
                 subtitle: AppLocalizations.of(context).overview_thisPeriod,
@@ -86,7 +86,7 @@ class OverviewTab extends StatelessWidget {
                 theme,
                 icon: Icons.directions_car_rounded,
                 iconColor: colorScheme.tertiary,
-                iconBgColor: colorScheme.tertiary.withOpacity(0.1),
+                iconBgColor: colorScheme.tertiary.withValues(alpha: 0.1),
                 title: AppLocalizations.of(context).overview_travelTime,
                 value: _formatMinutes(overviewData['totalTravelMinutes']),
                 subtitle: AppLocalizations.of(context).overview_totalCommute,
@@ -98,7 +98,7 @@ class OverviewTab extends StatelessWidget {
                 theme,
                 icon: Icons.work_rounded,
                 iconColor: colorScheme.error,
-                iconBgColor: colorScheme.error.withOpacity(0.1),
+                iconBgColor: colorScheme.error.withValues(alpha: 0.1),
                 title: AppLocalizations.of(context).overview_workTime,
                 value: _formatMinutes(overviewData['totalWorkMinutes']),
                 subtitle: AppLocalizations.of(context).overview_totalWork,
@@ -139,7 +139,7 @@ class OverviewTab extends StatelessWidget {
               color: colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: colorScheme.outline.withOpacity(0.2),
+                color: colorScheme.outline.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -218,7 +218,7 @@ class OverviewTab extends StatelessWidget {
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -305,7 +305,7 @@ class OverviewTab extends StatelessWidget {
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
+          color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
@@ -313,7 +313,7 @@ class OverviewTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.1),
+              color: colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(

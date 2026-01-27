@@ -1,3 +1,6 @@
+// ignore_for_file: deprecated_member_use
+// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
@@ -381,7 +384,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   color:
-                      Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                   child: Row(
                     children: [
                       Icon(Icons.cloud_done,
@@ -419,7 +422,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                   controller: _tabController,
                   labelColor: Theme.of(context).colorScheme.primary,
                   unselectedLabelColor:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                   indicatorColor: Theme.of(context).colorScheme.primary,
                   tabs: [
                     Tab(text: t.reports_overview),

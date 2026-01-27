@@ -165,7 +165,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1),
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(28),
                   topRight: Radius.circular(28),
@@ -176,7 +176,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.2),
+                      color: colorScheme.primary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
@@ -257,7 +257,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
                         side: BorderSide(
                           color: isSelected
                               ? Colors.transparent
-                              : colorScheme.outline.withOpacity(0.2),
+                              : colorScheme.outline.withValues(alpha: 0.2),
                         ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -359,7 +359,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border.all(
-            color: theme.colorScheme.outline.withOpacity(0.2),
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
           ),
           borderRadius: BorderRadius.circular(12),
         ),

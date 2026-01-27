@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/entry.dart';
@@ -1016,10 +1017,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
       ] else ...[
         // Edit mode info text
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -1172,7 +1173,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Row(

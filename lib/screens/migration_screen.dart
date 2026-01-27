@@ -72,9 +72,9 @@ class _MigrationScreenState extends State<MigrationScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              colorScheme.primary.withOpacity(0.05),
-              colorScheme.secondary.withOpacity(0.03),
-              colorScheme.tertiary.withOpacity(0.02),
+              colorScheme.primary.withValues(alpha: 0.05),
+              colorScheme.secondary.withValues(alpha: 0.03),
+              colorScheme.tertiary.withValues(alpha: 0.02),
             ],
             stops: const [0.0, 0.6, 1.0],
           ),
@@ -149,7 +149,7 @@ class _MigrationScreenState extends State<MigrationScreen>
 
     return Card(
       elevation: 8,
-      shadowColor: colorScheme.primary.withOpacity(0.3),
+      shadowColor: colorScheme.primary.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
@@ -196,7 +196,7 @@ class _MigrationScreenState extends State<MigrationScreen>
 
     return Card(
       elevation: 4,
-      shadowColor: colorScheme.shadow.withOpacity(0.1),
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -212,7 +212,7 @@ class _MigrationScreenState extends State<MigrationScreen>
                 valueColor: AlwaysStoppedAnimation<Color>(
                   colorScheme.primary,
                 ),
-                backgroundColor: colorScheme.primary.withOpacity(0.1),
+                backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
               ),
             ),
             const SizedBox(height: 24),
@@ -298,7 +298,7 @@ class _MigrationScreenState extends State<MigrationScreen>
         Text(
           'Version 1.0.0',
           style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
           ),
         ),
       ],

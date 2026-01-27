@@ -169,7 +169,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
     
     return Card(
       elevation: 0,
-      color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -200,8 +200,8 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: totalAdjustmentHours >= 0 
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
@@ -287,8 +287,8 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isPositive 
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.red.withOpacity(0.1),
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(

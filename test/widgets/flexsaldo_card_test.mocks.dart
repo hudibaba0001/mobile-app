@@ -7,8 +7,7 @@ import 'dart:async' as _i4;
 import 'dart:ui' as _i6;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:myapp/repositories/repository_provider.dart' as _i3;
-import 'package:myapp/services/supabase_auth_service.dart' as _i5;
+import 'package:myapp/services/supabase_auth_service.dart' as _i3;
 import 'package:supabase_flutter/supabase_flutter.dart' as _i2;
 
 // ignore_for_file: type=lint
@@ -35,41 +34,11 @@ class _FakeAuthResponse_0 extends _i1.SmartFake implements _i2.AuthResponse {
         );
 }
 
-/// A class which mocks [RepositoryProvider].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockRepositoryProvider extends _i1.Mock
-    implements _i3.RepositoryProvider {
-  MockRepositoryProvider() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i4.Future<void> initialize(String? userId) => (super.noSuchMethod(
-        Invocation.method(
-          #initialize,
-          [userId],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> dispose() => (super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-}
-
 /// A class which mocks [SupabaseAuthService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockSupabaseAuthService extends _i1.Mock
-    implements _i5.SupabaseAuthService {
+    implements _i3.SupabaseAuthService {
   MockSupabaseAuthService() {
     _i1.throwOnMissingStub(this);
   }

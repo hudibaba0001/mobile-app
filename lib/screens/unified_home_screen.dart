@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: avoid_print
 // ignore_for_file: unused_element
 
 import '../design/design.dart';
@@ -249,7 +251,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1),
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -290,7 +292,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: colorScheme.outline.withOpacity(0.2),
+                  color: colorScheme.outline.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
@@ -311,7 +313,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: colorScheme.outline.withOpacity(0.2),
+                  color: colorScheme.outline.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
@@ -366,7 +368,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.primary.withOpacity(0.3),
+              color: colorScheme.primary.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -435,13 +437,13 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           end: Alignment.bottomRight,
           colors: [
             theme.colorScheme.primary,
-            theme.colorScheme.primary.withOpacity(0.85),
+            theme.colorScheme.primary.withValues(alpha: 0.85),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(0.25),
+            color: theme.colorScheme.primary.withValues(alpha: 0.25),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -458,7 +460,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 Text(
                   t.common_today,
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -477,13 +479,13 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.directions_car_rounded, color: Colors.white.withOpacity(0.9), size: 16),
+                Icon(Icons.directions_car_rounded, color: Colors.white.withValues(alpha: 0.9), size: 16),
                 const SizedBox(width: 4),
                 Text(
                   travelText,
@@ -493,7 +495,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Icon(Icons.work_rounded, color: Colors.white.withOpacity(0.9), size: 16),
+                Icon(Icons.work_rounded, color: Colors.white.withValues(alpha: 0.9), size: 16),
                 const SizedBox(width: 4),
                 Text(
                   workText,
@@ -544,7 +546,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: color.withOpacity(0.08),
+      color: color.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -576,7 +578,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 16,
-                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
             ],
           ),
@@ -621,7 +623,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -659,7 +661,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               Container(
                 width: 1,
                 height: 40,
-                color: theme.colorScheme.outline.withOpacity(0.2),
+                color: theme.colorScheme.outline.withValues(alpha: 0.2),
               ),
               Expanded(
                 child: _buildCompactStat(
@@ -754,7 +756,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 Icon(
                   Icons.history_rounded,
                   size: 36,
-                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -806,7 +808,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(entry.icon, color: color, size: 20),
@@ -839,7 +841,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -1284,7 +1286,6 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
 
-  // ignore: unused_element
   void _showSuggestions(
     ThemeData theme,
     TextEditingController controller,
@@ -1314,7 +1315,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
                 ),
               ),
               child: ListView.builder(
@@ -1407,7 +1408,6 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
     }
   }
 
-  // ignore: unused_element
   Widget _buildLocationField(
     ThemeData theme, {
     required TextEditingController controller,
@@ -1567,7 +1567,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   end: Alignment.bottomRight,
                   colors: [
                     theme.colorScheme.primary,
-                    theme.colorScheme.primary.withOpacity(0.8),
+                    theme.colorScheme.primary.withValues(alpha: 0.8),
                   ],
                 ),
                 borderRadius: const BorderRadius.only(
@@ -1580,7 +1580,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
@@ -1605,7 +1605,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         Text(
                           'Track your journey details',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -1691,7 +1691,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           side: BorderSide(
-                            color: theme.colorScheme.primary.withOpacity(0.3),
+                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -2042,7 +2042,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -2328,7 +2328,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
                 ),
               ),
               child: ListView.builder(
@@ -2569,7 +2569,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   end: Alignment.bottomRight,
                   colors: [
                     theme.colorScheme.secondary,
-                    theme.colorScheme.secondary.withOpacity(0.8),
+                    theme.colorScheme.secondary.withValues(alpha: 0.8),
                   ],
                 ),
                 borderRadius: const BorderRadius.only(
@@ -2582,7 +2582,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
@@ -2607,7 +2607,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         Text(
                           'Track your work shifts',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -2693,7 +2693,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           side: BorderSide(
-                            color: theme.colorScheme.secondary.withOpacity(0.3),
+                            color: theme.colorScheme.secondary.withValues(alpha: 0.3),
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -3060,7 +3060,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary.withOpacity(0.1),
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(

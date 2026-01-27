@@ -193,7 +193,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: typeColor.withOpacity(0.1),
+          backgroundColor: typeColor.withValues(alpha: 0.1),
           child: Icon(typeIcon, color: typeColor),
         ),
         title: Text(typeLabel),

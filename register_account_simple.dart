@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 // Simple account registration script
 // This creates a Firebase account with predefined credentials
 

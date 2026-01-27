@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -463,13 +464,13 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         color: theme.colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: theme.colorScheme.outline.withOpacity(0.2),
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withOpacity(0.08),
+          color: theme.colorScheme.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.all(4),
@@ -516,7 +517,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: theme.colorScheme.primary.withOpacity(0.3),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -656,7 +657,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   /// Build a duration chip that sets shift times
   Widget _buildDurationChip(ThemeData theme, int hours) {
     return Material(
-      color: theme.colorScheme.primaryContainer.withOpacity(0.5),
+      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: () => _applyQuickDuration(hours),
@@ -693,7 +694,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   /// Build a Copy Yesterday chip
   Widget _buildCopyYesterdayChip(ThemeData theme) {
     return Material(
-      color: theme.colorScheme.secondaryContainer.withOpacity(0.5),
+      color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: _copyYesterday,
@@ -813,9 +814,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.04),
+        color: theme.colorScheme.primary.withValues(alpha: 0.04),
         border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.2),
+          color: theme.colorScheme.primary.withValues(alpha: 0.2),
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -884,7 +885,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   color: theme.colorScheme.primary,
                   tooltip: 'Swap From/To',
                   style: IconButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primaryContainer.withOpacity(0.5),
+                    backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -992,10 +993,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       height: 48,
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerHighest
-                            .withOpacity(0.3),
+                            .withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: theme.colorScheme.outline.withOpacity(0.5),
+                          color: theme.colorScheme.outline.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Center(
@@ -1023,9 +1024,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.04),
+        color: theme.colorScheme.primary.withValues(alpha: 0.04),
         border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.2),
+          color: theme.colorScheme.primary.withValues(alpha: 0.2),
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -1122,7 +1123,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         color: theme.colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: theme.colorScheme.outline.withOpacity(0.2),
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
       ),

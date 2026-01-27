@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/supabase_auth_service.dart';
@@ -96,7 +97,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     filled: true,
                     fillColor:
-                        colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                   ),
                   validator: _validateEmail,
                   onFieldSubmitted: (_) => _handleResetPassword(),

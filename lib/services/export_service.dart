@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
@@ -24,6 +25,11 @@ class ExportService {
     final hasWork = entries.any((entry) => entry.type == EntryType.work);
     final includeTravelColumns = hasTravel;
     final includeWorkColumns = hasWork;
+    final includeAuditColumns = includeWorkColumns; // remove audit columns from travel-only exports
+
+    int totalTravelMinutes = 0;
+    double totalTravelDistanceKm = 0.0;
+    int totalWorkedMinutes = 0;
 
     final headers = <String>[
       'Type',
@@ -32,11 +38,7 @@ class ExportService {
         'From',
         'To',
         'Travel Minutes',
-        'Travel Source',
         'Travel Distance (km)',
-        'Leg Number',
-        'Journey ID',
-        'Total Legs',
       ],
       if (includeWorkColumns) ...[
         'Shift Number',
@@ -50,22 +52,18 @@ class ExportService {
         'Shift Notes',
       ],
       'Entry Notes',
-      'Created At',
-      'Updated At',
-      'Holiday Work',
-      'Holiday Name',
+      if (includeAuditColumns) ...[
+        'Created At',
+        'Updated At',
+        'Holiday Work',
+        'Holiday Name',
+      ],
     ];
 
     final rows = <List<dynamic>>[];
 
     for (final entry in entries) {
       if (entry.type == EntryType.travel) {
-        final createdAtStr =
-            DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt);
-        final updatedAtStr = entry.updatedAt != null
-            ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-            : '';
-
         // Travel entry: one row per leg (prefer travelLegs, fallback to legacy)
         if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
           final legs = entry.travelLegs!;
@@ -78,19 +76,22 @@ class ExportService {
                 leg.fromText, // From
                 leg.toText, // To
                 leg.minutes, // Travel Minutes
-                leg.source, // Travel Source (Auto/Manual)
                 leg.distanceKm ?? 0.0, // Travel Distance (km)
-                i + 1, // Leg Number
-                entry.journeyId ?? '',
-                legs.length, // Total Legs
               ],
               if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
               entry.notes ?? '', // Entry Notes
-              createdAtStr,
-              updatedAtStr,
-              '', // Holiday Work (not applicable for travel)
-              '', // Holiday Name
+              if (includeAuditColumns) ...[
+                DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
+                entry.updatedAt != null
+                    ? DateFormat('yyyy-MM-dd HH:mm:ss')
+                        .format(entry.updatedAt!)
+                    : '',
+                '', // Holiday Work (not applicable for travel)
+                '', // Holiday Name
+              ],
             ]);
+            totalTravelMinutes += leg.minutes;
+            totalTravelDistanceKm += (leg.distanceKm ?? 0.0);
           }
         } else {
           // Legacy single travel entry: one row
@@ -101,19 +102,20 @@ class ExportService {
               entry.from ?? '',
               entry.to ?? '',
               entry.travelMinutes ?? 0,
-              'manual', // Travel Source (legacy entries are manual)
               0.0, // Travel Distance (not available for legacy)
-              1, // Leg Number
-              entry.journeyId ?? '',
-              1, // Total Legs (legacy = 1)
             ],
             if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
             entry.notes ?? '', // Entry Notes
-            createdAtStr,
-            updatedAtStr,
-            entry.isHolidayWork ? 'Yes' : 'No',
-            entry.holidayName ?? '',
+            if (includeAuditColumns) ...[
+              DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
+              entry.updatedAt != null
+                  ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
+                  : '',
+              entry.isHolidayWork ? 'Yes' : 'No',
+              entry.holidayName ?? '',
+            ],
           ]);
+          totalTravelMinutes += entry.travelMinutes ?? 0;
         }
       } else if (entry.type == EntryType.work &&
           entry.shifts != null &&
@@ -142,13 +144,16 @@ class ExportService {
               shift.notes ?? '', // Shift Notes
             ],
             entry.notes ?? '', // Entry Notes (day-level)
-            DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
-            entry.updatedAt != null
-                ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-                : '',
-            entry.isHolidayWork ? 'Yes' : 'No',
-            entry.holidayName ?? '',
+            if (includeAuditColumns) ...[
+              DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
+              entry.updatedAt != null
+                  ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
+                  : '',
+              entry.isHolidayWork ? 'Yes' : 'No',
+              entry.holidayName ?? '',
+            ],
           ]);
+          totalWorkedMinutes += workedMinutes;
         }
       } else {
         // Work entry with no shifts: one row with empty shift data
@@ -158,15 +163,50 @@ class ExportService {
           if (includeTravelColumns) ...List.filled(8, ''), // Travel placeholders
           if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
           entry.notes ?? '', // Entry Notes
-          DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
-          entry.updatedAt != null
-              ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-              : '',
-          entry.isHolidayWork ? 'Yes' : 'No',
-          entry.holidayName ?? '',
+          if (includeAuditColumns) ...[
+            DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
+            entry.updatedAt != null
+                ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
+                : '',
+            entry.isHolidayWork ? 'Yes' : 'No',
+            entry.holidayName ?? '',
+          ],
         ]);
+        // Without shifts we can't infer worked minutes; leave total unchanged
       }
     }
+
+    // Append summary row with totals
+    final summaryRow = <dynamic>[
+      'Totals',
+      '',
+      if (includeTravelColumns) ...[
+        '', // From
+        '', // To
+        totalTravelMinutes, // Travel Minutes total
+        totalTravelDistanceKm, // Travel Distance total
+      ],
+      if (includeWorkColumns) ...[
+        '', // Shift Number
+        '', // Shift Start
+        '', // Shift End
+        '', // Span Minutes
+        '', // Unpaid Break Minutes
+        totalWorkedMinutes, // Worked Minutes total
+        (totalWorkedMinutes / 60).toStringAsFixed(2), // Worked Hours total
+        '', // Shift Location
+        '', // Shift Notes
+      ],
+      'Totals',
+      if (includeAuditColumns) ...[
+        '', // Created At
+        '', // Updated At
+        '', // Holiday Work
+        '', // Holiday Name
+      ],
+    ];
+
+    rows.add(summaryRow);
 
     return ExportData(headers: headers, rows: rows);
   }

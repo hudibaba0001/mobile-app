@@ -37,7 +37,7 @@ class EntryDetailSheet extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.1),
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -66,7 +66,7 @@ class EntryDetailSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Divider(color: colorScheme.outline.withOpacity(0.2)),
+            Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
             const SizedBox(height: 8),
             ..._detailWidgets(context, entry),
             const SizedBox(height: 20),
@@ -142,7 +142,7 @@ class EntryDetailSheet extends StatelessWidget {
               decoration: BoxDecoration(
                 color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [

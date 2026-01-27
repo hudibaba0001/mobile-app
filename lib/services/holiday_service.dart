@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import '../calendar/sweden_holidays.dart';
 import '../models/user_red_day.dart';

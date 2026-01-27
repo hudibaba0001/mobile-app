@@ -77,7 +77,7 @@ class _BalanceCardState extends State<BalanceCard>
               scale: _scaleAnimation.value,
               child: Card(
                 elevation: 2,
-                shadowColor: colorScheme.shadow.withOpacity(0.1),
+                shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -93,7 +93,7 @@ class _BalanceCardState extends State<BalanceCard>
                         end: Alignment.bottomRight,
                         colors: [
                           colorScheme.primaryContainer,
-                          colorScheme.primaryContainer.withOpacity(0.7),
+                          colorScheme.primaryContainer.withValues(alpha: 0.7),
                         ],
                       ),
                     ),
@@ -127,7 +127,7 @@ class _BalanceCardState extends State<BalanceCard>
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: colorScheme.primary.withOpacity(0.1),
+            color: colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -172,8 +172,8 @@ class _BalanceCardState extends State<BalanceCard>
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: isBalanced 
-            ? colorScheme.tertiary.withOpacity(0.1)
-            : colorScheme.error.withOpacity(0.1),
+            ? colorScheme.tertiary.withValues(alpha: 0.1)
+            : colorScheme.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -213,13 +213,13 @@ class _BalanceCardState extends State<BalanceCard>
             Text(
               AppLocalizations.of(context).balance_workVsTravel,
               style: theme.textTheme.labelMedium?.copyWith(
-                color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
               ),
             ),
             Text(
               '${(workRatio * 100).toInt()}% / ${((1 - workRatio) * 100).toInt()}%',
               style: theme.textTheme.labelMedium?.copyWith(
-                color: colorScheme.onPrimaryContainer.withOpacity(0.8),
+                color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -233,7 +233,7 @@ class _BalanceCardState extends State<BalanceCard>
               height: 8,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                color: colorScheme.outline.withOpacity(0.2),
+                color: colorScheme.outline.withValues(alpha: 0.2),
               ),
               child: Row(
                 children: [
@@ -325,10 +325,10 @@ class _BalanceCardState extends State<BalanceCard>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(0.8),
+        color: colorScheme.surface.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.2),
+          color: color.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -350,7 +350,7 @@ class _BalanceCardState extends State<BalanceCard>
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.7),
+              color: colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ],
