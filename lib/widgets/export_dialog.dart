@@ -389,6 +389,7 @@ class _ExportDialogState extends State<ExportDialog> {
         'startDate': _startDate,
         'endDate': _endDate,
         'format': _exportFormat,
+        'entryTypeFilter': _entryTypeFilter,
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

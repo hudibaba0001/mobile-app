@@ -1201,21 +1201,26 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
 
     if (format == null) return;
-    
+
+    // Map reportType to entryTypeFilter for export columns
+    final entryTypeFilter = reportType == 'travel' ? 'travel' : (reportType == 'time' ? 'work' : 'both');
+
     try {
-      final fileName = reportType == 'travel' 
+      final fileName = reportType == 'travel'
           ? 'travel_report_${now.year}_${now.month}'
           : 'time_report_${now.year}_${now.month}';
-      
+
       if (format == 'csv') {
         await ExportService.exportEntriesToCSV(
           entries: entries,
           fileName: fileName,
+          entryTypeFilter: entryTypeFilter,
         );
       } else {
         await ExportService.exportEntriesToExcel(
           entries: entries,
           fileName: fileName,
+          entryTypeFilter: entryTypeFilter,
         );
       }
       

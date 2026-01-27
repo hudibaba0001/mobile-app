@@ -19,17 +19,33 @@ class ExportService {
   static const String _csvFileExtension = '.csv';
   static const String _excelFileExtension = '.xlsx';
 
-  static ExportData prepareExportData(List<Entry> entries) {
-    final headers = [
-      'Entry ID',
+  /// Prepare export data with dynamic columns based on entry type filter
+  /// [entries] - List of entries to export
+  /// [entryTypeFilter] - 'travel', 'work', or 'both' (default)
+  static ExportData prepareExportData(List<Entry> entries, {String entryTypeFilter = 'both'}) {
+    // Define column groups
+    const commonHeaders = [
       'Type',
       'Date',
+      'Entry Notes',
+      'Created At',
+      'Updated At',
+      'Holiday Work',
+      'Holiday Name',
+    ];
+
+    const travelHeaders = [
       'From',
       'To',
       'Travel Minutes',
       'Travel Source',
       'Travel Distance (km)',
       'Leg Number',
+      'Journey ID',
+      'Total Legs',
+    ];
+
+    const workHeaders = [
       'Shift Number',
       'Shift Start',
       'Shift End',
@@ -39,14 +55,28 @@ class ExportService {
       'Worked Hours',
       'Shift Location',
       'Shift Notes',
+    ];
+
+    // Build headers based on entry type filter
+    final headers = <String>[];
+    headers.add('Type');
+    headers.add('Date');
+
+    if (entryTypeFilter == 'both' || entryTypeFilter == 'travel') {
+      headers.addAll(travelHeaders);
+    }
+
+    if (entryTypeFilter == 'both' || entryTypeFilter == 'work') {
+      headers.addAll(workHeaders);
+    }
+
+    headers.addAll([
       'Entry Notes',
       'Created At',
       'Updated At',
-      'Journey ID',
-      'Total Legs',
       'Holiday Work',
       'Holiday Name',
-    ];
+    ]);
 
     final rows = <List<dynamic>>[];
 
@@ -56,16 +86,77 @@ class ExportService {
         if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
           for (var i = 0; i < entry.travelLegs!.length; i++) {
             final leg = entry.travelLegs![i];
-            rows.add([
-              entry.id,
+            final row = <dynamic>[
               entry.type.name,
               DateFormat('yyyy-MM-dd').format(entry.date),
-              leg.fromText, // From
-              leg.toText, // To
-              leg.minutes, // Travel Minutes
-              leg.source, // Travel Source (Auto/Manual)
-              leg.distanceKm ?? 0.0, // Travel Distance (km) - use 0 instead of '' for consistency
-              i + 1, // Leg Number
+            ];
+
+            // Add travel columns
+            if (entryTypeFilter == 'both' || entryTypeFilter == 'travel') {
+              row.addAll([
+                leg.fromText, // From
+                leg.toText, // To
+                leg.minutes, // Travel Minutes
+                leg.source, // Travel Source (Auto/Manual)
+                leg.distanceKm ?? 0.0, // Travel Distance (km)
+                i + 1, // Leg Number
+                entry.journeyId ?? '', // Journey ID
+                entry.travelLegs!.length, // Total Legs
+              ]);
+            }
+
+            // Add work columns (empty for travel)
+            if (entryTypeFilter == 'both' || entryTypeFilter == 'work') {
+              row.addAll([
+                '', // Shift Number
+                '', // Shift Start
+                '', // Shift End
+                '', // Span Minutes
+                '', // Unpaid Break Minutes
+                '', // Worked Minutes
+                '', // Worked Hours
+                '', // Shift Location
+                '', // Shift Notes
+              ]);
+            }
+
+            // Add common trailing columns
+            row.addAll([
+              entry.notes ?? '', // Entry Notes
+              DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
+              entry.updatedAt != null
+                  ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
+                  : '',
+              '', // Holiday Work (not applicable for travel)
+              '', // Holiday Name
+            ]);
+
+            rows.add(row);
+          }
+        } else {
+          // Legacy single travel entry: one row
+          final row = <dynamic>[
+            entry.type.name,
+            DateFormat('yyyy-MM-dd').format(entry.date),
+          ];
+
+          // Add travel columns
+          if (entryTypeFilter == 'both' || entryTypeFilter == 'travel') {
+            row.addAll([
+              entry.from ?? '',
+              entry.to ?? '',
+              entry.travelMinutes ?? 0,
+              'manual', // Travel Source (legacy entries are manual)
+              0.0, // Travel Distance (not available for legacy)
+              1, // Leg Number
+              entry.journeyId ?? '', // Journey ID
+              1, // Total Legs (legacy = 1)
+            ]);
+          }
+
+          // Add work columns (empty for travel)
+          if (entryTypeFilter == 'both' || entryTypeFilter == 'work') {
+            row.addAll([
               '', // Shift Number
               '', // Shift Start
               '', // Shift End
@@ -75,48 +166,21 @@ class ExportService {
               '', // Worked Hours
               '', // Shift Location
               '', // Shift Notes
-              entry.notes ?? '', // Entry Notes
-              DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
-              entry.updatedAt != null
-                  ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-                  : '',
-              entry.journeyId ?? '',
-              entry.travelLegs!.length, // Total Legs
-              '', // Holiday Work (not applicable for travel)
-              '', // Holiday Name
             ]);
           }
-        } else {
-          // Legacy single travel entry: one row
-          rows.add([
-            entry.id,
-            entry.type.name,
-            DateFormat('yyyy-MM-dd').format(entry.date),
-            entry.from ?? '',
-            entry.to ?? '',
-            entry.travelMinutes ?? 0,
-            'manual', // Travel Source (legacy entries are manual)
-            0.0, // Travel Distance (not available for legacy) - use 0 instead of ''
-            1, // Leg Number
-            '', // Shift Number
-            '', // Shift Start
-            '', // Shift End
-            '', // Span Minutes
-            '', // Unpaid Break Minutes
-            '', // Worked Minutes
-            '', // Worked Hours
-            '', // Shift Location
-            '', // Shift Notes
+
+          // Add common trailing columns
+          row.addAll([
             entry.notes ?? '', // Entry Notes
             DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
             entry.updatedAt != null
                 ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
                 : '',
-            entry.journeyId ?? '',
-            1, // Total Legs (legacy = 1)
             entry.isHolidayWork ? 'Yes' : 'No',
             entry.holidayName ?? '',
           ]);
+
+          rows.add(row);
         }
       } else if (entry.type == EntryType.work && entry.shifts != null && entry.shifts!.isNotEmpty) {
         // Work entry: one row per shift
@@ -126,68 +190,102 @@ class ExportService {
           final breakMinutes = shift.unpaidBreakMinutes;
           final workedMinutes = shift.workedMinutes;
           final workedHours = workedMinutes / 60.0;
-          
-          rows.add([
-            entry.id,
+
+          final row = <dynamic>[
             entry.type.name,
             DateFormat('yyyy-MM-dd').format(entry.date),
-            '', // From (not applicable for work)
-            '', // To (not applicable for work)
-            '', // Travel Minutes
-            '', // Travel Source (not applicable for work)
-            '', // Travel Distance (not applicable for work)
-            '', // Leg Number (not applicable for work)
-            i + 1, // Shift Number
-            DateFormat('HH:mm').format(shift.start), // Shift Start
-            DateFormat('HH:mm').format(shift.end), // Shift End
-            spanMinutes, // Span Minutes
-            breakMinutes, // Unpaid Break Minutes
-            workedMinutes, // Worked Minutes
-            workedHours.toStringAsFixed(2), // Worked Hours
-            shift.location ?? '', // Shift Location
-            shift.notes ?? '', // Shift Notes
+          ];
+
+          // Add travel columns (empty for work)
+          if (entryTypeFilter == 'both' || entryTypeFilter == 'travel') {
+            row.addAll([
+              '', // From
+              '', // To
+              '', // Travel Minutes
+              '', // Travel Source
+              '', // Travel Distance
+              '', // Leg Number
+              '', // Journey ID
+              '', // Total Legs
+            ]);
+          }
+
+          // Add work columns
+          if (entryTypeFilter == 'both' || entryTypeFilter == 'work') {
+            row.addAll([
+              i + 1, // Shift Number
+              DateFormat('HH:mm').format(shift.start), // Shift Start
+              DateFormat('HH:mm').format(shift.end), // Shift End
+              spanMinutes, // Span Minutes
+              breakMinutes, // Unpaid Break Minutes
+              workedMinutes, // Worked Minutes
+              workedHours.toStringAsFixed(2), // Worked Hours
+              shift.location ?? '', // Shift Location
+              shift.notes ?? '', // Shift Notes
+            ]);
+          }
+
+          // Add common trailing columns
+          row.addAll([
             entry.notes ?? '', // Entry Notes (day-level)
             DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
             entry.updatedAt != null
                 ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
                 : '',
-            '', // Journey ID (not applicable for work)
-            '', // Total Legs (not applicable for work)
             entry.isHolidayWork ? 'Yes' : 'No',
             entry.holidayName ?? '',
           ]);
+
+          rows.add(row);
         }
       } else {
         // Work entry with no shifts: one row with empty shift data
-        rows.add([
-          entry.id,
+        final row = <dynamic>[
           entry.type.name,
           DateFormat('yyyy-MM-dd').format(entry.date),
-          '', // From
-          '', // To
-          '', // Travel Minutes
-          '', // Travel Source
-          '', // Travel Distance
-          '', // Leg Number
-          '', // Shift Number
-          '', // Shift Start
-          '', // Shift End
-          '', // Span Minutes
-          '', // Unpaid Break Minutes
-          '', // Worked Minutes
-          '', // Worked Hours
-          '', // Shift Location
-          '', // Shift Notes
+        ];
+
+        // Add travel columns (empty)
+        if (entryTypeFilter == 'both' || entryTypeFilter == 'travel') {
+          row.addAll([
+            '', // From
+            '', // To
+            '', // Travel Minutes
+            '', // Travel Source
+            '', // Travel Distance
+            '', // Leg Number
+            '', // Journey ID
+            '', // Total Legs
+          ]);
+        }
+
+        // Add work columns (empty)
+        if (entryTypeFilter == 'both' || entryTypeFilter == 'work') {
+          row.addAll([
+            '', // Shift Number
+            '', // Shift Start
+            '', // Shift End
+            '', // Span Minutes
+            '', // Unpaid Break Minutes
+            '', // Worked Minutes
+            '', // Worked Hours
+            '', // Shift Location
+            '', // Shift Notes
+          ]);
+        }
+
+        // Add common trailing columns
+        row.addAll([
           entry.notes ?? '', // Entry Notes
           DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
           entry.updatedAt != null
               ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
               : '',
-          '', // Journey ID
-          '', // Total Legs
           entry.isHolidayWork ? 'Yes' : 'No',
           entry.holidayName ?? '',
         ]);
+
+        rows.add(row);
       }
     }
 
@@ -196,9 +294,11 @@ class ExportService {
 
   /// Export entries to CSV file
   /// Returns the file path of the generated CSV (or empty string on web)
+  /// [entryTypeFilter] - 'travel', 'work', or 'both' to control which columns are included
   static Future<String> exportEntriesToCSV({
     required List<Entry> entries,
     required String fileName,
+    String entryTypeFilter = 'both',
   }) async {
     try {
       if (entries.isEmpty) {
@@ -208,8 +308,8 @@ class ExportService {
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final fullFileName = '${fileName}_$timestamp$_csvFileExtension';
 
-      // Create CSV data
-      final exportData = prepareExportData(entries);
+      // Create CSV data with appropriate columns based on entry type filter
+      final exportData = prepareExportData(entries, entryTypeFilter: entryTypeFilter);
       final csvData = CsvExporter.export(exportData);
       
       if (csvData.isEmpty) {
@@ -235,9 +335,11 @@ class ExportService {
 
   /// Export entries to Excel file
   /// Returns the file path of the generated Excel file (or empty string on web)
+  /// [entryTypeFilter] - 'travel', 'work', or 'both' to control which columns are included
   static Future<String> exportEntriesToExcel({
     required List<Entry> entries,
     required String fileName,
+    String entryTypeFilter = 'both',
   }) async {
     try {
       if (entries.isEmpty) {
@@ -247,8 +349,8 @@ class ExportService {
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final fullFileName = '${fileName}_$timestamp$_excelFileExtension';
 
-      // Create Excel data
-      final exportData = prepareExportData(entries);
+      // Create Excel data with appropriate columns based on entry type filter
+      final exportData = prepareExportData(entries, entryTypeFilter: entryTypeFilter);
       final excelData = XlsxExporter.export(exportData);
 
       if (excelData == null || excelData.isEmpty) {

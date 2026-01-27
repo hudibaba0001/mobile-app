@@ -143,6 +143,7 @@ class _ReportsScreenState extends State<ReportsScreen>
       final entries = exportConfig['entries'] as List<Entry>;
       final fileName = exportConfig['fileName'] as String;
       final format = exportConfig['format'] as String? ?? 'excel';
+      final entryTypeFilter = exportConfig['entryTypeFilter'] as String? ?? 'both';
 
       // Validate entries
       if (entries.isEmpty) {
@@ -178,11 +179,13 @@ class _ReportsScreenState extends State<ReportsScreen>
           filePath = await ExportService.exportEntriesToExcel(
             entries: entries,
             fileName: fileName,
+            entryTypeFilter: entryTypeFilter,
           );
         } else {
           filePath = await ExportService.exportEntriesToCSV(
             entries: entries,
             fileName: fileName,
+            entryTypeFilter: entryTypeFilter,
           );
         }
       } catch (e) {
