@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+﻿// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -34,7 +34,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   DateTime? _originalCreatedAt;
 
   // Travel form data - now supports multiple travel entries
-  final List<_TravelEntry> _travelEntries = [];
+  final List<_TravelLegDraft> _travelEntries = [];
   final _travelNotesController = TextEditingController();
 
   // Work form data
@@ -148,7 +148,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     });
   }
 
-  void _checkForCachedRoute(_TravelEntry entry) {
+  void _checkForCachedRoute(_TravelLegDraft entry) {
     if (!mounted) return;
     
     final from = entry.fromController.text.trim();
@@ -185,7 +185,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   void _addTravelEntry() {
     setState(() {
-      final travelEntry = _TravelEntry(
+      final travelEntry = _TravelLegDraft(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         onChanged: _validateForm,
         onRouteChanged: _checkForCachedRoute,
@@ -207,7 +207,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   }
 
   /// Swap From and To locations for a travel entry
-  void _swapRoute(_TravelEntry travelEntry) {
+  void _swapRoute(_TravelLegDraft travelEntry) {
     final fromText = travelEntry.fromController.text;
     final toText = travelEntry.toController.text;
     setState(() {
@@ -259,7 +259,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
       if (_currentEntryType == EntryType.travel && _travelEntries.isNotEmpty) {
         // Update existing entry with first draft, then create new entries for additional drafts
-        final drafts = List<_TravelEntry>.from(_travelEntries);
+        final drafts = List<_TravelLegDraft>.from(_travelEntries);
         final firstTravel = drafts.first;
         final firstTotalMinutes =
             (int.tryParse(firstTravel.durationHoursController.text) ?? 0) * 60 +
@@ -809,7 +809,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     );
   }
 
-  Widget _buildTravelEntryRow(ThemeData theme, _TravelEntry travelEntry) {
+  Widget _buildTravelEntryRow(ThemeData theme, _TravelLegDraft travelEntry) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -1217,16 +1217,16 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   }
 }
 
-class _TravelEntry {
+class _TravelLegDraft {
   final String id;
   final TextEditingController fromController;
   final TextEditingController toController;
   final TextEditingController durationHoursController;
   final TextEditingController durationMinutesController;
   final VoidCallback onChanged;
-  final Function(_TravelEntry) onRouteChanged;
+  final Function(_TravelLegDraft) onRouteChanged;
 
-  _TravelEntry({
+  _TravelLegDraft({
     required this.id,
     required this.onChanged,
     required this.onRouteChanged,

@@ -108,7 +108,7 @@ class TravelProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       // For now, we'll just add to the local list
-      // In the future, we can integrate with RepositoryProvider
+      // In the future, we can integrate with a shared repository layer
       _entries.add(entry);
       _applyFilters();
       _clearError();

@@ -12,15 +12,38 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
-class FakeEntryProvider extends Mock implements EntryProvider {
-  @override
-  Future<void> addEntries(List<Entry> entries) async {}
+class RecordingEntryProvider extends Mock
+    with ChangeNotifier
+    implements EntryProvider {
+  List<Entry>? recorded;
 
   @override
-  Future<void> addEntry(Entry entry) async {}
+  Future<void> addEntries(List<Entry> entries) async {
+    recorded = entries;
+  }
+
+  @override
+  Future<void> addEntry(Entry entry) async {
+    recorded = [entry];
+  }
 }
 
-class MockSupabaseAuthService extends Mock implements SupabaseAuthService {}
+class StubSupabaseAuthService extends Mock
+    with ChangeNotifier
+    implements SupabaseAuthService {
+  User? user;
+  bool authenticated = true;
+  bool initialized = true;
+
+  @override
+  User? get currentUser => user;
+
+  @override
+  bool get isAuthenticated => authenticated;
+
+  @override
+  bool get isInitialized => initialized;
+}
 void main() {
   setUpAll(() async {
     HttpOverrides.global = null;
@@ -34,53 +57,61 @@ void main() {
   });
 
   group('TravelEntryDialog EntryProvider integration', () {
-    late FakeEntryProvider mockEntryProvider;
-    late MockSupabaseAuthService mockAuthService;
+    late RecordingEntryProvider mockEntryProvider;
+    late StubSupabaseAuthService mockAuthService;
+    List<Entry>? capturedEntries;
 
     setUp(() {
-      mockEntryProvider = FakeEntryProvider();
-      mockAuthService = MockSupabaseAuthService();
+      mockEntryProvider = RecordingEntryProvider();
+      mockAuthService = StubSupabaseAuthService();
+      capturedEntries = null;
+      final binding = TestWidgetsFlutterBinding.ensureInitialized();
+      binding.window.physicalSizeTestValue = const Size(2400, 2600);
+      binding.window.devicePixelRatioTestValue = 1.0;
+      addTearDown(() {
+        binding.window.clearPhysicalSizeTestValue();
+        binding.window.clearDevicePixelRatioTestValue();
+      });
       
-      when(mockAuthService.currentUser).thenReturn(
-        User(
-          id: 'test-user-id',
-          email: 'test@example.com',
-          appMetadata: {},
-          userMetadata: {},
-          createdAt: DateTime.now().toIso8601String(),
-          aud: '',
-        ),
+      mockAuthService.user = User(
+        id: 'test-user-id',
+        email: 'test@example.com',
+        appMetadata: {},
+        userMetadata: {},
+        createdAt: DateTime.now().toIso8601String(),
+        aud: '',
       );
-      when(mockAuthService.isAuthenticated).thenReturn(true);
-      when(mockAuthService.isInitialized).thenReturn(true);
+      mockAuthService.authenticated = true;
+      mockAuthService.initialized = true;
     });
 
     Widget createTestWidget({required Widget child}) {
-      return MaterialApp(
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
+      return MultiProvider(
+        providers: [
+          ChangeNotifierProvider<EntryProvider>.value(
+              value: mockEntryProvider),
+          ChangeNotifierProvider<SupabaseAuthService>.value(
+              value: mockAuthService),
         ],
-        supportedLocales: const [
-          Locale('en', ''),
-          Locale('sv', ''),
-        ],
-        home: Scaffold(
-          body: MultiProvider(
-            providers: [
-              ChangeNotifierProvider<EntryProvider>.value(value: mockEntryProvider),
-              ChangeNotifierProvider<SupabaseAuthService>.value(value: mockAuthService),
-            ],
-            child: child,
+        child: MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', ''),
+            Locale('sv', ''),
+          ],
+          home: Scaffold(
+            body: child,
           ),
         ),
       );
     }
 
-    testWidgets('TravelEntryDialog saves via EntryProvider, not TravelRepository', (WidgetTester tester) async {
-      // Open the travel entry dialog
+    testWidgets('TravelEntryDialog saves atomic travel entries via EntryProvider', (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget(
         child: Builder(
           builder: (context) {
@@ -88,7 +119,7 @@ void main() {
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (context) => const TravelEntryDialog(),
+                  builder: (context) => const TravelEntryDialog(enableSuggestions: false),
                 );
               },
               child: const Text('Open Dialog'),
@@ -96,29 +127,96 @@ void main() {
           },
         ),
       ));
-      
+
       await tester.pumpAndSettle();
-      
-      // Tap button to open dialog
+
       await tester.tap(find.text('Open Dialog'));
       await tester.pumpAndSettle();
-      
-      // Dialog should be visible
+
       expect(find.byType(TravelEntryDialog), findsOneWidget);
-      
-      // Find the trip input fields (from, to, duration)
-      // Note: The actual implementation may vary, but we're verifying EntryProvider is used
-      // The key test is that when the dialog saves, it calls entryProvider.addEntries()
-      // This is verified by the kill-switch in TravelRepository which would throw if called
+      final dialogContext = tester.element(find.byType(TravelEntryDialog));
+      final providedEntryProvider =
+          Provider.of<EntryProvider>(dialogContext, listen: false);
+      final providedAuth =
+          Provider.of<SupabaseAuthService>(dialogContext, listen: false);
+      expect(identical(providedEntryProvider, mockEntryProvider), isTrue);
+      expect(identical(providedAuth, mockAuthService), isTrue);
+
+      await tester.enterText(find.byKey(const Key('travel_from_0')), 'A');
+      await tester.enterText(find.byKey(const Key('travel_to_0')), 'B');
+      await tester.enterText(find.byKey(const Key('travel_hours_0')), '1');
+      await tester.enterText(find.byKey(const Key('travel_minutes_0')), '15');
+      await tester.pumpAndSettle();
+
+      final saveButton =
+          tester.widget<ElevatedButton>(find.byKey(const Key('travel_save_button')));
+      expect(saveButton.onPressed, isNotNull);
+      await tester.runAsync(() async {
+        saveButton.onPressed!.call();
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      });
+      await tester.pumpAndSettle();
+
+      capturedEntries = mockEntryProvider.recorded;
+      expect(capturedEntries, isNotNull);
+      expect(capturedEntries!.length, 1);
+      expect(capturedEntries!.first.type, EntryType.travel);
+      expect(capturedEntries!.first.travelMinutes, 75);
     });
 
-    testWidgets('TravelEntryDialog creates atomic Entry objects', (WidgetTester tester) async {
-      // This test verifies the dialog creates Entry objects (not TravelEntry)
-      // by checking that EntryProvider.addEntries is called with Entry objects
-      
-      // The actual dialog interaction would go here
-      // For now, we verify the mock setup is correct
-      expect(mockEntryProvider, isNotNull);
+    testWidgets('WorkEntryDialog saves one Entry per shift via EntryProvider', (WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget(
+        child: Builder(
+          builder: (context) {
+            return ElevatedButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const WorkEntryDialog(enableSuggestions: false),
+                );
+              },
+              child: const Text('Open Work Dialog'),
+            );
+          },
+        ),
+      ));
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open Work Dialog'));
+      await tester.pumpAndSettle();
+
+      final dialogContext = tester.element(find.byType(WorkEntryDialog));
+      final providedEntryProvider =
+          Provider.of<EntryProvider>(dialogContext, listen: false);
+      final providedAuth =
+          Provider.of<SupabaseAuthService>(dialogContext, listen: false);
+      expect(identical(providedEntryProvider, mockEntryProvider), isTrue);
+      expect(identical(providedAuth, mockAuthService), isTrue);
+
+      await tester.enterText(find.byKey(const Key('work_start_0')), '8:00 AM');
+      await tester.enterText(find.byKey(const Key('work_end_0')), '10:00 AM');
+
+      await tester.tap(find.byKey(const Key('add_shift_button')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('work_start_1')), '11:00 AM');
+      await tester.enterText(find.byKey(const Key('work_end_1')), '12:00 PM');
+      await tester.pumpAndSettle();
+
+      final saveButton =
+          tester.widget<ElevatedButton>(find.byKey(const Key('work_save_button')));
+      expect(saveButton.onPressed, isNotNull);
+      await tester.runAsync(() async {
+        saveButton.onPressed!.call();
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      });
+      await tester.pumpAndSettle();
+
+      capturedEntries = mockEntryProvider.recorded;
+      expect(capturedEntries, isNotNull);
+      expect(capturedEntries!.length, 2);
+      expect(capturedEntries!.every((e) => e.type == EntryType.work), isTrue);
+      expect(capturedEntries!.every((e) => e.isAtomicWork), isTrue);
     });
   });
 }

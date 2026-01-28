@@ -14,8 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/app_router.dart';
 import '../models/autocomplete_suggestion.dart';
-// RepositoryProvider no longer needed - EntryProvider is the only write path
-// import '../repositories/repository_provider.dart'; // Removed: legacy write path disabled
+// EntryProvider is the only write path
 import '../providers/entry_provider.dart';
 import '../providers/absence_provider.dart';
 import '../providers/location_provider.dart';
@@ -1415,10 +1414,12 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
     required String hint,
     required IconData icon,
     required Color iconColor,
+    Key? fieldKey,
   }) {
     if (!widget.enableSuggestions) {
       // Suggestions disabled for tests: render a plain TextField without overlay plumbing
       return TextField(
+        key: fieldKey,
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
@@ -1439,6 +1440,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
     return CompositedTransformTarget(
       link: _layerLink,
       child: TextField(
+        key: fieldKey,
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
@@ -1675,6 +1677,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
+                        key: const Key('add_trip_button'),
                         onPressed: _addTrip,
                         icon: Icon(
                           Icons.add_circle_outline,
@@ -1896,12 +1899,13 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
+                      key: const Key('travel_save_button'),
                       onPressed: _isValid()
                           ? () async {
                               if (!mounted) return;
                               try {
 
-                                // Use EntryProvider instead of legacy TravelEntry repository
+                                // Use EntryProvider instead of legacy repository
                                 final entryProvider = context.read<EntryProvider>();
                                 final authService = context.read<SupabaseAuthService>();
                                 final userId = authService.currentUser?.id;
@@ -2092,6 +2096,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
             hint: 'Enter starting location',
             icon: Icons.location_on_outlined,
             iconColor: theme.colorScheme.primary,
+            fieldKey: Key('travel_from_$index'),
           ),
           const SizedBox(height: 12),
 
@@ -2103,6 +2108,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
             hint: 'Enter destination',
             icon: Icons.location_on,
             iconColor: theme.colorScheme.secondary,
+            fieldKey: Key('travel_to_$index'),
           ),
           const SizedBox(height: 12),
 
@@ -2123,6 +2129,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     ),
                     const SizedBox(height: 4),
                     TextField(
+                      key: Key('travel_hours_$index'),
                       controller: trip.hoursController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
@@ -2170,6 +2177,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     ),
                     const SizedBox(height: 4),
                     TextField(
+                      key: Key('travel_minutes_$index'),
                       controller: trip.minutesController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
@@ -2677,6 +2685,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
+                        key: const Key('add_shift_button'),
                         onPressed: _addShift,
                         icon: Icon(
                           Icons.add_circle_outline,
@@ -2898,57 +2907,79 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
+                      key: const Key('work_save_button'),
                       onPressed: _isValid()
                           ? () async {
                               if (!mounted) return;
                               try {
                                 print('=== WORK ENTRY SAVE ATTEMPT ===');
 
-                                // Use EntryProvider instead of legacy WorkEntry repository
+                                // Use EntryProvider instead of legacy repository
                                 final entryProvider = context.read<EntryProvider>();
                                 final authService = context.read<SupabaseAuthService>();
                                 final userId = authService.currentUser?.id;
                                 if (userId == null) return;
 
-                                // Calculate total work minutes from all shifts
-                                // Note: This legacy dialog doesn't support breaks/notes per shift
-                                // For proper break/notes support, use UnifiedEntryForm instead
-                                int totalWorkMinutes = 0;
-                                for (final shift in _shifts) {
-                                  totalWorkMinutes += shift.totalMinutes;
-                                  print(
-                                      'Shift: ${shift.startTimeController.text} - ${shift.endTimeController.text}, minutes: ${shift.totalMinutes}');
-                                }
-                                print('Total work minutes: $totalWorkMinutes');
-
-                                // Create work entry using factory method (atomic entry)
-                                // Note: Legacy dialog doesn't capture break/notes, so defaults are used
+                                final dayNotes = _notesController.text.trim().isEmpty
+                                    ? null
+                                    : _notesController.text.trim();
                                 final now = DateTime.now();
-                                final workEntry = Entry.makeWorkAtomicFromShift(
-                                  userId: userId,
-                                  date: now,
-                                  shift: Shift(
-                                    start: DateTime(now.year, now.month, now.day, 8, 0), // Default 8:00
-                                    end: DateTime(now.year, now.month, now.day, 8, 0).add(Duration(minutes: totalWorkMinutes)),
-                                    unpaidBreakMinutes: 0, // Legacy dialog doesn't capture breaks
-                                    notes: _notesController.text.trim().isEmpty 
-                                        ? null 
-                                        : _notesController.text.trim(),
-                                  ),
-                                  dayNotes: _notesController.text.trim().isEmpty 
-                                      ? null 
-                                      : _notesController.text.trim(),
-                                );
+                                final entries = <Entry>[];
 
-                                print(
-                                    'Created Entry (work): ${workEntry.toString()}');
-                                print(
-                                    'Entry details: minutes=${workEntry.totalWorkDuration?.inMinutes ?? 0}, notes=${workEntry.notes}');
+                                for (final shift in _shifts) {
+                                  final startTod =
+                                      shift._parseTimeOfDay(shift.startTimeController.text);
+                                  final endTod =
+                                      shift._parseTimeOfDay(shift.endTimeController.text);
 
-                                // Save via EntryProvider (the ONLY write path)
-                                print('Saving via EntryProvider...');
-                                await entryProvider.addEntry(workEntry);
-                                print('Successfully saved via EntryProvider!');
+                                  if (startTod == null || endTod == null) {
+                                    continue; // _isValid should prevent this
+                                  }
+
+                                  final startDateTime = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                    startTod.hour,
+                                    startTod.minute,
+                                  );
+                                  var endDateTime = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                    endTod.hour,
+                                    endTod.minute,
+                                  );
+
+                                  // Handle overnight shifts
+                                  if (endDateTime.isBefore(startDateTime)) {
+                                    endDateTime = endDateTime.add(const Duration(days: 1));
+                                  }
+
+                                  final shiftModel = Shift(
+                                    start: startDateTime,
+                                    end: endDateTime,
+                                    unpaidBreakMinutes: 0,
+                                    notes: dayNotes,
+                                  );
+
+                                  entries.add(
+                                    Entry.makeWorkAtomicFromShift(
+                                      userId: userId,
+                                      date: startDateTime,
+                                      shift: shiftModel,
+                                      dayNotes: dayNotes,
+                                    ),
+                                  );
+                                }
+
+                                if (entries.isEmpty) {
+                                  throw StateError('No valid shifts to save');
+                                }
+
+                                print('Saving ${entries.length} atomic work entries via EntryProvider...');
+                                await entryProvider.addEntries(entries);
+                                print('Successfully saved ${entries.length} entry/entries via EntryProvider!');
 
                                 Navigator.of(context).pop();
 
@@ -2959,6 +2990,9 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                           _UnifiedHomeScreenState>();
                                   parent?._loadRecentEntries();
                                 }
+                                final successText = entries.length > 1
+                                    ? 'Work entries logged successfully!'
+                                    : 'Work entry logged successfully!';
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Row(
@@ -2969,8 +3003,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
-                                        const Text(
-                                            'Work entry logged successfully!'),
+                                        Text(successText),
                                       ],
                                     ),
                                     backgroundColor: Colors.green[600],
@@ -3120,6 +3153,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     const SizedBox(height: 4),
                     if (!widget.enableSuggestions)
                       TextField(
+                        key: Key('work_start_$index'),
                         controller: shift.startTimeController,
                         decoration: InputDecoration(
                           hintText: AppLocalizations.of(context).home_timeExample,
@@ -3185,6 +3219,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     const SizedBox(height: 4),
                     if (!widget.enableSuggestions)
                       TextField(
+                        key: Key('work_end_$index'),
                         controller: shift.endTimeController,
                         decoration: const InputDecoration(
                           hintText: 'e.g. 5:30 PM',

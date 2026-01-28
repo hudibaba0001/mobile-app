@@ -12,8 +12,6 @@ import '../services/export_service.dart';
 import '../models/entry.dart';
 import '../services/supabase_auth_service.dart';
 import '../providers/entry_provider.dart';
-import '../models/travel_entry.dart';
-import '../models/work_entry.dart';
 import 'reports/overview_tab.dart';
 import 'reports/trends_tab.dart';
 import 'reports/time_balance_tab.dart';
@@ -299,65 +297,25 @@ class _ReportsScreenState extends State<ReportsScreen>
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
 
-    return ChangeNotifierProvider(
-      create: (context) {
-        final viewModel = CustomerAnalyticsViewModel();
-        final entryProvider = context.read<EntryProvider>();
+    return ChangeNotifierProxyProvider<EntryProvider, CustomerAnalyticsViewModel>(
+      create: (context) => CustomerAnalyticsViewModel(),
+      update: (context, entryProvider, viewModel) {
         final authService = context.read<SupabaseAuthService>();
         final userId = authService.currentUser?.id;
-        
+
         // Ensure entries are loaded
         if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
           entryProvider.loadEntries();
         }
-        
-        // Convert Entry objects to legacy WorkEntry/TravelEntry for viewmodel compatibility
-        // TODO: Refactor CustomerAnalyticsViewModel to use Entry model directly
-        final workEntries = entryProvider.entries
-            .where((e) => e.type == EntryType.work)
-            .map((entry) {
-              final shift = entry.atomicShift ?? entry.shifts?.first;
-              final workMinutes = entry.totalWorkDuration?.inMinutes ?? 0;
-              return WorkEntry(
-                id: entry.id,
-                userId: entry.userId,
-                date: entry.date,
-                workMinutes: workMinutes,
-                remarks: entry.notes ?? shift?.notes ?? shift?.description ?? '',
-                createdAt: entry.createdAt,
-                updatedAt: entry.updatedAt,
-              );
-            })
-            .toList();
-        
-        final travelEntries = entryProvider.entries
-            .where((e) => e.type == EntryType.travel)
-            .map((entry) {
-              return TravelEntry(
-                id: entry.id,
-                userId: entry.userId,
-                date: entry.date,
-                fromLocation: entry.from ?? '',
-                toLocation: entry.to ?? '',
-                travelMinutes: entry.travelMinutes ?? 0,
-                remarks: entry.notes ?? '',
-                createdAt: entry.createdAt,
-                updatedAt: entry.updatedAt,
-              );
-            })
-            .toList();
-        
-        // Create mock repositories that return the converted entries
-        // This is a temporary solution until CustomerAnalyticsViewModel is refactored
-        final mockWorkRepo = _MockWorkRepository(workEntries);
-        final mockTravelRepo = _MockTravelRepository(travelEntries);
-        
-        viewModel.initialize(
-          mockWorkRepo,
-          mockTravelRepo,
+
+        final model = viewModel ?? CustomerAnalyticsViewModel();
+        model.bindEntries(
+          entryProvider.entries,
           userId: userId,
+          isLoading: entryProvider.isLoading,
+          errorMessage: entryProvider.error,
         );
-        return viewModel;
+        return model;
       },
       builder: (context, child) {
         final viewModel = context.watch<CustomerAnalyticsViewModel>();
@@ -449,74 +407,5 @@ class _ReportsScreenState extends State<ReportsScreen>
         );
       },
     );
-  }
-}
-
-// Temporary mock repositories to convert EntryProvider data for CustomerAnalyticsViewModel
-// TODO: Refactor CustomerAnalyticsViewModel to use Entry model directly
-// Note: These are read-only wrappers that convert Entry objects to legacy models
-class _MockWorkRepository {
-  final List<WorkEntry> _entries;
-  
-  _MockWorkRepository(this._entries);
-  
-  List<WorkEntry> getAllForUser(String userId) {
-    return _entries.where((e) => e.userId == userId).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-  }
-  
-  List<WorkEntry> getForUserInRange(String userId, DateTime start, DateTime end) {
-    return _entries.where((e) =>
-        e.userId == userId &&
-        e.date.isAfter(start.subtract(const Duration(days: 1))) &&
-        e.date.isBefore(end.add(const Duration(days: 1))))
-      .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-  }
-  
-  WorkEntry? getById(String id) {
-    try {
-      return _entries.firstWhere((e) => e.id == id);
-    } catch (e) {
-      return null;
-    }
-  }
-  
-  int getTotalMinutesInRange(String userId, DateTime start, DateTime end) {
-    return getForUserInRange(userId, start, end)
-        .fold(0, (sum, entry) => sum + entry.workMinutes);
-  }
-}
-
-class _MockTravelRepository {
-  final List<TravelEntry> _entries;
-  
-  _MockTravelRepository(this._entries);
-  
-  List<TravelEntry> getAllForUser(String userId) {
-    return _entries.where((e) => e.userId == userId).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-  }
-  
-  List<TravelEntry> getForUserInRange(String userId, DateTime start, DateTime end) {
-    return _entries.where((e) =>
-        e.userId == userId &&
-        e.date.isAfter(start.subtract(const Duration(days: 1))) &&
-        e.date.isBefore(end.add(const Duration(days: 1))))
-      .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-  }
-  
-  TravelEntry? getById(String id) {
-    try {
-      return _entries.firstWhere((e) => e.id == id);
-    } catch (e) {
-      return null;
-    }
-  }
-  
-  int getTotalMinutesInRange(String userId, DateTime start, DateTime end) {
-    return getForUserInRange(userId, start, end)
-        .fold(0, (sum, entry) => sum + entry.travelMinutes);
   }
 }

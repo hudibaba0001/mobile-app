@@ -281,6 +281,10 @@ class Entry extends HiveObject {
   @HiveField(16)
   final List<TravelLeg>? travelLegs;
 
+  /// Legacy migration idempotency key (e.g. work:[hiveKey]:[shiftIndex])
+  @HiveField(17)
+  final String? sourceLegacyId;
+
   Entry({
     String? id,
     required this.userId,
@@ -299,6 +303,7 @@ class Entry extends HiveObject {
     this.isHolidayWork = false,
     this.holidayName,
     this.travelLegs,
+    this.sourceLegacyId,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -354,6 +359,8 @@ class Entry extends HiveObject {
       (e) => e.toString().split('.').last == typeString,
       orElse: () => EntryType.travel,
     );
+    final sourceLegacyId =
+        json['source_legacy_id'] as String? ?? json['sourceLegacyId'] as String?;
 
     final entry = Entry(
       id: json['id'] as String,
@@ -373,6 +380,7 @@ class Entry extends HiveObject {
       totalSegments: json['total_segments'] as int?,
       isHolidayWork: json['is_holiday_work'] as bool? ?? false,
       holidayName: json['holiday_name'] as String?,
+      sourceLegacyId: sourceLegacyId,
     );
 
     // Parse shifts for work entries
@@ -427,6 +435,7 @@ class Entry extends HiveObject {
     bool? isHolidayWork,
     String? holidayName,
     List<TravelLeg>? travelLegs,
+    String? sourceLegacyId,
   }) {
     return Entry(
       id: id ?? this.id,
@@ -446,6 +455,7 @@ class Entry extends HiveObject {
       isHolidayWork: isHolidayWork ?? this.isHolidayWork,
       holidayName: holidayName ?? this.holidayName,
       travelLegs: travelLegs ?? this.travelLegs,
+      sourceLegacyId: sourceLegacyId ?? this.sourceLegacyId,
     );
   }
 

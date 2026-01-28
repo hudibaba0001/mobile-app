@@ -26,6 +26,7 @@ import 'services/supabase_absence_service.dart';
 import 'repositories/user_red_day_repository.dart';
 import 'services/holiday_service.dart';
 import 'services/travel_cache_service.dart';
+import 'services/legacy_hive_migration_service.dart';
 import 'repositories/location_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'models/entry.dart';
@@ -55,6 +56,13 @@ void main() async {
   // Initialize SupabaseAuthService first
   final authService = SupabaseAuthService();
   await authService.initialize();
+
+  // Run legacy Hive migration before EntryProvider loads data
+  final migrationService = LegacyHiveMigrationService();
+  final userId = authService.currentUser?.id;
+  if (userId != null) {
+    await migrationService.migrateIfNeeded(userId);
+  }
 
   // Initialize LocaleProvider
   final localeProvider = LocaleProvider();

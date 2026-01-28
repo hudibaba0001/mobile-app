@@ -141,13 +141,14 @@ class EntryAdapter extends TypeAdapter<Entry> {
       isHolidayWork: fields[14] as bool,
       holidayName: fields[15] as String?,
       travelLegs: (fields[16] as List?)?.cast<TravelLeg>(),
+      sourceLegacyId: fields[17] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Entry obj) {
     writer
-      ..writeByte(17)
+      ..writeByte(18)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -181,7 +182,9 @@ class EntryAdapter extends TypeAdapter<Entry> {
       ..writeByte(15)
       ..write(obj.holidayName)
       ..writeByte(16)
-      ..write(obj.travelLegs);
+      ..write(obj.travelLegs)
+      ..writeByte(17)
+      ..write(obj.sourceLegacyId);
   }
 
   @override

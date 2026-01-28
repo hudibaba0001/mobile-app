@@ -49,22 +49,21 @@ class ImportService {
 
     final result = ImportResult();
     final dataLines = lines.skip(1).toList();
+    final entriesToSave = <Entry>[];
+    final seenKeys = <String>{};
 
     for (int i = 0; i < dataLines.length; i++) {
       try {
         final entry = _parseCSVLine(
             dataLines[i], i + 2); // +2 for header and 0-based index
 
-        // Basic validation
         if (!entry.isValidTravel) {
           result.addError(i + 2, 'Invalid travel entry data');
           continue;
         }
 
-        // Use EntryProvider instead of legacy TravelEntry repository
-        // Entry is already in the correct format, just ensure it's atomic
         final atomicEntry = entry.travelLegs != null && entry.travelLegs!.isNotEmpty
-            ? entry // Already has travel legs
+            ? entry
             : Entry.makeTravelAtomicFromLeg(
                 userId: entry.userId,
                 date: entry.date,
@@ -74,11 +73,19 @@ class ImportService {
                 dayNotes: entry.notes,
               );
 
-        await _entryProvider.addEntry(atomicEntry);
-        result.successCount++;
+        final dedupeKey =
+            '${atomicEntry.userId}-${atomicEntry.date.toIso8601String()}-${atomicEntry.from}-${atomicEntry.to}-${atomicEntry.travelMinutes}-${atomicEntry.notes}';
+        if (seenKeys.add(dedupeKey)) {
+          entriesToSave.add(atomicEntry);
+          result.successCount++;
+        }
       } catch (error) {
         result.addError(i + 2, error.toString());
       }
+    }
+
+    if (entriesToSave.isNotEmpty) {
+      await _entryProvider.addEntries(entriesToSave);
     }
 
     result.totalProcessed = dataLines.length;
@@ -210,22 +217,21 @@ class ImportService {
 
     final result = ImportResult();
     final entries = data['entries'] as List<dynamic>;
+    final toSave = <Entry>[];
+    final seenKeys = <String>{};
 
     for (int i = 0; i < entries.length; i++) {
       try {
         final entryData = entries[i] as Map<String, dynamic>;
         final entry = _parseJSONEntry(entryData);
 
-        // Basic validation
         if (!entry.isValidTravel) {
           result.addError(i + 1, 'Invalid travel entry data');
           continue;
         }
 
-        // Use EntryProvider instead of legacy TravelEntry repository
-        // Entry is already in the correct format, just ensure it's atomic
         final atomicEntry = entry.travelLegs != null && entry.travelLegs!.isNotEmpty
-            ? entry // Already has travel legs
+            ? entry
             : Entry.makeTravelAtomicFromLeg(
                 userId: entry.userId,
                 date: entry.date,
@@ -235,11 +241,19 @@ class ImportService {
                 dayNotes: entry.notes,
               );
 
-        await _entryProvider.addEntry(atomicEntry);
-        result.successCount++;
+        final dedupeKey =
+            '${atomicEntry.userId}-${atomicEntry.date.toIso8601String()}-${atomicEntry.from}-${atomicEntry.to}-${atomicEntry.travelMinutes}-${atomicEntry.notes}';
+        if (seenKeys.add(dedupeKey)) {
+          toSave.add(atomicEntry);
+          result.successCount++;
+        }
       } catch (error) {
         result.addError(i + 1, error.toString());
       }
+    }
+
+    if (toSave.isNotEmpty) {
+      await _entryProvider.addEntries(toSave);
     }
 
     result.totalProcessed = entries.length;

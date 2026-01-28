@@ -507,7 +507,7 @@ class EntryProvider extends ChangeNotifier {
   // Helper methods for local cache sync
 
   /// Sync entries from Supabase to local Hive cache
-  /// Stores Entry objects directly in Hive (no conversion to TravelEntry/WorkEntry)
+  /// Stores Entry objects directly in Hive (no legacy model conversion)
   Future<void> _syncToLocalCache(List<Entry> entries, String userId) async {
     try {
       await _initEntriesBox();

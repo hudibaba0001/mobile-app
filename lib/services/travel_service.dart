@@ -1,8 +1,6 @@
-import '../models/entry.dart';
+﻿import '../models/entry.dart';
 import '../models/travel_summary.dart';
 import '../repositories/location_repository.dart';
-// Legacy TravelEntry model no longer used - EntryProvider is the only write path
-// import '../models/travel_entry.dart';
 import '../utils/constants.dart';
 import '../services/auth_service.dart';
 import '../config/app_router.dart';
@@ -56,7 +54,7 @@ class TravelService {
 
   Future<TravelSummary> _generateSummaryInternal(
       DateTime startDate, DateTime endDate) async {
-    // Use EntryProvider instead of TravelRepository
+    // Use EntryProvider instead of legacy repository
     final entryProvider = _getEntryProvider();
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
@@ -94,7 +92,7 @@ class TravelService {
     // Count location frequency
     for (final entry in travelEntries) {
       if (entry.from != null && entry.to != null) {
-        final route = '${entry.from} → ${entry.to}';
+        final route = '${entry.from} â†’ ${entry.to}';
         locationFrequency[route] = (locationFrequency[route] ?? 0) + 1;
 
         // Also count individual locations
@@ -128,7 +126,7 @@ class TravelService {
   }
 
   Future<List<String>> _getSuggestedRoutesInternal(int limit) async {
-    // Use EntryProvider instead of TravelRepository
+    // Use EntryProvider instead of legacy repository
     final entryProvider = _getEntryProvider();
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
@@ -150,7 +148,7 @@ class TravelService {
     // Count route frequency (look at last 50 entries)
     for (final entry in travelEntries.take(50)) {
       if (entry.from != null && entry.to != null) {
-        final route = '${entry.from} → ${entry.to}';
+        final route = '${entry.from} â†’ ${entry.to}';
         routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
       }
     }
@@ -223,7 +221,7 @@ class TravelService {
   }
 
   Future<Map<String, dynamic>> _getTravelStatisticsInternal() async {
-    // Use EntryProvider instead of TravelRepository
+    // Use EntryProvider instead of legacy repository
     final entryProvider = _getEntryProvider();
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
@@ -271,7 +269,7 @@ class TravelService {
     final routeFrequency = <String, int>{};
     for (final entry in travelEntries) {
       if (entry.from != null && entry.to != null) {
-        final route = '${entry.from} → ${entry.to}';
+        final route = '${entry.from} â†’ ${entry.to}';
         routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
       }
     }
@@ -307,7 +305,7 @@ class TravelService {
   }
 
   Future<Map<String, dynamic>> _getRecentPatternsInternal(int days) async {
-    // Use EntryProvider instead of TravelRepository
+    // Use EntryProvider instead of legacy repository
     final entryProvider = _getEntryProvider();
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
@@ -353,7 +351,7 @@ class TravelService {
       }
 
       if (entry.from != null && entry.to != null) {
-        final route = '${entry.from} → ${entry.to}';
+        final route = '${entry.from} â†’ ${entry.to}';
         routes[route] = (routes[route] ?? 0) + 1;
       }
 
@@ -401,80 +399,6 @@ class TravelService {
     return sortedItems.take(limit).map((e) => e.key).toList();
   }
 
-  /// Validate and save travel entry
-  Future<void> saveTravelEntry(Entry entry) async {
-    try {
-      await RetryHelper.executeWithRetry(
-        () async => _saveTravelEntryInternal(entry),
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  Future<void> _saveTravelEntryInternal(Entry entry) async {
-    // ⚠️ LEGACY WRITE PATH DISABLED: This method should not be called.
-    // Use EntryProvider.addEntry() instead to ensure break/notes/timezone are preserved.
-    assert(() {
-      throw StateError(
-        'TravelService.saveTravelEntry is disabled. Use EntryProvider.addEntry() instead. '
-        'This prevents missing break/notes and timezone issues.'
-      );
-    }());
-    
-    // This method should never be called - write paths are disabled
-    // The assert above will throw in debug mode, this is just a fallback
-    throw UnimplementedError('TravelService.saveTravelEntry is disabled. Use EntryProvider.addEntry() instead.');
-  }
-
-  /// Update travel entry
-  Future<void> updateTravelEntry(Entry entry) async {
-    try {
-      await RetryHelper.executeWithRetry(
-        () async => _updateTravelEntryInternal(entry),
-        shouldRetry: RetryHelper.shouldRetryStorageError,
-      );
-    } catch (error, stackTrace) {
-      final appError = ErrorHandler.handleStorageError(error, stackTrace);
-      throw appError;
-    }
-  }
-
-  Future<void> _updateTravelEntryInternal(Entry entry) async {
-    // ⚠️ LEGACY WRITE PATH DISABLED: This method should not be called.
-    // Use EntryProvider.updateEntry() instead to ensure break/notes/timezone are preserved.
-    assert(() {
-      throw StateError(
-        'TravelService.updateTravelEntry is disabled. Use EntryProvider.updateEntry() instead. '
-        'This prevents missing break/notes and timezone issues.'
-      );
-    }());
-    
-    // This method should never be called - write paths are disabled
-    // The assert above will throw in debug mode, this is just a fallback
-    throw UnimplementedError('TravelService.updateTravelEntry is disabled. Use EntryProvider.updateEntry() instead.');
-  }
-
-  /// Delete travel entry
-  /// 
-  /// ⚠️ LEGACY WRITE PATH DISABLED: Use EntryProvider.deleteEntry() instead.
-  /// This method will throw in debug mode to prevent data loss from missing break/notes/timezone.
-  Future<void> deleteTravelEntry(String entryId) async {
-    // ⚠️ LEGACY WRITE PATH DISABLED: This method should not be called.
-    // Use EntryProvider.deleteEntry() instead to ensure break/notes/timezone are preserved.
-    assert(() {
-      throw StateError(
-        'TravelService.deleteTravelEntry is disabled. Use EntryProvider.deleteEntry() instead. '
-        'This prevents missing break/notes and timezone issues.'
-      );
-    }());
-    
-    // This method should never be called - write paths are disabled
-    throw UnimplementedError('TravelService.deleteTravelEntry is disabled. Use EntryProvider.deleteEntry() instead.');
-  }
-
   /// Search travel entries
   Future<List<Entry>> searchEntries(String query) async {
     try {
@@ -489,7 +413,7 @@ class TravelService {
   }
 
   Future<List<Entry>> _searchEntriesInternal(String query) async {
-    // Use EntryProvider instead of TravelRepository
+    // Use EntryProvider instead of legacy repository
     final entryProvider = _getEntryProvider();
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
@@ -538,3 +462,4 @@ class TravelService {
     throw Exception('No authenticated user');
   }
 }
+

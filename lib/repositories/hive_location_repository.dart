@@ -89,7 +89,7 @@ class HiveLocationRepository implements LocationRepository {
 
   @override
   Future<void> close() async {
-    // Box is managed by RepositoryProvider, don't close here
+    // Box is managed by the app bootstrap, don't close here
   }
 
   // Implement LocationRepository interface methods

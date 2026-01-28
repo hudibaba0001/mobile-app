@@ -16,8 +16,6 @@ import '../providers/entry_provider.dart';
 import '../providers/travel_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../models/entry.dart';
-import '../models/travel_entry.dart';
-import '../models/work_entry.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -131,121 +129,103 @@ class SettingsScreen extends StatelessWidget {
       ('Coffee Shop', '654 Cafe Street'),
     ];
 
-    // Sample work entries from the last week
+    // Sample work entries from the last week (atomic Entry per shift)
     final workEntries = [
-      WorkEntry(
+      (
         id: 'sample_work_1',
-        userId: uid,
-        workMinutes: 480, // 8 hours
+        minutes: 480,
         date: now.subtract(const Duration(days: 1)),
-        remarks: 'Regular work day',
-        createdAt: now.subtract(const Duration(days: 1)),
-        updatedAt: now.subtract(const Duration(days: 1)),
+        notes: 'Regular work day',
       ),
-      WorkEntry(
+      (
         id: 'sample_work_2',
-        userId: uid,
-        workMinutes: 540, // 9 hours
+        minutes: 540,
         date: now.subtract(const Duration(days: 3)),
-        remarks: 'Extended day - project deadline',
-        createdAt: now.subtract(const Duration(days: 3)),
-        updatedAt: now.subtract(const Duration(days: 3)),
+        notes: 'Extended day - project deadline',
       ),
-      WorkEntry(
+      (
         id: 'sample_work_3',
-        userId: uid,
-        workMinutes: 420, // 7 hours
+        minutes: 420,
         date: now.subtract(const Duration(days: 5)),
-        remarks: 'Short day - doctor appointment',
-        createdAt: now.subtract(const Duration(days: 5)),
-        updatedAt: now.subtract(const Duration(days: 5)),
+        notes: 'Short day - doctor appointment',
       ),
     ];
 
-    // Sample travel entries from the last week
+    // Sample travel entries from the last week (atomic Entry per leg)
     final travelEntries = [
-      TravelEntry(
+      (
         id: 'sample_travel_1',
-        userId: uid,
-        fromLocation: locations[0].$1, // Home
-        toLocation: locations[1].$1, // Office
-        travelMinutes: 45,
+        from: locations[0].$1, // Home
+        to: locations[1].$1, // Office
+        minutes: 45,
         date: now.subtract(const Duration(days: 2)),
-        remarks: 'Morning commute',
-        createdAt: now.subtract(const Duration(days: 2)),
-        updatedAt: now.subtract(const Duration(days: 2)),
+        notes: 'Morning commute',
       ),
-      TravelEntry(
+      (
         id: 'sample_travel_2',
-        userId: uid,
-        fromLocation: locations[1].$1, // Office
-        toLocation: locations[2].$1, // Client Site
-        travelMinutes: 30,
+        from: locations[1].$1, // Office
+        to: locations[2].$1, // Client Site
+        minutes: 30,
         date: now.subtract(const Duration(days: 4)),
-        remarks: 'Client meeting',
-        createdAt: now.subtract(const Duration(days: 4)),
-        updatedAt: now.subtract(const Duration(days: 4)),
+        notes: 'Client meeting',
       ),
-      TravelEntry(
+      (
         id: 'sample_travel_3',
-        userId: uid,
-        fromLocation: locations[2].$1, // Client Site
-        toLocation: locations[0].$1, // Home
-        travelMinutes: 60,
+        from: locations[2].$1, // Client Site
+        to: locations[0].$1, // Home
+        minutes: 60,
         date: now.subtract(const Duration(days: 4)),
-        remarks: 'Return from client meeting',
-        createdAt: now.subtract(const Duration(days: 4)),
-        updatedAt: now.subtract(const Duration(days: 4)),
+        notes: 'Return from client meeting',
       ),
-      TravelEntry(
+      (
         id: 'sample_travel_4',
-        userId: uid,
-        fromLocation: locations[0].$1, // Home
-        toLocation: locations[3].$1, // Gym
-        travelMinutes: 20,
+        from: locations[0].$1, // Home
+        to: locations[3].$1, // Gym
+        minutes: 20,
         date: now.subtract(const Duration(days: 6)),
-        remarks: 'Morning workout',
-        createdAt: now.subtract(const Duration(days: 6)),
-        updatedAt: now.subtract(const Duration(days: 6)),
+        notes: 'Morning workout',
       ),
     ];
 
     try {
       // Add work entries
       for (final entry in workEntries) {
-        await entryProvider.addEntry(Entry(
-          id: entry.id,
-          userId: entry.userId,
-          type: EntryType.work,
-          shifts: [
-            Shift(
-              start: entry.date,
-              end: entry.date.add(Duration(minutes: entry.workMinutes)),
-              description: entry.remarks,
+        final start = entry.date;
+        final end = start.add(Duration(minutes: entry.minutes));
+        await entryProvider.addEntry(
+          Entry.makeWorkAtomicFromShift(
+            userId: uid,
+            id: entry.id,
+            date: entry.date,
+            shift: Shift(
+              start: start,
+              end: end,
+              description: entry.notes,
               location: 'Office',
             ),
-          ],
-          date: entry.date,
-          notes: entry.remarks,
-          createdAt: entry.createdAt,
-          updatedAt: entry.updatedAt,
-        ));
+            dayNotes: entry.notes,
+            createdAt: entry.date,
+          ),
+        );
       }
 
       // Add travel entries
       for (final entry in travelEntries) {
-        await entryProvider.addEntry(Entry(
-          id: entry.id,
-          userId: entry.userId,
-          type: EntryType.travel,
-          from: entry.fromLocation,
-          to: entry.toLocation,
-          travelMinutes: entry.travelMinutes,
-          date: entry.date,
-          notes: entry.remarks,
-          createdAt: entry.createdAt,
-          updatedAt: entry.updatedAt,
-        ));
+        await entryProvider.addEntry(
+          Entry.makeTravelAtomicFromLeg(
+            userId: uid,
+            id: entry.id,
+            date: entry.date,
+            from: entry.from,
+            to: entry.to,
+            minutes: entry.minutes,
+            source: 'manual',
+            dayNotes: entry.notes,
+            createdAt: entry.date,
+            segmentOrder: 1,
+            totalSegments: 1,
+          ),
+        );
       }
 
       if (context.mounted) {

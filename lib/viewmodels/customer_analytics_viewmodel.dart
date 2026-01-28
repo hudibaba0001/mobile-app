@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../models/work_entry.dart';
-import '../models/travel_entry.dart';
+import '../models/entry.dart';
 import '../config/app_config.dart';
 import '../features/reports/analytics_models.dart';
 import '../services/analytics_api.dart';
@@ -8,9 +7,9 @@ import '../services/analytics_api.dart';
 class CustomerAnalyticsViewModel extends ChangeNotifier {
   CustomerAnalyticsViewModel({AnalyticsApi? analyticsApi})
       : _api = analyticsApi ?? AnalyticsApi();
+
   // Data storage
-  List<WorkEntry> _workEntries = [];
-  List<TravelEntry> _travelEntries = [];
+  List<Entry> _entries = [];
 
   // Date range filtering
   DateTime? _startDate;
@@ -25,13 +24,11 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   ServerAnalytics? _server;
   bool _usingServer = false;
   String? _lastServerError;
+  bool _serverFetchInProgress = false;
 
   // User ID
   String _userId = 'default_user';
-
-  // Repositories (can be WorkRepository/TravelRepository or mock objects)
-  dynamic _workRepository;
-  dynamic _travelRepository;
+  bool _initialized = false;
 
   // Getters
   bool get isLoading => _isLoading;
@@ -41,15 +38,52 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   bool get usingServer => _usingServer;
   String? get lastServerError => _lastServerError;
 
+  // Bind entries from EntryProvider and keep analytics in sync.
+  void bindEntries(
+    List<Entry> entries, {
+    String? userId,
+    bool isLoading = false,
+    String? errorMessage,
+  }) {
+    final nextUserId = userId ?? _userId;
+    final userChanged = nextUserId != _userId;
+
+    _userId = nextUserId;
+    _entries = List<Entry>.from(entries);
+    _isLoading = isLoading;
+    _errorMessage = errorMessage;
+
+    if (!_initialized || userChanged) {
+      _initialized = true;
+      _loadServerIfConfigured();
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> _loadServerIfConfigured() async {
+    if (AppConfig.apiBase.trim().isEmpty) {
+      _usingServer = false;
+      _lastServerError = null;
+      return;
+    }
+    if (_serverFetchInProgress) return;
+    _serverFetchInProgress = true;
+    final ok = await _tryLoadServer();
+    _usingServer = ok;
+    _serverFetchInProgress = false;
+    notifyListeners();
+  }
+
   // Overview Tab Data
   Map<String, dynamic> get overviewData {
     final filteredWorkEntries = _getFilteredWorkEntries();
     final filteredTravelEntries = _getFilteredTravelEntries();
 
     final totalWorkMinutes = filteredWorkEntries.fold<int>(
-        0, (sum, entry) => sum + entry.workMinutes);
+        0, (sum, entry) => sum + _workMinutesForEntry(entry));
     final totalTravelMinutes = filteredTravelEntries.fold<int>(
-        0, (sum, entry) => sum + entry.travelMinutes);
+        0, (sum, entry) => sum + _travelMinutesForEntry(entry));
 
     // Prefer server total hours when available; fall back to local.
     final serverTotalHours =
@@ -78,7 +112,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
 
     // If server analytics available, map daily trends and weekly hours from it.
     if (_usingServer && _server != null) {
-      // Weekly hours: sum per weekday from server daily trends if we have 7 data points.
+      // Weekly hours: sum per weekday from server daily trends if we have data points.
       List<double> weeklyHours;
       if (_server!.dailyTrends.isNotEmpty) {
         // Initialize Mon..Sun
@@ -129,42 +163,6 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     return _calculateLocationData(filteredWorkEntries, filteredTravelEntries);
   }
 
-  // Initialize with repositories
-  void initialize(
-      dynamic workRepository, dynamic travelRepository,
-      {String? userId}) {
-    _workRepository = workRepository;
-    _travelRepository = travelRepository;
-    _userId = userId ?? 'default_user';
-    _loadData().then((_) {
-      // Fire-and-forget server analytics if configured
-      if (AppConfig.apiBase.trim().isNotEmpty) {
-        _tryLoadServer().then((ok) {
-          _usingServer = ok;
-          notifyListeners();
-        });
-      } else {
-        _usingServer = false;
-        _lastServerError = null;
-      }
-    });
-  }
-
-  // Load data from repositories
-  Future<void> _loadData() async {
-    if (_workRepository == null || _travelRepository == null) return;
-
-    _setLoading(true);
-    try {
-      _workEntries = _workRepository!.getAllForUser(_userId);
-      _travelEntries = _travelRepository!.getAllForUser(_userId);
-
-      _setLoading(false);
-    } catch (e) {
-      _setError('Failed to load data: $e');
-    }
-  }
-
   // Set date range filter
   void setDateRange(DateTime? start, DateTime? end) {
     _startDate = start;
@@ -172,24 +170,17 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     notifyListeners();
     // Refresh server analytics for the new range without blocking UI
     if (AppConfig.apiBase.trim().isNotEmpty) {
-      _tryLoadServer().then((ok) {
-        _usingServer = ok;
-        notifyListeners();
-      });
+      _loadServerIfConfigured();
     }
   }
 
   // Refresh data
   Future<void> refreshData() async {
-    await _loadData();
-    // Prefer server if configured; fallback to local automatically
     if (AppConfig.apiBase.trim().isNotEmpty) {
       final ok = await _tryLoadServer();
-      if (ok) {
-        _usingServer = true;
-        notifyListeners();
-        return;
-      }
+      _usingServer = ok;
+      notifyListeners();
+      return;
     }
     _usingServer = false;
     _lastServerError = null;
@@ -218,12 +209,16 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   }
 
   // Helper methods
-  List<WorkEntry> _getFilteredWorkEntries() {
+  List<Entry> _getFilteredEntries({EntryType? type}) {
     if (_startDate == null && _endDate == null) {
-      return _workEntries;
+      if (type == null) return _entries;
+      return _entries.where((entry) => entry.type == type).toList();
     }
 
-    return _workEntries.where((entry) {
+    return _entries.where((entry) {
+      if (type != null && entry.type != type) {
+        return false;
+      }
       if (_startDate != null && entry.date.isBefore(_startDate!)) {
         return false;
       }
@@ -234,24 +229,23 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     }).toList();
   }
 
-  List<TravelEntry> _getFilteredTravelEntries() {
-    if (_startDate == null && _endDate == null) {
-      return _travelEntries;
-    }
+  List<Entry> _getFilteredWorkEntries() =>
+      _getFilteredEntries(type: EntryType.work);
+  List<Entry> _getFilteredTravelEntries() =>
+      _getFilteredEntries(type: EntryType.travel);
 
-    return _travelEntries.where((entry) {
-      if (_startDate != null && entry.date.isBefore(_startDate!)) {
-        return false;
-      }
-      if (_endDate != null && entry.date.isAfter(_endDate!)) {
-        return false;
-      }
-      return true;
-    }).toList();
+  int _workMinutesForEntry(Entry entry) {
+    if (entry.type != EntryType.work) return 0;
+    return entry.totalWorkDuration?.inMinutes ?? 0;
+  }
+
+  int _travelMinutesForEntry(Entry entry) {
+    if (entry.type != EntryType.travel) return 0;
+    return entry.travelDuration.inMinutes;
   }
 
   List<Map<String, dynamic>> _generateQuickInsights(
-      List<WorkEntry> workEntries, List<TravelEntry> travelEntries) {
+      List<Entry> workEntries, List<Entry> travelEntries) {
     final insights = <Map<String, dynamic>>[];
 
     if (workEntries.isNotEmpty) {
@@ -259,7 +253,8 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
       final dailyHours = <String, double>{};
       for (final entry in workEntries) {
         final day = _getDayName(entry.date.weekday);
-        dailyHours[day] = (dailyHours[day] ?? 0) + (entry.workMinutes / 60.0);
+        dailyHours[day] =
+            (dailyHours[day] ?? 0) + (_workMinutesForEntry(entry) / 60.0);
       }
 
       if (dailyHours.isNotEmpty) {
@@ -269,7 +264,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
           'key': 'peak_performance',
           'day': peakDay.key,
           'hours': peakDay.value.toStringAsFixed(1),
-          'icon': '📈',
+          'icon': 'ðŸ“ˆ',
           'trend': 'positive',
         });
       }
@@ -279,10 +274,23 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
       // Location insights
       final locationCounts = <String, int>{};
       for (final entry in travelEntries) {
-        locationCounts[entry.fromLocation] =
-            (locationCounts[entry.fromLocation] ?? 0) + 1;
-        locationCounts[entry.toLocation] =
-            (locationCounts[entry.toLocation] ?? 0) + 1;
+        if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
+          for (final leg in entry.travelLegs!) {
+            locationCounts[leg.fromText] =
+                (locationCounts[leg.fromText] ?? 0) + 1;
+            locationCounts[leg.toText] =
+                (locationCounts[leg.toText] ?? 0) + 1;
+          }
+        } else {
+          if (entry.from != null && entry.from!.isNotEmpty) {
+            locationCounts[entry.from!] =
+                (locationCounts[entry.from!] ?? 0) + 1;
+          }
+          if (entry.to != null && entry.to!.isNotEmpty) {
+            locationCounts[entry.to!] =
+                (locationCounts[entry.to!] ?? 0) + 1;
+          }
+        }
       }
 
       if (locationCounts.isNotEmpty) {
@@ -291,7 +299,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
         insights.add({
           'key': 'location_insights',
           'location': mostFrequentLocation.key,
-          'icon': '📍',
+          'icon': 'ðŸ“',
           'trend': 'neutral',
         });
       }
@@ -299,13 +307,13 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
 
     // Time management insight
     final totalWorkHours =
-        workEntries.fold<int>(0, (sum, entry) => sum + entry.workMinutes) /
+        workEntries.fold<int>(0, (sum, entry) => sum + _workMinutesForEntry(entry)) /
             60.0;
     if (totalWorkHours > 0) {
       insights.add({
         'key': 'time_management',
         'hours': totalWorkHours.toStringAsFixed(1),
-        'icon': '⏰',
+        'icon': 'â°',
         'trend': 'positive',
       });
     }
@@ -314,27 +322,27 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   }
 
   List<double> _calculateWeeklyHours(
-      List<WorkEntry> workEntries, List<TravelEntry> travelEntries) {
+      List<Entry> workEntries, List<Entry> travelEntries) {
     final weeklyHours = List<double>.filled(7, 0.0);
 
     for (final entry in workEntries) {
       final weekDay = entry.date.weekday - 1;
       if (weekDay >= 0 && weekDay < 7) {
-        weeklyHours[weekDay] += entry.workMinutes / 60.0;
+        weeklyHours[weekDay] += _workMinutesForEntry(entry) / 60.0;
       }
     }
 
     for (final entry in travelEntries) {
       final weekDay = entry.date.weekday - 1;
       if (weekDay >= 0 && weekDay < 7) {
-        weeklyHours[weekDay] += entry.travelMinutes / 60.0;
+        weeklyHours[weekDay] += _travelMinutesForEntry(entry) / 60.0;
       }
     }
 
     return weeklyHours;
   }
 
-  Map<String, dynamic> _calculateMonthlyComparison(List<WorkEntry> entries) {
+  Map<String, dynamic> _calculateMonthlyComparison(List<Entry> entries) {
     final now = DateTime.now();
     final currentMonth = DateTime(now.year, now.month);
     final previousMonth = DateTime(now.year, now.month - 1);
@@ -351,10 +359,10 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
         .toList();
 
     final currentMonthHours = currentMonthEntries.fold<int>(
-            0, (sum, entry) => sum + entry.workMinutes) /
+            0, (sum, entry) => sum + _workMinutesForEntry(entry)) /
         60.0;
     final previousMonthHours = previousMonthEntries.fold<int>(
-            0, (sum, entry) => sum + entry.workMinutes) /
+            0, (sum, entry) => sum + _workMinutesForEntry(entry)) /
         60.0;
 
     final percentageChange = previousMonthHours > 0
@@ -369,7 +377,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   }
 
   List<Map<String, dynamic>> _calculateDailyTrends(
-      List<WorkEntry> workEntries, List<TravelEntry> travelEntries) {
+      List<Entry> workEntries, List<Entry> travelEntries) {
     final dailyData = <Map<String, dynamic>>[];
     final now = DateTime.now();
 
@@ -390,11 +398,11 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
               entry.date.day == date.day)
           .toList();
 
-      final workHours =
-          dayEntries.fold<int>(0, (sum, entry) => sum + entry.workMinutes) /
-              60.0;
+      final workHours = dayEntries.fold<int>(
+              0, (sum, entry) => sum + _workMinutesForEntry(entry)) /
+          60.0;
       final travelHours = dayTravelEntries.fold<int>(
-              0, (sum, entry) => sum + entry.travelMinutes) /
+              0, (sum, entry) => sum + _travelMinutesForEntry(entry)) /
           60.0;
 
       dailyData.add({
@@ -409,16 +417,16 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   }
 
   List<Map<String, dynamic>> _calculateLocationData(
-      List<WorkEntry> workEntries, List<TravelEntry> travelEntries) {
+      List<Entry> workEntries, List<Entry> travelEntries) {
     final locationMap = <String, Map<String, dynamic>>{};
     final totalWorkMinutes =
-        workEntries.fold<int>(0, (sum, entry) => sum + entry.workMinutes);
+        workEntries.fold<int>(0, (sum, entry) => sum + _workMinutesForEntry(entry));
     final totalTravelMinutes =
-        travelEntries.fold<int>(0, (sum, entry) => sum + entry.travelMinutes);
+        travelEntries.fold<int>(0, (sum, entry) => sum + _travelMinutesForEntry(entry));
 
-    // Process work entries (locations from remarks or default)
+    // Process work entries (locations from shift location or default)
     for (final entry in workEntries) {
-      final location = entry.remarks.isNotEmpty ? entry.remarks : 'Office';
+      final location = _resolveWorkLocation(entry);
       if (!locationMap.containsKey(location)) {
         locationMap[location] = {
           'name': location,
@@ -427,37 +435,23 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
           'travelMinutes': 0,
         };
       }
-      locationMap[location]!['workMinutes'] += entry.workMinutes;
-      locationMap[location]!['totalHours'] += entry.workMinutes / 60.0;
+      final workMinutes = _workMinutesForEntry(entry);
+      locationMap[location]!['workMinutes'] += workMinutes;
+      locationMap[location]!['totalHours'] += workMinutes / 60.0;
     }
 
     // Process travel entries
     for (final entry in travelEntries) {
-      // Add from location
-      if (!locationMap.containsKey(entry.fromLocation)) {
-        locationMap[entry.fromLocation] = {
-          'name': entry.fromLocation,
-          'totalHours': 0.0,
-          'workMinutes': 0,
-          'travelMinutes': 0,
-        };
+      if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
+        for (final leg in entry.travelLegs!) {
+          _addTravelLocation(locationMap, leg.fromText, leg.minutes);
+          _addTravelLocation(locationMap, leg.toText, leg.minutes);
+        }
+      } else {
+        final minutes = _travelMinutesForEntry(entry);
+        _addTravelLocation(locationMap, entry.from ?? '', minutes);
+        _addTravelLocation(locationMap, entry.to ?? '', minutes);
       }
-      locationMap[entry.fromLocation]!['travelMinutes'] += entry.travelMinutes;
-      locationMap[entry.fromLocation]!['totalHours'] +=
-          entry.travelMinutes / 60.0;
-
-      // Add to location
-      if (!locationMap.containsKey(entry.toLocation)) {
-        locationMap[entry.toLocation] = {
-          'name': entry.toLocation,
-          'totalHours': 0.0,
-          'workMinutes': 0,
-          'travelMinutes': 0,
-        };
-      }
-      locationMap[entry.toLocation]!['travelMinutes'] += entry.travelMinutes;
-      locationMap[entry.toLocation]!['totalHours'] +=
-          entry.travelMinutes / 60.0;
     }
 
     // Convert to list and calculate percentages
@@ -492,6 +486,29 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     return locationsList;
   }
 
+  void _addTravelLocation(
+      Map<String, Map<String, dynamic>> locationMap, String location, int minutes) {
+    if (location.isEmpty) return;
+    if (!locationMap.containsKey(location)) {
+      locationMap[location] = {
+        'name': location,
+        'totalHours': 0.0,
+        'workMinutes': 0,
+        'travelMinutes': 0,
+      };
+    }
+    locationMap[location]!['travelMinutes'] += minutes;
+    locationMap[location]!['totalHours'] += minutes / 60.0;
+  }
+
+  String _resolveWorkLocation(Entry entry) {
+    final location = entry.workLocation;
+    if (location != null && location.isNotEmpty) return location;
+    final notes = entry.notes;
+    if (notes != null && notes.isNotEmpty) return notes;
+    return 'Office';
+  }
+
   String _getDayName(int weekday) {
     switch (weekday) {
       case 1:
@@ -511,17 +528,5 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
       default:
         return 'Unknown';
     }
-  }
-
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    _errorMessage = null;
-    notifyListeners();
-  }
-
-  void _setError(String error) {
-    _isLoading = false;
-    _errorMessage = error;
-    notifyListeners();
   }
 }

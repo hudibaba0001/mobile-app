@@ -135,12 +135,8 @@ void main() {
       await tester.pumpWidget(createTestWidget(entryId: 'entry-789'));
       await tester.pumpAndSettle();
 
-      // Should NOT find "Add Shift" or "Add Travel Entry" buttons
-      expect(find.text('Add Shift'), findsNothing);
-      expect(find.text('Add Travel Entry'), findsNothing);
-      
-      // Should find info text about editing one entry
-      expect(find.textContaining('Editing one entry'), findsWidgets);
+      // In the new edit screen, we still allow adding extra shifts (they become new entries)
+      expect(find.text('Add another shift'), findsOneWidget);
     });
   });
 }
