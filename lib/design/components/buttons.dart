@@ -50,7 +50,7 @@ class PrimaryButton extends StatelessWidget {
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: theme.colorScheme.onPrimary,
         disabledBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.5),
-        minimumSize: isExpanded ? const Size.fromHeight(52) : null,
+        minimumSize: isExpanded ? const Size.fromHeight(48) : null,
       ),
       child: buttonChild,
     );
@@ -108,9 +108,9 @@ class SecondaryButton extends StatelessWidget {
         foregroundColor: theme.colorScheme.primary,
         side: BorderSide(
           color: theme.colorScheme.primary,
-          width: 1.5,
+          width: 1,
         ),
-        minimumSize: isExpanded ? const Size.fromHeight(52) : null,
+        minimumSize: isExpanded ? const Size.fromHeight(48) : null,
       ),
       child: buttonChild,
     );

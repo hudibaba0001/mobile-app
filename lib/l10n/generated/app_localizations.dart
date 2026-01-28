@@ -1442,6 +1442,18 @@ abstract class AppLocalizations {
   /// **'Region'**
   String get settings_region;
 
+  /// No description provided for @settings_travelLogging.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel time logging'**
+  String get settings_travelLogging;
+
+  /// No description provided for @settings_travelLoggingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable travel time entry and related stats'**
+  String get settings_travelLoggingDesc;
+
   /// No description provided for @common_unknown.
   ///
   /// In en, this message translates to:

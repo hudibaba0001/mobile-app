@@ -8,22 +8,29 @@ class SettingsProvider extends ChangeNotifier {
 
   bool _isDarkMode = false;
   bool _isFirstLaunch = true;
+  bool _isTravelLoggingEnabled = true;
+
+  static const String _travelLoggingEnabledKey = 'enableTravelLogging';
 
   bool get isDarkMode => _isDarkMode;
   bool get isFirstLaunch => _isFirstLaunch;
+  bool get isTravelLoggingEnabled => _isTravelLoggingEnabled;
   bool get isInitialized => _isInitialized;
 
   Future<void> init() async {
     try {
-      _settingsBox = Hive.box(AppConstants.appSettingsBox);
+      _settingsBox = await Hive.openBox(AppConstants.appSettingsBox);
       _isDarkMode = _settingsBox!.get('isDarkMode', defaultValue: false);
       _isFirstLaunch = _settingsBox!.get('isFirstLaunch', defaultValue: true);
+      _isTravelLoggingEnabled =
+          _settingsBox!.get(_travelLoggingEnabledKey, defaultValue: true);
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
       // If box is not available yet, use defaults
       _isDarkMode = false;
       _isFirstLaunch = true;
+      _isTravelLoggingEnabled = true;
       _isInitialized = true;
       notifyListeners();
     }
@@ -41,6 +48,14 @@ class SettingsProvider extends ChangeNotifier {
     _isFirstLaunch = value;
     if (_settingsBox != null) {
       await _settingsBox!.put('isFirstLaunch', value);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setTravelLoggingEnabled(bool value) async {
+    _isTravelLoggingEnabled = value;
+    if (_settingsBox != null) {
+      await _settingsBox!.put(_travelLoggingEnabledKey, value);
     }
     notifyListeners();
   }

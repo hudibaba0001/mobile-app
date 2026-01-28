@@ -763,6 +763,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get settings_region => 'Region';
 
   @override
+  String get settings_travelLogging => 'Travel time logging';
+
+  @override
+  String get settings_travelLoggingDesc =>
+      'Enable travel time entry and related stats';
+
+  @override
   String get common_unknown => 'Okänd';
 
   @override

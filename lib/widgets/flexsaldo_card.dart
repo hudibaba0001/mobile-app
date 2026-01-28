@@ -10,16 +10,9 @@ import '../l10n/generated/app_localizations.dart';
 /// - Current flex balance (+X.X h or -X.X h)
 /// - Worked + credited vs Target
 /// - Progress bar
-/// - Export buttons (Time report, Travel report)
+/// - Progress bar
 class FlexsaldoCard extends StatelessWidget {
-  const FlexsaldoCard({
-    super.key,
-    this.onExportTimeReport,
-    this.onExportTravelReport,
-  });
-
-  final VoidCallback? onExportTimeReport;
-  final VoidCallback? onExportTravelReport;
+  const FlexsaldoCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -157,83 +150,10 @@ class FlexsaldoCard extends StatelessWidget {
                   ),
                 ),
               ),
-              
-              const SizedBox(height: AppSpacing.lg),
-              
-              // Export buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: _ExportButton(
-                      icon: Icons.access_time_rounded,
-                      label: 'Export Time',
-                      onTap: onExportTimeReport,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: _ExportButton(
-                      icon: Icons.directions_car_rounded,
-                      label: 'Export Travel',
-                      onTap: onExportTravelReport,
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         );
       },
-    );
-  }
-}
-
-class _ExportButton extends StatelessWidget {
-  const _ExportButton({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Material(
-      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-      borderRadius: AppRadius.buttonRadius,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.buttonRadius,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: AppIconSize.xs,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Flexible(
-                child: Text(
-                  label,
-                  style: AppTypography.button(theme.colorScheme.primary),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

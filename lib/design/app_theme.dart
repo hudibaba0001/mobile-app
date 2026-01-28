@@ -1,4 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+const List<FontFeature> _tabularFigures = [FontFeature.tabularFigures()];
 
 /// Design System - Single Source of Truth
 /// 
@@ -166,16 +171,17 @@ class AppTypography {
   
   /// Large hero numbers (Flexsaldo value)
   static TextStyle headline(Color color) => TextStyle(
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: FontWeight.w700,
-    letterSpacing: -0.5,
+    letterSpacing: -0.2,
     color: color,
-    height: 1.2,
+    height: 1.15,
+    fontFeatures: _tabularFigures,
   );
   
   /// Section titles
   static TextStyle sectionTitle(Color color) => TextStyle(
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     color: color,
@@ -184,18 +190,18 @@ class AppTypography {
   
   /// Card titles
   static TextStyle cardTitle(Color color) => TextStyle(
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
     color: color,
-    height: 1.4,
+    height: 1.35,
   );
   
   /// Body text
   static TextStyle body(Color color) => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
-    letterSpacing: 0.25,
+    letterSpacing: 0.2,
     color: color,
     height: 1.5,
   );
@@ -213,7 +219,7 @@ class AppTypography {
   static TextStyle button(Color color) => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
     color: color,
     height: 1.0,
   );
@@ -225,13 +231,14 @@ class AppTypography {
     letterSpacing: 0,
     color: color,
     height: 1.2,
+    fontFeatures: _tabularFigures,
   );
   
   /// Metric label (description under metric)
   static TextStyle metricLabel(Color color) => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w500,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
     color: color,
     height: 1.3,
   );
@@ -246,44 +253,49 @@ class AppThemeData {
   
   /// Light theme
   static ThemeData light() {
+    const scheme = ColorScheme.light(
+      primary: AppColors.primary,
+      primaryContainer: AppColors.primaryContainer,
+      secondary: AppColors.secondary,
+      secondaryContainer: AppColors.secondaryContainer,
+      tertiary: AppColors.accent,
+      tertiaryContainer: AppColors.accentContainer,
+      surface: Colors.white,
+      error: AppColors.error,
+      errorContainer: AppColors.errorContainer,
+      onPrimary: Colors.white,
+      onPrimaryContainer: AppColors.primaryDark,
+      onSecondary: Colors.white,
+      onSecondaryContainer: AppColors.secondaryDark,
+      onTertiary: Colors.white,
+      onTertiaryContainer: AppColors.accentDark,
+      onSurface: AppColors.neutral900,
+      onSurfaceVariant: AppColors.neutral700,
+      onError: Colors.white,
+      onErrorContainer: AppColors.error,
+      outline: AppColors.neutral300,
+      outlineVariant: AppColors.neutral200,
+      shadow: Color(0x1A000000),
+      scrim: Color(0x52000000),
+      inverseSurface: AppColors.neutral800,
+      inversePrimary: AppColors.primaryLight,
+      surfaceTint: AppColors.primary,
+    );
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      colorScheme: const ColorScheme.light(
-        primary: AppColors.primary,
-        primaryContainer: AppColors.primaryContainer,
-        secondary: AppColors.secondary,
-        secondaryContainer: AppColors.secondaryContainer,
-        tertiary: AppColors.accent,
-        tertiaryContainer: AppColors.accentContainer,
-        surface: Colors.white,
-        error: AppColors.error,
-        errorContainer: AppColors.errorContainer,
-        onPrimary: Colors.white,
-        onPrimaryContainer: AppColors.primaryDark,
-        onSecondary: Colors.white,
-        onSecondaryContainer: AppColors.secondaryDark,
-        onTertiary: Colors.white,
-        onTertiaryContainer: AppColors.accentDark,
-        onSurface: AppColors.neutral900,
-        onSurfaceVariant: AppColors.neutral700,
-        onError: Colors.white,
-        onErrorContainer: AppColors.error,
-        outline: AppColors.neutral300,
-        outlineVariant: AppColors.neutral200,
-        shadow: Color(0x1A000000),
-        scrim: Color(0x52000000),
-        inverseSurface: AppColors.neutral800,
-        inversePrimary: AppColors.primaryLight,
-        surfaceTint: AppColors.primary,
-      ),
+      colorScheme: scheme,
+      scaffoldBackgroundColor: AppColors.neutral50,
+      fontFamily: GoogleFonts.manrope().fontFamily,
+      visualDensity: VisualDensity.standard,
       textTheme: _buildTextTheme(AppColors.neutral900),
       elevatedButtonTheme: _buildElevatedButtonTheme(),
       outlinedButtonTheme: _buildOutlinedButtonTheme(),
       textButtonTheme: _buildTextButtonTheme(),
-      cardTheme: _buildCardTheme(),
-      inputDecorationTheme: _buildInputDecorationTheme(),
-      appBarTheme: _buildAppBarTheme(AppColors.neutral900),
+      cardTheme: _buildCardTheme(scheme),
+      inputDecorationTheme: _buildInputDecorationTheme(scheme),
+      appBarTheme: _buildAppBarTheme(scheme.onSurface),
       bottomNavigationBarTheme: _buildBottomNavigationBarTheme(),
       floatingActionButtonTheme: _buildFloatingActionButtonTheme(),
       dialogTheme: _buildDialogTheme(),
@@ -299,44 +311,49 @@ class AppThemeData {
   
   /// Dark theme (primary focus for field workers)
   static ThemeData dark() {
+    const scheme = ColorScheme.dark(
+      primary: AppColors.primaryLight,
+      primaryContainer: Color(0xFF1E3A8A),
+      secondary: AppColors.secondaryLight,
+      secondaryContainer: Color(0xFF134E4A),
+      tertiary: AppColors.accentLight,
+      tertiaryContainer: Color(0xFF92400E),
+      surface: AppColors.darkSurface,
+      error: Color(0xFFF87171),
+      errorContainer: Color(0xFF7F1D1D),
+      onPrimary: AppColors.neutral900,
+      onPrimaryContainer: AppColors.primaryLight,
+      onSecondary: AppColors.neutral900,
+      onSecondaryContainer: AppColors.secondaryLight,
+      onTertiary: AppColors.neutral900,
+      onTertiaryContainer: AppColors.accentLight,
+      onSurface: AppColors.neutral100,
+      onSurfaceVariant: AppColors.neutral200,
+      onError: AppColors.neutral900,
+      onErrorContainer: Color(0xFFFCA5A5),
+      outline: AppColors.neutral600,
+      outlineVariant: AppColors.neutral700,
+      shadow: Color(0x1A000000),
+      scrim: Color(0x52000000),
+      inverseSurface: AppColors.neutral100,
+      inversePrimary: AppColors.primaryDark,
+      surfaceTint: AppColors.primaryLight,
+    );
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.primaryLight,
-        primaryContainer: Color(0xFF1E3A8A),
-        secondary: AppColors.secondaryLight,
-        secondaryContainer: Color(0xFF134E4A),
-        tertiary: AppColors.accentLight,
-        tertiaryContainer: Color(0xFF92400E),
-        surface: AppColors.darkSurface,
-        error: Color(0xFFF87171),
-        errorContainer: Color(0xFF7F1D1D),
-        onPrimary: AppColors.neutral900,
-        onPrimaryContainer: AppColors.primaryLight,
-        onSecondary: AppColors.neutral900,
-        onSecondaryContainer: AppColors.secondaryLight,
-        onTertiary: AppColors.neutral900,
-        onTertiaryContainer: AppColors.accentLight,
-        onSurface: AppColors.neutral100,
-        onSurfaceVariant: AppColors.neutral200,
-        onError: AppColors.neutral900,
-        onErrorContainer: Color(0xFFFCA5A5),
-        outline: AppColors.neutral600,
-        outlineVariant: AppColors.neutral700,
-        shadow: Color(0x1A000000),
-        scrim: Color(0x52000000),
-        inverseSurface: AppColors.neutral100,
-        inversePrimary: AppColors.primaryDark,
-        surfaceTint: AppColors.primaryLight,
-      ),
+      colorScheme: scheme,
+      scaffoldBackgroundColor: AppColors.darkSurface,
+      fontFamily: GoogleFonts.manrope().fontFamily,
+      visualDensity: VisualDensity.standard,
       textTheme: _buildTextTheme(AppColors.neutral100),
       elevatedButtonTheme: _buildElevatedButtonTheme(),
       outlinedButtonTheme: _buildOutlinedButtonTheme(),
       textButtonTheme: _buildTextButtonTheme(),
-      cardTheme: _buildCardTheme(),
-      inputDecorationTheme: _buildInputDecorationTheme(),
-      appBarTheme: _buildAppBarTheme(AppColors.neutral100),
+      cardTheme: _buildCardTheme(scheme),
+      inputDecorationTheme: _buildInputDecorationTheme(scheme),
+      appBarTheme: _buildAppBarTheme(scheme.onSurface),
       bottomNavigationBarTheme: _buildBottomNavigationBarTheme(),
       floatingActionButtonTheme: _buildFloatingActionButtonTheme(),
       dialogTheme: _buildDialogTheme(),
@@ -355,116 +372,57 @@ class AppThemeData {
   // ---------------------------------------------------------------------------
   
   static TextTheme _buildTextTheme(Color onSurface) {
+    TextStyle style({
+      required double size,
+      required FontWeight weight,
+      required double height,
+      double letterSpacing = 0,
+    }) {
+      return GoogleFonts.manrope(
+        fontSize: size,
+        fontWeight: weight,
+        height: height,
+        letterSpacing: letterSpacing,
+        color: onSurface,
+        fontFeatures: _tabularFigures,
+      );
+    }
+
     return TextTheme(
-      displayLarge: TextStyle(
-        fontSize: 57,
-        fontWeight: FontWeight.w400,
-        letterSpacing: -0.25,
-        color: onSurface,
-      ),
-      displayMedium: TextStyle(
-        fontSize: 45,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0,
-        color: onSurface,
-      ),
-      displaySmall: TextStyle(
-        fontSize: 36,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0,
-        color: onSurface,
-      ),
-      headlineLarge: TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0,
-        color: onSurface,
-      ),
-      headlineMedium: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0,
-        color: onSurface,
-      ),
-      headlineSmall: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0,
-        color: onSurface,
-      ),
-      titleLarge: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0,
-        color: onSurface,
-      ),
-      titleMedium: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.15,
-        color: onSurface,
-      ),
-      titleSmall: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.1,
-        color: onSurface,
-      ),
-      bodyLarge: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.5,
-        color: onSurface,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.25,
-        color: onSurface,
-      ),
-      bodySmall: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.4,
-        color: onSurface,
-      ),
-      labelLarge: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.1,
-        color: onSurface,
-      ),
-      labelMedium: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.5,
-        color: onSurface,
-      ),
-      labelSmall: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.5,
-        color: onSurface,
-      ),
+      displayLarge: style(size: 34, weight: FontWeight.w700, height: 1.1, letterSpacing: -0.2),
+      displayMedium: style(size: 28, weight: FontWeight.w700, height: 1.15, letterSpacing: -0.1),
+      displaySmall: style(size: 24, weight: FontWeight.w600, height: 1.2, letterSpacing: -0.1),
+      headlineLarge: style(size: 22, weight: FontWeight.w600, height: 1.2),
+      headlineMedium: style(size: 20, weight: FontWeight.w600, height: 1.25),
+      headlineSmall: style(size: 18, weight: FontWeight.w600, height: 1.3),
+      titleLarge: style(size: 17, weight: FontWeight.w600, height: 1.35),
+      titleMedium: style(size: 15, weight: FontWeight.w600, height: 1.35, letterSpacing: 0.1),
+      titleSmall: style(size: 13, weight: FontWeight.w600, height: 1.35, letterSpacing: 0.1),
+      bodyLarge: style(size: 15, weight: FontWeight.w400, height: 1.5, letterSpacing: 0.2),
+      bodyMedium: style(size: 14, weight: FontWeight.w400, height: 1.5, letterSpacing: 0.2),
+      bodySmall: style(size: 12, weight: FontWeight.w400, height: 1.4, letterSpacing: 0.2),
+      labelLarge: style(size: 13, weight: FontWeight.w600, height: 1.2, letterSpacing: 0.3),
+      labelMedium: style(size: 12, weight: FontWeight.w600, height: 1.2, letterSpacing: 0.3),
+      labelSmall: style(size: 11, weight: FontWeight.w600, height: 1.2, letterSpacing: 0.3),
     );
   }
 
   static ElevatedButtonThemeData _buildElevatedButtonTheme() {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        elevation: 2,
-        shadowColor: const Color(0x1A000000),
+        elevation: 0,
+        shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.buttonRadius,
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.xl,
-          vertical: AppSpacing.lg,
+          vertical: AppSpacing.md,
         ),
-        textStyle: const TextStyle(
-          fontSize: 16,
+        textStyle: GoogleFonts.manrope(
+          fontSize: 14,
           fontWeight: FontWeight.w600,
-          letterSpacing: 0.1,
+          letterSpacing: 0.2,
         ),
       ),
     );
@@ -479,14 +437,14 @@ class AppThemeData {
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.xl,
-          vertical: AppSpacing.lg,
+          vertical: AppSpacing.md,
         ),
-        textStyle: const TextStyle(
-          fontSize: 16,
+        textStyle: GoogleFonts.manrope(
+          fontSize: 14,
           fontWeight: FontWeight.w600,
-          letterSpacing: 0.1,
+          letterSpacing: 0.2,
         ),
-        side: const BorderSide(width: 1.5),
+        side: const BorderSide(width: 1),
       ),
     );
   }
@@ -500,23 +458,28 @@ class AppThemeData {
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
+          vertical: AppSpacing.sm,
         ),
-        textStyle: const TextStyle(
-          fontSize: 16,
+        textStyle: GoogleFonts.manrope(
+          fontSize: 14,
           fontWeight: FontWeight.w600,
-          letterSpacing: 0.1,
+          letterSpacing: 0.2,
         ),
       ),
     );
   }
 
-  static CardThemeData _buildCardTheme() {
+  static CardThemeData _buildCardTheme(ColorScheme scheme) {
     return CardThemeData(
-      elevation: 4,
-      shadowColor: const Color(0x1A000000),
+      color: scheme.surface,
+      elevation: 0,
+      shadowColor: scheme.shadow,
       shape: RoundedRectangleBorder(
         borderRadius: AppRadius.cardRadius,
+        side: BorderSide(
+          color: scheme.outlineVariant,
+          width: 1,
+        ),
       ),
       margin: const EdgeInsets.symmetric(
         vertical: AppSpacing.sm,
@@ -525,38 +488,53 @@ class AppThemeData {
     );
   }
 
-  static InputDecorationTheme _buildInputDecorationTheme() {
+  static InputDecorationTheme _buildInputDecorationTheme(ColorScheme scheme) {
     return InputDecorationTheme(
       filled: true,
-      fillColor: Colors.transparent,
+      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+      isDense: true,
+      floatingLabelBehavior: FloatingLabelBehavior.auto,
       border: OutlineInputBorder(
         borderRadius: AppRadius.buttonRadius,
-        borderSide: const BorderSide(width: 1.5),
+        borderSide: BorderSide(width: 1, color: scheme.outlineVariant),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: AppRadius.buttonRadius,
-        borderSide: const BorderSide(width: 1.5),
+        borderSide: BorderSide(width: 1, color: scheme.outlineVariant),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: AppRadius.buttonRadius,
-        borderSide: const BorderSide(width: 2),
+        borderSide: BorderSide(width: 1.5, color: scheme.primary),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: AppRadius.buttonRadius,
-        borderSide: const BorderSide(width: 1.5),
+        borderSide: BorderSide(width: 1, color: scheme.error),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: AppRadius.buttonRadius,
-        borderSide: const BorderSide(width: 2),
+        borderSide: BorderSide(width: 1.5, color: scheme.error),
       ),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
-        vertical: AppSpacing.lg,
+        vertical: AppSpacing.md,
       ),
-      hintStyle: const TextStyle(
-        fontSize: 16,
+      hintStyle: GoogleFonts.manrope(
+        fontSize: 14,
         fontWeight: FontWeight.w400,
-        letterSpacing: 0.15,
+        letterSpacing: 0.2,
+        color: scheme.onSurfaceVariant,
+      ),
+      labelStyle: GoogleFonts.manrope(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.2,
+        color: scheme.onSurfaceVariant,
+      ),
+      errorStyle: GoogleFonts.manrope(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.2,
+        color: scheme.error,
       ),
     );
   }
@@ -565,8 +543,10 @@ class AppThemeData {
     return AppBarTheme(
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: TextStyle(
-        fontSize: 24,
+      titleSpacing: AppSpacing.lg,
+      toolbarHeight: 56,
+      titleTextStyle: GoogleFonts.manrope(
+        fontSize: 20,
         fontWeight: FontWeight.w700,
         letterSpacing: 0,
         color: foregroundColor,
@@ -585,14 +565,14 @@ class AppThemeData {
       unselectedItemColor: AppColors.neutral500,
       type: BottomNavigationBarType.fixed,
       selectedLabelStyle: TextStyle(
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: FontWeight.w600,
-        letterSpacing: 0.1,
+        letterSpacing: 0.2,
       ),
       unselectedLabelStyle: TextStyle(
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: FontWeight.w500,
-        letterSpacing: 0.1,
+        letterSpacing: 0.2,
       ),
     );
   }
@@ -692,10 +672,10 @@ class AppThemeData {
 
   static NavigationBarThemeData _buildNavigationBarTheme() {
     return NavigationBarThemeData(
-      height: 72,
+      height: 68,
       indicatorColor: AppColors.primaryContainer,
       labelTextStyle: const WidgetStatePropertyAll(
-        TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.2),
       ),
     );
   }

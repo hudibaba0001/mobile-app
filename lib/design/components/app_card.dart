@@ -27,9 +27,9 @@ class AppCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    final cardColor = color ?? (isDark 
-      ? AppColors.darkSurfaceElevated 
-      : theme.colorScheme.surface);
+    final cardColor = color ?? (isDark
+        ? AppColors.darkSurfaceElevated
+        : theme.colorScheme.surface);
     
     final effectiveRadius = borderRadius ?? AppRadius.cardRadius;
     
@@ -38,13 +38,10 @@ class AppCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: effectiveRadius,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant,
+          width: 1,
+        ),
       ),
       child: child,
     );
@@ -97,6 +94,8 @@ class AppSectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppTypography.sectionTitle(
               theme.colorScheme.onSurface,
             ),
@@ -142,6 +141,8 @@ class MetricRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppTypography.body(
                 theme.colorScheme.onSurfaceVariant,
               ),
@@ -149,6 +150,8 @@ class MetricRow extends StatelessWidget {
           ),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppTypography.metricValue(
               valueColor ?? theme.colorScheme.onSurface,
             ),
@@ -227,6 +230,8 @@ class StatusPill extends StatelessWidget {
           ],
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppTypography.caption(pillColor).copyWith(
               fontWeight: FontWeight.w600,
             ),

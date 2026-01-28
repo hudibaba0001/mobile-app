@@ -4,6 +4,25 @@ import '../config/app_config.dart';
 import '../features/reports/analytics_models.dart';
 import '../services/analytics_api.dart';
 
+class MonthlyBreakdown {
+  final DateTime month;
+  final double workHours;
+  final double travelHours;
+  final double totalHours;
+
+  const MonthlyBreakdown({
+    required this.month,
+    required this.workHours,
+    required this.travelHours,
+    required this.totalHours,
+  });
+}
+
+class _MonthlyAccumulator {
+  double workHours = 0.0;
+  double travelHours = 0.0;
+}
+
 class CustomerAnalyticsViewModel extends ChangeNotifier {
   CustomerAnalyticsViewModel({AnalyticsApi? analyticsApi})
       : _api = analyticsApi ?? AnalyticsApi();
@@ -153,6 +172,12 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
       'dailyTrends':
           _calculateDailyTrends(filteredWorkEntries, filteredTravelEntries),
     };
+  }
+
+  List<MonthlyBreakdown> get monthlyBreakdown {
+    final filteredWorkEntries = _getFilteredWorkEntries();
+    final filteredTravelEntries = _getFilteredTravelEntries();
+    return _calculateMonthlyBreakdown(filteredWorkEntries, filteredTravelEntries);
   }
 
   // Locations Tab Data
@@ -342,6 +367,65 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     return weeklyHours;
   }
 
+  List<MonthlyBreakdown> _calculateMonthlyBreakdown(
+      List<Entry> workEntries, List<Entry> travelEntries) {
+    final now = DateTime.now();
+
+    DateTime startMonth;
+    DateTime endMonth;
+
+    if (_startDate != null && _endDate != null) {
+      startMonth = DateTime(_startDate!.year, _startDate!.month);
+      endMonth = DateTime(_endDate!.year, _endDate!.month);
+    } else if (_startDate != null) {
+      startMonth = DateTime(_startDate!.year, _startDate!.month);
+      endMonth = DateTime(now.year, now.month);
+    } else if (_endDate != null) {
+      endMonth = DateTime(_endDate!.year, _endDate!.month);
+      startMonth = DateTime(endMonth.year, endMonth.month - 11);
+    } else {
+      endMonth = DateTime(now.year, now.month);
+      startMonth = DateTime(now.year, now.month - 11);
+    }
+
+    final months = <DateTime>[];
+    for (var month = DateTime(startMonth.year, startMonth.month);
+        !month.isAfter(endMonth);
+        month = DateTime(month.year, month.month + 1)) {
+      months.add(month);
+    }
+
+    final buckets = <String, _MonthlyAccumulator>{};
+    for (final month in months) {
+      buckets[_monthKey(month)] = _MonthlyAccumulator();
+    }
+
+    for (final entry in workEntries) {
+      final bucket = buckets[_monthKey(entry.date)];
+      if (bucket != null) {
+        bucket.workHours += _workMinutesForEntry(entry) / 60.0;
+      }
+    }
+
+    for (final entry in travelEntries) {
+      final bucket = buckets[_monthKey(entry.date)];
+      if (bucket != null) {
+        bucket.travelHours += _travelMinutesForEntry(entry) / 60.0;
+      }
+    }
+
+    return months.map((month) {
+      final bucket = buckets[_monthKey(month)]!;
+      final total = bucket.workHours + bucket.travelHours;
+      return MonthlyBreakdown(
+        month: month,
+        workHours: bucket.workHours,
+        travelHours: bucket.travelHours,
+        totalHours: total,
+      );
+    }).toList(growable: false);
+  }
+
   Map<String, dynamic> _calculateMonthlyComparison(List<Entry> entries) {
     final now = DateTime.now();
     final currentMonth = DateTime(now.year, now.month);
@@ -507,6 +591,11 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     final notes = entry.notes;
     if (notes != null && notes.isNotEmpty) return notes;
     return 'Office';
+  }
+
+  String _monthKey(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    return '${date.year}-$month';
   }
 
   String _getDayName(int weekday) {

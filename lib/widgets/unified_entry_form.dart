@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
@@ -56,6 +57,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   List<Shift> _shifts = [];
   bool _useLocationForAllShifts = true; // Default ON
   final Map<int, TextEditingController> _shiftNotesControllers = {};
+  final Map<int, TextEditingController> _shiftBreakControllers = {};
 
   String? get _currentUserId =>
       context.read<SupabaseAuthService>().currentUser?.id;
@@ -143,6 +145,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           // Initialize shift notes controllers
           for (var i = 0; i < _shifts.length; i++) {
             _shiftNotesControllers[i] = TextEditingController(text: _shifts[i].notes ?? '');
+            _shiftBreakControllers[i] = TextEditingController(
+              text: _shifts[i].unpaidBreakMinutes.toString(),
+            );
           }
           
           _selectedDate = DateTime(
@@ -158,6 +163,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         _addShift();
         // Initialize notes controller for the default shift
         _shiftNotesControllers[0] = TextEditingController();
+        _shiftBreakControllers[0] = TextEditingController(text: '0');
       } else if (widget.entryType == EntryType.travel) {
         // Add one default travel leg for new travel entries
         _addTravelLeg();
@@ -183,6 +189,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       controller.dispose();
     }
     _shiftNotesControllers.clear();
+    for (final controller in _shiftBreakControllers.values) {
+      controller.dispose();
+    }
+    _shiftBreakControllers.clear();
     for (final controller in _legMinutesControllers.values) {
       controller.dispose();
     }
@@ -957,6 +967,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       ));
       // Initialize notes controller for new shift
       _shiftNotesControllers[newIndex] = TextEditingController();
+      _shiftBreakControllers[newIndex] = TextEditingController(text: '0');
     });
   }
 
@@ -983,6 +994,22 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       }
       _shiftNotesControllers.clear();
       _shiftNotesControllers.addAll(newControllers);
+
+      // Reindex remaining break controllers
+      final newBreakControllers = <int, TextEditingController>{};
+      for (var i = 0; i < _shifts.length; i++) {
+        if (i < index) {
+          if (_shiftBreakControllers.containsKey(i)) {
+            newBreakControllers[i] = _shiftBreakControllers[i]!;
+          }
+        } else if (i > index) {
+          if (_shiftBreakControllers.containsKey(i)) {
+            newBreakControllers[i - 1] = _shiftBreakControllers[i]!;
+          }
+        }
+      }
+      _shiftBreakControllers.clear();
+      _shiftBreakControllers.addAll(newBreakControllers);
       
       _shifts.removeAt(index);
     });
@@ -1161,11 +1188,32 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                         _shifts[index] = _shifts[index].copyWith(
                           unpaidBreakMinutes: minutes,
                         );
+                        _shiftBreakControllers[index]?.text = minutes.toString();
                       });
                     }
                   },
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _shiftBreakControllers[index] ??=
+                  TextEditingController(text: shift.unpaidBreakMinutes.toString()),
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                labelText: t.form_minutes,
+                hintText: '0',
+              ),
+              onChanged: (value) {
+                final parsed = int.tryParse(value.trim()) ?? 0;
+                if (parsed == shift.unpaidBreakMinutes) return;
+                setState(() {
+                  _shifts[index] = _shifts[index].copyWith(
+                    unpaidBreakMinutes: parsed,
+                  );
+                });
+              },
             ),
             const SizedBox(height: 12),
             
@@ -1584,16 +1632,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         }
       }
     } else {
-      if (_workLocation == null || _workLocation!.isEmpty) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(t.error_selectWorkLocation),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
       if (_shifts.isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

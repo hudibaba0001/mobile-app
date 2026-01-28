@@ -31,6 +31,7 @@ import 'services/legacy_hive_migration_service.dart';
 import 'viewmodels/analytics_view_model.dart';
 import 'repositories/location_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models/entry.dart';
 import 'models/location.dart';
 import 'utils/constants.dart';
@@ -48,6 +49,18 @@ void main() async {
   Hive.registerAdapter(EntryAdapter());
   Hive.registerAdapter(EntryTypeAdapter());
   Hive.registerAdapter(LocationAdapter());
+
+  const locationBoxResetKey = 'locations_box_typeid_reset_v1';
+  final prefs = await SharedPreferences.getInstance();
+  final didResetLocationBox = prefs.getBool(locationBoxResetKey) ?? false;
+  if (!didResetLocationBox) {
+    try {
+      await Hive.deleteBoxFromDisk(AppConstants.locationsBox);
+    } catch (e) {
+      debugPrint('Location box reset skipped: $e');
+    }
+    await prefs.setBool(locationBoxResetKey, true);
+  }
 
   final locationBox =
       await Hive.openBox<Location>(AppConstants.locationsBox);
@@ -71,10 +84,18 @@ void main() async {
   final localeProvider = LocaleProvider();
   await localeProvider.init();
 
+  final contractProvider = ContractProvider();
+  await contractProvider.init();
+
+  final settingsProvider = SettingsProvider();
+  await settingsProvider.init();
+
   runApp(
     MyApp(
       authService: authService,
       localeProvider: localeProvider,
+      contractProvider: contractProvider,
+      settingsProvider: settingsProvider,
       locationRepository: locationRepository,
     ),
   );
@@ -83,12 +104,16 @@ void main() async {
 class MyApp extends StatelessWidget {
   final SupabaseAuthService authService;
   final LocaleProvider localeProvider;
+  final ContractProvider contractProvider;
+  final SettingsProvider settingsProvider;
   final LocationRepository locationRepository;
 
   const MyApp({
     super.key,
     required this.authService,
     required this.localeProvider,
+    required this.contractProvider,
+    required this.settingsProvider,
     required this.locationRepository,
   });
 
@@ -98,20 +123,16 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<SupabaseAuthService>.value(value: authService),
         ChangeNotifierProvider<LocaleProvider>.value(value: localeProvider),
+        ChangeNotifierProvider<SettingsProvider>.value(
+          value: settingsProvider,
+        ),
         // Existing providers
         ChangeNotifierProvider(create: (_) => AppStateProvider()),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = ContractProvider();
-            // Initialize to load saved settings from SharedPreferences
-            // Note: init() is async, but we can't await in create
-            // The screen will call init() when needed
-            return provider;
-          },
+        ChangeNotifierProvider<ContractProvider>.value(
+          value: contractProvider,
         ),
         ChangeNotifierProvider(create: (_) => EmailSettingsProvider()),
         ChangeNotifierProvider(create: (_) => LocalEntryProvider()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProxyProvider<SupabaseAuthService, HolidayService>(
           create: (_) => HolidayService(),

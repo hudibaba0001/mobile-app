@@ -632,6 +632,17 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
+          // Travel Logging Setting
+          ListTile(
+            leading: const Icon(Icons.directions_car_outlined),
+            title: Text(t.settings_travelLogging),
+            subtitle: Text(t.settings_travelLoggingDesc),
+            trailing: Switch(
+              value: settingsProvider.isTravelLoggingEnabled,
+              onChanged: settingsProvider.setTravelLoggingEnabled,
+            ),
+          ),
+
           const Divider(),
 
           // Manage Locations

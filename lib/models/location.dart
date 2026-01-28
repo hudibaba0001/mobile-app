@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'location.g.dart';
 
-@HiveType(typeId: 8)
+@HiveType(typeId: 9)
 class Location extends HiveObject {
   @HiveField(0)
   final String id;

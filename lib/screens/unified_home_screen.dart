@@ -18,8 +18,8 @@ import '../models/autocomplete_suggestion.dart';
 import '../providers/entry_provider.dart';
 import '../providers/absence_provider.dart';
 import '../providers/location_provider.dart';
+import '../providers/settings_provider.dart';
 import '../services/supabase_auth_service.dart';
-import '../services/export_service.dart';
 import '../l10n/generated/app_localizations.dart';
 
 extension StringExtension on String {
@@ -82,8 +82,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     try {
       final entryProvider = context.read<EntryProvider>();
       final absenceProvider = context.read<AbsenceProvider>();
+      final settingsProvider = context.read<SettingsProvider>();
       final authService = context.read<SupabaseAuthService>();
       final userId = authService.currentUser?.id;
+      final travelEnabled = settingsProvider.isTravelLoggingEnabled;
 
       if (userId == null) {
         setState(() {
@@ -113,6 +115,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       // Combine and sort by date
       final allEntries = <_EntryData>[];
 
+      if (travelEnabled) {
       // Convert travel entries
       final travelEntries = sortedEntries.where((e) => e.type == EntryType.travel).take(5);
       for (final entry in travelEntries) {
@@ -129,6 +132,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           icon: Icons.directions_car,
           date: entry.date,
         ));
+      }
       }
 
       // Convert work entries
@@ -240,6 +244,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final t = AppLocalizations.of(context);
+    final travelEnabled =
+        context.watch<SettingsProvider>().isTravelLoggingEnabled;
 
     return Scaffold(
       key: const Key('screen_home'),
@@ -334,25 +340,20 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Flexsaldo MTD Card (prominent at top)
-            FlexsaldoCard(
-              onExportTimeReport: () => _exportReport(context, 'time'),
-              onExportTravelReport: () => _exportReport(context, 'travel'),
-            ),
+            const FlexsaldoCard(),
             const SizedBox(height: 16),
             
             // Today's Total Card
             Consumer<EntryProvider>(
-              builder: (context, entryProvider, _) => _buildTotalCard(theme, entryProvider, t),
+              builder: (context, entryProvider, _) =>
+                  _buildTotalCard(theme, entryProvider, t, travelEnabled),
             ),
-            const SizedBox(height: 16),
-
-            // Action Cards
-            _buildActionCards(theme, t),
             const SizedBox(height: 16),
 
             // Stats Section
             Consumer<EntryProvider>(
-              builder: (context, entryProvider, _) => _buildStatsSection(theme, entryProvider, t),
+              builder: (context, entryProvider, _) =>
+                  _buildStatsSection(theme, entryProvider, t, travelEnabled),
             ),
             const SizedBox(height: 16),
 
@@ -387,7 +388,12 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
-  Widget _buildTotalCard(ThemeData theme, EntryProvider entryProvider, AppLocalizations t) {
+  Widget _buildTotalCard(
+    ThemeData theme,
+    EntryProvider entryProvider,
+    AppLocalizations t,
+    bool travelEnabled,
+  ) {
     // Calculate today's totals
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
@@ -404,11 +410,12 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     Duration workDuration = Duration.zero;
 
     for (final entry in todayEntries) {
-      totalDuration += entry.totalDuration;
-      if (entry.type == EntryType.travel) {
-        travelDuration += entry.totalDuration;
-      } else if (entry.type == EntryType.work) {
+      if (entry.type == EntryType.work) {
         workDuration += entry.totalDuration;
+        totalDuration += entry.totalDuration;
+      } else if (entry.type == EntryType.travel && travelEnabled) {
+        travelDuration += entry.totalDuration;
+        totalDuration += entry.totalDuration;
       }
     }
 
@@ -484,17 +491,21 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.directions_car_rounded, color: Colors.white.withValues(alpha: 0.9), size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  travelText,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                if (travelEnabled) ...[
+                  Icon(Icons.directions_car_rounded,
+                      color: Colors.white.withValues(alpha: 0.9), size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    travelText,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Icon(Icons.work_rounded, color: Colors.white.withValues(alpha: 0.9), size: 16),
+                  const SizedBox(width: 12),
+                ],
+                Icon(Icons.work_rounded,
+                    color: Colors.white.withValues(alpha: 0.9), size: 16),
                 const SizedBox(width: 4),
                 Text(
                   workText,
@@ -511,82 +522,12 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
-  Widget _buildActionCards(ThemeData theme, AppLocalizations t) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildActionCard(
-            theme,
-            icon: Icons.directions_car_rounded,
-            title: t.home_logTravel,
-            color: theme.colorScheme.primary,
-            onTap: _startTravelEntry,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionCard(
-            theme,
-            icon: Icons.work_rounded,
-            title: t.home_logWork,
-            color: theme.colorScheme.secondary,
-            onTap: _startWorkEntry,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCard(
-    ThemeData theme, {
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: color.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          height: 72,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsSection(ThemeData theme, EntryProvider entryProvider, AppLocalizations t) {
+  Widget _buildStatsSection(
+    ThemeData theme,
+    EntryProvider entryProvider,
+    AppLocalizations t,
+    bool travelEnabled,
+  ) {
     // Calculate this week's totals
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
@@ -603,7 +544,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     Duration workDuration = Duration.zero;
 
     for (final entry in weekEntries) {
-      if (entry.type == EntryType.travel) {
+      if (entry.type == EntryType.travel && travelEnabled) {
         travelDuration += entry.totalDuration;
       } else if (entry.type == EntryType.work) {
         workDuration += entry.totalDuration;
@@ -648,20 +589,22 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: _buildCompactStat(
-                  theme,
-                  icon: Icons.directions_car_rounded,
-                  value: formatHours(travelDuration),
-                  label: t.entry_travel,
-                  color: theme.colorScheme.primary,
+              if (travelEnabled) ...[
+                Expanded(
+                  child: _buildCompactStat(
+                    theme,
+                    icon: Icons.directions_car_rounded,
+                    value: formatHours(travelDuration),
+                    label: t.entry_travel,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
-              ),
-              Container(
-                width: 1,
-                height: 40,
-                color: theme.colorScheme.outline.withValues(alpha: 0.2),
-              ),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                ),
+              ],
               Expanded(
                 child: _buildCompactStat(
                   theme,
@@ -1005,6 +948,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   void _startTravelEntry() {
+    final travelEnabled =
+        context.read<SettingsProvider>().isTravelLoggingEnabled;
+    if (!travelEnabled) return;
     // Show a simple dialog instead of navigating to complex screen
     _showQuickEntryDialog('travel');
   }
@@ -1096,6 +1042,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
   void _showQuickEntry() {
     final t = AppLocalizations.of(context);
+    final travelEnabled =
+        context.read<SettingsProvider>().isTravelLoggingEnabled;
     // Show bottom sheet with quick entry options
     showModalBottomSheet(
       context: context,
@@ -1112,15 +1060,17 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 style: AppTypography.sectionTitle(colorScheme.onSurface),
               ),
               const SizedBox(height: AppSpacing.lg),
-              ListTile(
-                leading: Icon(Icons.directions_car, color: colorScheme.primary),
-                title: Text(t.home_logTravel),
-                subtitle: Text(t.home_quickTravelEntry),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _startTravelEntry();
-                },
-              ),
+              if (travelEnabled)
+                ListTile(
+                  leading:
+                      Icon(Icons.directions_car, color: colorScheme.primary),
+                  title: Text(t.home_logTravel),
+                  subtitle: Text(t.home_quickTravelEntry),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _startTravelEntry();
+                  },
+                ),
               ListTile(
                 leading: Icon(Icons.work, color: colorScheme.secondary),
                 title: Text(t.home_logWork),
@@ -1145,93 +1095,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         );
       },
     );
-  }
-
-  /// Export report from FlexsaldoCard buttons
-  Future<void> _exportReport(BuildContext context, String reportType) async {
-    final t = AppLocalizations.of(context);
-    final entryProvider = context.read<EntryProvider>();
-    
-    // Get current month date range
-    final now = DateTime.now();
-    final monthStart = DateTime(now.year, now.month, 1);
-    final monthEnd = DateTime(now.year, now.month + 1, 0);
-    
-    // Filter entries by type
-    final entries = entryProvider.entries.where((entry) {
-      final inRange = entry.date.isAfter(monthStart.subtract(const Duration(days: 1))) &&
-          entry.date.isBefore(monthEnd.add(const Duration(days: 1)));
-      if (reportType == 'travel') {
-        return inRange && entry.type == EntryType.travel;
-      } else if (reportType == 'time') {
-        return inRange && entry.type == EntryType.work;
-      }
-      return inRange;
-    }).toList();
-    
-    if (entries.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(t.common_noDataToExport)),
-        );
-      }
-      return;
-    }
-
-    // Show format selection dialog
-    final format = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(t.export_format),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.description),
-              title: const Text('CSV'),
-              onTap: () => Navigator.of(context).pop('csv'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.table_chart),
-              title: const Text('Excel (XLSX)'),
-              onTap: () => Navigator.of(context).pop('xlsx'),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (format == null) return;
-    
-    try {
-      final fileName = reportType == 'travel' 
-          ? 'travel_report_${now.year}_${now.month}'
-          : 'time_report_${now.year}_${now.month}';
-      
-      if (format == 'csv') {
-        await ExportService.exportEntriesToCSV(
-          entries: entries,
-          fileName: fileName,
-        );
-      } else {
-        await ExportService.exportEntriesToExcel(
-          entries: entries,
-          fileName: fileName,
-        );
-      }
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(t.common_exportSuccess)),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${t.common_exportFailed}: $e')),
-        );
-      }
-    }
   }
 }
 

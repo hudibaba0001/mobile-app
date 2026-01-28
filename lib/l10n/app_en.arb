@@ -357,6 +357,8 @@
   "settings_welcomeScreen": "Show Welcome Screen",
   "settings_welcomeScreenDesc": "Show introduction on next launch",
   "settings_region": "Region",
+  "settings_travelLogging": "Travel time logging",
+  "settings_travelLoggingDesc": "Enable travel time entry and related stats",
   
   "common_unknown": "Unknown",
   "common_noRemarks": "No remarks",
