@@ -2288,6 +2288,48 @@ abstract class AppLocalizations {
   /// **'Sign Out'**
   String get auth_signOut;
 
+  /// No description provided for @auth_signInPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to your account'**
+  String get auth_signInPrompt;
+
+  /// No description provided for @auth_emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get auth_emailLabel;
+
+  /// No description provided for @auth_passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get auth_passwordLabel;
+
+  /// No description provided for @auth_forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get auth_forgotPassword;
+
+  /// No description provided for @auth_signInButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get auth_signInButton;
+
+  /// No description provided for @auth_noAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get auth_noAccount;
+
+  /// No description provided for @auth_signUpLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get auth_signUpLink;
+
   /// No description provided for @password_resetTitle.
   ///
   /// In en, this message translates to:
@@ -2753,13 +2795,13 @@ abstract class AppLocalizations {
   /// No description provided for @account_createOnWeb.
   ///
   /// In en, this message translates to:
-  /// **'Create your account on the web'**
+  /// **'Create your account'**
   String get account_createOnWeb;
 
   /// No description provided for @account_createDescription.
   ///
   /// In en, this message translates to:
-  /// **'To create an account, please visit our signup page in your web browser.'**
+  /// **'Join KvikTime today and take control of your work life.'**
   String get account_createDescription;
 
   /// No description provided for @account_openSignupPage.
@@ -2771,8 +2813,80 @@ abstract class AppLocalizations {
   /// No description provided for @account_alreadyHaveAccount.
   ///
   /// In en, this message translates to:
-  /// **'I already have an account → Login'**
+  /// **'Already have an account? Login'**
   String get account_alreadyHaveAccount;
+
+  /// No description provided for @account_trialSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start your 7-day free trial'**
+  String get account_trialSubtitle;
+
+  /// No description provided for @account_firstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get account_firstName;
+
+  /// No description provided for @account_lastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get account_lastName;
+
+  /// No description provided for @account_phoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get account_phoneNumber;
+
+  /// No description provided for @account_optional.
+  ///
+  /// In en, this message translates to:
+  /// **'(optional)'**
+  String get account_optional;
+
+  /// No description provided for @account_passwordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum 8 characters'**
+  String get account_passwordHint;
+
+  /// No description provided for @account_priceTag.
+  ///
+  /// In en, this message translates to:
+  /// **'89 kr/month incl. VAT — 7 days free'**
+  String get account_priceTag;
+
+  /// No description provided for @account_agreeTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the Terms of Service'**
+  String get account_agreeTerms;
+
+  /// No description provided for @account_agreePrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the Privacy Policy'**
+  String get account_agreePrivacy;
+
+  /// No description provided for @account_continuePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to payment'**
+  String get account_continuePayment;
+
+  /// No description provided for @account_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get account_email;
+
+  /// No description provided for @account_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get account_password;
 
   /// No description provided for @history_currentlySelected.
   ///

@@ -129,19 +129,45 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
   }
 
   // Update user profile
-  Future<void> updateUserProfile({String? displayName}) async {
+  Future<void> updateUserProfile({
+    String? displayName,
+    DateTime? termsAcceptedAt,
+    DateTime? privacyAcceptedAt,
+    String? termsVersion,
+    String? privacyVersion,
+    String? termsUrl,
+    String? privacyUrl,
+    String? appVersionAccepted,
+  }) async {
     try {
       final user = currentUser;
       if (user == null) throw Exception('No authenticated user');
       
       final updates = <String, dynamic>{};
-      if (displayName != null) {
-        updates['data'] = {'full_name': displayName};
-      }
+      final data = <String, dynamic>{};
       
-      await _supabase.auth.updateUser(UserAttributes(
-        data: updates['data'],
-      ));
+      if (displayName != null) data['full_name'] = displayName;
+      if (termsAcceptedAt != null) data['terms_accepted_at'] = termsAcceptedAt.toIso8601String();
+      if (privacyAcceptedAt != null) data['privacy_accepted_at'] = privacyAcceptedAt.toIso8601String();
+      if (termsVersion != null) data['terms_version'] = termsVersion;
+      if (privacyVersion != null) data['privacy_version'] = privacyVersion;
+      if (termsUrl != null) data['terms_url'] = termsUrl;
+      if (privacyUrl != null) data['privacy_url'] = privacyUrl;
+      if (appVersionAccepted != null) data['app_version_accepted'] = appVersionAccepted;
+      
+      if (data.isNotEmpty) {
+        // Also update the profiles table directly to ensure persistence
+        await _supabase.from('profiles').upsert({
+          'id': user.id,
+          ...data,
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+
+        // Update auth metadata as well
+        await _supabase.auth.updateUser(UserAttributes(
+          data: data,
+        ));
+      }
       
       print('SupabaseAuthService: Profile updated successfully');
     } catch (e) {

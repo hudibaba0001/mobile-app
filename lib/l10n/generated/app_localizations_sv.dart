@@ -1247,6 +1247,27 @@ class AppLocalizationsSv extends AppLocalizations {
   String get auth_signOut => 'Logga ut';
 
   @override
+  String get auth_signInPrompt => 'Logga in på ditt konto';
+
+  @override
+  String get auth_emailLabel => 'E-post';
+
+  @override
+  String get auth_passwordLabel => 'Lösenord';
+
+  @override
+  String get auth_forgotPassword => 'Glömt lösenord?';
+
+  @override
+  String get auth_signInButton => 'Logga in';
+
+  @override
+  String get auth_noAccount => 'Har du inget konto?';
+
+  @override
+  String get auth_signUpLink => 'Skapa konto';
+
+  @override
   String get password_resetTitle => 'Återställ lösenord';
 
   @override
@@ -1504,17 +1525,53 @@ class AppLocalizationsSv extends AppLocalizations {
   String get account_createTitle => 'Skapa konto';
 
   @override
-  String get account_createOnWeb => 'Skapa ditt konto på webben';
+  String get account_createOnWeb => 'Skapa ditt konto';
 
   @override
   String get account_createDescription =>
-      'För att skapa ett konto, besök vår registreringssida i din webbläsare.';
+      'Gör som tusentals andra och ta kontroll över din arbetstid.';
 
   @override
   String get account_openSignupPage => 'Öppna registreringssidan';
 
   @override
-  String get account_alreadyHaveAccount => 'Jag har redan ett konto → Logga in';
+  String get account_alreadyHaveAccount => 'Har du redan ett konto? Logga in';
+
+  @override
+  String get account_trialSubtitle => 'Starta din 7-dagars gratis provperiod';
+
+  @override
+  String get account_firstName => 'Förnamn';
+
+  @override
+  String get account_lastName => 'Efternamn';
+
+  @override
+  String get account_phoneNumber => 'Telefonnummer';
+
+  @override
+  String get account_optional => '(valfritt)';
+
+  @override
+  String get account_passwordHint => 'Minst 8 tecken';
+
+  @override
+  String get account_priceTag => '89 kr/mån inkl. moms — 7 dagar gratis';
+
+  @override
+  String get account_agreeTerms => 'Jag godkänner användarvillkoren';
+
+  @override
+  String get account_agreePrivacy => 'Jag godkänner integritetspolicyn';
+
+  @override
+  String get account_continuePayment => 'Fortsätt till betalning';
+
+  @override
+  String get account_email => 'E-post';
+
+  @override
+  String get account_password => 'Lösenord';
 
   @override
   String get history_currentlySelected => 'För närvarande vald';

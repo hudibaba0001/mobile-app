@@ -8,6 +8,9 @@ class UserProfile {
   final DateTime? privacyAcceptedAt;
   final String? termsVersion;
   final String? privacyVersion;
+  final String? termsUrl;
+  final String? privacyUrl;
+  final String? appVersionAccepted;
   // Stripe subscription fields
   final String? stripeCustomerId;
   final String? stripeSubscriptionId;
@@ -25,6 +28,9 @@ class UserProfile {
     this.privacyAcceptedAt,
     this.termsVersion,
     this.privacyVersion,
+    this.termsUrl,
+    this.privacyUrl,
+    this.appVersionAccepted,
     this.stripeCustomerId,
     this.stripeSubscriptionId,
     this.subscriptionStatus,
@@ -63,6 +69,9 @@ class UserProfile {
           : null,
       termsVersion: map['terms_version'] as String?,
       privacyVersion: map['privacy_version'] as String?,
+      termsUrl: map['terms_url'] as String?,
+      privacyUrl: map['privacy_url'] as String?,
+      appVersionAccepted: map['app_version_accepted'] as String?,
       stripeCustomerId: map['stripe_customer_id'] as String?,
       stripeSubscriptionId: map['stripe_subscription_id'] as String?,
       subscriptionStatus: map['subscription_status'] as String?,
@@ -87,6 +96,9 @@ class UserProfile {
       'privacy_accepted_at': privacyAcceptedAt?.toIso8601String(),
       'terms_version': termsVersion,
       'privacy_version': privacyVersion,
+      'terms_url': termsUrl,
+      'privacy_url': privacyUrl,
+      'app_version_accepted': appVersionAccepted,
       'stripe_customer_id': stripeCustomerId,
       'stripe_subscription_id': stripeSubscriptionId,
       'subscription_status': subscriptionStatus,

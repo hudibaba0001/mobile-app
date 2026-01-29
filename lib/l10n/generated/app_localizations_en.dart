@@ -1249,6 +1249,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get auth_signOut => 'Sign Out';
 
   @override
+  String get auth_signInPrompt => 'Sign in to your account';
+
+  @override
+  String get auth_emailLabel => 'Email';
+
+  @override
+  String get auth_passwordLabel => 'Password';
+
+  @override
+  String get auth_forgotPassword => 'Forgot Password?';
+
+  @override
+  String get auth_signInButton => 'Sign In';
+
+  @override
+  String get auth_noAccount => 'Don\'t have an account?';
+
+  @override
+  String get auth_signUpLink => 'Sign Up';
+
+  @override
   String get password_resetTitle => 'Reset Password';
 
   @override
@@ -1505,17 +1526,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get account_createTitle => 'Create Account';
 
   @override
-  String get account_createOnWeb => 'Create your account on the web';
+  String get account_createOnWeb => 'Create your account';
 
   @override
   String get account_createDescription =>
-      'To create an account, please visit our signup page in your web browser.';
+      'Join KvikTime today and take control of your work life.';
 
   @override
   String get account_openSignupPage => 'Open signup page';
 
   @override
-  String get account_alreadyHaveAccount => 'I already have an account → Login';
+  String get account_alreadyHaveAccount => 'Already have an account? Login';
+
+  @override
+  String get account_trialSubtitle => 'Start your 7-day free trial';
+
+  @override
+  String get account_firstName => 'First Name';
+
+  @override
+  String get account_lastName => 'Last Name';
+
+  @override
+  String get account_phoneNumber => 'Phone Number';
+
+  @override
+  String get account_optional => '(optional)';
+
+  @override
+  String get account_passwordHint => 'Minimum 8 characters';
+
+  @override
+  String get account_priceTag => '89 kr/month incl. VAT — 7 days free';
+
+  @override
+  String get account_agreeTerms => 'I agree to the Terms of Service';
+
+  @override
+  String get account_agreePrivacy => 'I agree to the Privacy Policy';
+
+  @override
+  String get account_continuePayment => 'Continue to payment';
+
+  @override
+  String get account_email => 'Email';
+
+  @override
+  String get account_password => 'Password';
 
   @override
   String get history_currentlySelected => 'Currently selected';
