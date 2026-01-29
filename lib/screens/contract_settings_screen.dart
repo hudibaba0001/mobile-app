@@ -134,25 +134,16 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                      _fullTimeHoursError == null && 
                      _openingBalanceError == null;
     });
+  }
 
-    // Update provider values if valid
+  Future<void> _saveSettings() async {
+    final t = AppLocalizations.of(context);
     if (_isFormValid) {
       final contractProvider = context.read<ContractProvider>();
+      
+      // Parse values
       final contractPercent = int.parse(_contractPercentController.text.trim());
       final fullTimeHours = int.parse(_fullTimeHoursController.text.trim());
-      
-      // Only update if values have changed to avoid unnecessary notifications
-      if (contractProvider.contractPercent != contractPercent) {
-        contractProvider.setContractPercent(contractPercent);
-      }
-      if (contractProvider.fullTimeHours != fullTimeHours) {
-        contractProvider.setFullTimeHours(fullTimeHours);
-      }
-      
-      // Update starting balance fields
-      if (contractProvider.trackingStartDate != _trackingStartDate) {
-        contractProvider.setTrackingStartDate(_trackingStartDate);
-      }
       
       final hoursText = _openingHoursController.text.trim();
       final minutesText = _openingMinutesController.text.trim();
@@ -160,21 +151,15 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
       final totalMinutes = (hours * 60) + minutes;
       final signedMinutes = _isDeficit ? -totalMinutes : totalMinutes;
-      
-      if (contractProvider.openingFlexMinutes != signedMinutes) {
-        contractProvider.setOpeningFlexMinutes(signedMinutes);
-      }
-      
-      // Update employer mode
-      if (contractProvider.employerMode != _employerMode) {
-        contractProvider.setEmployerMode(_employerMode);
-      }
-    }
-  }
 
-  void _saveSettings() {
-    final t = AppLocalizations.of(context);
-    if (_isFormValid) {
+      // Update provider (waits for persistence)
+      await contractProvider.updateContractSettings(contractPercent, fullTimeHours);
+      await contractProvider.setTrackingStartDate(_trackingStartDate);
+      await contractProvider.setOpeningFlexMinutes(signedMinutes);
+      await contractProvider.setEmployerMode(_employerMode);
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(t.contract_savedSuccess),
@@ -259,8 +244,30 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
           ),
         ],
       ),
-      body: Consumer<ContractProvider>(
-        builder: (context, contractProvider, child) {
+      body: Builder(
+        builder: (context) {
+          // Local calculations for Live Preview
+          final percent = int.tryParse(_contractPercentController.text) ?? 100;
+          final fHours = int.tryParse(_fullTimeHoursController.text) ?? 40;
+          
+          final allowedHours = (fHours * percent / 100).round();
+          final allowedPerDay = allowedHours / 5.0;
+          
+          // Opening balance formatting
+          final hoursText = _openingHoursController.text.trim();
+          final minutesText = _openingMinutesController.text.trim();
+          final opHours = int.tryParse(hoursText.isEmpty ? '0' : hoursText) ?? 0;
+          final opMins = int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
+          
+          String openingFormatted;
+          final sign = _isDeficit ? '−' : '+';
+          if (opMins == 0) {
+            openingFormatted = '$sign${opHours}h';
+          } else {
+            openingFormatted = '$sign${opHours}h ${opMins}m';
+          }
+          final hasOpening = opHours != 0 || opMins != 0;
+
           return Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -412,7 +419,10 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   const SizedBox(height: 32),
                   
                   // Starting Balance Section
-                  _buildStartingBalanceSection(theme, colorScheme, contractProvider, t),
+                  // Pass null for Provider as we use local state here, or rework _buildStartingBalanceSection to not need Provider
+                  // Actually, _buildStartingBalanceSection uses local controllers mostly but might default to provider.
+                  // Let's just pass context.read since we are not updating it live.
+                  _buildStartingBalanceSection(theme, colorScheme, context.read<ContractProvider>(), t),
                   
                   const SizedBox(height: 32),
                   
@@ -450,28 +460,28 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           _buildPreviewRow(
                             theme,
                             t.contract_contractType,
-                            contractProvider.isFullTime ? t.contract_fullTime : t.contract_partTime,
+                            percent == 100 ? t.contract_fullTime : t.contract_partTime,
                             Icons.badge,
                           ),
                           
                           _buildPreviewRow(
                             theme,
                             t.contract_percentage,
-                            contractProvider.contractPercentString,
+                            '$percent%',
                             Icons.percent,
                           ),
                           
                           _buildPreviewRow(
                             theme,
                             t.contract_fullTimeHours,
-                            contractProvider.fullTimeHoursString,
+                            '$fHours hours/week',
                             Icons.schedule,
                           ),
                           
                           _buildPreviewRow(
                             theme,
                             t.contract_allowedHours,
-                            contractProvider.allowedHoursString,
+                            '$allowedHours hours/week',
                             Icons.check_circle,
                             isHighlighted: true,
                           ),
@@ -479,7 +489,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           _buildPreviewRow(
                             theme,
                             t.contract_dailyHours,
-                            t.contract_hoursPerDayValue(contractProvider.allowedHoursPerDay.toStringAsFixed(1)),
+                            t.contract_hoursPerDayValue(allowedPerDay.toStringAsFixed(1)),
                             Icons.today,
                           ),
                           
@@ -495,9 +505,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           _buildPreviewRow(
                             theme,
                             t.contract_openingBalance,
-                            contractProvider.openingFlexFormatted,
+                            openingFormatted,
                             Icons.account_balance_wallet,
-                            isHighlighted: contractProvider.hasOpeningBalance,
+                            isHighlighted: hasOpening,
                           ),
                         ],
                       ),

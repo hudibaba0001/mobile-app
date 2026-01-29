@@ -77,6 +77,9 @@ class TimeProvider extends ChangeNotifier {
     // Listen to holiday service changes (personal red days)
     _holidayService?.addListener(_onHolidaysChanged);
 
+    // Listen to contract changes (target hours/start date)
+    _contractProvider.addListener(_onContractChanged);
+
     debugPrint('TimeProvider: Auto-refresh listeners enabled');
   }
 
@@ -97,11 +100,20 @@ class TimeProvider extends ChangeNotifier {
     }
   }
 
+  /// Handle contract changes - recalculate balances
+  void _onContractChanged() {
+    if (_monthlySummaries.isNotEmpty) {
+      debugPrint('TimeProvider: Contract settings changed, recalculating balances...');
+      calculateBalances();
+    }
+  }
+
   @override
   void dispose() {
     // Remove listeners to prevent memory leaks
     _entryProvider.removeListener(_onEntriesChanged);
     _holidayService?.removeListener(_onHolidaysChanged);
+    _contractProvider.removeListener(_onContractChanged);
     _isListening = false;
     super.dispose();
   }
@@ -554,26 +566,44 @@ class TimeProvider extends ChangeNotifier {
         return a.month.compareTo(b.month);
       });
 
-    double cumulativeYearlyBalance = 0.0;
+    // Start cumulative balance with opening balance
+    double cumulativeYearlyBalance = _contractProvider.openingFlexHours;
     final List<Map<String, dynamic>> monthlyVariances = [];
     final List<double> cumulativeBalances = [];
 
     for (final summary in sorted) {
       final actualMinutes = (summary.actualWorkedHours * 60).round();
-      final targetMinutes = TargetHoursCalculator.monthlyTargetMinutes(
-        summary.year,
-        summary.month,
-        weeklyTargetMinutes,
-      );
-      final monthlyVariance = (actualMinutes - targetMinutes) / 60.0;
-      cumulativeYearlyBalance += monthlyVariance;
+      // Calculate target minutes using the unified holiday-aware logic
+      // This ensures personal red days and public holidays are respected in the detailed view
+      // Recalculate summing day-by-day (same as calculateBalances)
+      int monthTargetMinutes = 0;
+      final lastDay = DateTime(summary.year, summary.month + 1, 0);
+      
+      for (int day = 1; day <= lastDay.day; day++) {
+        final date = DateTime(summary.year, summary.month, day);
+        monthTargetMinutes += _getScheduledMinutesForDate(
+          date: date,
+          weeklyTargetMinutes: weeklyTargetMinutes,
+        );
+      }
+      
+      // Calculate variance: Actual + Credit - Target
+      final creditMinutes = _monthlyCreditMinutes['${summary.year}-${summary.month}'] ?? 0;
+      final monthlyVariance = (actualMinutes + creditMinutes - monthTargetMinutes) / 60.0;
+
+      // Add adjustments for this month
+      final adjustmentMinutes = _monthlyAdjustmentMinutes['${summary.year}-${summary.month}'] ?? 0;
+      final adjustmentHours = adjustmentMinutes / 60.0;
+      
+      cumulativeYearlyBalance += monthlyVariance + adjustmentHours;
 
       monthlyVariances.add({
         'month': summary.monthName,
         'year': summary.year,
         'actualHours': summary.actualWorkedHours,
-        'targetHours': targetMinutes / 60.0,
-        'variance': monthlyVariance,
+        'targetHours': monthTargetMinutes / 60.0,
+        'variance': monthlyVariance, // Pure variance (work vs target)
+        'adjustments': adjustmentHours,
       });
 
       cumulativeBalances.add(cumulativeYearlyBalance);

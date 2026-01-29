@@ -108,6 +108,12 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
           currentDate.month,
         ) / 60.0;
         final currentYearHours = timeProvider.yearActualMinutesToDate(currentDate.year) / 60.0;
+        final monthlyAdjustmentHours = timeProvider.monthlyAdjustmentHours(
+          year: currentDate.year,
+          month: currentDate.month,
+        );
+        final yearlyAdjustmentHours = timeProvider.totalYearAdjustmentHours;
+        final openingBalanceHours = timeProvider.openingFlexHours;
         
         // Get to-date targets
         final monthlyTarget = timeProvider.monthTargetHoursToDate(
@@ -125,8 +131,8 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
         // Get credit hours to-date for current year
         final yearlyCredit = timeProvider.yearCreditMinutesToDate(currentDate.year) / 60.0;
         
-        // Calculate YTD yearly balance: actual + credit - target
-        final yearlyBalanceToDate = (currentYearHours + yearlyCredit) - yearlyTarget;
+        // Use provider's running balance (includes credits, adjustments, opening balance)
+        final yearlyBalanceToDate = timeProvider.yearlyRunningBalance;
 
         debugPrint('TimeBalanceScreen: Using contract settings - Weekly: ${contractProvider.weeklyTargetHours}h, Monthly: ${monthlyTarget.toStringAsFixed(1)}h, Yearly: ${yearlyTarget.toStringAsFixed(1)}h');
         debugPrint('TimeBalanceScreen: Contract %: ${contractProvider.contractPercent}%, Full-time hours: ${contractProvider.fullTimeHours}h');
@@ -159,6 +165,9 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
               currentYear: currentMonth.year,
               creditHours: monthlyCredit > 0 ? monthlyCredit : null,
               yearCreditHours: yearlyCredit > 0 ? yearlyCredit : null,
+              monthlyAdjustmentHours: monthlyAdjustmentHours,
+              yearlyAdjustmentHours: yearlyAdjustmentHours,
+              openingBalanceHours: openingBalanceHours,
               openingBalanceFormatted: timeProvider.hasOpeningBalance 
                   ? timeProvider.openingFlexFormatted 
                   : null,
@@ -172,4 +181,3 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
     );
   }
 }
-

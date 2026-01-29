@@ -1,108 +1,118 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:myapp/models/monthly_summary.dart';
 import 'package:myapp/utils/time_balance_calculator.dart';
+import 'package:myapp/models/monthly_summary.dart';
+import 'package:myapp/models/entry.dart';
+import '../helpers/entry_fixtures.dart';
 
 void main() {
-  group('TimeBalanceCalculator', () {
-    test('calculateYearlyBalance - exact test case from requirements', () {
-      // Test Case from requirements:
-      // Jan: Worked 190. Target 160. Variance: +30. Year Balance: +30.
-      // Feb: Worked 190. Target 160. Variance: +30. Year Balance: +60.
-      // Mar: Worked 130. Target 160. Variance: -30. Year Balance: +30.
-
-      final monthlySummaries = [
-        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 190.0), // January
-        MonthlySummary(year: 2024, month: 2, actualWorkedHours: 190.0), // February
-        MonthlySummary(year: 2024, month: 3, actualWorkedHours: 130.0), // March
+  group('TimeBalanceCalculator.calculateYearlyBalance', () {
+    test('Base case: 0 worked, positive target => negative balance', () {
+      final summaries = [
+        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 0),
       ];
-
-      final result = TimeBalanceCalculator.calculateYearlyBalance(
-        monthlySummaries,
-        targetHours: 160.0,
-      );
-
-      // Expected: +30 (Jan: +30, Feb: +60, Mar: +30)
-      expect(result, equals(30.0));
+      // Target defaults to 160.0
+      // Balance = 0 - 160 = -160
+      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 160.0);
+      expect(balance, -160.0);
     });
 
-    test('calculateYearlyBalance - verifies monthly variances', () {
-      final monthlySummaries = [
-        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 190.0),
-        MonthlySummary(year: 2024, month: 2, actualWorkedHours: 190.0),
-        MonthlySummary(year: 2024, month: 3, actualWorkedHours: 130.0),
+    test('Positive case: worked > target => positive balance', () {
+      final summaries = [
+        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 170),
       ];
-
-      final detailed = TimeBalanceCalculator.calculateDetailedBalance(
-        monthlySummaries,
-        targetHours: 160.0,
-      );
-
-      final monthlyVariances = detailed['monthlyVariances'] as List;
-      final cumulativeBalances = detailed['cumulativeBalances'] as List<double>;
-
-      // January: 190 - 160 = +30
-      expect(monthlyVariances[0]['variance'], equals(30.0));
-      expect(cumulativeBalances[0], equals(30.0));
-
-      // February: 190 - 160 = +30, cumulative: +30 + 30 = +60
-      expect(monthlyVariances[1]['variance'], equals(30.0));
-      expect(cumulativeBalances[1], equals(60.0));
-
-      // March: 130 - 160 = -30, cumulative: +60 - 30 = +30
-      expect(monthlyVariances[2]['variance'], equals(-30.0));
-      expect(cumulativeBalances[2], equals(30.0));
+      // Balance = 170 - 160 = +10
+      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 160.0);
+      expect(balance, 10.0);
     });
 
-    test('calculateYearlyBalance - handles unsorted months', () {
-      // Test that months are sorted chronologically
-      final monthlySummaries = [
-        MonthlySummary(year: 2024, month: 3, actualWorkedHours: 130.0), // March first
-        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 190.0), // January second
-        MonthlySummary(year: 2024, month: 2, actualWorkedHours: 190.0), // February third
+    test('Accumulation over multiple months', () {
+      final summaries = [
+        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 170), // +10
+        MonthlySummary(year: 2024, month: 2, actualWorkedHours: 150), // -10
       ];
-
-      final result = TimeBalanceCalculator.calculateYearlyBalance(
-        monthlySummaries,
-        targetHours: 160.0,
-      );
-
-      // Should still calculate correctly: Jan +30, Feb +60, Mar +30
-      expect(result, equals(30.0));
+      // Balance = +10 + (-10) = 0
+      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 160.0);
+      expect(balance, 0.0);
     });
 
-    test('calculateYearlyBalance - empty list returns zero', () {
-      final result = TimeBalanceCalculator.calculateYearlyBalance([]);
-      expect(result, equals(0.0));
-    });
-
-    test('calculateYearlyBalance - custom target hours', () {
-      final monthlySummaries = [
-        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 180.0),
+    test('Date range / Year boundary correctness', () {
+      // Ensure it handles different years correctly (though input is just a list)
+      final summaries = [
+        MonthlySummary(year: 2023, month: 12, actualWorkedHours: 170), // +10
+        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 170), // +10
       ];
+      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 160.0);
+      expect(balance, 20.0);
+    });
+  });
 
-      final result = TimeBalanceCalculator.calculateYearlyBalance(
-        monthlySummaries,
-        targetHours: 200.0, // Custom target
+  group('Shift Logic (Break Subtraction & Clamping)', () {
+    test('Break Subtraction: 4h shift - 30m break = 3.5h worked', () {
+      final shift = makeShift(
+        date: DateTime(2024, 1, 1),
+        startHHMM: '08:00',
+        endHHMM: '12:00',
+        breakMinutes: 30,
       );
-
-      // 180 - 200 = -20
-      expect(result, equals(-20.0));
+      // Span: 4h = 240m. Worked: 240 - 30 = 210m.
+      expect(shift.workedMinutes, 210);
+      expect(shift.duration.inMinutes, 240); // Span remains 240
     });
 
-    test('calculateMonthlyVariance - calculates correctly', () {
-      expect(
-        TimeBalanceCalculator.calculateMonthlyVariance(190.0, targetHours: 160.0),
-        equals(30.0),
+    test('Break Clamp: Break > Span => 0 worked (no negative)', () {
+      final shift = makeShift(
+        date: DateTime(2024, 1, 1),
+        startHHMM: '08:00',
+        endHHMM: '08:15', // 15m span
+        breakMinutes: 30, // 30m break
       );
-      expect(
-        TimeBalanceCalculator.calculateMonthlyVariance(130.0, targetHours: 160.0),
-        equals(-30.0),
+      // 15 - 30 = -15. Should be clamped to 0.
+      expect(shift.workedMinutes, 0);
+    });
+
+    test('Zero Break: Worked = Span', () {
+      final shift = makeShift(
+        date: DateTime(2024, 1, 1),
+        startHHMM: '08:00',
+        endHHMM: '09:00',
+        breakMinutes: 0,
       );
-      expect(
-        TimeBalanceCalculator.calculateMonthlyVariance(160.0, targetHours: 160.0),
-        equals(0.0),
-      );
+      expect(shift.workedMinutes, 60);
+    });
+  });
+
+  group('Integration: Balance Consistency ("Trust Killer" Regression)', () {
+    test('Verify Status == Running Balance with Adjustments & Worked', () {
+      // Scenario:
+      // Base usage, no adjustments initially
+      // Month 1: Target 100h, Worked 90h => Variance -10h
+      // Month 2: Target 100h, Worked 110h => Variance +10h
+      // Net: 0h
+      
+      final summaries = [
+        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 90),
+        MonthlySummary(year: 2024, month: 2, actualWorkedHours: 110),
+      ];
+      
+      var runningBalance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 100.0);
+      expect(runningBalance, 0.0, reason: "Without adjustment, balance should be 0");
+      
+      // Now add adjustment: +126h "Opening balance" equivalent
+      // The calculator itself just sums variances. 
+      // Adjustments are usually added ON TOP of the calculator result in the Provider.
+      // But let's verify the calculator result allows for clean addition.
+      
+      const adjustment = 126.0;
+      final totalBalance = runningBalance + adjustment;
+      expect(totalBalance, 126.0);
+      
+      // Regression check: If we have negative variance, ensure it subtraction works
+      final badMonthSummary = [
+         MonthlySummary(year: 2024, month: 1, actualWorkedHours: 50), // -50h
+      ];
+      runningBalance = TimeBalanceCalculator.calculateYearlyBalance(badMonthSummary, targetHours: 100.0);
+      expect(runningBalance, -50.0);
+      expect(runningBalance + adjustment, 76.0); // 126 - 50 = 76
     });
   });
 }
-

@@ -99,6 +99,11 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
           currentDate.month,
         ) / 60.0;
         final currentYearHours = timeProvider.yearActualMinutesToDate(currentDate.year) / 60.0;
+        final monthlyAdjustmentHours = timeProvider.monthlyAdjustmentHours(
+          year: currentDate.year,
+          month: currentDate.month,
+        );
+        final yearlyAdjustmentHours = timeProvider.totalYearAdjustmentHours;
         
         // Get to-date targets
         final monthlyTarget = timeProvider.monthTargetHoursToDate(
@@ -115,10 +120,10 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
         
         // Get credit hours to-date for current year
         final yearlyCredit = timeProvider.yearCreditMinutesToDate(currentDate.year) / 60.0;
+        final openingBalanceHours = timeProvider.openingFlexHours;
         
-        // Calculate YTD yearly balance: actual + credit + adjustments - target
-        final yearlyAdjustments = timeProvider.totalYearAdjustmentHours;
-        final yearlyBalanceToDate = (currentYearHours + yearlyCredit + yearlyAdjustments) - yearlyTarget;
+        // Use provider's running balance (includes credits, adjustments, opening)
+        final yearlyBalanceToDate = timeProvider.yearlyRunningBalance;
         
         // Get recent adjustments
         final adjustmentProvider = context.watch<BalanceAdjustmentProvider>();
@@ -139,6 +144,9 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 currentYear: currentMonth.year,
                 creditHours: monthlyCredit > 0 ? monthlyCredit : null,
                 yearCreditHours: yearlyCredit > 0 ? yearlyCredit : null,
+                monthlyAdjustmentHours: monthlyAdjustmentHours,
+                yearlyAdjustmentHours: yearlyAdjustmentHours,
+                openingBalanceHours: openingBalanceHours,
                 openingBalanceFormatted: timeProvider.hasOpeningBalance 
                     ? timeProvider.openingFlexFormatted 
                     : null,
@@ -150,7 +158,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               const SizedBox(height: 24),
               
               // Adjustments Section
-              _buildAdjustmentsSection(context, recentAdjustments, yearlyAdjustments),
+              _buildAdjustmentsSection(context, recentAdjustments, yearlyAdjustmentHours),
             ],
           ),
         );

@@ -16,6 +16,9 @@ class TimeBalanceDashboard extends StatelessWidget {
   final double? yearCreditHours; // Optional: paid absence credits for year
   final String? openingBalanceFormatted; // e.g., "+12h 30m" for opening balance
   final DateTime? trackingStartDate; // Date from which tracking started
+  final double monthlyAdjustmentHours;
+  final double yearlyAdjustmentHours;
+  final double openingBalanceHours;
 
   const TimeBalanceDashboard({
     super.key,
@@ -26,6 +29,9 @@ class TimeBalanceDashboard extends StatelessWidget {
     required this.targetYearlyHours,
     required this.currentMonthName,
     required this.currentYear,
+    required this.monthlyAdjustmentHours,
+    required this.yearlyAdjustmentHours,
+    required this.openingBalanceHours,
     this.creditHours,
     this.yearCreditHours,
     this.openingBalanceFormatted,
@@ -42,6 +48,7 @@ class TimeBalanceDashboard extends StatelessWidget {
           hoursWorked: currentMonthHours,
           targetHours: targetHours,
           creditHours: creditHours,
+          adjustmentHours: monthlyAdjustmentHours,
         ),
         const SizedBox(height: 16),
         YearlyBalanceCard(
@@ -50,6 +57,8 @@ class TimeBalanceDashboard extends StatelessWidget {
           targetHours: targetYearlyHours,
           balance: yearlyBalance,
           creditHours: yearCreditHours,
+          adjustmentHours: yearlyAdjustmentHours,
+          openingBalanceHours: openingBalanceHours,
           openingBalanceFormatted: openingBalanceFormatted,
           trackingStartDate: trackingStartDate,
         ),
@@ -175,6 +184,7 @@ class MonthlyStatusCard extends StatelessWidget {
   final String monthName;
   final double hoursWorked;
   final double targetHours;
+  final double adjustmentHours;
   final double? creditHours; // Optional: paid absence credits
 
   const MonthlyStatusCard({
@@ -182,6 +192,7 @@ class MonthlyStatusCard extends StatelessWidget {
     required this.monthName,
     required this.hoursWorked,
     required this.targetHours,
+    required this.adjustmentHours,
     this.creditHours,
   });
 
@@ -189,10 +200,11 @@ class MonthlyStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    // Calculate effective hours including credits
-    final effectiveHours = hoursWorked + (creditHours ?? 0.0);
+    // Calculate effective hours including credits and adjustments
+    final effectiveHours =
+        hoursWorked + (creditHours ?? 0.0) + adjustmentHours;
     final variance = effectiveHours - targetHours;
-    final isOverTarget = effectiveHours >= targetHours;
+    final isOverTarget = variance >= 0;
     // Guard against division by zero for future months
     final progress = targetHours > 0 ? (effectiveHours / targetHours) : 0.0;
     final clampedProgress = progress.clamp(0.0, 1.0);
@@ -244,117 +256,16 @@ class MonthlyStatusCard extends StatelessWidget {
                 ),
               ),
             ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  isOverTarget
-                      ? Icons.check_circle
-                      : Icons.warning_amber_rounded,
-                  size: 20,
-                  color: isOverTarget ? positiveColor : warningColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  AppLocalizations.of(context).balance_status(
-                    '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)}',
-                    isOverTarget
-                        ? AppLocalizations.of(context).balance_over
-                        : AppLocalizations.of(context).balance_under,
-                  ),
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: isOverTarget ? positiveColor : warningColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: clampedProgress,
-                minHeight: 12,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  isOverTarget ? positiveColor : warningColor,
+            if (adjustmentHours != 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Includes adjustments: '
+                '${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}h',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              AppLocalizations.of(context)
-                  .balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Card displaying current year's work hours status
-class YearlyStatusCard extends StatelessWidget {
-  final int year;
-  final double hoursWorked;
-  final double targetHours;
-
-  const YearlyStatusCard({
-    super.key,
-    required this.year,
-    required this.hoursWorked,
-    required this.targetHours,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final variance = hoursWorked - targetHours;
-    final isOverTarget = hoursWorked >= targetHours;
-    // Guard against division by zero for future years
-    final progress = targetHours > 0 ? (hoursWorked / targetHours) : 0.0;
-    final clampedProgress = progress.clamp(0.0, 1.0);
-
-    // Theme-aware colors
-    final positiveColor =
-        isDark ? Colors.green.shade300 : Colors.green.shade700;
-    final warningColor = isDark ? Colors.amber.shade300 : Colors.amber.shade700;
-
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppLocalizations.of(context).balance_thisYear(year),
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurfaceVariant,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context).balance_hoursWorked(
-                hoursWorked.toStringAsFixed(1),
-                targetHours.toStringAsFixed(1),
-              ),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            ],
             const SizedBox(height: 8),
             Row(
               children: [
@@ -414,7 +325,9 @@ class YearlyBalanceCard extends StatelessWidget {
   final double targetHours;
   final double balance;
   final double? creditHours; // Optional: paid absence credits
-  final String? openingBalanceFormatted; // e.g., "+12h 30m" or "−3h 15m"
+  final double adjustmentHours;
+  final double openingBalanceHours;
+  final String? openingBalanceFormatted; // e.g., "+12h 30m" or "-3h 15m"
   final DateTime? trackingStartDate; // Date from which tracking started
 
   const YearlyBalanceCard({
@@ -423,6 +336,8 @@ class YearlyBalanceCard extends StatelessWidget {
     required this.hoursWorked,
     required this.targetHours,
     required this.balance,
+    required this.adjustmentHours,
+    required this.openingBalanceHours,
     this.creditHours,
     this.openingBalanceFormatted,
     this.trackingStartDate,
@@ -433,12 +348,12 @@ class YearlyBalanceCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isPositive = balance >= 0;
-    final displayBalance =
-        '${isPositive ? '+' : ''}${balance.toStringAsFixed(1)}h';
-    // Calculate variance including credits: (actual + credit) - target
-    final totalEffectiveHours = hoursWorked + (creditHours ?? 0.0);
+    final displayBalance = '${isPositive ? '+' : ''}${balance.toStringAsFixed(1)}h';
+    // Calculate variance including credits, adjustments, and opening balance
+    final totalEffectiveHours =
+        hoursWorked + (creditHours ?? 0.0) + adjustmentHours + openingBalanceHours;
     final variance = totalEffectiveHours - targetHours;
-    final isOverTarget = totalEffectiveHours >= targetHours;
+    final isOverTarget = variance >= 0;
     // Guard against division by zero for future years
     final progress =
         targetHours > 0 ? (totalEffectiveHours / targetHours) : 0.0;
@@ -498,6 +413,17 @@ class YearlyBalanceCard extends StatelessWidget {
                     .balance_creditedHours(creditHours!.toStringAsFixed(1)),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+            if (adjustmentHours != 0 || openingBalanceHours != 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Includes adjustments${openingBalanceHours != 0 ? " & opening balance" : ""}: '
+                '${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}h'
+                '${openingBalanceHours != 0 ? ' / Opening ${openingBalanceHours >= 0 ? '+' : ''}${openingBalanceHours.toStringAsFixed(1)}h' : ''}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -647,3 +573,9 @@ class YearlyBalanceCard extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+

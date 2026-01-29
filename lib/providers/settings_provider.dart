@@ -9,12 +9,15 @@ class SettingsProvider extends ChangeNotifier {
   bool _isDarkMode = false;
   bool _isFirstLaunch = true;
   bool _isTravelLoggingEnabled = true;
+  bool _isTimeBalanceEnabled = true;
 
   static const String _travelLoggingEnabledKey = 'enableTravelLogging';
+  static const String _timeBalanceEnabledKey = 'enableTimeBalance';
 
   bool get isDarkMode => _isDarkMode;
   bool get isFirstLaunch => _isFirstLaunch;
   bool get isTravelLoggingEnabled => _isTravelLoggingEnabled;
+  bool get isTimeBalanceEnabled => _isTimeBalanceEnabled;
   bool get isInitialized => _isInitialized;
 
   Future<void> init() async {
@@ -24,6 +27,8 @@ class SettingsProvider extends ChangeNotifier {
       _isFirstLaunch = _settingsBox!.get('isFirstLaunch', defaultValue: true);
       _isTravelLoggingEnabled =
           _settingsBox!.get(_travelLoggingEnabledKey, defaultValue: true);
+      _isTimeBalanceEnabled =
+          _settingsBox!.get(_timeBalanceEnabledKey, defaultValue: true);
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
@@ -31,6 +36,7 @@ class SettingsProvider extends ChangeNotifier {
       _isDarkMode = false;
       _isFirstLaunch = true;
       _isTravelLoggingEnabled = true;
+      _isTimeBalanceEnabled = true;
       _isInitialized = true;
       notifyListeners();
     }
@@ -56,6 +62,14 @@ class SettingsProvider extends ChangeNotifier {
     _isTravelLoggingEnabled = value;
     if (_settingsBox != null) {
       await _settingsBox!.put(_travelLoggingEnabledKey, value);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setTimeBalanceEnabled(bool value) async {
+    _isTimeBalanceEnabled = value;
+    if (_settingsBox != null) {
+      await _settingsBox!.put(_timeBalanceEnabledKey, value);
     }
     notifyListeners();
   }

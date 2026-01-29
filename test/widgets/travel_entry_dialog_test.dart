@@ -65,13 +65,6 @@ void main() {
       mockEntryProvider = RecordingEntryProvider();
       mockAuthService = StubSupabaseAuthService();
       capturedEntries = null;
-      final binding = TestWidgetsFlutterBinding.ensureInitialized();
-      binding.window.physicalSizeTestValue = const Size(2400, 2600);
-      binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(() {
-        binding.window.clearPhysicalSizeTestValue();
-        binding.window.clearDevicePixelRatioTestValue();
-      });
       
       mockAuthService.user = User(
         id: 'test-user-id',
@@ -112,6 +105,14 @@ void main() {
     }
 
     testWidgets('TravelEntryDialog saves atomic travel entries via EntryProvider', (WidgetTester tester) async {
+      final view = tester.view;
+      view.physicalSize = const Size(2400, 2600);
+      view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        view.resetPhysicalSize();
+        view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(createTestWidget(
         child: Builder(
           builder: (context) {
@@ -165,6 +166,14 @@ void main() {
     });
 
     testWidgets('WorkEntryDialog saves one Entry per shift via EntryProvider', (WidgetTester tester) async {
+      final view = tester.view;
+      view.physicalSize = const Size(2400, 2600);
+      view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        view.resetPhysicalSize();
+        view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(createTestWidget(
         child: Builder(
           builder: (context) {

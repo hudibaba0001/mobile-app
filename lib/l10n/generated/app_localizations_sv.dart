@@ -299,25 +299,25 @@ class AppLocalizationsSv extends AppLocalizations {
       'Anställningsinställningar återställda till standard';
 
   @override
-  String get contract_employerMode => 'Employer Mode';
+  String get contract_employerMode => 'Arbetsgivarläge';
 
   @override
   String get contract_modeStandard => 'Standard';
 
   @override
-  String get contract_modeStrict => 'Strict';
+  String get contract_modeStrict => 'Strikt';
 
   @override
-  String get contract_modeFlexible => 'Flexible';
+  String get contract_modeFlexible => 'Flexibel';
 
   @override
-  String get contract_modeStrictDesc => 'Strict validation of hours';
+  String get contract_modeStrictDesc => 'Strikt validering av timmar';
 
   @override
-  String get contract_modeFlexibleDesc => 'No warnings for overages';
+  String get contract_modeFlexibleDesc => 'Inga varningar för övertid';
 
   @override
-  String get contract_modeStandardDesc => 'Standard balance tracking';
+  String get contract_modeStandardDesc => 'Standard saldospårning';
 
   @override
   String get balance_title => 'Flexsaldo';

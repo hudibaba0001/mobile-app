@@ -43,10 +43,7 @@ void main() {
       timeProvider = TimeProvider(mockEntryProvider, mockContractProvider);
     });
 
-    Widget createTestWidget({
-      VoidCallback? onExportTimeReport,
-      VoidCallback? onExportTravelReport,
-    }) {
+    Widget createTestWidget() {
       return MaterialApp(
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -62,10 +59,7 @@ void main() {
             ChangeNotifierProvider<TimeProvider>.value(value: timeProvider),
           ],
           child: Scaffold(
-            body: FlexsaldoCard(
-              onExportTimeReport: onExportTimeReport,
-              onExportTravelReport: onExportTravelReport,
-            ),
+            body: const FlexsaldoCard(),
           ),
         ),
       );
@@ -77,43 +71,7 @@ void main() {
 
       // Should show balance title
       expect(find.byIcon(Icons.account_balance_wallet_rounded), findsOneWidget);
-    });
-
-    testWidgets('renders export buttons', (tester) async {
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
-
-      // Should show export buttons
-      expect(find.text('Export Time'), findsOneWidget);
-      expect(find.text('Export Travel'), findsOneWidget);
-    });
-
-    testWidgets('calls onExportTimeReport when Time button tapped', (tester) async {
-      bool timeExportCalled = false;
-
-      await tester.pumpWidget(createTestWidget(
-        onExportTimeReport: () => timeExportCalled = true,
-      ));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Export Time'));
-      await tester.pumpAndSettle();
-
-      expect(timeExportCalled, isTrue);
-    });
-
-    testWidgets('calls onExportTravelReport when Travel button tapped', (tester) async {
-      bool travelExportCalled = false;
-
-      await tester.pumpWidget(createTestWidget(
-        onExportTravelReport: () => travelExportCalled = true,
-      ));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Export Travel'));
-      await tester.pumpAndSettle();
-
-      expect(travelExportCalled, isTrue);
+      expect(find.text('Time Balance'), findsOneWidget);
     });
 
     testWidgets('renders progress bar', (tester) async {

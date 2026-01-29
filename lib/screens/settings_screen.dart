@@ -16,6 +16,7 @@ import '../providers/entry_provider.dart';
 import '../providers/travel_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../models/entry.dart';
+import '../widgets/add_red_day_dialog.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -471,6 +472,42 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _openPersonalRedDayDialog(BuildContext context) async {
+    final t = AppLocalizations.of(context);
+    final authService = context.read<SupabaseAuthService>();
+    final holidayService = context.read<HolidayService>();
+    final userId = authService.currentUser?.id;
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t.error_signInRequired)),
+      );
+      return;
+    }
+
+    final today = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: today,
+      firstDate: DateTime(today.year - 1),
+      lastDate: DateTime(today.year + 2),
+    );
+
+    if (picked == null) return;
+    if (!context.mounted) return;
+
+    final existing = holidayService.getPersonalRedDay(picked);
+    await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AddRedDayDialog(
+        date: picked,
+        holidayService: holidayService,
+        userId: userId,
+        existingRedDay: existing,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
@@ -619,6 +656,15 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _showHolidayInfoDialog(context),
           ),
 
+          // Personal red days
+          ListTile(
+            leading: const Icon(Icons.event_note_outlined),
+            title: Text(t.redDay_addPersonal),
+            subtitle: Text(t.redDay_personalNotice),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _openPersonalRedDayDialog(context),
+          ),
+
           const Divider(),
 
           // First Launch Setting
@@ -640,6 +686,19 @@ class SettingsScreen extends StatelessWidget {
             trailing: Switch(
               value: settingsProvider.isTravelLoggingEnabled,
               onChanged: settingsProvider.setTravelLoggingEnabled,
+            ),
+          ),
+
+          // Time Balance Tracking Setting
+          ListTile(
+            leading: const Icon(Icons.timer_outlined),
+            title: const Text('Time balance tracking'),
+            subtitle: const Text(
+              'Turn off if you only want to log hours without comparing against a target.',
+            ),
+            trailing: Switch(
+              value: settingsProvider.isTimeBalanceEnabled,
+              onChanged: settingsProvider.setTimeBalanceEnabled,
             ),
           ),
 
@@ -705,69 +764,7 @@ class SettingsScreen extends StatelessWidget {
           ),
 
           // Developer Options (only in debug mode)
-          if (kDebugMode) ...[
-            const Divider(),
-            const SizedBox(height: AppSpacing.sm),
-            AppSectionHeader(title: 'Developer Options'),
-            Builder(builder: (context) {
-              final t = AppLocalizations.of(context);
-              return Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.data_array),
-                    title: Text(t.dev_addSampleData),
-                    subtitle: Text(t.dev_addSampleDataDesc),
-                    onTap: () => _addSampleData(context),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.cleaning_services,
-                      color: theme.colorScheme.tertiary,
-                    ),
-                    title: Text(
-                      t.settings_clearDemoData,
-                      style: TextStyle(color: theme.colorScheme.tertiary),
-                    ),
-                    subtitle: Text(
-                      t.settings_clearDemoDataConfirm,
-                      style: TextStyle(color: theme.colorScheme.tertiary),
-                    ),
-                    onTap: () => _clearDemoData(context),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.delete_sweep,
-                      color: theme.colorScheme.error,
-                    ),
-                    title: Text(
-                      t.settings_clearAllData,
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                    subtitle: Text(
-                      t.settings_clearAllDataConfirm,
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                    onTap: () => _clearAllData(context),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.sync,
-                      color: theme.colorScheme.primary,
-                    ),
-                    title: Text(
-                      t.dev_syncToSupabase,
-                      style: TextStyle(color: theme.colorScheme.primary),
-                    ),
-                    subtitle: Text(
-                      t.dev_syncToSupabaseDesc,
-                      style: TextStyle(color: theme.colorScheme.primary),
-                    ),
-                    onTap: () => _syncToSupabase(context),
-                  ),
-                ],
-              );
-            }),
-          ],
+
         ],
       ),
     );

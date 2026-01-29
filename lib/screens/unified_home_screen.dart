@@ -339,9 +339,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Flexsaldo MTD Card (prominent at top)
-            const FlexsaldoCard(),
-            const SizedBox(height: 16),
+            // Flexsaldo / Simple summary
+            if (context.watch<SettingsProvider>().isTimeBalanceEnabled) ...[
+              const FlexsaldoCard(),
+              const SizedBox(height: 16),
+            ],
             
             // Today's Total Card
             Consumer<EntryProvider>(
