@@ -163,7 +163,13 @@ class TimeProvider extends ChangeNotifier {
   
   /// Get the tracking start date from contract provider
   DateTime get trackingStartDate => _contractProvider.trackingStartDate;
-  
+
+  /// Helper: Get date-only (strip time component)
+  DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  /// Helper: Get tracking start date as date-only
+  DateTime get _trackingDateOnly => _dateOnly(_contractProvider.trackingStartDate);
+
   /// Get opening flex balance in hours
   double get openingFlexHours => _contractProvider.openingFlexHours;
   
@@ -175,6 +181,30 @@ class TimeProvider extends ChangeNotifier {
   
   /// Whether a custom tracking start date is set
   bool get hasCustomTrackingStartDate => _contractProvider.hasCustomTrackingStartDate;
+
+  /// Whether tracking started after Jan 1 of the given year
+  /// Used to determine if UI should show "Logged since..." for year card
+  bool isTrackingStartAfterYearStart(int year) {
+    final yearStart = DateTime(year, 1, 1);
+    return _trackingDateOnly.isAfter(yearStart);
+  }
+
+  /// Whether tracking started after the 1st of the given month
+  /// Used to determine if UI should show "Logged since..." for month card
+  bool isTrackingStartAfterMonthStart(int year, int month) {
+    final monthStart = DateTime(year, month, 1);
+    return _trackingDateOnly.isAfter(monthStart);
+  }
+
+  /// Whether tracking start date is within the given year
+  bool isTrackingStartInYear(int year) {
+    return _trackingDateOnly.year == year;
+  }
+
+  /// Whether tracking start date is within the given month
+  bool isTrackingStartInMonth(int year, int month) {
+    return _trackingDateOnly.year == year && _trackingDateOnly.month == month;
+  }
   List<MonthlySummary> get monthlySummaries => _monthlySummaries;
   List<WeeklySummary> get weeklySummaries => _weeklySummaries;
   bool get isLoading => _isLoading;
@@ -678,55 +708,118 @@ class TimeProvider extends ChangeNotifier {
     return adjustmentMinutes / 60.0;
   }
   
-  /// Get total adjustment minutes for the year
-  int get totalYearAdjustmentMinutes {
+  /// Get total adjustment minutes for a specific year
+  int yearAdjustmentMinutesToDate(int year) {
     int total = 0;
+    final yearPrefix = '$year-';
     for (final entry in _monthlyAdjustmentMinutes.entries) {
-      total += entry.value;
+      if (entry.key.startsWith(yearPrefix)) {
+        total += entry.value;
+      }
     }
     return total;
   }
-  
+
   /// Get total adjustment hours for the year
-  double get totalYearAdjustmentHours => totalYearAdjustmentMinutes / 60.0;
+  double get totalYearAdjustmentHours {
+    final year = DateTime.now().year;
+    return yearAdjustmentMinutesToDate(year) / 60.0;
+  }
+
+  /// Get current year net balance in minutes (year-only, NO opening balance)
+  /// Formula: yearWorked - yearTarget + yearAdjustments
+  /// Strictly follows user requirement: worked - target + adjustments
+  int get currentYearNetMinutes {
+    final year = DateTime.now().year;
+    final worked = yearActualMinutesToDate(year);
+    final target = yearTargetMinutesToDate(year);
+    final adjustments = yearAdjustmentMinutesToDate(year);
+    return worked - target + adjustments;
+  }
+
+  /// Get current year net balance in hours (year-only, NO opening balance)
+  /// This is the primary "Year Balance" shown in the UI
+  double get currentYearNetBalance => currentYearNetMinutes / 60.0;
+
+  /// Get contract/lifetime balance in hours (includes opening balance)
+  /// This is the running total since contract start - shown in Details section
+  double get contractBalance => yearlyRunningBalance;
 
   /// Get month target minutes up to today (month-to-date)
   ///
   /// [year] The year
   /// [month] The month (1-12)
-  /// Returns scheduled minutes from 1st of month up to today (or end of month if today is later)
+  /// Returns scheduled minutes from max(1st of month, trackingStartDate) up to today (or end of month if today is later)
+  /// Respects trackingStartDate and uses _getScheduledMinutesForDate for holiday/red day support
   int monthTargetMinutesToDate(int year, int month) {
     final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
-    final start = DateTime(year, month, 1);
+    final periodStart = DateTime(year, month, 1);
     final lastDayOfMonth = DateTime(year, month + 1, 0);
-    final end = DateTime.now().isBefore(lastDayOfMonth)
-        ? DateTime.now()
-        : lastDayOfMonth;
+    final today = _dateOnly(DateTime.now());
 
-    return TargetHoursCalculator.scheduledMinutesInRange(
-      start: start,
-      endInclusive: end,
-      weeklyTargetMinutes: weeklyTargetMinutes,
-      holidays: _holidays,
-    );
+    // Effective start: max(period start, tracking start date)
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+
+    // Effective end: min(today, last day of month)
+    final effectiveEnd = today.isBefore(lastDayOfMonth) ? today : lastDayOfMonth;
+
+    // If effective end is before effective start, return 0
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
+    }
+
+    // Calculate day-by-day using _getScheduledMinutesForDate (respects holidays + personal red days)
+    int totalMinutes = 0;
+    DateTime current = effectiveStart;
+    while (!current.isAfter(effectiveEnd)) {
+      totalMinutes += _getScheduledMinutesForDate(
+        date: current,
+        weeklyTargetMinutes: weeklyTargetMinutes,
+      );
+      current = current.add(const Duration(days: 1));
+    }
+
+    return totalMinutes;
   }
 
   /// Get year target minutes up to today (year-to-date)
   ///
   /// [year] The year
-  /// Returns scheduled minutes from Jan 1 up to today (or Dec 31 if today is later)
+  /// Returns scheduled minutes from max(Jan 1, trackingStartDate) up to today (or Dec 31 if today is later)
+  /// Respects trackingStartDate and uses _getScheduledMinutesForDate for holiday/red day support
   int yearTargetMinutesToDate(int year) {
     final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
-    final start = DateTime(year, 1, 1);
+    final periodStart = DateTime(year, 1, 1);
     final endOfYear = DateTime(year, 12, 31);
-    final end = DateTime.now().isBefore(endOfYear) ? DateTime.now() : endOfYear;
+    final today = _dateOnly(DateTime.now());
 
-    return TargetHoursCalculator.scheduledMinutesInRange(
-      start: start,
-      endInclusive: end,
-      weeklyTargetMinutes: weeklyTargetMinutes,
-      holidays: _holidays,
-    );
+    // Effective start: max(Jan 1, tracking start date)
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+
+    // Effective end: min(today, Dec 31)
+    final effectiveEnd = today.isBefore(endOfYear) ? today : endOfYear;
+
+    // If effective end is before effective start, return 0
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
+    }
+
+    // Calculate day-by-day using _getScheduledMinutesForDate (respects holidays + personal red days)
+    int totalMinutes = 0;
+    DateTime current = effectiveStart;
+    while (!current.isAfter(effectiveEnd)) {
+      totalMinutes += _getScheduledMinutesForDate(
+        date: current,
+        weeklyTargetMinutes: weeklyTargetMinutes,
+      );
+      current = current.add(const Duration(days: 1));
+    }
+
+    return totalMinutes;
   }
 
   /// Get month target hours up to today (for display)
@@ -748,23 +841,34 @@ class TimeProvider extends ChangeNotifier {
   ///
   /// [year] The year
   /// [month] The month (1-12)
+  /// Respects trackingStartDate - only includes entries on/after tracking start
   int monthActualMinutesToDate(int year, int month) {
-    final start = DateTime(year, month, 1);
+    final periodStart = DateTime(year, month, 1);
     final lastDayOfMonth = DateTime(year, month + 1, 0);
-    final end = DateTime.now().isBefore(lastDayOfMonth)
-        ? DateTime.now()
-        : lastDayOfMonth;
+    final today = _dateOnly(DateTime.now());
+
+    // Effective start: max(period start, tracking start date)
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+
+    // Effective end: min(today, last day of month)
+    final effectiveEnd = today.isBefore(lastDayOfMonth) ? today : lastDayOfMonth;
+
+    // If effective end is before effective start, return 0
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
+    }
 
     final allEntries = _entryProvider.entries;
     int totalMinutes = 0;
 
     for (final entry in allEntries) {
-      final entryDate =
-          DateTime(entry.date.year, entry.date.month, entry.date.day);
+      final entryDate = _dateOnly(entry.date);
       if (entryDate.year == year &&
           entryDate.month == month &&
-          !entryDate.isBefore(start) &&
-          !entryDate.isAfter(end)) {
+          !entryDate.isBefore(effectiveStart) &&
+          !entryDate.isAfter(effectiveEnd)) {
         totalMinutes += entry.totalDuration.inMinutes;
       }
     }
@@ -776,21 +880,33 @@ class TimeProvider extends ChangeNotifier {
   ///
   /// [year] The year
   /// [month] The month (1-12)
+  /// Respects trackingStartDate - only includes credits on/after tracking start
   int monthCreditMinutesToDate(int year, int month) {
     final absenceProvider = _absenceProvider;
     if (absenceProvider == null) return 0;
 
-    final start = DateTime(year, month, 1);
+    final periodStart = DateTime(year, month, 1);
     final lastDayOfMonth = DateTime(year, month + 1, 0);
-    final end = DateTime.now().isBefore(lastDayOfMonth)
-        ? DateTime.now()
-        : lastDayOfMonth;
+    final today = _dateOnly(DateTime.now());
+
+    // Effective start: max(period start, tracking start date)
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+
+    // Effective end: min(today, last day of month)
+    final effectiveEnd = today.isBefore(lastDayOfMonth) ? today : lastDayOfMonth;
+
+    // If effective end is before effective start, return 0
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
+    }
 
     final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
     int totalCredit = 0;
 
-    DateTime current = start;
-    while (!current.isAfter(end)) {
+    DateTime current = effectiveStart;
+    while (!current.isAfter(effectiveEnd)) {
       final scheduled = _getScheduledMinutesForDate(
         date: current,
         weeklyTargetMinutes: weeklyTargetMinutes,
@@ -806,20 +922,33 @@ class TimeProvider extends ChangeNotifier {
   /// Get year actual minutes up to today
   ///
   /// [year] The year
+  /// Respects trackingStartDate - only includes entries on/after tracking start
   int yearActualMinutesToDate(int year) {
-    final start = DateTime(year, 1, 1);
+    final periodStart = DateTime(year, 1, 1);
     final endOfYear = DateTime(year, 12, 31);
-    final end = DateTime.now().isBefore(endOfYear) ? DateTime.now() : endOfYear;
+    final today = _dateOnly(DateTime.now());
+
+    // Effective start: max(Jan 1, tracking start date)
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+
+    // Effective end: min(today, Dec 31)
+    final effectiveEnd = today.isBefore(endOfYear) ? today : endOfYear;
+
+    // If effective end is before effective start, return 0
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
+    }
 
     final allEntries = _entryProvider.entries;
     int totalMinutes = 0;
 
     for (final entry in allEntries) {
-      final entryDate =
-          DateTime(entry.date.year, entry.date.month, entry.date.day);
+      final entryDate = _dateOnly(entry.date);
       if (entryDate.year == year &&
-          !entryDate.isBefore(start) &&
-          !entryDate.isAfter(end)) {
+          !entryDate.isBefore(effectiveStart) &&
+          !entryDate.isAfter(effectiveEnd)) {
         totalMinutes += entry.totalDuration.inMinutes;
       }
     }
@@ -830,19 +959,33 @@ class TimeProvider extends ChangeNotifier {
   /// Get year credit minutes up to today
   ///
   /// [year] The year
+  /// Respects trackingStartDate - only includes credits on/after tracking start
   int yearCreditMinutesToDate(int year) {
     final absenceProvider = _absenceProvider;
     if (absenceProvider == null) return 0;
 
-    final start = DateTime(year, 1, 1);
+    final periodStart = DateTime(year, 1, 1);
     final endOfYear = DateTime(year, 12, 31);
-    final end = DateTime.now().isBefore(endOfYear) ? DateTime.now() : endOfYear;
+    final today = _dateOnly(DateTime.now());
+
+    // Effective start: max(Jan 1, tracking start date)
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+
+    // Effective end: min(today, Dec 31)
+    final effectiveEnd = today.isBefore(endOfYear) ? today : endOfYear;
+
+    // If effective end is before effective start, return 0
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
+    }
 
     final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
     int totalCredit = 0;
 
-    DateTime current = start;
-    while (!current.isAfter(end)) {
+    DateTime current = effectiveStart;
+    while (!current.isAfter(effectiveEnd)) {
       final scheduled = _getScheduledMinutesForDate(
         date: current,
         weeklyTargetMinutes: weeklyTargetMinutes,

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../widgets/app_scaffold.dart';
 import '../screens/login_screen.dart';
-import '../screens/create_account_screen.dart';
 import '../screens/forgot_password_screen.dart';
 import '../screens/unified_home_screen.dart';
 import '../screens/settings_screen.dart';
@@ -24,7 +23,7 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   static const String loginPath = '/login';
   static const String forgotPasswordPath = '/forgot-password';
-  static const String createAccountPath = '/signup';
+
 
   static const String homePath = '/';
   static const String settingsPath = '/settings';
@@ -41,7 +40,7 @@ class AppRouter {
 
   static const String loginName = 'login';
   static const String forgotPasswordName = 'forgot-password';
-  static const String createAccountName = 'signup';
+
 
   static const String homeName = 'home';
   static const String settingsName = 'settings';
@@ -65,7 +64,6 @@ class AppRouter {
       final isInitialized = authService.isInitialized;
       final isLoggingIn = state.matchedLocation == loginPath;
       final isForgotPassword = state.matchedLocation == forgotPasswordPath;
-      final isSignup = state.matchedLocation == createAccountPath;
       final isAnalyticsRoute = state.matchedLocation == analyticsPath;
 
       // Wait for AuthService to be initialized
@@ -74,7 +72,7 @@ class AppRouter {
       }
 
       // Allow access to auth-related screens without authentication
-      if (isForgotPassword || isSignup) {
+      if (isForgotPassword) {
         return null;
       }
 
@@ -117,13 +115,6 @@ class AppRouter {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
       
-      // Signup (outside shell)
-      GoRoute(
-        path: createAccountPath,
-        name: createAccountName,
-        builder: (context, state) => const CreateAccountScreen(),
-      ),
-
       // Admin analytics (outside shell)
       GoRoute(
         path: analyticsPath,

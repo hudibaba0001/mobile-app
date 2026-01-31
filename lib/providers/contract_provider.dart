@@ -2,166 +2,201 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/profile_service.dart';
 
 /// Provider for managing contract settings and work hour calculations
-/// 
+///
 /// Handles contract percentage and full-time hours settings, with automatic
-/// calculation of allowed work hours based on contract terms. All settings
-/// are persisted to SharedPreferences for consistency across app sessions.
-/// 
+/// calculation of allowed work hours based on contract terms. Settings are
+/// persisted to both Supabase (cloud) and SharedPreferences (local cache).
+///
 /// Also manages the "starting point" for balance tracking:
 /// - trackingStartDate: Date from which balances are calculated
 /// - openingFlexMinutes: Opening flex/time bank balance as of start date
 class ContractProvider extends ChangeNotifier {
+  // Service for Supabase persistence
+  final ProfileService _profileService = ProfileService();
+
   // Private fields
   int _contractPercent = 100; // Default to 100% (full-time)
   int _fullTimeHours = 40; // Default to 40 hours per week
-  
+
   // Starting balance fields (V1: start date = opening balance date)
   DateTime? _trackingStartDate; // Date from which to calculate balances
   int _openingFlexMinutes = 0; // Signed: positive = credit, negative = deficit
-  
+
   // Employer mode (V1: affects validation strictness, not calculations yet)
   String _employerMode = 'standard'; // 'standard', 'strict', 'flexible'
-  
-  // SharedPreferences keys
+
+  // SharedPreferences keys (local cache)
   static const String _contractPercentKey = 'contract_percent';
   static const String _fullTimeHoursKey = 'full_time_hours';
   static const String _trackingStartDateKey = 'tracking_start_date';
   static const String _openingFlexMinutesKey = 'opening_flex_minutes';
   static const String _employerModeKey = 'employer_mode';
-  
+
   // Getters
-  
+
   /// Current contract percentage (0-100)
-  /// 
-  /// Represents what percentage of full-time the contract covers.
-  /// For example, 50 means a half-time contract, 100 means full-time.
   int get contractPercent => _contractPercent;
-  
+
   /// Full-time hours per week
-  /// 
-  /// The number of hours considered full-time work per week.
-  /// This is used as the base for calculating allowed hours.
   int get fullTimeHours => _fullTimeHours;
-  
+
   /// Date from which to start tracking balances
-  /// 
-  /// Entries before this date are excluded from balance calculations.
   /// Defaults to Jan 1 of current year if not set.
   DateTime get trackingStartDate => _trackingStartDate ?? DateTime(DateTime.now().year, 1, 1);
-  
+
   /// Whether a custom tracking start date has been set
   bool get hasCustomTrackingStartDate => _trackingStartDate != null;
-  
+
   /// Opening flex/time bank balance in minutes (signed)
-  /// 
-  /// Positive = credit (ahead), Negative = deficit (behind)
-  /// This is added once at the start of the running total.
   int get openingFlexMinutes => _openingFlexMinutes;
-  
+
   /// Opening flex balance in hours (for display)
   double get openingFlexHours => _openingFlexMinutes / 60.0;
-  
+
   /// Formatted opening flex balance string (e.g., "+12h 30m" or "−3h 15m")
   String get openingFlexFormatted {
     final isNegative = _openingFlexMinutes < 0;
     final absMinutes = _openingFlexMinutes.abs();
     final hours = absMinutes ~/ 60;
     final mins = absMinutes % 60;
-    
+
     final sign = isNegative ? '−' : '+';
     if (mins == 0) {
       return '$sign${hours}h';
     }
     return '$sign${hours}h ${mins}m';
   }
-  
+
   /// Whether there is a non-zero opening balance
   bool get hasOpeningBalance => _openingFlexMinutes != 0;
-  
+
   /// Calculated allowed work hours per week based on contract percentage
-  /// 
-  /// This is computed as: (fullTimeHours * contractPercent / 100)
-  /// For example: 40 hours * 75% = 30 allowed hours per week
-  /// 
-  /// NOTE: This rounds to int for backward compatibility. Use weeklyTargetMinutes
-  /// for precise calculations without rounding drift.
   int get allowedHours => (fullTimeHours * contractPercent / 100).round();
 
   /// Calculated allowed work minutes per week based on contract percentage
-  /// 
-  /// This is computed as: round(fullTimeHours * 60 * contractPercent / 100)
-  /// For example: 40 hours * 60 * 75% / 100 = 1800 minutes per week
-  /// 
-  /// This is the primary value for calculations to avoid rounding drift.
   int get weeklyTargetMinutes {
     return (fullTimeHours * 60.0 * contractPercent / 100.0).round();
   }
 
   /// Weekly target hours (for display/backward compatibility)
-  /// 
-  /// Returns weeklyTargetMinutes / 60.0
   double get weeklyTargetHours => weeklyTargetMinutes / 60.0;
-  
+
+  /// Employer mode setting
+  String get employerMode => _employerMode;
+
+  // Initialization methods
+
+  /// Initialize the provider by loading settings from local cache
+  /// Call loadFromSupabase() after user is authenticated to sync cloud settings
+  Future<void> init() async {
+    await _loadFromLocalCache();
+  }
+
+  /// Load settings from Supabase (call when user is authenticated)
+  /// This will overwrite local settings with cloud settings if available
+  Future<void> loadFromSupabase() async {
+    try {
+      final profile = await _profileService.fetchProfile();
+      if (profile == null) {
+        debugPrint('ContractProvider: No profile found in Supabase, using local/default settings');
+        return;
+      }
+
+      debugPrint('ContractProvider: Loading settings from Supabase...');
+
+      // Update local state from profile
+      _contractPercent = profile.contractPercent;
+      _fullTimeHours = profile.fullTimeHours;
+      _trackingStartDate = profile.trackingStartDate;
+      _openingFlexMinutes = profile.openingFlexMinutes;
+      _employerMode = profile.employerMode;
+
+      debugPrint('ContractProvider: ✅ Loaded from Supabase:');
+      debugPrint('  contractPercent: $_contractPercent%');
+      debugPrint('  fullTimeHours: $_fullTimeHours');
+      debugPrint('  trackingStartDate: $_trackingStartDate');
+      debugPrint('  openingFlexMinutes: $_openingFlexMinutes ($openingFlexFormatted)');
+      debugPrint('  employerMode: $_employerMode');
+
+      // Update local cache to match
+      await _saveAllToLocalCache();
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('ContractProvider: Error loading from Supabase: $e');
+      debugPrint('ContractProvider: Using local/default settings');
+    }
+  }
+
+  /// Save all current settings to Supabase
+  Future<void> saveToSupabase() async {
+    try {
+      final result = await _profileService.updateContractSettings(
+        contractPercent: _contractPercent,
+        fullTimeHours: _fullTimeHours,
+        trackingStartDate: _trackingStartDate,
+        openingFlexMinutes: _openingFlexMinutes,
+        employerMode: _employerMode,
+      );
+
+      if (result != null) {
+        debugPrint('ContractProvider: ✅ All settings saved to Supabase');
+      } else {
+        debugPrint('ContractProvider: ⚠️ Failed to save to Supabase (user may not be authenticated)');
+      }
+    } catch (e) {
+      debugPrint('ContractProvider: Error saving to Supabase: $e');
+    }
+  }
+
   // Setters with validation and persistence
-  
-  /// Set the contract percentage and persist to SharedPreferences
-  /// 
-  /// [percent] Contract percentage (must be between 0 and 100)
-  /// Throws ArgumentError if percent is outside valid range
+
+  /// Set the contract percentage and persist
   Future<void> setContractPercent(int percent) async {
     if (percent < 0 || percent > 100) {
       throw ArgumentError('Contract percentage must be between 0 and 100');
     }
-    
+
     if (_contractPercent != percent) {
       _contractPercent = percent;
       await _saveContractPercent();
       notifyListeners();
     }
   }
-  
-  /// Set the full-time hours and persist to SharedPreferences
-  /// 
-  /// [hours] Full-time hours per week (must be positive)
-  /// Throws ArgumentError if hours is not positive
+
+  /// Set the full-time hours and persist
   Future<void> setFullTimeHours(int hours) async {
     if (hours <= 0) {
       throw ArgumentError('Full-time hours must be positive');
     }
-    
+
     if (_fullTimeHours != hours) {
       _fullTimeHours = hours;
       await _saveFullTimeHours();
       notifyListeners();
     }
   }
-  
-  /// Set the tracking start date and persist to SharedPreferences
-  /// 
-  /// [date] The date from which to start tracking balances
-  /// Cannot be in the far future (max 1 year ahead)
+
+  /// Set the tracking start date and persist
   Future<void> setTrackingStartDate(DateTime date) async {
-    // Normalize to date-only (no time component)
     final normalized = DateTime(date.year, date.month, date.day);
-    
-    // Validation: cannot be more than 1 year in future
+
     final maxDate = DateTime.now().add(const Duration(days: 365));
     if (normalized.isAfter(maxDate)) {
       throw ArgumentError('Start date cannot be more than 1 year in the future');
     }
-    
+
     if (_trackingStartDate != normalized) {
       _trackingStartDate = normalized;
       await _saveTrackingStartDate();
       notifyListeners();
     }
   }
-  
+
   /// Set the opening flex balance in minutes (signed)
-  /// 
-  /// [minutes] Opening balance in minutes (positive = credit, negative = deficit)
   Future<void> setOpeningFlexMinutes(int minutes) async {
     if (_openingFlexMinutes != minutes) {
       _openingFlexMinutes = minutes;
@@ -169,12 +204,8 @@ class ContractProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   /// Set opening flex balance from hours and minutes with sign
-  /// 
-  /// [hours] Hours component (always positive)
-  /// [minutes] Minutes component (always positive, 0-59)
-  /// [isDeficit] If true, the balance is negative (deficit)
   Future<void> setOpeningFlexFromComponents({
     required int hours,
     required int minutes,
@@ -186,121 +217,11 @@ class ContractProvider extends ChangeNotifier {
     if (hours < 0) {
       throw ArgumentError('Hours must be non-negative');
     }
-    
+
     final totalMinutes = (hours * 60) + minutes;
     final signedMinutes = isDeficit ? -totalMinutes : totalMinutes;
     await setOpeningFlexMinutes(signedMinutes);
   }
-  
-  // Initialization and persistence methods
-  
-  /// Initialize the provider by loading all settings from SharedPreferences
-  /// 
-  /// Should be called once when the provider is created
-  Future<void> init() async {
-    await _loadAllSettings();
-  }
-  
-  /// Load all contract settings from SharedPreferences
-  Future<void> _loadAllSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    
-    // Load contract percentage with validation
-    final savedPercent = prefs.getInt(_contractPercentKey);
-    if (savedPercent != null && savedPercent >= 0 && savedPercent <= 100) {
-      _contractPercent = savedPercent;
-      debugPrint('ContractProvider: Loaded contract percentage: $_contractPercent%');
-    } else {
-      debugPrint('ContractProvider: Using default contract percentage: $_contractPercent%');
-    }
-    
-    // Load full-time hours with validation
-    final savedHours = prefs.getInt(_fullTimeHoursKey);
-    if (savedHours != null && savedHours > 0) {
-      _fullTimeHours = savedHours;
-      debugPrint('ContractProvider: Loaded full-time hours: $_fullTimeHours');
-    } else {
-      debugPrint('ContractProvider: Using default full-time hours: $_fullTimeHours');
-    }
-    
-    // Load tracking start date (stored as YYYY-MM-DD string)
-    final savedStartDate = prefs.getString(_trackingStartDateKey);
-    if (savedStartDate != null) {
-      try {
-        final parts = savedStartDate.split('-');
-        if (parts.length == 3) {
-          _trackingStartDate = DateTime(
-            int.parse(parts[0]),
-            int.parse(parts[1]),
-            int.parse(parts[2]),
-          );
-          debugPrint('ContractProvider: Loaded tracking start date: $_trackingStartDate');
-        }
-      } catch (e) {
-        debugPrint('ContractProvider: Error parsing tracking start date: $e');
-        _trackingStartDate = null;
-      }
-    } else {
-      debugPrint('ContractProvider: Using default tracking start date (Jan 1 of current year)');
-    }
-    
-    // Load opening flex balance (signed minutes)
-    final savedOpeningFlex = prefs.getInt(_openingFlexMinutesKey);
-    if (savedOpeningFlex != null) {
-      _openingFlexMinutes = savedOpeningFlex;
-      debugPrint('ContractProvider: Loaded opening flex: $_openingFlexMinutes minutes ($openingFlexFormatted)');
-    } else {
-      debugPrint('ContractProvider: Using default opening flex: 0');
-    }
-
-    // Load employer mode
-    final savedMode = prefs.getString(_employerModeKey);
-    if (savedMode != null && ['standard', 'strict', 'flexible'].contains(savedMode)) {
-      _employerMode = savedMode;
-      debugPrint('ContractProvider: Loaded employer mode: $_employerMode');
-    } else {
-      debugPrint('ContractProvider: Using default employer mode: standard');
-    }
-    
-    debugPrint('ContractProvider: Calculated allowed hours: $allowedHours ($_fullTimeHours * $_contractPercent% / 100)');
-    
-    notifyListeners();
-  }
-  
-  /// Save contract percentage to SharedPreferences
-  Future<void> _saveContractPercent() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_contractPercentKey, _contractPercent);
-  }
-  
-  /// Save full-time hours to SharedPreferences
-  Future<void> _saveFullTimeHours() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_fullTimeHoursKey, _fullTimeHours);
-  }
-  
-  /// Save tracking start date to SharedPreferences (as YYYY-MM-DD string)
-  Future<void> _saveTrackingStartDate() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (_trackingStartDate != null) {
-      final dateStr = '${_trackingStartDate!.year}-'
-          '${_trackingStartDate!.month.toString().padLeft(2, '0')}-'
-          '${_trackingStartDate!.day.toString().padLeft(2, '0')}';
-      await prefs.setString(_trackingStartDateKey, dateStr);
-    } else {
-      await prefs.remove(_trackingStartDateKey);
-    }
-  }
-  
-  /// Save opening flex minutes to SharedPreferences
-  Future<void> _saveOpeningFlexMinutes() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_openingFlexMinutesKey, _openingFlexMinutes);
-  }
-  
-  /// Employer mode setting 
-  /// 'standard' (default), 'strict' (warnings), 'flexible' (no warnings)
-  String get employerMode => _employerMode;
 
   /// Set employer mode and persist
   Future<void> setEmployerMode(String mode) async {
@@ -311,67 +232,220 @@ class ContractProvider extends ChangeNotifier {
     }
   }
 
-  /// Save employer mode to SharedPreferences
+  /// Validate and update all contract settings at once
+  Future<void> updateContractSettings(int percent, int hours) async {
+    debugPrint('ContractProvider: updateContractSettings called with percent=$percent, hours=$hours');
+    debugPrint('ContractProvider: Current values: percent=$_contractPercent, hours=$_fullTimeHours');
+
+    if (percent < 0 || percent > 100) {
+      throw ArgumentError('Contract percentage must be between 0 and 100');
+    }
+    if (hours <= 0) {
+      throw ArgumentError('Full-time hours must be positive');
+    }
+
+    bool changed = false;
+
+    if (_contractPercent != percent) {
+      debugPrint('ContractProvider: Percent changed from $_contractPercent to $percent');
+      _contractPercent = percent;
+      changed = true;
+    }
+
+    if (_fullTimeHours != hours) {
+      debugPrint('ContractProvider: Hours changed from $_fullTimeHours to $hours');
+      _fullTimeHours = hours;
+      changed = true;
+    }
+
+    if (changed) {
+      // Save to both local cache and Supabase
+      await _saveAllToLocalCache();
+      await saveToSupabase();
+      debugPrint('ContractProvider: Settings updated and saved');
+      notifyListeners();
+    }
+  }
+
+  /// Reset contract settings to default values
+  Future<void> resetToDefaults() async {
+    _contractPercent = 100;
+    _fullTimeHours = 40;
+    _trackingStartDate = null;
+    _openingFlexMinutes = 0;
+    _employerMode = 'standard';
+
+    // Clear from local cache
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_contractPercentKey);
+    await prefs.remove(_fullTimeHoursKey);
+    await prefs.remove(_trackingStartDateKey);
+    await prefs.remove(_openingFlexMinutesKey);
+    await prefs.remove(_employerModeKey);
+
+    // Save defaults to Supabase
+    await saveToSupabase();
+
+    notifyListeners();
+  }
+
+  // Private persistence methods
+
+  /// Load settings from local SharedPreferences cache
+  Future<void> _loadFromLocalCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      debugPrint('ContractProvider: Loading from local cache...');
+
+      // Load contract percentage
+      final savedPercent = prefs.getInt(_contractPercentKey);
+      if (savedPercent != null && savedPercent >= 0 && savedPercent <= 100) {
+        _contractPercent = savedPercent;
+      }
+
+      // Load full-time hours
+      final savedHours = prefs.getInt(_fullTimeHoursKey);
+      if (savedHours != null && savedHours > 0) {
+        _fullTimeHours = savedHours;
+      }
+
+      // Load tracking start date
+      final savedStartDate = prefs.getString(_trackingStartDateKey);
+      if (savedStartDate != null) {
+        try {
+          final parts = savedStartDate.split('-');
+          if (parts.length == 3) {
+            _trackingStartDate = DateTime(
+              int.parse(parts[0]),
+              int.parse(parts[1]),
+              int.parse(parts[2]),
+            );
+          }
+        } catch (e) {
+          _trackingStartDate = null;
+        }
+      }
+
+      // Load opening flex balance
+      final savedOpeningFlex = prefs.getInt(_openingFlexMinutesKey);
+      if (savedOpeningFlex != null) {
+        _openingFlexMinutes = savedOpeningFlex;
+      }
+
+      // Load employer mode
+      final savedMode = prefs.getString(_employerModeKey);
+      if (savedMode != null && ['standard', 'strict', 'flexible'].contains(savedMode)) {
+        _employerMode = savedMode;
+      }
+
+      debugPrint('ContractProvider: Loaded from local cache:');
+      debugPrint('  contractPercent: $_contractPercent%');
+      debugPrint('  fullTimeHours: $_fullTimeHours');
+      debugPrint('  trackingStartDate: $_trackingStartDate');
+      debugPrint('  openingFlexMinutes: $_openingFlexMinutes');
+      debugPrint('  employerMode: $_employerMode');
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('ContractProvider: Error loading from local cache: $e');
+      notifyListeners();
+    }
+  }
+
+  /// Save all settings to local SharedPreferences cache
+  Future<void> _saveAllToLocalCache() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setInt(_contractPercentKey, _contractPercent);
+    await prefs.setInt(_fullTimeHoursKey, _fullTimeHours);
+
+    if (_trackingStartDate != null) {
+      final dateStr = '${_trackingStartDate!.year}-'
+          '${_trackingStartDate!.month.toString().padLeft(2, '0')}-'
+          '${_trackingStartDate!.day.toString().padLeft(2, '0')}';
+      await prefs.setString(_trackingStartDateKey, dateStr);
+    } else {
+      await prefs.remove(_trackingStartDateKey);
+    }
+
+    await prefs.setInt(_openingFlexMinutesKey, _openingFlexMinutes);
+    await prefs.setString(_employerModeKey, _employerMode);
+
+    debugPrint('ContractProvider: Saved all settings to local cache');
+  }
+
+  /// Save contract percentage (local + Supabase)
+  Future<void> _saveContractPercent() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_contractPercentKey, _contractPercent);
+    debugPrint('ContractProvider: SAVED contract percentage: $_contractPercent%');
+
+    // Also save to Supabase
+    await saveToSupabase();
+  }
+
+  /// Save full-time hours (local + Supabase)
+  Future<void> _saveFullTimeHours() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_fullTimeHoursKey, _fullTimeHours);
+    debugPrint('ContractProvider: SAVED full-time hours: $_fullTimeHours');
+
+    await saveToSupabase();
+  }
+
+  /// Save tracking start date (local + Supabase)
+  Future<void> _saveTrackingStartDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_trackingStartDate != null) {
+      final dateStr = '${_trackingStartDate!.year}-'
+          '${_trackingStartDate!.month.toString().padLeft(2, '0')}-'
+          '${_trackingStartDate!.day.toString().padLeft(2, '0')}';
+      await prefs.setString(_trackingStartDateKey, dateStr);
+      debugPrint('ContractProvider: SAVED tracking start date: $dateStr');
+    } else {
+      await prefs.remove(_trackingStartDateKey);
+    }
+
+    await saveToSupabase();
+  }
+
+  /// Save opening flex minutes (local + Supabase)
+  Future<void> _saveOpeningFlexMinutes() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_openingFlexMinutesKey, _openingFlexMinutes);
+    debugPrint('ContractProvider: SAVED opening flex minutes: $_openingFlexMinutes');
+
+    await saveToSupabase();
+  }
+
+  /// Save employer mode (local + Supabase)
   Future<void> _saveEmployerMode() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_employerModeKey, _employerMode);
+    debugPrint('ContractProvider: SAVED employer mode: $_employerMode');
+
+    await saveToSupabase();
   }
 
   // Utility methods
-  
-  /// Get contract percentage as a decimal (0.0 to 1.0)
-  /// 
-  /// Useful for calculations where a decimal representation is needed.
-  /// For example, 75% becomes 0.75
+
   double get contractPercentAsDecimal => _contractPercent / 100.0;
-  
-  /// Get formatted contract percentage string
-  /// 
-  /// Returns a user-friendly string like "75%" or "100%"
   String get contractPercentString => '$_contractPercent%';
-  
-  /// Get formatted allowed hours string
-  /// 
-  /// Returns a user-friendly string like "30 hours/week" or "40 hours/week"
   String get allowedHoursString => '$allowedHours hours/week';
-  
-  /// Get formatted full-time hours string
-  /// 
-  /// Returns a user-friendly string like "40 hours/week"
   String get fullTimeHoursString => '$_fullTimeHours hours/week';
-  
-  /// Check if this is a full-time contract (100%)
   bool get isFullTime => _contractPercent == 100;
-  
-  /// Check if this is a part-time contract (less than 100%)
   bool get isPartTime => _contractPercent < 100;
-  
-  /// Calculate daily allowed hours based on a 5-day work week
-  /// 
-  /// Returns the number of hours allowed per day assuming 5 working days per week.
-  /// For example, 40 hours/week = 8 hours/day
   double get allowedHoursPerDay => allowedHours / 5.0;
-  
-  /// Calculate how many hours over/under the allowed amount for a given week
-  /// 
-  /// [actualHours] The actual hours worked in a week
-  /// Returns positive number if over allowed hours, negative if under
+
   int calculateHoursDifference(int actualHours) {
     return actualHours - allowedHours;
   }
-  
-  /// Check if given hours exceed the allowed amount
-  /// 
-  /// [actualHours] The actual hours to check
-  /// Returns true if the hours exceed the contract allowance
+
   bool isOverAllowedHours(int actualHours) {
     return actualHours > allowedHours;
   }
-  
-  /// Get a warning message if hours exceed allowance
-  /// 
-  /// [actualHours] The actual hours worked
-  /// Returns a warning message if over allowance, null otherwise
+
   String? getOverageWarning(int actualHours) {
     if (isOverAllowedHours(actualHours)) {
       final overage = calculateHoursDifference(actualHours);
@@ -379,66 +453,7 @@ class ContractProvider extends ChangeNotifier {
     }
     return null;
   }
-  
-  /// Reset contract settings to default values
-  /// 
-  /// Resets to 100% contract with 40 hours/week full-time
-  /// Also resets starting balance to Jan 1 of current year with 0 opening balance
-  Future<void> resetToDefaults() async {
-    _contractPercent = 100;
-    _fullTimeHours = 40;
-    _trackingStartDate = null; // Will default to Jan 1 of current year
-    _openingFlexMinutes = 0;
-    _employerMode = 'standard';
-    
-    // Clear from SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_contractPercentKey);
-    await prefs.remove(_fullTimeHoursKey);
-    await prefs.remove(_trackingStartDateKey);
-    await prefs.remove(_openingFlexMinutesKey);
-    await prefs.remove(_employerModeKey);
-    
-    notifyListeners();
-  }
-  
-  /// Validate and update both contract settings at once
-  /// 
-  /// [percent] New contract percentage (0-100)
-  /// [hours] New full-time hours (must be positive)
-  /// 
-  /// This is useful when updating both values from a form to avoid
-  /// multiple notifications and ensure both values are valid together.
-  Future<void> updateContractSettings(int percent, int hours) async {
-    if (percent < 0 || percent > 100) {
-      throw ArgumentError('Contract percentage must be between 0 and 100');
-    }
-    if (hours <= 0) {
-      throw ArgumentError('Full-time hours must be positive');
-    }
-    
-    bool changed = false;
-    
-    if (_contractPercent != percent) {
-      _contractPercent = percent;
-      await _saveContractPercent();
-      changed = true;
-    }
-    
-    if (_fullTimeHours != hours) {
-      _fullTimeHours = hours;
-      await _saveFullTimeHours();
-      changed = true;
-    }
-    
-    if (changed) {
-      notifyListeners();
-    }
-  }
-  
-  /// Get contract summary for display purposes
-  /// 
-  /// Returns a map with formatted contract information suitable for UI display
+
   Map<String, String> getContractSummary() {
     return {
       'contractPercent': contractPercentString,
@@ -447,5 +462,26 @@ class ContractProvider extends ChangeNotifier {
       'dailyHours': '${allowedHoursPerDay.toStringAsFixed(1)} hours/day',
       'contractType': isFullTime ? 'Full-time' : 'Part-time',
     };
+  }
+
+  /// Debug method to inspect current state
+  Future<void> debugInspectPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    debugPrint('=== ContractProvider Debug Inspection ===');
+    debugPrint('In-memory state:');
+    debugPrint('  _contractPercent: $_contractPercent');
+    debugPrint('  _fullTimeHours: $_fullTimeHours');
+    debugPrint('  _trackingStartDate: $_trackingStartDate');
+    debugPrint('  _openingFlexMinutes: $_openingFlexMinutes');
+    debugPrint('  _employerMode: $_employerMode');
+    debugPrint('');
+    debugPrint('Local cache (SharedPreferences):');
+    debugPrint('  $_contractPercentKey: ${prefs.getInt(_contractPercentKey)}');
+    debugPrint('  $_fullTimeHoursKey: ${prefs.getInt(_fullTimeHoursKey)}');
+    debugPrint('  $_trackingStartDateKey: ${prefs.getString(_trackingStartDateKey)}');
+    debugPrint('  $_openingFlexMinutesKey: ${prefs.getInt(_openingFlexMinutesKey)}');
+    debugPrint('  $_employerModeKey: ${prefs.getString(_employerModeKey)}');
+    debugPrint('=========================================');
   }
 }

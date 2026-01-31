@@ -40,6 +40,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
     // Initialize controllers with current provider values
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final contractProvider = context.read<ContractProvider>();
+
       _contractPercentController.text = contractProvider.contractPercent.toString();
       _fullTimeHoursController.text = contractProvider.fullTimeHours.toString();
       
@@ -152,7 +153,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       final totalMinutes = (hours * 60) + minutes;
       final signedMinutes = _isDeficit ? -totalMinutes : totalMinutes;
 
-      // Update provider (waits for persistence)
+      // Update provider (saves to both local cache and Supabase)
       await contractProvider.updateContractSettings(contractPercent, fullTimeHours);
       await contractProvider.setTrackingStartDate(_trackingStartDate);
       await contractProvider.setOpeningFlexMinutes(signedMinutes);

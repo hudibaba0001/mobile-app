@@ -87,6 +87,11 @@ void main() async {
   final contractProvider = ContractProvider();
   await contractProvider.init();
 
+  // If user is already authenticated, load contract settings from Supabase
+  if (userId != null) {
+    await contractProvider.loadFromSupabase();
+  }
+
   final settingsProvider = SettingsProvider();
   await settingsProvider.init();
 

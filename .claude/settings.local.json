@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze:*)",
+      "Bash(flutter gen-l10n:*)",
+      "Bash(flutter test)",
+      "Bash(flutter test:*)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ],
+  "enableAllProjectMcpServers": true
+}

@@ -373,7 +373,34 @@ class AppLocalizationsSv extends AppLocalizations {
   String get balance_inCredit => 'Du har kredit';
 
   @override
-  String get balance_inDebt => 'Du har flexskuld';
+  String get balance_underTarget => 'Under mål';
+
+  @override
+  String get balance_overTarget => 'Över mål';
+
+  @override
+  String balance_yearBalance(String year) {
+    return 'Årsbalans ($year)';
+  }
+
+  @override
+  String balance_resetsOn(String date) {
+    return 'Nollställs $date';
+  }
+
+  @override
+  String balance_contractBalance(String date) {
+    return 'Kontraktssaldo (sedan $date)';
+  }
+
+  @override
+  String get balance_contractBalanceNoDate => 'Kontraktssaldo (sedan start)';
+
+  @override
+  String get balance_details => 'Detaljer';
+
+  @override
+  String get balance_informationalOnly => 'Endast informativt';
 
   @override
   String balance_includesOpening(String balance, String date) {
@@ -1522,58 +1549,6 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
-  String get account_createTitle => 'Skapa konto';
-
-  @override
-  String get account_createOnWeb => 'Skapa ditt konto';
-
-  @override
-  String get account_createDescription =>
-      'Gör som tusentals andra och ta kontroll över din arbetstid.';
-
-  @override
-  String get account_openSignupPage => 'Öppna registreringssidan';
-
-  @override
-  String get account_alreadyHaveAccount => 'Har du redan ett konto? Logga in';
-
-  @override
-  String get account_trialSubtitle => 'Starta din 7-dagars gratis provperiod';
-
-  @override
-  String get account_firstName => 'Förnamn';
-
-  @override
-  String get account_lastName => 'Efternamn';
-
-  @override
-  String get account_phoneNumber => 'Telefonnummer';
-
-  @override
-  String get account_optional => '(valfritt)';
-
-  @override
-  String get account_passwordHint => 'Minst 8 tecken';
-
-  @override
-  String get account_priceTag => '89 kr/mån inkl. moms — 7 dagar gratis';
-
-  @override
-  String get account_agreeTerms => 'Jag godkänner användarvillkoren';
-
-  @override
-  String get account_agreePrivacy => 'Jag godkänner integritetspolicyn';
-
-  @override
-  String get account_continuePayment => 'Fortsätt till betalning';
-
-  @override
-  String get account_email => 'E-post';
-
-  @override
-  String get account_password => 'Lösenord';
-
-  @override
   String get history_currentlySelected => 'För närvarande vald';
 
   @override
@@ -1695,17 +1670,6 @@ class AppLocalizationsSv extends AppLocalizations {
   String get location_fullAddress => 'Fullständig adress';
 
   @override
-  String get auth_legalRequired => 'Juridisk godkännande krävs';
-
-  @override
-  String get auth_legalDescription =>
-      'Du måste godkänna våra användarvillkor och integritetspolicy för att fortsätta använda appen.';
-
-  @override
-  String get auth_legalVisitSignup =>
-      'Besök vår registreringssida för att slutföra detta steg.';
-
-  @override
   String get entry_logTravelEntry => 'Logga resepost';
 
   @override
@@ -1812,7 +1776,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get balance_under => 'Under';
 
   @override
-  String get balance_timeDebt => 'Du har en tidskuld';
+  String get balance_timeDebt => 'Under mål';
 
   @override
   String balance_includesOpeningBalance(String balance, String date) {
@@ -1823,6 +1787,41 @@ class AppLocalizationsSv extends AppLocalizations {
   String balance_includesOpeningBalanceShort(String balance) {
     return 'Inkluderar startsaldo ($balance)';
   }
+
+  @override
+  String balance_loggedSince(String date) {
+    return 'Loggat sedan $date';
+  }
+
+  @override
+  String balance_startingBalanceAsOf(String date, String value) {
+    return 'Startsaldo ($date): $value';
+  }
+
+  @override
+  String get balance_balanceToday => 'SALDO IDAG';
+
+  @override
+  String balance_netThisYear(String value) {
+    return 'Netto i år (loggat): $value';
+  }
+
+  @override
+  String get balance_netThisYearLabel => 'Netto i år';
+
+  @override
+  String balance_startingBalanceValue(String value) {
+    return 'Startsaldo: $value';
+  }
+
+  @override
+  String get balance_startingBalance => 'Startsaldo';
+
+  @override
+  String get balance_breakdown => 'UPPDELNING';
+
+  @override
+  String get balance_adjustments => 'Justeringar';
 
   @override
   String get locations_errorLoading => 'Fel vid laddning av data';

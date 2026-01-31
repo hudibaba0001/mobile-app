@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
-import '../design/app_theme.dart';
 import '../design/components/app_card.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -31,106 +30,79 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.primary.withValues(alpha: 0.8),
-              colorScheme.primary.withValues(alpha: 0.6),
-              colorScheme.secondary.withValues(alpha: 0.5),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppCard(
-                    padding: const EdgeInsets.all(28),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Icon(
-                            Icons.lock_reset_rounded,
-                            size: 64,
-                            color: colorScheme.primary,
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        title: Text(t.password_forgotTitle),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppCard(
+                  padding: const EdgeInsets.all(28),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          t.password_forgotDescription,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
-                          const SizedBox(height: 16),
-                          
-                          Text(
-                            t.password_forgotTitle,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            t.password_forgotDescription,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 32),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
 
-                          _buildTextField(
-                            label: t.password_emailLabel,
-                            controller: _emailController,
-                            hint: t.password_emailHint,
-                            prefixIcon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
-                            validator: _validateEmail,
-                          ),
-                          const SizedBox(height: 32),
+                        _buildTextField(
+                          label: t.password_emailLabel,
+                          controller: _emailController,
+                          hint: t.password_emailHint,
+                          prefixIcon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: _validateEmail,
+                        ),
+                        const SizedBox(height: 32),
 
-                          ElevatedButton(
-                            onPressed: _isLoading ? null : _handleResetPassword,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: colorScheme.primary,
-                              foregroundColor: colorScheme.onPrimary,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 0,
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _handleResetPassword,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : Text(
-                                    t.password_sendResetLink,
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                  ),
+                            elevation: 0,
                           ),
-                          const SizedBox(height: 16),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : Text(
+                                  t.password_sendResetLink,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                        ),
+                        const SizedBox(height: 16),
 
-                          TextButton(
-                            onPressed: () => AppRouter.goToLogin(context),
-                            child: Text(
-                              t.password_backToSignIn,
-                              style: TextStyle(color: colorScheme.primary),
-                            ),
+                        TextButton(
+                          onPressed: () => AppRouter.goToLogin(context),
+                          child: Text(
+                            t.password_backToSignIn,
+                            style: TextStyle(color: colorScheme.primary),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myapp/utils/time_balance_calculator.dart';
 import 'package:myapp/models/monthly_summary.dart';
-import 'package:myapp/models/entry.dart';
 import '../helpers/entry_fixtures.dart';
 
 void main() {

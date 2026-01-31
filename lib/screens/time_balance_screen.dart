@@ -131,13 +131,15 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
         // Get credit hours to-date for current year
         final yearlyCredit = timeProvider.yearCreditMinutesToDate(currentDate.year) / 60.0;
         
-        // Use provider's running balance (includes credits, adjustments, opening balance)
-        final yearlyBalanceToDate = timeProvider.yearlyRunningBalance;
+        // Year-only net balance (no opening balance) - primary display
+        final yearNetBalance = timeProvider.currentYearNetBalance;
+        // Contract balance includes opening balance (for Details section)
+        final contractBalanceValue = timeProvider.contractBalance;
 
         debugPrint('TimeBalanceScreen: Using contract settings - Weekly: ${contractProvider.weeklyTargetHours}h, Monthly: ${monthlyTarget.toStringAsFixed(1)}h, Yearly: ${yearlyTarget.toStringAsFixed(1)}h');
         debugPrint('TimeBalanceScreen: Contract %: ${contractProvider.contractPercent}%, Full-time hours: ${contractProvider.fullTimeHours}h');
         debugPrint('TimeBalanceScreen: Monthly credit: ${monthlyCredit.toStringAsFixed(1)}h, Yearly credit: ${yearlyCredit.toStringAsFixed(1)}h');
-        debugPrint('TimeBalanceScreen: YTD Yearly balance: ${yearlyBalanceToDate.toStringAsFixed(1)}h');
+        debugPrint('TimeBalanceScreen: Year net balance: ${yearNetBalance.toStringAsFixed(1)}h (contract: ${contractBalanceValue.toStringAsFixed(1)}h)');
 
         final t = AppLocalizations.of(context);
         return Scaffold(
@@ -158,7 +160,8 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
             child: TimeBalanceDashboard(
               currentMonthHours: currentMonthHours,
               currentYearHours: currentYearHours,
-              yearlyBalance: yearlyBalanceToDate,
+              yearNetBalance: yearNetBalance,
+              contractBalance: openingBalanceHours != 0 ? contractBalanceValue : null,
               targetHours: monthlyTarget,
               targetYearlyHours: yearlyTarget,
               currentMonthName: monthSummary?.monthName ?? 'Unknown',

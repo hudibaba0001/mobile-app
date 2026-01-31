@@ -174,7 +174,29 @@
   "balance_yearlyRunningBalance": "YEARLY RUNNING BALANCE",
   "balance_totalAccumulation": "Total Accumulation:",
   "balance_inCredit": "You are in credit",
-  "balance_inDebt": "You maintain a time debt",
+  "balance_underTarget": "Under target",
+  "balance_overTarget": "Over target",
+  "balance_yearBalance": "Year Balance ({year})",
+  "@balance_yearBalance": {
+    "placeholders": {
+      "year": {"type": "String"}
+    }
+  },
+  "balance_resetsOn": "Resets {date}",
+  "@balance_resetsOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "balance_contractBalance": "Contract balance (since {date})",
+  "@balance_contractBalance": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "balance_contractBalanceNoDate": "Contract balance (since start)",
+  "balance_details": "Details",
+  "balance_informationalOnly": "Informational only",
   "balance_includesOpening": "Includes opening balance ({balance}) as of {date}",
   "@balance_includesOpening": {
     "placeholders": {
@@ -800,23 +822,6 @@
     }
   },
 
-  "account_createTitle": "Create Account",
-  "account_createOnWeb": "Create your account",
-  "account_createDescription": "Join KvikTime today and take control of your work life.",
-  "account_openSignupPage": "Open signup page",
-  "account_alreadyHaveAccount": "Already have an account? Login",
-  "account_trialSubtitle": "Start your 7-day free trial",
-  "account_firstName": "First Name",
-  "account_lastName": "Last Name",
-  "account_phoneNumber": "Phone Number",
-  "account_optional": "(optional)",
-  "account_passwordHint": "Minimum 8 characters",
-  "account_priceTag": "89 kr/month incl. VAT — 7 days free",
-  "account_agreeTerms": "I agree to the Terms of Service",
-  "account_agreePrivacy": "I agree to the Privacy Policy",
-  "account_continuePayment": "Continue to payment",
-  "account_email": "Email",
-  "account_password": "Password",
 
   "history_currentlySelected": "Currently selected",
   "history_tapToFilter": "Tap to filter by {label} entries",
@@ -874,9 +879,6 @@
 
   "location_fullAddress": "Full address",
 
-  "auth_legalRequired": "Legal Acceptance Required",
-  "auth_legalDescription": "You must accept our Terms of Service and Privacy Policy to continue using the app.",
-  "auth_legalVisitSignup": "Please visit our signup page to complete this step.",
 
   "entry_logTravelEntry": "Log Travel Entry",
   "entry_logWorkEntry": "Log Work Entry",
@@ -987,7 +989,9 @@
   "balance_yearlyRunningBalance": "YEARLY RUNNING BALANCE",
   "balance_totalAccumulation": "Total Accumulation:",
   "balance_inCredit": "You are in credit",
-  "balance_timeDebt": "You maintain a time debt",
+  "balance_underTarget": "Under target",
+  "balance_overTarget": "Over target",
+  "balance_timeDebt": "Under target",
   "balance_includesOpeningBalance": "Includes opening balance ({balance}) as of {date}",
   "@balance_includesOpeningBalance": {
     "placeholders": {
@@ -1000,6 +1004,55 @@
     "placeholders": {
       "balance": {"type": "String"}
     }
+  },
+  "balance_loggedSince": "Logged since {date}",
+  "@balance_loggedSince": {
+    "description": "Label shown when tracking started after the period start",
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "balance_startingBalanceAsOf": "Starting balance ({date}): {value}",
+  "@balance_startingBalanceAsOf": {
+    "description": "Label showing the starting balance as of the tracking start date",
+    "placeholders": {
+      "date": {"type": "String"},
+      "value": {"type": "String"}
+    }
+  },
+  "balance_balanceToday": "BALANCE TODAY",
+  "@balance_balanceToday": {
+    "description": "Header for the primary balance display (includes starting balance)"
+  },
+  "balance_netThisYear": "Net this year (logged): {value}",
+  "@balance_netThisYear": {
+    "description": "Secondary line showing year-only balance from logged hours",
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_netThisYearLabel": "Net this year",
+  "@balance_netThisYearLabel": {
+    "description": "Short label for net this year in breakdown"
+  },
+  "balance_startingBalanceValue": "Starting balance: {value}",
+  "@balance_startingBalanceValue": {
+    "description": "Line showing the starting balance value",
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_startingBalance": "Starting balance",
+  "@balance_startingBalance": {
+    "description": "Short label for starting balance"
+  },
+  "balance_breakdown": "BREAKDOWN",
+  "@balance_breakdown": {
+    "description": "Header for the balance breakdown section"
+  },
+  "balance_adjustments": "Adjustments",
+  "@balance_adjustments": {
+    "description": "Label for manual adjustments in breakdown"
   },
 
   "locations_errorLoading": "Error loading data",

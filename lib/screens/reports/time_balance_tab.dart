@@ -121,9 +121,15 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
         // Get credit hours to-date for current year
         final yearlyCredit = timeProvider.yearCreditMinutesToDate(currentDate.year) / 60.0;
         final openingBalanceHours = timeProvider.openingFlexHours;
-        
-        // Use provider's running balance (includes credits, adjustments, opening)
-        final yearlyBalanceToDate = timeProvider.yearlyRunningBalance;
+
+        // Use provider's year-only net balance (no opening balance)
+        final yearNetBalance = timeProvider.currentYearNetBalance;
+        // Contract balance includes opening balance (for Details section)
+        final contractBalanceValue = timeProvider.contractBalance;
+
+        // Determine if we should show "Logged since..." labels
+        final showYearLoggedSince = timeProvider.isTrackingStartAfterYearStart(currentDate.year);
+        final showMonthLoggedSince = timeProvider.isTrackingStartInMonth(currentDate.year, currentDate.month);
         
         // Get recent adjustments
         final adjustmentProvider = context.watch<BalanceAdjustmentProvider>();
@@ -137,7 +143,8 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               TimeBalanceDashboard(
                 currentMonthHours: currentMonthHours,
                 currentYearHours: currentYearHours,
-                yearlyBalance: yearlyBalanceToDate,
+                yearNetBalance: yearNetBalance,
+                contractBalance: openingBalanceHours != 0 ? contractBalanceValue : null,
                 targetHours: monthlyTarget,
                 targetYearlyHours: yearlyTarget,
                 currentMonthName: monthSummary?.monthName ?? 'Unknown',
@@ -147,12 +154,14 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 monthlyAdjustmentHours: monthlyAdjustmentHours,
                 yearlyAdjustmentHours: yearlyAdjustmentHours,
                 openingBalanceHours: openingBalanceHours,
-                openingBalanceFormatted: timeProvider.hasOpeningBalance 
-                    ? timeProvider.openingFlexFormatted 
+                openingBalanceFormatted: timeProvider.hasOpeningBalance
+                    ? timeProvider.openingFlexFormatted
+                    : (showYearLoggedSince ? '+0h' : null),
+                trackingStartDate: showYearLoggedSince || showMonthLoggedSince
+                    ? timeProvider.trackingStartDate
                     : null,
-                trackingStartDate: timeProvider.hasOpeningBalance || timeProvider.hasCustomTrackingStartDate
-                    ? timeProvider.trackingStartDate 
-                    : null,
+                showYearLoggedSince: showYearLoggedSince,
+                showMonthLoggedSince: showMonthLoggedSince,
               ),
               
               const SizedBox(height: 24),

@@ -11,15 +11,9 @@ class ExternalLinks {
   static const String manageSubscriptionUrl = '$_baseUrl/account';
 
   /// URL for Terms of Service
-  static const String termsUrl = 'https://kvik-time.vercel.app/terms';
+  static const String termsUrl = '$_baseUrl/terms';
 
   /// URL for Privacy Policy
-  static const String privacyUrl = 'https://kvik-time.vercel.app/privacy';
-
-  /// Current version of Terms of Service
-  static const String termsVersion = '1.0.0 (2026-02-01)';
-
-  /// Current version of Privacy Policy
-  static const String privacyVersion = '1.0.0 (2026-02-01)';
+  static const String privacyUrl = '$_baseUrl/privacy';
 }
 

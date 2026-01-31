@@ -372,7 +372,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance_inCredit => 'You are in credit';
 
   @override
-  String get balance_inDebt => 'You maintain a time debt';
+  String get balance_underTarget => 'Under target';
+
+  @override
+  String get balance_overTarget => 'Over target';
+
+  @override
+  String balance_yearBalance(String year) {
+    return 'Year Balance ($year)';
+  }
+
+  @override
+  String balance_resetsOn(String date) {
+    return 'Resets $date';
+  }
+
+  @override
+  String balance_contractBalance(String date) {
+    return 'Contract balance (since $date)';
+  }
+
+  @override
+  String get balance_contractBalanceNoDate => 'Contract balance (since start)';
+
+  @override
+  String get balance_details => 'Details';
+
+  @override
+  String get balance_informationalOnly => 'Informational only';
 
   @override
   String balance_includesOpening(String balance, String date) {
@@ -1523,58 +1550,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get account_createTitle => 'Create Account';
-
-  @override
-  String get account_createOnWeb => 'Create your account';
-
-  @override
-  String get account_createDescription =>
-      'Join KvikTime today and take control of your work life.';
-
-  @override
-  String get account_openSignupPage => 'Open signup page';
-
-  @override
-  String get account_alreadyHaveAccount => 'Already have an account? Login';
-
-  @override
-  String get account_trialSubtitle => 'Start your 7-day free trial';
-
-  @override
-  String get account_firstName => 'First Name';
-
-  @override
-  String get account_lastName => 'Last Name';
-
-  @override
-  String get account_phoneNumber => 'Phone Number';
-
-  @override
-  String get account_optional => '(optional)';
-
-  @override
-  String get account_passwordHint => 'Minimum 8 characters';
-
-  @override
-  String get account_priceTag => '89 kr/month incl. VAT — 7 days free';
-
-  @override
-  String get account_agreeTerms => 'I agree to the Terms of Service';
-
-  @override
-  String get account_agreePrivacy => 'I agree to the Privacy Policy';
-
-  @override
-  String get account_continuePayment => 'Continue to payment';
-
-  @override
-  String get account_email => 'Email';
-
-  @override
-  String get account_password => 'Password';
-
-  @override
   String get history_currentlySelected => 'Currently selected';
 
   @override
@@ -1696,17 +1671,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get location_fullAddress => 'Full address';
 
   @override
-  String get auth_legalRequired => 'Legal Acceptance Required';
-
-  @override
-  String get auth_legalDescription =>
-      'You must accept our Terms of Service and Privacy Policy to continue using the app.';
-
-  @override
-  String get auth_legalVisitSignup =>
-      'Please visit our signup page to complete this step.';
-
-  @override
   String get entry_logTravelEntry => 'Log Travel Entry';
 
   @override
@@ -1813,7 +1777,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance_under => 'Under';
 
   @override
-  String get balance_timeDebt => 'You maintain a time debt';
+  String get balance_timeDebt => 'Under target';
 
   @override
   String balance_includesOpeningBalance(String balance, String date) {
@@ -1824,6 +1788,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String balance_includesOpeningBalanceShort(String balance) {
     return 'Includes opening balance ($balance)';
   }
+
+  @override
+  String balance_loggedSince(String date) {
+    return 'Logged since $date';
+  }
+
+  @override
+  String balance_startingBalanceAsOf(String date, String value) {
+    return 'Starting balance ($date): $value';
+  }
+
+  @override
+  String get balance_balanceToday => 'BALANCE TODAY';
+
+  @override
+  String balance_netThisYear(String value) {
+    return 'Net this year (logged): $value';
+  }
+
+  @override
+  String get balance_netThisYearLabel => 'Net this year';
+
+  @override
+  String balance_startingBalanceValue(String value) {
+    return 'Starting balance: $value';
+  }
+
+  @override
+  String get balance_startingBalance => 'Starting balance';
+
+  @override
+  String get balance_breakdown => 'BREAKDOWN';
+
+  @override
+  String get balance_adjustments => 'Adjustments';
 
   @override
   String get locations_errorLoading => 'Error loading data';

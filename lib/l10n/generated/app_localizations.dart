@@ -740,11 +740,53 @@ abstract class AppLocalizations {
   /// **'You are in credit'**
   String get balance_inCredit;
 
-  /// No description provided for @balance_inDebt.
+  /// No description provided for @balance_underTarget.
   ///
   /// In en, this message translates to:
-  /// **'You maintain a time debt'**
-  String get balance_inDebt;
+  /// **'Under target'**
+  String get balance_underTarget;
+
+  /// No description provided for @balance_overTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Over target'**
+  String get balance_overTarget;
+
+  /// No description provided for @balance_yearBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Year Balance ({year})'**
+  String balance_yearBalance(String year);
+
+  /// No description provided for @balance_resetsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resets {date}'**
+  String balance_resetsOn(String date);
+
+  /// No description provided for @balance_contractBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract balance (since {date})'**
+  String balance_contractBalance(String date);
+
+  /// No description provided for @balance_contractBalanceNoDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract balance (since start)'**
+  String get balance_contractBalanceNoDate;
+
+  /// No description provided for @balance_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get balance_details;
+
+  /// No description provided for @balance_informationalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Informational only'**
+  String get balance_informationalOnly;
 
   /// No description provided for @balance_includesOpening.
   ///
@@ -2786,108 +2828,6 @@ abstract class AppLocalizations {
   /// **'{type} entry {action} successfully! 🎉'**
   String simpleEntry_entrySaved(String type, String action);
 
-  /// No description provided for @account_createTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Account'**
-  String get account_createTitle;
-
-  /// No description provided for @account_createOnWeb.
-  ///
-  /// In en, this message translates to:
-  /// **'Create your account'**
-  String get account_createOnWeb;
-
-  /// No description provided for @account_createDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Join KvikTime today and take control of your work life.'**
-  String get account_createDescription;
-
-  /// No description provided for @account_openSignupPage.
-  ///
-  /// In en, this message translates to:
-  /// **'Open signup page'**
-  String get account_openSignupPage;
-
-  /// No description provided for @account_alreadyHaveAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Already have an account? Login'**
-  String get account_alreadyHaveAccount;
-
-  /// No description provided for @account_trialSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Start your 7-day free trial'**
-  String get account_trialSubtitle;
-
-  /// No description provided for @account_firstName.
-  ///
-  /// In en, this message translates to:
-  /// **'First Name'**
-  String get account_firstName;
-
-  /// No description provided for @account_lastName.
-  ///
-  /// In en, this message translates to:
-  /// **'Last Name'**
-  String get account_lastName;
-
-  /// No description provided for @account_phoneNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone Number'**
-  String get account_phoneNumber;
-
-  /// No description provided for @account_optional.
-  ///
-  /// In en, this message translates to:
-  /// **'(optional)'**
-  String get account_optional;
-
-  /// No description provided for @account_passwordHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Minimum 8 characters'**
-  String get account_passwordHint;
-
-  /// No description provided for @account_priceTag.
-  ///
-  /// In en, this message translates to:
-  /// **'89 kr/month incl. VAT — 7 days free'**
-  String get account_priceTag;
-
-  /// No description provided for @account_agreeTerms.
-  ///
-  /// In en, this message translates to:
-  /// **'I agree to the Terms of Service'**
-  String get account_agreeTerms;
-
-  /// No description provided for @account_agreePrivacy.
-  ///
-  /// In en, this message translates to:
-  /// **'I agree to the Privacy Policy'**
-  String get account_agreePrivacy;
-
-  /// No description provided for @account_continuePayment.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue to payment'**
-  String get account_continuePayment;
-
-  /// No description provided for @account_email.
-  ///
-  /// In en, this message translates to:
-  /// **'Email'**
-  String get account_email;
-
-  /// No description provided for @account_password.
-  ///
-  /// In en, this message translates to:
-  /// **'Password'**
-  String get account_password;
-
   /// No description provided for @history_currentlySelected.
   ///
   /// In en, this message translates to:
@@ -3116,24 +3056,6 @@ abstract class AppLocalizations {
   /// **'Full address'**
   String get location_fullAddress;
 
-  /// No description provided for @auth_legalRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Legal Acceptance Required'**
-  String get auth_legalRequired;
-
-  /// No description provided for @auth_legalDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'You must accept our Terms of Service and Privacy Policy to continue using the app.'**
-  String get auth_legalDescription;
-
-  /// No description provided for @auth_legalVisitSignup.
-  ///
-  /// In en, this message translates to:
-  /// **'Please visit our signup page to complete this step.'**
-  String get auth_legalVisitSignup;
-
   /// No description provided for @entry_logTravelEntry.
   ///
   /// In en, this message translates to:
@@ -3329,7 +3251,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_timeDebt.
   ///
   /// In en, this message translates to:
-  /// **'You maintain a time debt'**
+  /// **'Under target'**
   String get balance_timeDebt;
 
   /// No description provided for @balance_includesOpeningBalance.
@@ -3343,6 +3265,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Includes opening balance ({balance})'**
   String balance_includesOpeningBalanceShort(String balance);
+
+  /// Label shown when tracking started after the period start
+  ///
+  /// In en, this message translates to:
+  /// **'Logged since {date}'**
+  String balance_loggedSince(String date);
+
+  /// Label showing the starting balance as of the tracking start date
+  ///
+  /// In en, this message translates to:
+  /// **'Starting balance ({date}): {value}'**
+  String balance_startingBalanceAsOf(String date, String value);
+
+  /// Header for the primary balance display (includes starting balance)
+  ///
+  /// In en, this message translates to:
+  /// **'BALANCE TODAY'**
+  String get balance_balanceToday;
+
+  /// Secondary line showing year-only balance from logged hours
+  ///
+  /// In en, this message translates to:
+  /// **'Net this year (logged): {value}'**
+  String balance_netThisYear(String value);
+
+  /// Short label for net this year in breakdown
+  ///
+  /// In en, this message translates to:
+  /// **'Net this year'**
+  String get balance_netThisYearLabel;
+
+  /// Line showing the starting balance value
+  ///
+  /// In en, this message translates to:
+  /// **'Starting balance: {value}'**
+  String balance_startingBalanceValue(String value);
+
+  /// Short label for starting balance
+  ///
+  /// In en, this message translates to:
+  /// **'Starting balance'**
+  String get balance_startingBalance;
+
+  /// Header for the balance breakdown section
+  ///
+  /// In en, this message translates to:
+  /// **'BREAKDOWN'**
+  String get balance_breakdown;
+
+  /// Label for manual adjustments in breakdown
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustments'**
+  String get balance_adjustments;
 
   /// No description provided for @locations_errorLoading.
   ///

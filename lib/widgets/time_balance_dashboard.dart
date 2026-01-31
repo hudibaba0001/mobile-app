@@ -3,11 +3,12 @@ import 'package:intl/intl.dart';
 import '../l10n/generated/app_localizations.dart';
 
 /// Dashboard widget for displaying time balance information
-/// Shows current month status and yearly running balance with Material 3 styling
+/// Shows current month status and yearly balance with Material 3 styling
 class TimeBalanceDashboard extends StatelessWidget {
   final double currentMonthHours;
   final double currentYearHours;
-  final double yearlyBalance;
+  final double yearNetBalance; // Year-only balance (no opening balance)
+  final double? contractBalance; // Optional: lifetime/contract balance with opening
   final double targetHours;
   final double targetYearlyHours;
   final String currentMonthName;
@@ -19,12 +20,14 @@ class TimeBalanceDashboard extends StatelessWidget {
   final double monthlyAdjustmentHours;
   final double yearlyAdjustmentHours;
   final double openingBalanceHours;
+  final bool showYearLoggedSince; // Whether to show "Logged since..." for year card
+  final bool showMonthLoggedSince; // Whether to show "Logged since..." for month card
 
   const TimeBalanceDashboard({
     super.key,
     required this.currentMonthHours,
     required this.currentYearHours,
-    required this.yearlyBalance,
+    required this.yearNetBalance,
     required this.targetHours,
     required this.targetYearlyHours,
     required this.currentMonthName,
@@ -32,10 +35,13 @@ class TimeBalanceDashboard extends StatelessWidget {
     required this.monthlyAdjustmentHours,
     required this.yearlyAdjustmentHours,
     required this.openingBalanceHours,
+    this.contractBalance,
     this.creditHours,
     this.yearCreditHours,
     this.openingBalanceFormatted,
     this.trackingStartDate,
+    this.showYearLoggedSince = false,
+    this.showMonthLoggedSince = false,
   });
 
   @override
@@ -49,18 +55,22 @@ class TimeBalanceDashboard extends StatelessWidget {
           targetHours: targetHours,
           creditHours: creditHours,
           adjustmentHours: monthlyAdjustmentHours,
+          trackingStartDate: trackingStartDate,
+          showLoggedSince: showMonthLoggedSince,
         ),
         const SizedBox(height: 16),
         YearlyBalanceCard(
           year: currentYear,
           hoursWorked: currentYearHours,
           targetHours: targetYearlyHours,
-          balance: yearlyBalance,
+          yearNetBalance: yearNetBalance,
+          contractBalance: contractBalance,
           creditHours: yearCreditHours,
           adjustmentHours: yearlyAdjustmentHours,
           openingBalanceHours: openingBalanceHours,
           openingBalanceFormatted: openingBalanceFormatted,
           trackingStartDate: trackingStartDate,
+          showLoggedSince: showYearLoggedSince,
         ),
       ],
     );
@@ -186,6 +196,8 @@ class MonthlyStatusCard extends StatelessWidget {
   final double targetHours;
   final double adjustmentHours;
   final double? creditHours; // Optional: paid absence credits
+  final DateTime? trackingStartDate; // Date from which tracking started
+  final bool showLoggedSince; // Whether to show "Logged since..." label
 
   const MonthlyStatusCard({
     super.key,
@@ -194,6 +206,8 @@ class MonthlyStatusCard extends StatelessWidget {
     required this.targetHours,
     required this.adjustmentHours,
     this.creditHours,
+    this.trackingStartDate,
+    this.showLoggedSince = false,
   });
 
   @override
@@ -246,6 +260,19 @@ class MonthlyStatusCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+            // Show "Logged since..." when tracking started mid-month
+            if (showLoggedSince && trackingStartDate != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                AppLocalizations.of(context).balance_loggedSince(
+                  DateFormat('d MMM').format(trackingStartDate!),
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.tertiary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
             if (creditHours != null && creditHours! > 0) ...[
               const SizedBox(height: 4),
               Text(
@@ -318,48 +345,106 @@ class MonthlyStatusCard extends StatelessWidget {
   }
 }
 
-/// Card displaying yearly running balance
-class YearlyBalanceCard extends StatelessWidget {
+/// Card displaying yearly balance
+/// Primary: "Balance Today" (includes opening balance)
+/// Secondary: "Net This Year" (from logged hours only)
+class YearlyBalanceCard extends StatefulWidget {
   final int year;
   final double hoursWorked;
   final double targetHours;
-  final double balance;
+  final double yearNetBalance; // Year-only balance (worked - target + adjustments, NO opening)
+  final double? contractBalance; // Balance including opening (for verification)
   final double? creditHours; // Optional: paid absence credits
   final double adjustmentHours;
   final double openingBalanceHours;
   final String? openingBalanceFormatted; // e.g., "+12h 30m" or "-3h 15m"
   final DateTime? trackingStartDate; // Date from which tracking started
+  final bool showLoggedSince; // Whether to show "Logged since..." label prominently
 
   const YearlyBalanceCard({
     super.key,
     required this.year,
     required this.hoursWorked,
     required this.targetHours,
-    required this.balance,
+    required this.yearNetBalance,
     required this.adjustmentHours,
     required this.openingBalanceHours,
+    this.contractBalance,
     this.creditHours,
     this.openingBalanceFormatted,
     this.trackingStartDate,
+    this.showLoggedSince = false,
   });
+
+  @override
+  State<YearlyBalanceCard> createState() => _YearlyBalanceCardState();
+}
+
+class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
+  bool _showDetails = false;
+
+  Widget _buildBreakdownRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    required bool isPositive,
+    required Color positiveColor,
+    required Color negativeColor,
+  }) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: isPositive ? positiveColor : negativeColor,
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isPositive = balance >= 0;
-    final displayBalance = '${isPositive ? '+' : ''}${balance.toStringAsFixed(1)}h';
-    // Calculate variance including credits, adjustments, and opening balance
-    final totalEffectiveHours =
-        hoursWorked + (creditHours ?? 0.0) + adjustmentHours + openingBalanceHours;
-    final variance = totalEffectiveHours - targetHours;
+
+    // PRIMARY: Balance Today = yearNetBalance + openingBalanceHours
+    // This is what the user cares about: their actual flex balance right now
+    final balanceToday = widget.contractBalance ??
+        (widget.yearNetBalance + widget.openingBalanceHours);
+    final isPositive = balanceToday >= 0;
+    final displayBalance =
+        '${isPositive ? '+' : ''}${balanceToday.toStringAsFixed(1)}h';
+
+    // Status and progress should reflect balanceToday (the real balance)
+    final variance = balanceToday;
     final isOverTarget = variance >= 0;
-    // Guard against division by zero for future years
+
+    // For progress bar: (worked + adjustments + opening) / target
+    final effectiveWorkHours = widget.hoursWorked + widget.adjustmentHours + widget.openingBalanceHours;
     final progress =
-        targetHours > 0 ? (totalEffectiveHours / targetHours) : 0.0;
+        widget.targetHours > 0 ? (effectiveWorkHours / widget.targetHours) : 0.0;
     final clampedProgress = progress.clamp(0.0, 1.0);
 
-    // Theme-aware colors for dark/light mode
+    // Theme-aware colors
     final positiveColor =
         isDark ? Colors.green.shade300 : Colors.green.shade700;
     final negativeColor = isDark ? Colors.red.shade300 : Colors.red.shade700;
@@ -372,6 +457,9 @@ class YearlyBalanceCard extends StatelessWidget {
     final borderColor = isDark
         ? (isPositive ? Colors.green.shade700 : Colors.red.shade700)
         : (isPositive ? Colors.green.shade200 : Colors.red.shade200);
+
+    // Show details if there's an opening balance OR adjustments to explain
+    final hasDetails = widget.openingBalanceHours != 0 || widget.adjustmentHours != 0;
 
     return Card(
       elevation: 0,
@@ -388,8 +476,9 @@ class YearlyBalanceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header: THIS YEAR 2026
             Text(
-              AppLocalizations.of(context).balance_thisYear(year),
+              l10n.balance_thisYear(widget.year),
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -397,37 +486,96 @@ class YearlyBalanceCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            
+            // Hours worked: X / Y hours
             Text(
-              AppLocalizations.of(context).balance_hoursWorked(
-                hoursWorked.toStringAsFixed(1),
-                targetHours.toStringAsFixed(1),
+              l10n.balance_hoursWorked(
+                widget.hoursWorked.toStringAsFixed(1),
+                widget.targetHours.toStringAsFixed(1),
               ),
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
-            if (creditHours != null && creditHours! > 0) ...[
+
+            // Show "Logged since..." prominently when tracking started after Jan 1
+            if (widget.showLoggedSince && widget.trackingStartDate != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.colorScheme.tertiary.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: theme.colorScheme.tertiary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          l10n.balance_loggedSince(
+                            DateFormat('d MMM').format(widget.trackingStartDate!),
+                          ),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onTertiaryContainer,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Show starting balance if there is one
+                    if (widget.openingBalanceFormatted != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.balance_startingBalanceAsOf(
+                          DateFormat('d MMM').format(widget.trackingStartDate!),
+                          widget.openingBalanceFormatted!,
+                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onTertiaryContainer.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+
+            // Credit hours if any (informational)
+            if (widget.creditHours != null && widget.creditHours! > 0) ...[
               const SizedBox(height: 4),
               Text(
-                AppLocalizations.of(context)
-                    .balance_creditedHours(creditHours!.toStringAsFixed(1)),
+                l10n.balance_creditedHours(widget.creditHours!.toStringAsFixed(1)),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.primary,
                 ),
               ),
             ],
-            if (adjustmentHours != 0 || openingBalanceHours != 0) ...[
+
+            // Adjustments if any
+            if (widget.adjustmentHours != 0) ...[
               const SizedBox(height: 4),
               Text(
-                'Includes adjustments${openingBalanceHours != 0 ? " & opening balance" : ""}: '
-                '${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}h'
-                '${openingBalanceHours != 0 ? ' / Opening ${openingBalanceHours >= 0 ? '+' : ''}${openingBalanceHours.toStringAsFixed(1)}h' : ''}',
+                'Includes adjustments: '
+                '${widget.adjustmentHours >= 0 ? '+' : ''}${widget.adjustmentHours.toStringAsFixed(1)}h',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
+
             const SizedBox(height: 8),
+            
+            // Status: +/-Xh Over/Under target
             Row(
               children: [
                 Icon(
@@ -439,11 +587,9 @@ class YearlyBalanceCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context).balance_status(
+                  l10n.balance_status(
                     '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)}',
-                    isOverTarget
-                        ? AppLocalizations.of(context).balance_over
-                        : AppLocalizations.of(context).balance_under,
+                    isOverTarget ? l10n.balance_overTarget : l10n.balance_underTarget,
                   ),
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: isOverTarget ? positiveColor : warningColor,
@@ -452,7 +598,10 @@ class YearlyBalanceCard extends StatelessWidget {
                 ),
               ],
             ),
+            
             const SizedBox(height: 16),
+            
+            // Progress bar
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
@@ -466,28 +615,23 @@ class YearlyBalanceCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)
-                  .balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
+              l10n.balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            
             const SizedBox(height: 16),
             Divider(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
+
+            // PRIMARY: Balance Today - the main number users care about
             Text(
-              AppLocalizations.of(context).balance_yearlyRunningBalance,
+              l10n.balance_balanceToday,
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurfaceVariant,
                 letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context).balance_totalAccumulation,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 8),
@@ -499,73 +643,179 @@ class YearlyBalanceCard extends StatelessWidget {
                 color: isPositive ? positiveColor : negativeColor,
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(
-                  isPositive ? Icons.check_circle : Icons.error,
-                  color:
-                      isPositive ? Colors.green.shade700 : Colors.red.shade700,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    isPositive
-                        ? AppLocalizations.of(context).balance_inCredit
-                        : AppLocalizations.of(context).balance_timeDebt,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: isPositive
-                          ? Colors.green.shade800
-                          : Colors.red.shade800,
-                      fontWeight: FontWeight.w500,
+
+            // SECONDARY: Show Net This Year (logged hours only) when there's an opening balance
+            if (widget.openingBalanceHours != 0) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.analytics_outlined,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    l10n.balance_netThisYear(
+                      '${widget.yearNetBalance >= 0 ? '+' : ''}${widget.yearNetBalance.toStringAsFixed(1)}h',
+                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(
+                    Icons.account_balance_wallet_outlined,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    l10n.balance_startingBalanceValue(
+                      widget.openingBalanceFormatted ?? '${widget.openingBalanceHours >= 0 ? '+' : ''}${widget.openingBalanceHours.toStringAsFixed(1)}h',
+                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 8),
+            Text(
+              l10n.balance_resetsOn('31 Dec'),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
             ),
-            // Opening balance note
-            if (openingBalanceFormatted != null &&
-                openingBalanceFormatted!.isNotEmpty) ...[
+
+            // Collapsible Details section - breakdown of balance components
+            if (hasDetails) ...[
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.account_balance_wallet,
-                      size: 18,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        trackingStartDate != null
-                            ? AppLocalizations.of(context)
-                                .balance_includesOpeningBalance(
-                                openingBalanceFormatted!,
-                                DateFormat('MMM d, yyyy')
-                                    .format(trackingStartDate!),
-                              )
-                            : AppLocalizations.of(context)
-                                .balance_includesOpeningBalanceShort(
-                                    openingBalanceFormatted!),
-                        style: theme.textTheme.bodySmall?.copyWith(
+              InkWell(
+                onTap: () => setState(() => _showDetails = !_showDetails),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _showDetails ? Icons.expand_less : Icons.expand_more,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.balance_details,
+                        style: theme.textTheme.labelMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
+
+              if (_showDetails) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.balance_breakdown,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Starting balance row
+                      if (widget.openingBalanceHours != 0) ...[
+                        _buildBreakdownRow(
+                          context,
+                          icon: Icons.account_balance_wallet,
+                          label: widget.trackingStartDate != null
+                              ? l10n.balance_startingBalanceAsOf(
+                                  DateFormat('d MMM').format(widget.trackingStartDate!),
+                                  '',
+                                ).replaceAll(': ', '')
+                              : l10n.balance_startingBalance,
+                          value: widget.openingBalanceFormatted ??
+                              '${widget.openingBalanceHours >= 0 ? '+' : ''}${widget.openingBalanceHours.toStringAsFixed(1)}h',
+                          isPositive: widget.openingBalanceHours >= 0,
+                          positiveColor: positiveColor,
+                          negativeColor: negativeColor,
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+
+                      // Net this year row
+                      _buildBreakdownRow(
+                        context,
+                        icon: Icons.analytics,
+                        label: l10n.balance_netThisYearLabel,
+                        value: '${widget.yearNetBalance >= 0 ? '+' : ''}${widget.yearNetBalance.toStringAsFixed(1)}h',
+                        isPositive: widget.yearNetBalance >= 0,
+                        positiveColor: positiveColor,
+                        negativeColor: negativeColor,
+                      ),
+
+                      // Adjustments row (if any)
+                      if (widget.adjustmentHours != 0) ...[
+                        const SizedBox(height: 8),
+                        _buildBreakdownRow(
+                          context,
+                          icon: Icons.tune,
+                          label: l10n.balance_adjustments,
+                          value: '${widget.adjustmentHours >= 0 ? '+' : ''}${widget.adjustmentHours.toStringAsFixed(1)}h',
+                          isPositive: widget.adjustmentHours >= 0,
+                          positiveColor: positiveColor,
+                          negativeColor: negativeColor,
+                        ),
+                      ],
+
+                      const SizedBox(height: 12),
+                      Divider(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+                      const SizedBox(height: 8),
+
+                      // Total row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.balance_balanceToday,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            displayBalance,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isPositive ? positiveColor : negativeColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ],
         ),
@@ -573,9 +823,3 @@ class YearlyBalanceCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-

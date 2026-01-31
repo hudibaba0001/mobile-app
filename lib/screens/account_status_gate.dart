@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/profile_service.dart';
 import '../models/user_profile.dart';
+import '../providers/contract_provider.dart';
 import '../config/external_links.dart';
 import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -68,6 +69,13 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
       }
 
       final profile = await _profileService.fetchProfile();
+
+      // Sync contract settings from Supabase profile
+      if (profile != null && mounted) {
+        final contractProvider = context.read<ContractProvider>();
+        await contractProvider.loadFromSupabase();
+      }
+
       setState(() {
         _profile = profile;
         _isLoading = false;
@@ -224,68 +232,6 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                   onPressed: _openSignupPage,
                   icon: const Icon(Icons.open_in_new),
                   label: Text(AppLocalizations.of(context).auth_completeRegistration),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () async {
-                    final authService = context.read<SupabaseAuthService>();
-                    await authService.signOut();
-                    if (mounted) {
-                      context.goNamed(AppRouter.loginName);
-                    }
-                  },
-                  child: Text(AppLocalizations.of(context).auth_signOut),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Check if terms/privacy not accepted
-    if (!_profile!.hasAcceptedLegal) {
-      return Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Icon(
-                  Icons.gavel_outlined,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  AppLocalizations.of(context).auth_legalRequired,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  AppLocalizations.of(context).auth_legalDescription,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  AppLocalizations.of(context).auth_legalVisitSignup,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                ElevatedButton.icon(
-                  onPressed: _openSignupPage,
-                  icon: const Icon(Icons.open_in_new),
-                  label: Text(AppLocalizations.of(context).auth_openSignupPage),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),

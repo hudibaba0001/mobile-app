@@ -1,5 +1,4 @@
 import 'package:myapp/models/entry.dart';
-import 'package:uuid/uuid.dart';
 
 /// Helper to create valid Shift objects
 Shift makeShift({

@@ -114,7 +114,29 @@
   "balance_yearlyRunningBalance": "LÖPANDE ÅRSBALANS",
   "balance_totalAccumulation": "Total ackumulering:",
   "balance_inCredit": "Du har flexkredit",
-  "balance_inDebt": "Du har flexskuld",
+  "balance_underTarget": "Under mål",
+  "balance_overTarget": "Över mål",
+  "balance_yearBalance": "Årsbalans ({year})",
+  "@balance_yearBalance": {
+    "placeholders": {
+      "year": {"type": "String"}
+    }
+  },
+  "balance_resetsOn": "Nollställs {date}",
+  "@balance_resetsOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "balance_contractBalance": "Kontraktssaldo (sedan {date})",
+  "@balance_contractBalance": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "balance_contractBalanceNoDate": "Kontraktssaldo (sedan start)",
+  "balance_details": "Detaljer",
+  "balance_informationalOnly": "Endast informativt",
   "balance_includesOpening": "Inkluderar ingående saldo ({balance}) per {date}",
 
   "adjustment_title": "Saldojusteringar",
@@ -614,9 +636,41 @@
   "balance_yearlyRunningBalance": "ÅRLIGT LÖPENDE SALDO",
   "balance_totalAccumulation": "Total ackumulering:",
   "balance_inCredit": "Du har kredit",
-  "balance_timeDebt": "Du har en tidskuld",
+  "balance_underTarget": "Under mål",
+  "balance_overTarget": "Över mål",
+  "balance_timeDebt": "Under mål",
   "balance_includesOpeningBalance": "Inkluderar startsaldo ({balance}) per {date}",
   "balance_includesOpeningBalanceShort": "Inkluderar startsaldo ({balance})",
+  "balance_loggedSince": "Loggat sedan {date}",
+  "@balance_loggedSince": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "balance_startingBalanceAsOf": "Startsaldo ({date}): {value}",
+  "@balance_startingBalanceAsOf": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "value": {"type": "String"}
+    }
+  },
+  "balance_balanceToday": "SALDO IDAG",
+  "balance_netThisYear": "Netto i år (loggat): {value}",
+  "@balance_netThisYear": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_netThisYearLabel": "Netto i år",
+  "balance_startingBalanceValue": "Startsaldo: {value}",
+  "@balance_startingBalanceValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_startingBalance": "Startsaldo",
+  "balance_breakdown": "UPPDELNING",
+  "balance_adjustments": "Justeringar",
 
   "locations_errorLoading": "Fel vid laddning av data",
   "locations_distribution": "Platsfördelning",
@@ -781,21 +835,5 @@
   "form_span": "Spann",
   "form_break": "Rast",
   "form_worked": "Arbetat",
-  "account_createTitle": "Skapa konto",
-  "account_createOnWeb": "Skapa ditt konto",
-  "account_createDescription": "Gör som tusentals andra och ta kontroll över din arbetstid.",
-  "account_openSignupPage": "Öppna registreringssidan",
-  "account_alreadyHaveAccount": "Har du redan ett konto? Logga in",
-  "account_trialSubtitle": "Starta din 7-dagars gratis provperiod",
-  "account_firstName": "Förnamn",
-  "account_lastName": "Efternamn",
-  "account_phoneNumber": "Telefonnummer",
-  "account_optional": "(valfritt)",
-  "account_passwordHint": "Minst 8 tecken",
-  "account_priceTag": "89 kr/mån inkl. moms — 7 dagar gratis",
-  "account_agreeTerms": "Jag godkänner användarvillkoren",
-  "account_agreePrivacy": "Jag godkänner integritetspolicyn",
-  "account_continuePayment": "Fortsätt till betalning",
-  "account_email": "E-post",
-  "account_password": "Lösenord"
+  "form_worked": "Arbetat"
 }
