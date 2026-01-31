@@ -161,7 +161,8 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
               currentMonthHours: currentMonthHours,
               currentYearHours: currentYearHours,
               yearNetBalance: yearNetBalance,
-              contractBalance: openingBalanceHours != 0 ? contractBalanceValue : null,
+              // Don't pass contractBalance - let the card calculate it as yearNetBalance + openingBalanceHours
+              // The old contractBalance was full-year (all 12 months), not year-to-date
               targetHours: monthlyTarget,
               targetYearlyHours: yearlyTarget,
               currentMonthName: monthSummary?.monthName ?? 'Unknown',

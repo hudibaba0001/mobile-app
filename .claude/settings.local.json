@@ -4,11 +4,15 @@
       "Bash(flutter analyze:*)",
       "Bash(flutter gen-l10n:*)",
       "Bash(flutter test)",
-      "Bash(flutter test:*)"
+      "Bash(flutter test:*)",
+      "WebFetch(domain:mcp.supabase.com)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__execute_sql"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

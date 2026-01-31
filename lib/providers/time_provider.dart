@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/monthly_summary.dart';
 import '../models/weekly_summary.dart';
@@ -36,6 +37,10 @@ class TimeProvider extends ChangeNotifier {
 
   // Listener tracking for auto-refresh
   bool _isListening = false;
+
+  // Debounce timer for recalculation
+  Timer? _recalculateDebounce;
+  static const _debounceDuration = Duration(milliseconds: 300);
 
   // State
   double _currentMonthlyVariance = 0.0;
@@ -87,29 +92,37 @@ class TimeProvider extends ChangeNotifier {
   void _onEntriesChanged() {
     // Only recalculate if we have already done initial calculation
     if (_monthlySummaries.isNotEmpty) {
-      debugPrint('TimeProvider: Entries changed, recalculating balances...');
-      calculateBalances();
+      _scheduleRecalculation('Entries changed');
     }
   }
 
-  /// Handle holiday changes - recalculate balances
+  /// Handle holiday changes - debounced recalculation
   void _onHolidaysChanged() {
     if (_monthlySummaries.isNotEmpty) {
-      debugPrint('TimeProvider: Holidays changed, recalculating balances...');
-      calculateBalances();
+      _scheduleRecalculation('Holidays changed');
     }
   }
 
-  /// Handle contract changes - recalculate balances
+  /// Handle contract changes - debounced recalculation
   void _onContractChanged() {
     if (_monthlySummaries.isNotEmpty) {
-      debugPrint('TimeProvider: Contract settings changed, recalculating balances...');
-      calculateBalances();
+      _scheduleRecalculation('Contract settings changed');
     }
+  }
+
+  /// Schedule a debounced recalculation to avoid multiple rapid calls
+  void _scheduleRecalculation(String reason) {
+    _recalculateDebounce?.cancel();
+    _recalculateDebounce = Timer(_debounceDuration, () {
+      debugPrint('TimeProvider: $reason, recalculating balances...');
+      calculateBalances();
+    });
   }
 
   @override
   void dispose() {
+    // Cancel any pending debounce
+    _recalculateDebounce?.cancel();
     // Remove listeners to prevent memory leaks
     _entryProvider.removeListener(_onEntriesChanged);
     _holidayService?.removeListener(_onHolidaysChanged);
@@ -220,12 +233,17 @@ class TimeProvider extends ChangeNotifier {
   }) async {
     // Get weekly target in minutes from ContractProvider
     final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
-    _setLoading(true);
+
+    // Only show loading indicator on first calculation to avoid flicker
+    final isFirstLoad = _monthlySummaries.isEmpty;
+    if (isFirstLoad) {
+      _setLoading(true);
+    }
     _error = null;
 
     try {
       final targetYear = year ?? DateTime.now().year;
-      
+
       // Get tracking start date and opening balance from contract settings
       final startDate = _contractProvider.trackingStartDate;
       final openingFlexMinutes = _contractProvider.openingFlexMinutes;
@@ -248,6 +266,7 @@ class TimeProvider extends ChangeNotifier {
       }
 
       // Load absences for the year if AbsenceProvider is available
+      // Note: These will trigger their own notifyListeners, but we debounce our response
       await _absenceProvider?.loadAbsences(year: targetYear);
 
       // Load adjustments for the year if BalanceAdjustmentProvider is available
@@ -562,8 +581,10 @@ class TimeProvider extends ChangeNotifier {
   }
 
   void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
+    if (_isLoading != loading) {
+      _isLoading = loading;
+      notifyListeners();
+    }
   }
 
   /// Get current month summary

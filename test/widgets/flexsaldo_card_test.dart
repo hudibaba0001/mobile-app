@@ -65,13 +65,13 @@ void main() {
       );
     }
 
-    testWidgets('renders FlexsaldoCard with balance title', (tester) async {
+    testWidgets('renders FlexsaldoCard with Balance Today title', (tester) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Should show balance title
+      // Should show balance today title
       expect(find.byIcon(Icons.account_balance_wallet_rounded), findsOneWidget);
-      expect(find.text('Time Balance'), findsOneWidget);
+      expect(find.text('BALANCE TODAY'), findsOneWidget);
     });
 
     testWidgets('renders progress bar', (tester) async {

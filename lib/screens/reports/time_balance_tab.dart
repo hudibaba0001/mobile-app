@@ -124,8 +124,6 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
 
         // Use provider's year-only net balance (no opening balance)
         final yearNetBalance = timeProvider.currentYearNetBalance;
-        // Contract balance includes opening balance (for Details section)
-        final contractBalanceValue = timeProvider.contractBalance;
 
         // Determine if we should show "Logged since..." labels
         final showYearLoggedSince = timeProvider.isTrackingStartAfterYearStart(currentDate.year);
@@ -144,7 +142,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 currentMonthHours: currentMonthHours,
                 currentYearHours: currentYearHours,
                 yearNetBalance: yearNetBalance,
-                contractBalance: openingBalanceHours != 0 ? contractBalanceValue : null,
+                // Don't pass contractBalance - let the card calculate it as yearNetBalance + openingBalanceHours
                 targetHours: monthlyTarget,
                 targetYearlyHours: yearlyTarget,
                 currentMonthName: monthSummary?.monthName ?? 'Unknown',
@@ -191,7 +189,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

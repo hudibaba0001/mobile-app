@@ -485,10 +485,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           ),
           // Breakdown
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.buttonRadius,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -737,15 +737,15 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Material(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.buttonRadius,
         child: InkWell(
           onTap: () => _openQuickView(entry),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.buttonRadius,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             child: Row(
               children: [
                 Container(
@@ -753,11 +753,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   height: 40,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: AppRadius.chipRadius,
                   ),
-                  child: Icon(entry.icon, color: color, size: 20),
+                  child: Icon(entry.icon, color: color, size: AppIconSize.sm),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -783,10 +783,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: AppRadius.cardRadius,
                   ),
                   child: Text(
                     entry.duration,

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../design/app_theme.dart';
 import '../providers/time_provider.dart';
+import '../providers/contract_provider.dart';
 import '../l10n/generated/app_localizations.dart';
 
-/// Flexsaldo Month-to-Date card for the Home screen.
-/// 
+/// Flexsaldo card for the Home screen.
+///
 /// Shows:
-/// - Current flex balance (+X.X h or -X.X h)
-/// - Worked + credited vs Target
-/// - Progress bar
-/// - Progress bar
+/// - Balance Today (year-to-date + opening balance) as headline
+/// - This month balance as secondary
+/// - Starting balance (if != 0)
+/// - Progress bar for current month
 class FlexsaldoCard extends StatelessWidget {
   const FlexsaldoCard({super.key});
 
@@ -18,43 +20,65 @@ class FlexsaldoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
-    
-    return Consumer<TimeProvider>(
-      builder: (context, timeProvider, _) {
+
+    return Consumer2<TimeProvider, ContractProvider>(
+      builder: (context, timeProvider, contractProvider, _) {
         final now = DateTime.now();
         final year = now.year;
         final month = now.month;
-        
-        // Get MTD values
-        final actualMinutes = timeProvider.monthActualMinutesToDate(year, month);
-        final creditMinutes = timeProvider.monthCreditMinutesToDate(year, month);
-        final targetMinutes = timeProvider.monthTargetMinutesToDate(year, month);
-        
-        final workedPlusCredited = actualMinutes + creditMinutes;
-        final balanceMinutes = workedPlusCredited - targetMinutes;
-        final balanceHours = balanceMinutes / 60.0;
-        
-        // Progress (capped at 1.0 for display)
-        final progress = targetMinutes > 0 
-            ? (workedPlusCredited / targetMinutes).clamp(0.0, 1.5)
+        final monthName = DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now);
+
+        // === MONTHLY VALUES (for secondary display) ===
+        final monthActualMinutes = timeProvider.monthActualMinutesToDate(year, month);
+        final monthCreditMinutes = timeProvider.monthCreditMinutesToDate(year, month);
+        final monthTargetMinutes = timeProvider.monthTargetMinutesToDate(year, month);
+        final monthWorkedPlusCredited = monthActualMinutes + monthCreditMinutes;
+        final monthBalanceMinutes = monthWorkedPlusCredited - monthTargetMinutes;
+        final monthBalanceHours = monthBalanceMinutes / 60.0;
+
+        // === YEAR-TO-DATE VALUES ===
+        final yearActualMinutes = timeProvider.yearActualMinutesToDate(year);
+        final yearCreditMinutes = timeProvider.yearCreditMinutesToDate(year);
+        final yearTargetMinutes = timeProvider.yearTargetMinutesToDate(year);
+        final yearAdjustmentMinutes = timeProvider.yearAdjustmentMinutesToDate(year);
+
+        // Year net balance (without opening balance)
+        final yearNetMinutes = yearActualMinutes + yearCreditMinutes + yearAdjustmentMinutes - yearTargetMinutes;
+
+        // === BALANCE TODAY (year-to-date + opening balance) ===
+        final openingMinutes = contractProvider.openingFlexMinutes;
+        final balanceTodayMinutes = yearNetMinutes + openingMinutes;
+        final balanceTodayHours = balanceTodayMinutes / 60.0;
+
+        // Progress for month (capped at 1.0 for display)
+        final monthProgress = monthTargetMinutes > 0
+            ? (monthWorkedPlusCredited / monthTargetMinutes).clamp(0.0, 1.5)
             : 0.0;
-        
-        // Colors based on balance
-        final isPositive = balanceMinutes >= 0;
-        final balanceColor = isPositive 
-            ? FlexsaldoColors.positive 
+
+        // Colors based on balance today (headline)
+        final isPositive = balanceTodayMinutes >= 0;
+        final balanceColor = isPositive
+            ? FlexsaldoColors.positive
             : FlexsaldoColors.negative;
         final balanceBackgroundColor = isPositive
             ? FlexsaldoColors.positiveLight
             : FlexsaldoColors.negativeLight;
-        
-        // Format values
-        final balanceText = isPositive 
-            ? '+${balanceHours.toStringAsFixed(1)} h'
-            : '${balanceHours.toStringAsFixed(1)} h';
-        final workedText = '${(workedPlusCredited / 60.0).toStringAsFixed(1)} h';
-        final targetText = '${(targetMinutes / 60.0).toStringAsFixed(1)} h';
-        
+
+        // Format headline: Balance Today
+        final balanceTodayText = isPositive
+            ? '+${balanceTodayHours.toStringAsFixed(1)} h'
+            : '${balanceTodayHours.toStringAsFixed(1)} h';
+
+        // Format monthly balance for secondary line
+        final isMonthPositive = monthBalanceMinutes >= 0;
+        final monthBalanceText = isMonthPositive
+            ? '+${monthBalanceHours.toStringAsFixed(1)}h'
+            : '${monthBalanceHours.toStringAsFixed(1)}h';
+
+        // Format values for progress text
+        final workedText = '${(monthWorkedPlusCredited / 60.0).toStringAsFixed(1)} h';
+        final targetText = '${(monthTargetMinutes / 60.0).toStringAsFixed(1)} h';
+
         return Container(
           key: const Key('card_balance'),
           width: double.infinity,
@@ -79,7 +103,7 @@ class FlexsaldoCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row
+              // Header row with Balance Today as headline
               Row(
                 children: [
                   Icon(
@@ -89,13 +113,13 @@ class FlexsaldoCard extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
-                    t.balance_title,
+                    t.balance_balanceToday,
                     style: AppTypography.sectionTitle(
                       theme.colorScheme.onSurface,
                     ),
                   ),
                   const Spacer(),
-                  // Balance pill
+                  // Balance Today pill (headline value)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md,
@@ -106,7 +130,7 @@ class FlexsaldoCard extends StatelessWidget {
                       borderRadius: AppRadius.pillRadius,
                     ),
                     child: Text(
-                      balanceText,
+                      balanceTodayText,
                       style: AppTypography.headline(balanceColor).copyWith(
                         fontSize: 18,
                       ),
@@ -114,35 +138,63 @@ class FlexsaldoCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
-              const SizedBox(height: AppSpacing.lg),
-              
-              // Worked vs Target
+
+              const SizedBox(height: AppSpacing.md),
+
+              // Secondary: This month balance
               Row(
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          t.balance_hoursWorked(workedText, targetText),
-                          style: AppTypography.body(
-                            theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    '$monthName: ',
+                    style: AppTypography.body(
+                      theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    monthBalanceText,
+                    style: AppTypography.body(
+                      isMonthPositive
+                          ? FlexsaldoColors.positive
+                          : FlexsaldoColors.negative,
+                    ).copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    ' vs target',
+                    style: AppTypography.body(
+                      theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
-              
+
+              // Starting balance (only if != 0)
+              if (contractProvider.hasOpeningBalance) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  t.balance_startingBalanceValue(contractProvider.openingFlexFormatted),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+
               const SizedBox(height: AppSpacing.md),
-              
-              // Progress bar
+
+              // Worked vs Target for month
+              Text(
+                t.balance_hoursWorked(workedText, targetText),
+                style: AppTypography.body(
+                  theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+
+              const SizedBox(height: AppSpacing.md),
+
+              // Progress bar for month
               ClipRRect(
                 borderRadius: AppRadius.chipRadius,
                 child: LinearProgressIndicator(
-                  value: progress.clamp(0.0, 1.0),
+                  value: monthProgress.clamp(0.0, 1.0),
                   minHeight: 8,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
                   valueColor: AlwaysStoppedAnimation<Color>(

@@ -21,7 +21,13 @@ class AbsenceProvider extends ChangeNotifier {
   String? get error => _error;
 
   /// Load absences for a specific year
-  Future<void> loadAbsences({required int year}) async {
+  /// Set [forceRefresh] to true to reload even if already cached
+  Future<void> loadAbsences({required int year, bool forceRefresh = false}) async {
+    // Skip if already loaded for this year (unless force refresh)
+    if (!forceRefresh && _absencesByYear.containsKey(year)) {
+      return;
+    }
+
     _setLoading(true);
     _error = null;
 
@@ -115,9 +121,9 @@ class AbsenceProvider extends ChangeNotifier {
       }
 
       await _absenceService.addAbsence(userId, absence);
-      
-      // Reload the year
-      await loadAbsences(year: absence.date.year);
+
+      // Reload the year (force refresh since we just modified data)
+      await loadAbsences(year: absence.date.year, forceRefresh: true);
     } catch (e) {
       _error = 'Failed to add absence: $e';
       debugPrint('AbsenceProvider: Error: $_error');
@@ -135,9 +141,9 @@ class AbsenceProvider extends ChangeNotifier {
       }
 
       await _absenceService.updateAbsence(userId, absenceId, absence);
-      
-      // Reload the year
-      await loadAbsences(year: absence.date.year);
+
+      // Reload the year (force refresh since we just modified data)
+      await loadAbsences(year: absence.date.year, forceRefresh: true);
     } catch (e) {
       _error = 'Failed to update absence: $e';
       debugPrint('AbsenceProvider: Error: $_error');
@@ -155,9 +161,9 @@ class AbsenceProvider extends ChangeNotifier {
       }
 
       await _absenceService.deleteAbsence(userId, absenceId);
-      
-      // Reload the year
-      await loadAbsences(year: year);
+
+      // Reload the year (force refresh since we just modified data)
+      await loadAbsences(year: year, forceRefresh: true);
     } catch (e) {
       _error = 'Failed to delete absence: $e';
       debugPrint('AbsenceProvider: Error: $_error');
@@ -190,8 +196,10 @@ class AbsenceProvider extends ChangeNotifier {
   }
 
   void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
+    if (_isLoading != loading) {
+      _isLoading = loading;
+      notifyListeners();
+    }
   }
 }
 

@@ -24,7 +24,13 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
   String? get _userId => _authService.currentUser?.id;
 
   /// Load adjustments for a specific year
-  Future<void> loadAdjustments({required int year}) async {
+  /// Set [forceRefresh] to true to reload even if already cached
+  Future<void> loadAdjustments({required int year, bool forceRefresh = false}) async {
+    // Skip if already loaded for this year (unless force refresh)
+    if (!forceRefresh && _adjustmentsByYear.containsKey(year)) {
+      return;
+    }
+
     final userId = _userId;
     if (userId == null) {
       _error = 'User not authenticated';
@@ -122,9 +128,9 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
         deltaMinutes: deltaMinutes,
         note: note,
       );
-      
-      // Reload the year
-      await loadAdjustments(year: effectiveDate.year);
+
+      // Reload the year (force refresh since we just modified data)
+      await loadAdjustments(year: effectiveDate.year, forceRefresh: true);
     } catch (e) {
       _error = 'Failed to add adjustment: $e';
       debugPrint('BalanceAdjustmentProvider: Error: $_error');
@@ -153,9 +159,9 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
         deltaMinutes: deltaMinutes,
         note: note,
       );
-      
-      // Reload the year
-      await loadAdjustments(year: effectiveDate.year);
+
+      // Reload the year (force refresh since we just modified data)
+      await loadAdjustments(year: effectiveDate.year, forceRefresh: true);
     } catch (e) {
       _error = 'Failed to update adjustment: $e';
       debugPrint('BalanceAdjustmentProvider: Error: $_error');
@@ -173,9 +179,9 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
 
     try {
       await _repository.deleteAdjustment(id: id, userId: userId);
-      
-      // Reload the year
-      await loadAdjustments(year: year);
+
+      // Reload the year (force refresh since we just modified data)
+      await loadAdjustments(year: year, forceRefresh: true);
     } catch (e) {
       _error = 'Failed to delete adjustment: $e';
       debugPrint('BalanceAdjustmentProvider: Error: $_error');
@@ -185,7 +191,9 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
   }
 
   void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
+    if (_isLoading != loading) {
+      _isLoading = loading;
+      notifyListeners();
+    }
   }
 }
