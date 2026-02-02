@@ -43,29 +43,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-# Node.js / Next.js related
-node_modules/
-.next/
-out/
-.vercel
-*.tsbuildinfo
-.env*.local
-.pnpm-debug.log*
-
-# Package manager
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# TypeScript
-dist/
-*.d.ts.map
-
-# Shared packages build output
-packages/*/dist/
-
-# App-specific build outputs
-apps/*/build/
-apps/web_api/.next/
-apps/web_api/out/

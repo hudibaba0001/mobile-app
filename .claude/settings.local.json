@@ -8,7 +8,15 @@
       "WebFetch(domain:mcp.supabase.com)",
       "mcp__supabase__list_tables",
       "mcp__supabase__get_advisors",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "Bash(find:*)",
+      "Bash(flutter pub run build_runner build:*)",
+      "Bash(git add:*)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm install:*)",
+      "Bash(flutter create:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -1,0 +1,21 @@
+{
+  "name": "@kviktime/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for KvikTime monorepo",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "kviktime",
+    "shared",
+    "types"
+  ],
+  "author": "KvikTime",
+  "license": "PROPRIETARY",
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

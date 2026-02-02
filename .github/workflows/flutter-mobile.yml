@@ -1,0 +1,44 @@
+name: Flutter Mobile CI
+
+on:
+  push:
+    branches: ["master"]
+    paths:
+      - 'apps/mobile_flutter/**'
+      - '.github/workflows/flutter-mobile.yml'
+  pull_request:
+    branches: ["master"]
+    paths:
+      - 'apps/mobile_flutter/**'
+      - '.github/workflows/flutter-mobile.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile_flutter
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.3'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze project source
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build APK
+        run: flutter build apk --release

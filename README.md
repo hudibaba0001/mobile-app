@@ -1,16 +1,69 @@
-# myapp
+# KvikTime Monorepo
 
-A new Flutter project.
+A monorepo containing the KvikTime time tracking application suite.
 
-## Getting Started
+## Repository Structure
 
-This project is a starting point for a Flutter application.
+```
+/apps
+  /mobile_flutter      - Flutter mobile app (iOS & Android)
+  /admin_flutter_web   - Flutter web admin UI
+  /web_api             - Next.js admin API and super admin functions
+/packages
+  /shared              - Shared types and utilities
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Applications
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Mobile App (`apps/mobile_flutter`)
+Flutter-based mobile application for time tracking with offline support, travel time logging, and comprehensive reporting features.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+**Tech Stack:**
+- Flutter 3.x
+- Supabase for backend
+- Hive for local storage
+- Provider for state management
+
+**Getting Started:**
+```bash
+cd apps/mobile_flutter
+flutter pub get
+flutter run
+```
+
+### Admin Web UI (`apps/admin_flutter_web`)
+Flutter web application for administrative functions and super admin capabilities.
+
+**Coming soon**
+
+### Admin API (`apps/web_api`)
+Next.js API for super admin functions, analytics, and backend services.
+
+**Tech Stack:**
+- Next.js 14+
+- TypeScript
+- Supabase client
+
+**Getting Started:**
+```bash
+cd apps/web_api
+npm install
+npm run dev
+```
+
+## Development
+
+### Prerequisites
+- Flutter SDK 3.x+
+- Node.js 18+
+- Supabase CLI (optional)
+
+### Monorepo Management
+This repository uses a monorepo structure without a specific monorepo tool. Each app maintains its own dependencies and build configuration.
+
+## Documentation
+- [Mobile App README](apps/mobile_flutter/README.md)
+- Project documentation files in root directory
+
+## License
+Proprietary
