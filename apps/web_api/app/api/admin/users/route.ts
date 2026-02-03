@@ -5,9 +5,9 @@ import { supabaseAdmin } from '@/lib/supabase';
 export async function GET(request: NextRequest) {
   return withAdminAuth(request, async (req, adminUserId) => {
     try {
-      // Get all users from user_profiles
+      // Get all users from profiles
       const { data: users, error } = await supabaseAdmin
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
       // Create user profile
       const { data: profile, error: profileError } = await supabaseAdmin
-        .from('user_profiles')
+        .from('profiles')
         .insert({
           id: authData.user.id,
           email,

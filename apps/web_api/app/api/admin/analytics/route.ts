@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuth } from '@/lib/middleware';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logAdminAction } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   return withAdminAuth(request, async (req, adminUserId) => {
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
 
       // Get user count
       const { count: userCount, error: userError } = await supabaseAdmin
-        .from('user_profiles')
+        .from('profiles')
         .select('*', { count: 'exact', head: true });
 
       if (userError) {
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
 
       // Get entry count for date range
       let entryQuery = supabaseAdmin
-        .from('travel_time_entries')
+        .from('entries')
         .select('*', { count: 'exact', head: true });
 
       if (startDate) {
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const { data: activeUsers, error: activeError } = await supabaseAdmin
-        .from('travel_time_entries')
+        .from('entries')
         .select('user_id')
         .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
         .limit(1000);
@@ -63,6 +64,13 @@ export async function GET(request: NextRequest) {
       }
 
       const activeUserCount = new Set(activeUsers?.map((e) => e.user_id)).size;
+
+      // Log admin action
+      await logAdminAction(adminUserId, {
+        action: 'view_analytics',
+        resourceType: 'analytics',
+        details: { startDate, endDate },
+      }, request);
 
       return NextResponse.json({
         totalUsers: userCount,

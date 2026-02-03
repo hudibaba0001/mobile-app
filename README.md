@@ -7,10 +7,7 @@ A monorepo containing the KvikTime time tracking application suite.
 ```
 /apps
   /mobile_flutter      - Flutter mobile app (iOS & Android)
-  /admin_flutter_web   - Flutter web admin UI
-  /web_api             - Next.js admin API and super admin functions
-/packages
-  /shared              - Shared types and utilities
+  /web_api             - Next.js admin API with built-in web UI
 ```
 
 ## Applications
@@ -31,25 +28,42 @@ flutter pub get
 flutter run
 ```
 
-### Admin Web UI (`apps/admin_flutter_web`)
-Flutter web application for administrative functions and super admin capabilities.
+### Admin API & Web UI (`apps/web_api`)
+Next.js application providing both the admin API and web-based admin dashboard.
 
-**Coming soon**
-
-### Admin API (`apps/web_api`)
-Next.js API for super admin functions, analytics, and backend services.
+**Features:**
+- Admin authentication with role-based access control
+- Analytics dashboard
+- User management
+- Audit logging for all admin actions
+- Rate limiting on admin endpoints
 
 **Tech Stack:**
-- Next.js 14+
+- Next.js 16+
 - TypeScript
-- Supabase client
+- Tailwind CSS
+- Supabase (admin client with service role key)
 
 **Getting Started:**
 ```bash
 cd apps/web_api
 npm install
+
+# Create .env.local with your credentials
+cp .env.example .env.local
+
 npm run dev
 ```
+
+**Access admin UI:**
+- Admin UI: http://localhost:3000/admin/login
+- API endpoints: http://localhost:3000/api/admin/*
+
+**Security Features:**
+- Proper admin role verification (checks `is_admin` column)
+- Rate limiting (50 requests per 15 minutes)
+- Audit logging of all admin actions
+- No hardcoded secrets (all loaded from env vars)
 
 ## Development
 

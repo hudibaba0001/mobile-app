@@ -16,7 +16,13 @@
       "Bash(git rm:*)",
       "Bash(npx create-next-app@latest:*)",
       "Bash(npm install:*)",
-      "Bash(flutter create:*)"
+      "Bash(flutter create:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nRestructure project into monorepo with multiple apps\n\n- Move Flutter mobile app to apps/mobile_flutter/\n- Create Next.js admin API in apps/web_api/\n- Create Flutter web admin UI in apps/admin_flutter_web/\n- Add shared TypeScript types package in packages/shared/\n\n## Apps Structure\n- apps/mobile_flutter: Flutter mobile app \\(iOS & Android\\)\n- apps/admin_flutter_web: Flutter web admin dashboard\n- apps/web_api: Next.js admin API with Supabase integration\n\n## Shared Package\n- packages/shared: TypeScript types for user, entry, and analytics data\n\n## Configuration Updates\n- Update root README.md with monorepo structure\n- Update .gitignore for Node.js and Next.js projects\n- Add CI/CD workflows for each app \\(flutter-mobile, flutter-web, nextjs-api, shared-package\\)\n- Deprecate old dart.yml workflow\n\n## API Features\n- User management endpoints \\(GET/POST /api/admin/users\\)\n- Analytics endpoint \\(GET /api/admin/analytics\\)\n- JWT authentication middleware\n- Supabase admin client integration\n\n## Admin Web Features\n- Supabase authentication\n- GoRouter navigation\n- Dashboard with statistics\n- User management screen \\(placeholder\\)\n- Analytics screen \\(placeholder\\)\n- Material Design 3 with dark mode\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(flutter doctor:*)",
+      "Bash(flutter pub get:*)",
+      "mcp__supabase__apply_migration",
+      "Bash(npm run build:*)",
+      "mcp__supabase__get_project_url"
     ]
   },
   "enableAllProjectMcpServers": true,

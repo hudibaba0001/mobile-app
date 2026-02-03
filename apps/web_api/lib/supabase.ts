@@ -1,23 +1,41 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+let _supabaseAdmin: SupabaseClient | null = null;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
+function getSupabaseAdmin(): SupabaseClient {
+  if (_supabaseAdmin) {
+    return _supabaseAdmin;
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing required environment variables: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+  }
+
+  _supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  return _supabaseAdmin;
 }
 
-// Server-side client with service role key for admin operations
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
+// Export a getter instead of a constant
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(target, prop) {
+    const client = getSupabaseAdmin();
+    return (client as any)[prop];
   },
 });
 
 // Helper to verify JWT token from mobile app
 export async function verifyToken(token: string) {
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+  const client = getSupabaseAdmin();
+  const { data: { user }, error } = await client.auth.getUser(token);
 
   if (error || !user) {
     return null;
