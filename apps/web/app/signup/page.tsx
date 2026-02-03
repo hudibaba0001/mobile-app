@@ -122,195 +122,259 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="container">
-      <div className="card">
-        <h1 className="title">Create Account</h1>
-        <p className="subtitle">Start your 7-day free trial</p>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl w-full">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Welcome to KvikTime
+          </h1>
+          <p className="text-lg text-gray-600">
+            Create your account and start your 7-day free trial
+          </p>
+        </div>
 
-        {error && <div className="error-box">{error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="name-row">
-            <div className="form-group">
-              <label className="label" htmlFor="firstName">
-                First Name *
-              </label>
-              <input
-                id="firstName"
-                type="text"
-                className="input"
-                value={formData.firstName}
-                onChange={(e) =>
-                  setFormData({ ...formData, firstName: e.target.value })
-                }
-                required
-                placeholder="John"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="label" htmlFor="lastName">
-                Last Name *
-              </label>
-              <input
-                id="lastName"
-                type="text"
-                className="input"
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
-                }
-                required
-                placeholder="Doe"
-              />
-            </div>
+        {/* Main Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Price Badge */}
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 text-center">
+            <p className="text-sm font-medium opacity-90">7 days free, then</p>
+            <p className="text-2xl font-bold">89 kr/month</p>
+            <p className="text-sm opacity-90">including VAT • Cancel anytime</p>
           </div>
 
-          <div className="form-group">
-            <label className="label" htmlFor="email">
-              Email *
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="input"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              required
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="label" htmlFor="phone">
-              Phone Number <span className="optional">(optional)</span>
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              className="input"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-              placeholder="+46 70 123 4567"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="label" htmlFor="password">
-              Password *
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="input"
-              value={formData.password}
-              onChange={(e) => handlePasswordChange(e.target.value)}
-              required
-              placeholder="Create a strong password"
-            />
-
-            {/* Password strength indicator */}
-            {formData.password && (
-              <div className="mt-2">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-gray-600">
-                    Password strength:
-                  </span>
-                  <span className="text-sm font-semibold" style={{ color: passwordStrength.color.replace('bg-', '') }}>
-                    {passwordStrength.feedback}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.color}`}
-                    style={{ width: `${(passwordStrength.score / 6) * 100}%` }}
-                  />
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-8 space-y-6">
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700 font-medium">{error}</p>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Password requirements checklist */}
-            <div className="mt-3 space-y-1">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Password must contain:
-              </p>
-              <PasswordRequirement
-                met={formData.password.length >= 12}
-                text="At least 12 characters"
-              />
-              <PasswordRequirement
-                met={/[A-Z]/.test(formData.password)}
-                text="At least one uppercase letter (A-Z)"
-              />
-              <PasswordRequirement
-                met={/[a-z]/.test(formData.password)}
-                text="At least one lowercase letter (a-z)"
-              />
-              <PasswordRequirement
-                met={/[0-9]/.test(formData.password)}
-                text="At least one number (0-9)"
-              />
-              <PasswordRequirement
-                met={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)}
-                text="At least one special character (!@#$%^&*)"
+            {/* Name Fields */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
+                  First Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-400"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  required
+                  placeholder="John"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Last Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-400"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  required
+                  placeholder="Doe"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="email"
+                type="email"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-400"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+                placeholder="you@example.com"
               />
             </div>
-          </div>
 
-          <div className="price-badge">
-            <strong>89 kr/mån</strong> inkl. moms — 7 dagar gratis
-          </div>
+            {/* Phone */}
+            <div>
+              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                Phone Number <span className="text-gray-400 text-xs font-normal">(optional)</span>
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-400"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="+46 70 123 4567"
+              />
+            </div>
 
-          <div className="checkbox-group">
-            <input
-              type="checkbox"
-              id="terms"
-              className="checkbox"
-              checked={formData.termsAccepted}
-              onChange={(e) =>
-                setFormData({ ...formData, termsAccepted: e.target.checked })
-              }
-              required
-            />
-            <label className="checkbox-label" htmlFor="terms">
-              I agree to the{' '}
-              <a href="/terms" target="_blank" rel="noopener noreferrer">
-                Terms of Service
-              </a>
-            </label>
-          </div>
+            {/* Password */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="password"
+                type="password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 text-gray-900 placeholder-gray-400"
+                value={formData.password}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                required
+                placeholder="Create a strong password"
+              />
 
-          <div className="checkbox-group">
-            <input
-              type="checkbox"
-              id="privacy"
-              className="checkbox"
-              checked={formData.privacyAccepted}
-              onChange={(e) =>
-                setFormData({ ...formData, privacyAccepted: e.target.checked })
-              }
-              required
-            />
-            <label className="checkbox-label" htmlFor="privacy">
-              I agree to the{' '}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer">
-                Privacy Policy
-              </a>
-            </label>
-          </div>
+              {/* Password strength indicator */}
+              {formData.password && (
+                <div className="mt-3 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Password strength:
+                    </span>
+                    <span className={`text-sm font-semibold ${
+                      passwordStrength.color === 'bg-green-500' ? 'text-green-600' :
+                      passwordStrength.color === 'bg-yellow-500' ? 'text-yellow-600' :
+                      passwordStrength.color === 'bg-orange-500' ? 'text-orange-600' :
+                      passwordStrength.color === 'bg-red-500' ? 'text-red-600' :
+                      'text-gray-600'
+                    }`}>
+                      {passwordStrength.feedback}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                      style={{ width: `${(passwordStrength.score / 6) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
 
-          <button type="submit" className="button" disabled={loading}>
-            {loading ? 'Please wait...' : 'Continue to payment'}
-          </button>
-        </form>
+              {/* Password requirements checklist */}
+              <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p className="text-sm font-semibold text-gray-700 mb-3">
+                  Password requirements:
+                </p>
+                <div className="space-y-2">
+                  <PasswordRequirement
+                    met={formData.password.length >= 12}
+                    text="At least 12 characters"
+                  />
+                  <PasswordRequirement
+                    met={/[A-Z]/.test(formData.password)}
+                    text="One uppercase letter (A-Z)"
+                  />
+                  <PasswordRequirement
+                    met={/[a-z]/.test(formData.password)}
+                    text="One lowercase letter (a-z)"
+                  />
+                  <PasswordRequirement
+                    met={/[0-9]/.test(formData.password)}
+                    text="One number (0-9)"
+                  />
+                  <PasswordRequirement
+                    met={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)}
+                    text="One special character (!@#$%^&*)"
+                  />
+                </div>
+              </div>
+            </div>
 
-        <a href="/" className="link">
-          Already have an account? Open the app
-        </a>
+            {/* Terms and Privacy */}
+            <div className="space-y-3 pt-2">
+              <label className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  className="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
+                  checked={formData.termsAccepted}
+                  onChange={(e) => setFormData({ ...formData, termsAccepted: e.target.checked })}
+                  required
+                />
+                <span className="ml-3 text-sm text-gray-600">
+                  I agree to the{' '}
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-500 font-medium underline">
+                    Terms of Service
+                  </a>
+                </span>
+              </label>
+
+              <label className="flex items-start">
+                <input
+                  type="checkbox"
+                  id="privacy"
+                  className="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
+                  checked={formData.privacyAccepted}
+                  onChange={(e) => setFormData({ ...formData, privacyAccepted: e.target.checked })}
+                  required
+                />
+                <span className="ml-3 text-sm text-gray-600">
+                  I agree to the{' '}
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-500 font-medium underline">
+                    Privacy Policy
+                  </a>
+                </span>
+              </label>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                'Start Free Trial →'
+              )}
+            </button>
+
+            {/* Security Badge */}
+            <div className="flex items-center justify-center text-xs text-gray-500 pt-2">
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Secure SSL encrypted payment
+            </div>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-6">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
+            <a href="/" className="text-indigo-600 hover:text-indigo-500 font-semibold">
+              Sign in
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -319,32 +383,19 @@ export default function SignupPage() {
 // Password requirement item component
 function PasswordRequirement({ met, text }: { met: boolean; text: string }) {
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <div className="flex items-center gap-2.5">
       {met ? (
-        <svg
-          className="w-4 h-4 text-green-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 13l4 4L19 7"
-          />
-        </svg>
+        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+          <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
       ) : (
-        <svg
-          className="w-4 h-4 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <circle cx="12" cy="12" r="10" strokeWidth={2} />
-        </svg>
+        <div className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-gray-300" />
       )}
-      <span className={met ? 'text-green-700' : 'text-gray-600'}>{text}</span>
+      <span className={`text-sm ${met ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
+        {text}
+      </span>
     </div>
   )
 }
