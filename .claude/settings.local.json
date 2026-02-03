@@ -22,7 +22,9 @@
       "Bash(flutter pub get:*)",
       "mcp__supabase__apply_migration",
       "Bash(npm run build:*)",
-      "mcp__supabase__get_project_url"
+      "mcp__supabase__get_project_url",
+      "Bash(npm run dev:*)",
+      "Bash(npx next build)"
     ]
   },
   "enableAllProjectMcpServers": true,
