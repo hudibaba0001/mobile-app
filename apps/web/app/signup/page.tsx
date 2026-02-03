@@ -3,6 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+interface PasswordStrength {
+  score: number
+  feedback: string
+  color: string
+  isValid: boolean
+}
+
 export default function SignupPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -16,10 +23,78 @@ export default function SignupPage() {
     termsAccepted: false,
     privacyAccepted: false,
   })
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>({
+    score: 0,
+    feedback: '',
+    color: 'bg-gray-300',
+    isValid: false,
+  })
+
+  // Password strength validation
+  const validatePasswordStrength = (password: string): PasswordStrength => {
+    if (!password) {
+      return { score: 0, feedback: '', color: 'bg-gray-300', isValid: false }
+    }
+
+    let score = 0
+    const checks = {
+      length: password.length >= 12,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    }
+
+    // Score calculation
+    if (checks.length) score += 2
+    if (checks.uppercase) score += 1
+    if (checks.lowercase) score += 1
+    if (checks.number) score += 1
+    if (checks.special) score += 1
+
+    // Determine strength
+    let feedback = ''
+    let color = 'bg-gray-300'
+    let isValid = false
+
+    if (score === 0) {
+      feedback = ''
+    } else if (score <= 2) {
+      feedback = 'Weak password'
+      color = 'bg-red-500'
+    } else if (score <= 4) {
+      feedback = 'Moderate password'
+      color = 'bg-orange-500'
+    } else if (score <= 5) {
+      feedback = 'Good password'
+      color = 'bg-yellow-500'
+    } else {
+      feedback = 'Strong password'
+      color = 'bg-green-500'
+      isValid = true
+    }
+
+    // Password must meet all requirements to be valid
+    isValid = Object.values(checks).every((check) => check === true)
+
+    return { score, feedback, color, isValid }
+  }
+
+  const handlePasswordChange = (password: string) => {
+    setFormData({ ...formData, password })
+    setPasswordStrength(validatePasswordStrength(password))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    // Validate password strength
+    if (!passwordStrength.isValid) {
+      setError('Please create a stronger password that meets all requirements')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -133,13 +208,57 @@ export default function SignupPage() {
               type="password"
               className="input"
               value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
+              onChange={(e) => handlePasswordChange(e.target.value)}
               required
-              minLength={8}
-              placeholder="Minimum 8 characters"
+              placeholder="Create a strong password"
             />
+
+            {/* Password strength indicator */}
+            {formData.password && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm text-gray-600">
+                    Password strength:
+                  </span>
+                  <span className="text-sm font-semibold" style={{ color: passwordStrength.color.replace('bg-', '') }}>
+                    {passwordStrength.feedback}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                    style={{ width: `${(passwordStrength.score / 6) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Password requirements checklist */}
+            <div className="mt-3 space-y-1">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Password must contain:
+              </p>
+              <PasswordRequirement
+                met={formData.password.length >= 12}
+                text="At least 12 characters"
+              />
+              <PasswordRequirement
+                met={/[A-Z]/.test(formData.password)}
+                text="At least one uppercase letter (A-Z)"
+              />
+              <PasswordRequirement
+                met={/[a-z]/.test(formData.password)}
+                text="At least one lowercase letter (a-z)"
+              />
+              <PasswordRequirement
+                met={/[0-9]/.test(formData.password)}
+                text="At least one number (0-9)"
+              />
+              <PasswordRequirement
+                met={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)}
+                text="At least one special character (!@#$%^&*)"
+              />
+            </div>
           </div>
 
           <div className="price-badge">
@@ -193,6 +312,39 @@ export default function SignupPage() {
           Already have an account? Open the app
         </a>
       </div>
+    </div>
+  )
+}
+
+// Password requirement item component
+function PasswordRequirement({ met, text }: { met: boolean; text: string }) {
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      {met ? (
+        <svg
+          className="w-4 h-4 text-green-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      ) : (
+        <svg
+          className="w-4 h-4 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <circle cx="12" cy="12" r="10" strokeWidth={2} />
+        </svg>
+      )}
+      <span className={met ? 'text-green-700' : 'text-gray-600'}>{text}</span>
     </div>
   )
 }

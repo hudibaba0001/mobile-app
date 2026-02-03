@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 
 interface User {
@@ -14,9 +15,12 @@ interface User {
 }
 
 export default function AdminUsersPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -24,6 +28,7 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem('admin_access_token');
       const response = await fetch('/api/admin/users', {
         headers: {
@@ -37,11 +42,58 @@ export default function AdminUsersPage() {
 
       const data = await response.json();
       setUsers(data.users || []);
+      setError('');
     } catch (err: any) {
       setError(err.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
+  };
+
+  const searchUsers = async (query: string) => {
+    if (!query || query.trim().length < 2) {
+      fetchUsers(); // Reset to all users if query too short
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      setError('');
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`/api/admin/users/search?q=${encodeURIComponent(query)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
+
+      const data = await response.json();
+      setUsers(data.users || []);
+    } catch (err: any) {
+      setError(err.message || 'Search failed');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery) {
+        searchUsers(searchQuery);
+      } else {
+        fetchUsers();
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleRowClick = (userId: string) => {
+    router.push(`/admin/users/${userId}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -59,7 +111,7 @@ export default function AdminUsersPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Users</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Manage all users on the platform
+              Search and manage all users on the platform
             </p>
           </div>
           <button
@@ -68,6 +120,22 @@ export default function AdminUsersPage() {
           >
             Refresh
           </button>
+        </div>
+
+        {/* Search Input */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search by email or user ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-2 border"
+          />
+          {isSearching && (
+            <div className="absolute right-3 top-2.5 text-sm text-gray-400">
+              Searching...
+            </div>
+          )}
         </div>
 
         {error && (
@@ -111,7 +179,11 @@ export default function AdminUsersPage() {
                   </tr>
                 ) : (
                   users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
+                    <tr
+                      key={user.id}
+                      onClick={() => handleRowClick(user.id)}
+                      className="hover:bg-gray-50 cursor-pointer"
+                    >
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                         {user.email}
                       </td>
