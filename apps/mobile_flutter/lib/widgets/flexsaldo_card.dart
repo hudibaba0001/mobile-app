@@ -112,36 +112,59 @@ class FlexsaldoCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row with Balance Today as headline
+              // Title: "This month: February"
               Row(
                 children: [
                   Icon(
-                    Icons.account_balance_wallet_rounded,
+                    Icons.calendar_month_rounded,
                     size: AppIconSize.sm,
                     color: theme.colorScheme.primary,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
-                    t.balance_balanceToday,
-                    style: AppTypography.sectionTitle(
-                      theme.colorScheme.onSurface,
+                    'This month: $monthName',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
-                  const Spacer(),
-                  // Balance Today pill (headline value)
+                ],
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              // Line 1 (PRIMARY): Status (to date) - Behind by X or Ahead by X
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'Status (to date): ',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.xs,
+                      horizontal: 12,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: balanceBackgroundColor,
-                      borderRadius: AppRadius.pillRadius,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: balanceColor.withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
                     ),
                     child: Text(
-                      balanceTodayText,
-                      style: AppTypography.headline(balanceColor).copyWith(
-                        fontSize: 18,
+                      isMonthPositive
+                          ? 'Ahead by ${monthBalanceHours.abs().toStringAsFixed(1)}h'
+                          : 'Behind by ${monthBalanceHours.abs().toStringAsFixed(1)}h',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: balanceColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
                       ),
                     ),
                   ),
@@ -150,80 +173,77 @@ class FlexsaldoCard extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.md),
 
-              // Secondary: This month balance vs target
-              Row(
-                children: [
-                  Text(
-                    '$monthName: ',
-                    style: AppTypography.body(
-                      theme.colorScheme.onSurfaceVariant,
+              // Line 2: Worked (to date): X.Xh / Y.Yh
+              RichText(
+                text: TextSpan(
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  children: [
+                    const TextSpan(text: 'Worked (to date): '),
+                    TextSpan(
+                      text: '${workedText}h',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    monthBalanceText,
-                    style: AppTypography.body(
-                      isMonthPositive
-                          ? FlexsaldoColors.positive
-                          : FlexsaldoColors.negative,
-                    ).copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    ' vs ${fullMonthTargetHours.toStringAsFixed(0)}h target',
-                    style: AppTypography.body(
-                      theme.colorScheme.onSurfaceVariant,
+                    const TextSpan(text: ' / '),
+                    TextSpan(
+                      text: '${targetText}h',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
-              // Starting balance (only if != 0)
+              const SizedBox(height: AppSpacing.xs),
+
+              // Line 3 (small): Full month target: XXXh
+              Text(
+                'Full month target: ${fullMonthTargetHours.toStringAsFixed(0)}h',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+
+              // Starting balance (only if != 0) - moved to bottom
               if (contractProvider.hasOpeningBalance) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  t.balance_startingBalanceValue(contractProvider.openingFlexFormatted),
+                  '${t.balance_startingBalanceValue(contractProvider.openingFlexFormatted)} • Balance today: $balanceTodayText',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],
 
-              const SizedBox(height: AppSpacing.md),
-
-              // Worked vs Target for month (special-case zero target-to-date)
-              if (monthTargetMinutesToDate == 0) ...[
-                Text(
-                  t.home_targetToDateZero('0'),
-                  style: AppTypography.body(
-                    theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  t.home_loggedHours(workedText),
-                  style: AppTypography.body(
-                    theme.colorScheme.onSurfaceVariant,
-                  ).copyWith(fontWeight: FontWeight.w600),
-                ),
-              ] else ...[
-                Text(
-                  t.balance_hoursWorked(workedText, targetText),
-                  style: AppTypography.body(
-                    theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.lg),
 
               // Progress bar for month
               ClipRRect(
-                borderRadius: AppRadius.chipRadius,
-                child: LinearProgressIndicator(
-                  value: monthProgress.clamp(0.0, 1.0),
-                  minHeight: 8,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isPositive ? FlexsaldoColors.positive : theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isMonthPositive ? FlexsaldoColors.positive : FlexsaldoColors.negative)
+                            .withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: LinearProgressIndicator(
+                    value: monthProgress.clamp(0.0, 1.0),
+                    minHeight: 10,
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isMonthPositive ? FlexsaldoColors.positive : FlexsaldoColors.negative,
+                    ),
                   ),
                 ),
               ),

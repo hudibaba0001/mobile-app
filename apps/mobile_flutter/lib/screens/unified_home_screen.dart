@@ -661,101 +661,210 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Widget _buildRecentEntries(ThemeData theme, AppLocalizations t) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              t.home_recentEntries,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            const Spacer(),
-            GestureDetector(
-              onTap: () => AppRouter.goToHistory(context),
-              child: Text(
-                t.home_viewAllArrow,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
           ],
         ),
-        const SizedBox(height: 12),
-        if (_recentEntries.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.history_rounded,
-                  size: 36,
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary.withValues(alpha: 0.15),
+                      theme.colorScheme.primary.withValues(alpha: 0.08),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  t.home_noEntriesYet,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                child: Icon(
+                  Icons.history_rounded,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                t.home_recentEntries,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => AppRouter.goToHistory(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        t.home_viewAllArrow,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 14,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          )
-        else
-          ...(_recentEntries
-              .take(5)
-              .map((entry) => _buildRecentEntryCard(theme, entry))),
-      ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (_recentEntries.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.1),
+                  width: 2,
+                  strokeAlign: BorderSide.strokeAlignInside,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.history_rounded,
+                      size: 48,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    t.home_noEntriesYet,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ...(_recentEntries
+                .take(5)
+                .map((entry) => _buildRecentEntryCard(theme, entry))),
+        ],
+      ),
     );
   }
 
   Widget _buildRecentEntryCard(ThemeData theme, _EntryData entry) {
     Color color;
+    Color lightColor;
+    Color darkColor;
+
     switch (entry.type) {
       case 'travel':
         color = theme.colorScheme.primary;
+        lightColor = const Color(0xFF6366F1); // Indigo
+        darkColor = const Color(0xFF4F46E5);
         break;
       case 'work':
         color = theme.colorScheme.secondary;
+        lightColor = const Color(0xFF10B981); // Emerald
+        darkColor = const Color(0xFF059669);
         break;
       case 'absence':
         color = Colors.orange;
+        lightColor = const Color(0xFFF59E0B); // Amber
+        darkColor = const Color(0xFFD97706);
         break;
       default:
         color = theme.colorScheme.tertiary;
+        lightColor = const Color(0xFF8B5CF6); // Purple
+        darkColor = const Color(0xFF7C3AED);
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            lightColor.withValues(alpha: 0.08),
+            darkColor.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: AppRadius.buttonRadius,
+        border: Border.all(
+          color: lightColor.withValues(alpha: 0.15),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: lightColor.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Material(
-        color: theme.colorScheme.surface,
+        color: Colors.transparent,
         borderRadius: AppRadius.buttonRadius,
         child: InkWell(
           onTap: () => _openQuickView(entry),
           borderRadius: AppRadius.buttonRadius,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [lightColor, darkColor],
+                    ),
                     borderRadius: AppRadius.chipRadius,
+                    boxShadow: [
+                      BoxShadow(
+                        color: lightColor.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: Icon(entry.icon, color: color, size: AppIconSize.sm),
+                  child: Icon(entry.icon, color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -765,16 +874,18 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       Text(
                         entry.title,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           color: theme.colorScheme.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         entry.subtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -783,16 +894,27 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: AppRadius.cardRadius,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        lightColor.withValues(alpha: 0.2),
+                        darkColor.withValues(alpha: 0.15),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: lightColor.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
                   ),
                   child: Text(
                     entry.duration,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w600,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: darkColor,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),

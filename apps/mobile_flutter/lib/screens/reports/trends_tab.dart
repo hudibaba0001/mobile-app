@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../design/app_theme.dart';
 import '../../models/absence.dart';
 import '../../providers/absence_provider.dart';
+import '../../providers/time_provider.dart';
+import '../../providers/contract_provider.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
 import '../../l10n/generated/app_localizations.dart';
 
@@ -48,6 +50,8 @@ class _TrendsTabState extends State<TrendsTab> {
     final t = AppLocalizations.of(context);
     final viewModel = context.watch<CustomerAnalyticsViewModel>();
     final absenceProvider = context.watch<AbsenceProvider>();
+    final timeProvider = context.watch<TimeProvider>();
+    final contractProvider = context.watch<ContractProvider>();
 
     if (viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -140,6 +144,8 @@ class _TrendsTabState extends State<TrendsTab> {
                 theme,
                 month,
                 leaves,
+                timeProvider,
+                contractProvider,
               );
             }),
           const SizedBox(height: 24),
@@ -267,32 +273,81 @@ class _TrendsTabState extends State<TrendsTab> {
     ThemeData theme,
     MonthlyBreakdown month,
     _MonthlyLeaveSummary leaves,
+    TimeProvider timeProvider,
+    ContractProvider contractProvider,
   ) {
     final t = AppLocalizations.of(context);
     final colorScheme = theme.colorScheme;
-    final monthLabel = DateFormat('MMM yyyy').format(month.month);
+    final monthLabel = DateFormat('MMMM yyyy').format(month.month);
+
+    // Calculate monthly target hours
+    final monthlyTargetHours = timeProvider.monthlyTargetHours(
+      year: month.month.year,
+      month: month.month.month,
+    );
+
+    // Calculate variance (actual - target)
+    final varianceHours = month.totalHours - monthlyTargetHours;
+    final isAhead = varianceHours >= 0;
+
+    // Define colors
+    final statusColor = isAhead
+        ? FlexsaldoColors.positive
+        : FlexsaldoColors.negative;
+    final statusBackgroundColor = isAhead
+        ? FlexsaldoColors.positiveLight
+        : FlexsaldoColors.negativeLight;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.2),
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primaryContainer.withValues(alpha: 0.08),
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.12),
+            colorScheme.secondaryContainer.withValues(alpha: 0.06),
+          ],
+          stops: const [0.0, 0.5, 1.0],
         ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.15),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.3 : 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            monthLabel,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            ),
+          // Month title with icon
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_month_rounded,
+                size: AppIconSize.sm,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                monthLabel,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+
+          const SizedBox(height: 16),
+
+          // Work, Travel, Total breakdown
           Row(
             children: [
               Expanded(
@@ -300,7 +355,7 @@ class _TrendsTabState extends State<TrendsTab> {
                   theme,
                   label: t.trends_work,
                   value: month.workHours,
-                  valueColor: colorScheme.error,
+                  valueColor: const Color(0xFF10B981), // Emerald
                 ),
               ),
               Expanded(
@@ -308,7 +363,7 @@ class _TrendsTabState extends State<TrendsTab> {
                   theme,
                   label: t.trends_travel,
                   value: month.travelHours,
-                  valueColor: colorScheme.tertiary,
+                  valueColor: const Color(0xFF6366F1), // Indigo
                 ),
               ),
               Expanded(
@@ -316,13 +371,90 @@ class _TrendsTabState extends State<TrendsTab> {
                   theme,
                   label: t.trends_total,
                   value: month.totalHours,
-                  valueColor: colorScheme.onSurface,
+                  valueColor: colorScheme.primary,
                 ),
               ),
             ],
           ),
+
+          const SizedBox(height: 16),
+
+          // vs Target and Status
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: statusBackgroundColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: statusColor.withValues(alpha: 0.3),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Target hours
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'vs Target',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${monthlyTargetHours.toStringAsFixed(0)}h',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Status badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusBackgroundColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.5),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isAhead ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                        color: statusColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        isAhead
+                            ? 'Ahead by ${varianceHours.abs().toStringAsFixed(1)}h'
+                            : 'Behind by ${varianceHours.abs().toStringAsFixed(1)}h',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: statusColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           if (leaves.hasAny) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Wrap(
               spacing: 8,
               runSpacing: 8,

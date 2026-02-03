@@ -236,43 +236,145 @@ class MonthlyStatusCard extends StatelessWidget {
     // Theme-aware colors
     final positiveColor =
         isDark ? Colors.green.shade300 : Colors.green.shade700;
-    final warningColor = isDark ? Colors.amber.shade300 : Colors.amber.shade700;
+    final negativeColor = isDark ? Colors.red.shade300 : Colors.red.shade700;
 
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         side: BorderSide(
           color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              AppLocalizations.of(context)
-                  .balance_thisMonth(monthName.toUpperCase()),
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurfaceVariant,
-                letterSpacing: 1.2,
-              ),
+            // Title: "This month: February"
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_month_rounded,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'This month: $monthName',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
+
+            const SizedBox(height: 20),
+
+            // Line 1 (PRIMARY): Status (to date) - Behind by X or Ahead by X
+            Row(
+              children: [
+                Text(
+                  'Status (to date): ',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isOverTarget
+                        ? positiveColor.withValues(alpha: 0.15)
+                        : negativeColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: isOverTarget ? positiveColor : negativeColor,
+                      width: 2,
+                    ),
+                  ),
+                  child: Text(
+                    isOverTarget
+                        ? 'Ahead by ${variance.abs().toStringAsFixed(1)}h'
+                        : 'Behind by ${variance.abs().toStringAsFixed(1)}h',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: isOverTarget ? positiveColor : negativeColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
             const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context).balance_hoursWorked(
-                hoursWorked.toStringAsFixed(1),
-                targetHours.toStringAsFixed(1),
-              ),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+
+            // Line 2: Worked (to date): X.Xh / Y.Yh
+            RichText(
+              text: TextSpan(
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+                children: [
+                  const TextSpan(text: 'Worked (to date): '),
+                  TextSpan(
+                    text: '${effectiveHours.toStringAsFixed(1)}h',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const TextSpan(text: ' / '),
+                  TextSpan(
+                    text: '${targetForVariance.toStringAsFixed(1)}h',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
               ),
             ),
+
+            const SizedBox(height: 6),
+
+            // Line 3 (small): Full month target: XXXh
+            Text(
+              'Full month target: ${targetHours.toStringAsFixed(0)}h',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+
+            // Show credits and adjustments if any
+            if (creditHours != null && creditHours! > 0) ...[
+              const SizedBox(height: 6),
+              Text(
+                '+ ${creditHours!.toStringAsFixed(1)}h credited (paid leave)',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+            if (adjustmentHours != 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                '${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}h manual adjustments',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+
             // Show "Logged since..." when tracking started mid-month
             if (showLoggedSince && trackingStartDate != null) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 AppLocalizations.of(context).balance_loggedSince(
                   DateFormat('d MMM').format(trackingStartDate!),
@@ -283,69 +385,27 @@ class MonthlyStatusCard extends StatelessWidget {
                 ),
               ),
             ],
-            if (creditHours != null && creditHours! > 0) ...[
-              const SizedBox(height: 4),
-              Text(
-                AppLocalizations.of(context)
-                    .balance_creditedHours(creditHours!.toStringAsFixed(1)),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-            if (adjustmentHours != 0) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Includes adjustments: '
-                '${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}h',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  isOverTarget
-                      ? Icons.check_circle
-                      : Icons.warning_amber_rounded,
-                  size: 20,
-                  color: isOverTarget ? positiveColor : warningColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  AppLocalizations.of(context).balance_status(
-                    '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(1)}',
-                    isOverTarget
-                        ? AppLocalizations.of(context).balance_over
-                        : AppLocalizations.of(context).balance_under,
-                  ),
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: isOverTarget ? positiveColor : warningColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 20),
+
+            // Progress bar for month
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
                 value: clampedProgress,
                 minHeight: 12,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isOverTarget ? positiveColor : warningColor,
+                  isOverTarget ? positiveColor : negativeColor,
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
-              AppLocalizations.of(context)
-                  .balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
+              '${(progress * 100).toStringAsFixed(0)}% of full month target',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],

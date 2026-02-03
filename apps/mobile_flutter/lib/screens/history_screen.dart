@@ -365,7 +365,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            colorScheme.primaryContainer.withValues(alpha: 0.08),
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.12),
+            colorScheme.secondaryContainer.withValues(alpha: 0.06),
+          ],
+          stops: const [0.0, 0.5, 1.0],
+        ),
+      ),
       child: Consumer<EntryProvider>(
         builder: (context, entryProvider, child) {
           // Show loading indicator when loading entries
@@ -432,40 +443,73 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final holidayService = context.read<HolidayService>();
     final holidayInfo = holidayService.getHolidayInfo(entry.date);
 
-    return Card(
-      elevation: 2,
-      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+    // Vibrant gradient colors
+    final Color lightColor = isWorkEntry
+        ? const Color(0xFF10B981) // Emerald for work
+        : const Color(0xFF6366F1); // Indigo for travel
+    final Color darkColor = isWorkEntry
+        ? const Color(0xFF059669)
+        : const Color(0xFF4F46E5);
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            lightColor.withValues(alpha: 0.08),
+            darkColor.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: lightColor.withValues(alpha: 0.15),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: lightColor.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Material(
         color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
         child: InkWell(
           onTap: () => _openQuickView(entry),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: Row(
               children: [
-                // Leading Icon
+                // Leading Icon with gradient
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: isWorkEntry
-                        ? colorScheme.secondary.withValues(alpha: 0.1)
-                        : colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [lightColor, darkColor],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: lightColor.withValues(alpha: 0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Icon(
                     isWorkEntry
                         ? Icons.work_outline_rounded
                         : Icons.directions_car_rounded,
-                    color: isWorkEntry
-                        ? colorScheme.secondary
-                        : colorScheme.primary,
-                    size: 24,
+                    color: Colors.white,
+                    size: 28,
                   ),
                 ),
 
@@ -479,32 +523,38 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Row(
                         children: [
                           Text(
-                            isWorkEntry 
-                                ? AppLocalizations.of(context).history_work 
+                            isWorkEntry
+                                ? AppLocalizations.of(context).history_work
                                 : AppLocalizations.of(context).history_travel,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                              horizontal: 10,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: isWorkEntry
-                                  ? colorScheme.secondary.withValues(alpha: 0.1)
-                                  : colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(
+                                colors: [
+                                  lightColor.withValues(alpha: 0.2),
+                                  darkColor.withValues(alpha: 0.15),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: lightColor.withValues(alpha: 0.3),
+                                width: 1,
+                              ),
                             ),
                             child: Text(
                               _formatDuration(entry.totalDuration),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: isWorkEntry
-                                    ? colorScheme.secondary
-                                    : colorScheme.primary,
-                                fontWeight: FontWeight.w600,
+                                color: darkColor,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
