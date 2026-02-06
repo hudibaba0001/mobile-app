@@ -10,6 +10,7 @@ import '../providers/contract_provider.dart';
 import '../config/external_links.dart';
 import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../design/app_theme.dart';
 
 /// Gate screen that checks legal acceptance and subscription status
 /// Blocks access to app if requirements are not met
@@ -100,7 +101,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.auth_signupFailed(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -119,7 +120,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.auth_subscriptionFailed(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -151,7 +152,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const CircularProgressIndicator(),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Text(
                 'Checking account status...',
                 style: Theme.of(context).textTheme.bodyLarge,
@@ -166,27 +167,27 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
       return Scaffold(
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.error_outline,
-                  size: 64,
+                  size: AppIconSize.xl,
                   color: Theme.of(context).colorScheme.error,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   AppLocalizations.of(context).common_error,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   _error!,
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xl),
                 ElevatedButton(
                   onPressed: _loadProfile,
                   child: Text(AppLocalizations.of(context).common_retry),
@@ -203,7 +204,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
       return Scaffold(
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -213,7 +214,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                   size: 80,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.xxl),
                 Text(
                   'Complete Registration',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -221,22 +222,22 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                       ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   'Your account needs to be completed. Please visit our signup page to accept terms and privacy policy, and set up your subscription.',
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: AppSpacing.xxxl),
                 ElevatedButton.icon(
                   onPressed: _openSignupPage,
                   icon: const Icon(Icons.open_in_new),
                   label: Text(AppLocalizations.of(context).auth_completeRegistration),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 TextButton(
                   onPressed: () async {
                     final authService = context.read<SupabaseAuthService>();
@@ -259,7 +260,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
       return Scaffold(
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -269,7 +270,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                   size: 80,
                   color: Theme.of(context).colorScheme.error,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.xxl),
                 Text(
                   'Subscription Required',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -277,22 +278,22 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                       ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   _getSubscriptionMessage(),
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: AppSpacing.xxxl),
                 ElevatedButton.icon(
                   onPressed: _openManageSubscription,
                   icon: const Icon(Icons.open_in_new),
                   label: Text(AppLocalizations.of(context).settings_manageSubscription),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 TextButton(
                   onPressed: () async {
                     final authService = context.read<SupabaseAuthService>();

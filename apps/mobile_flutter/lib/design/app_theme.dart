@@ -109,6 +109,15 @@ class AbsenceColors {
   static const Color unpaid = AppColors.neutral500;
 }
 
+/// Entry type colors (single source for time entry UI)
+class EntryColors {
+  EntryColors._();
+
+  static const Color travel = AppColors.primary;
+  static const Color work = AppColors.secondary;
+  static const Color absence = AppColors.accent;
+}
+
 // =============================================================================
 // COLOR PALETTE
 // =============================================================================
@@ -158,6 +167,10 @@ class AppColors {
   static const Color darkSurface = Color(0xFF121212);
   static const Color darkSurfaceVariant = Color(0xFF1E1E1E);
   static const Color darkSurfaceElevated = Color(0xFF2D2D2D);
+
+  // Gradient colors (Login/Auth screens)
+  static const Color gradientStart = Color(0xFF7B68EE); // Medium slate blue
+  static const Color gradientEnd = Color(0xFF6B5B95);   // Purple haze
 }
 
 // =============================================================================

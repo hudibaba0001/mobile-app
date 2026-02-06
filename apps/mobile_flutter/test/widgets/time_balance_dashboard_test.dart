@@ -84,7 +84,7 @@ void main() {
 
     // Should show "Net this year" with the year-only balance (-160h)
     expect(find.textContaining('Net this year'), findsOneWidget);
-    expect(find.textContaining('-160.0h'), findsOneWidget);
+    expect(find.text('Net this year (logged): -160.0h'), findsOneWidget);
 
     // Should show starting balance info
     expect(find.textContaining('+170h'), findsAtLeastNWidgets(1));

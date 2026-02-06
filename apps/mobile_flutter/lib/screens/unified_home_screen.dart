@@ -251,40 +251,48 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       key: const Key('screen_home'),
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.timer_rounded,
-                color: colorScheme.primary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        title: Builder(
+          builder: (context) {
+            final user = context.read<SupabaseAuthService>().currentUser;
+            final userName = user?.userMetadata?['full_name']
+                ?? user?.email?.split('@').first
+                ?? 'User';
+            return Row(
               children: [
-                Text(
-                  t.home_title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurface,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.timer_rounded,
+                    color: colorScheme.primary,
+                    size: 24,
                   ),
                 ),
-                Text(
-                  t.home_subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userName,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      t.home_subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
+            );
+          },
         ),
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -786,28 +794,23 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Widget _buildRecentEntryCard(ThemeData theme, _EntryData entry) {
-    Color color;
     Color lightColor;
     Color darkColor;
 
     switch (entry.type) {
       case 'travel':
-        color = theme.colorScheme.primary;
         lightColor = const Color(0xFF6366F1); // Indigo
         darkColor = const Color(0xFF4F46E5);
         break;
       case 'work':
-        color = theme.colorScheme.secondary;
         lightColor = const Color(0xFF10B981); // Emerald
         darkColor = const Color(0xFF059669);
         break;
       case 'absence':
-        color = Colors.orange;
         lightColor = const Color(0xFFF59E0B); // Amber
         darkColor = const Color(0xFFD97706);
         break;
       default:
-        color = theme.colorScheme.tertiary;
         lightColor = const Color(0xFF8B5CF6); // Purple
         darkColor = const Color(0xFF7C3AED);
     }
@@ -872,10 +875,18 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        entry.title,
+                        _entryTypeLabel(entry.type, AppLocalizations.of(context)),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        entry.title,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -885,7 +896,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                         entry.subtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -924,6 +934,17 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         ),
       ),
     );
+  }
+
+  String _entryTypeLabel(String type, AppLocalizations t) {
+    switch (type) {
+      case 'travel':
+        return t.entry_travel;
+      case 'work':
+        return t.entry_work;
+      default:
+        return type.capitalize();
+    }
   }
 
   void _openQuickView(_EntryData summary) {

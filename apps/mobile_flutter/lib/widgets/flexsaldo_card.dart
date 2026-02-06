@@ -69,9 +69,6 @@ class FlexsaldoCard extends StatelessWidget {
         final balanceColor = isPositive
             ? FlexsaldoColors.positive
             : FlexsaldoColors.negative;
-        final balanceBackgroundColor = isPositive
-            ? FlexsaldoColors.positiveLight
-            : FlexsaldoColors.negativeLight;
 
         // Format headline: Balance Today
         final balanceTodayText = isPositive
@@ -80,10 +77,6 @@ class FlexsaldoCard extends StatelessWidget {
 
         // Format monthly balance for secondary line
         final isMonthPositive = monthBalanceMinutes >= 0;
-        final monthBalanceText = isMonthPositive
-            ? '+${monthBalanceHours.toStringAsFixed(1)}h'
-            : '${monthBalanceHours.toStringAsFixed(1)}h';
-
         // Format values for progress text (no "h" suffix - localization adds it)
         final workedText = (monthWorkedPlusCredited / 60.0).toStringAsFixed(1);
         final targetText = (monthTargetMinutesToDate / 60.0).toStringAsFixed(1);
@@ -133,7 +126,7 @@ class FlexsaldoCard extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.lg),
 
-              // Line 1 (PRIMARY): Status (to date) - Behind by X or Ahead by X
+              // Line 1 (PRIMARY): Status (to date)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -141,31 +134,16 @@ class FlexsaldoCard extends StatelessWidget {
                     'Status (to date): ',
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: balanceBackgroundColor,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: balanceColor.withValues(alpha: 0.3),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Text(
-                      isMonthPositive
-                          ? 'Ahead by ${monthBalanceHours.abs().toStringAsFixed(1)}h'
-                          : 'Behind by ${monthBalanceHours.abs().toStringAsFixed(1)}h',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: balanceColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 20,
-                      ),
+                  Text(
+                    '${monthBalanceHours > 0 ? '+' : ''}${monthBalanceHours.toStringAsFixed(1)}h',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: isMonthPositive
+                          ? FlexsaldoColors.positive
+                          : FlexsaldoColors.negative,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -209,14 +187,60 @@ class FlexsaldoCard extends StatelessWidget {
                 ),
               ),
 
-              // Starting balance (only if != 0) - moved to bottom
+              // Yearly summary
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Text(
+                    'Yearly ($year)',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Text(
+                    balanceTodayText,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: balanceColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+
+              // Year worked (to date): X.Xh / Y.Yh
+              RichText(
+                text: TextSpan(
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  children: [
+                    const TextSpan(text: 'Worked (to date): '),
+                    TextSpan(
+                      text: '${((yearActualMinutes + yearCreditMinutes) / 60.0).toStringAsFixed(1)}h',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const TextSpan(text: ' / '),
+                    TextSpan(
+                      text: '${(yearTargetMinutes / 60.0).toStringAsFixed(1)}h',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+
               if (contractProvider.hasOpeningBalance) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  '${t.balance_startingBalanceValue(contractProvider.openingFlexFormatted)} • Balance today: $balanceTodayText',
+                  t.balance_startingBalanceValue(contractProvider.openingFlexFormatted),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                    fontStyle: FontStyle.italic,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],

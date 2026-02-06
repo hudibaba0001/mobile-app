@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/external_links.dart';
+import '../design/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -28,9 +29,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  // Gradient colors matching the design
-  static const _gradientStart = Color(0xFF7B68EE); // Medium slate blue
-  static const _gradientEnd = Color(0xFF6B5B95);   // Purple haze
+  // Gradient colors from theme
+  static const _gradientStart = AppColors.gradientStart;
+  static const _gradientEnd = AppColors.gradientEnd;
 
   @override
   void initState() {
@@ -134,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xxxl),
               child: FadeTransition(
                 opacity: _fadeAnimation,
                 child: SlideTransition(
@@ -144,25 +145,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     children: [
                       // Logo Card with glassmorphism
                       _buildLogoCard(),
-                      const SizedBox(height: 32),
-                      
+                      const SizedBox(height: AppSpacing.xxl),
+
                       // Form Card with glassmorphism
                       _buildFormCard(),
-                      const SizedBox(height: 32),
-                      
+                      const SizedBox(height: AppSpacing.xxl),
+
                       // Divider with text
                       _buildDividerWithText('New to KvikTime?'),
-                      const SizedBox(height: 24),
-                      
+                      const SizedBox(height: AppSpacing.xl),
+
                       // Create Account Button
                       _buildCreateAccountButton(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.lg),
                       
                       // Disclaimer text
                       Text(
                         'New users will be redirected to our account creation page',
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.white.withValues(alpha: 0.7),
                         ),
                         textAlign: TextAlign.center,
@@ -179,8 +179,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Widget _buildLogoCard() {
+    final theme = Theme.of(context);
     return _GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl, vertical: AppSpacing.xxl),
       child: Column(
         children: [
           // Clock icon with glow effect
@@ -198,27 +199,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.access_time_rounded,
-              size: 48,
+              size: AppIconSize.xl,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 20),
-          const Text(
+          const SizedBox(height: AppSpacing.xl),
+          Text(
             'KvikTime',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+            style: theme.textTheme.displayLarge?.copyWith(
               color: Colors.white,
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             'Sign in to your account',
-            style: TextStyle(
-              fontSize: 14,
+            style: theme.textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.8),
             ),
           ),
@@ -228,8 +226,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Widget _buildFormCard() {
+    final theme = Theme.of(context);
     return _GlassCard(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Form(
         key: _formKey,
         child: Column(
@@ -243,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               keyboardType: TextInputType.emailAddress,
               validator: (v) => v == null || !v.contains('@') ? 'Invalid email' : null,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Password field
             _buildGlassTextField(
@@ -260,29 +259,29 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               ),
               validator: (v) => (v?.length ?? 0) < 6 ? 'Required' : null,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
             // Error Message
             if (_errorMessage.isNotEmpty) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.4)),
+                  color: AppColors.error.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
                 ),
                 child: Text(
                   _errorMessage,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
                   textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
             ],
 
             // Sign In Button
             _buildSignInButton(),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Forgot Password
             Center(
@@ -291,9 +290,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white.withValues(alpha: 0.9),
                 ),
-                child: const Text(
+                child: Text(
                   'Forgot Password?',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
                 ),
               ),
             ),
@@ -312,14 +314,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     Widget? suffixIcon,
     String? Function(String?)? validator,
   }) {
+    final theme = Theme.of(context);
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.2),
             ),
@@ -329,20 +332,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             keyboardType: keyboardType,
             obscureText: obscureText,
             validator: validator,
-            style: const TextStyle(color: Colors.white, fontSize: 16),
+            style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
             decoration: InputDecoration(
               hintText: hintText,
-              hintStyle: TextStyle(
+              hintStyle: theme.textTheme.bodyLarge?.copyWith(
                 color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 16,
               ),
               prefixIcon: Icon(
                 prefixIcon,
                 color: Colors.white.withValues(alpha: 0.7),
-                size: 22,
+                size: AppIconSize.sm,
               ),
               suffixIcon: suffixIcon,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
@@ -357,6 +359,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Widget _buildSignInButton() {
+    final theme = Theme.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       child: ElevatedButton(
@@ -364,27 +367,27 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
           foregroundColor: _gradientStart,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           elevation: 0,
         ),
         child: _isLoading
             ? SizedBox(
-                height: 20,
-                width: 20,
+                height: AppIconSize.sm,
+                width: AppIconSize.sm,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   color: _gradientStart,
                 ),
               )
-            : const Text(
+            : Text(
                 'Sign In',
-                style: TextStyle(
-                  fontSize: 16,
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
+                  color: _gradientStart,
                 ),
               ),
       ),
@@ -392,6 +395,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Widget _buildDividerWithText(String text) {
+    final theme = Theme.of(context);
     return Row(
       children: [
         Expanded(
@@ -408,12 +412,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Text(
             text,
-            style: TextStyle(
+            style: theme.textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 14,
             ),
           ),
         ),
@@ -435,22 +438,23 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Widget _buildCreateAccountButton() {
+    final theme = Theme.of(context);
     return OutlinedButton(
       onPressed: _launchSignup,
       style: OutlinedButton.styleFrom(
         foregroundColor: Colors.white,
         side: const BorderSide(color: Colors.white, width: 2),
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 48),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.xxxl),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: AppRadius.pillRadius,
         ),
       ),
-      child: const Text(
+      child: Text(
         'Create Account',
-        style: TextStyle(
-          fontSize: 16,
+        style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
           letterSpacing: 0.5,
+          color: Colors.white,
         ),
       ),
     );
@@ -464,13 +468,13 @@ class _GlassCard extends StatelessWidget {
 
   const _GlassCard({
     required this.child,
-    this.padding = const EdgeInsets.all(24),
+    this.padding = const EdgeInsets.all(AppSpacing.xl),
   });
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppRadius.xl),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
@@ -484,7 +488,7 @@ class _GlassCard extends StatelessWidget {
                 Colors.white.withValues(alpha: 0.1),
               ],
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.3),
               width: 1.5,

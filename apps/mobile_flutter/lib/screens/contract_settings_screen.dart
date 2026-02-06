@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../providers/contract_provider.dart';
 import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../design/app_theme.dart';
 
 /// Contract Settings screen with full ContractProvider integration
 /// Features: Contract percentage input, full-time hours input, live preview, validation
@@ -164,7 +165,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(t.contract_savedSuccess),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
         ),
       );
       AppRouter.goBackOrHome(context);
@@ -204,7 +205,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(t.contract_resetSuccess),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: AppColors.primary,
                 ),
               );
             },
@@ -272,7 +273,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
           return Form(
             key: _formKey,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -281,10 +282,10 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                     elevation: 0,
                     color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(AppSpacing.xl),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -293,9 +294,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                               Icon(
                                 Icons.work_outline,
                                 color: colorScheme.primary,
-                                size: 28,
+                                size: AppIconSize.lg,
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: AppSpacing.md),
                               Text(
                                 t.contract_headerTitle,
                                 style: theme.textTheme.headlineSmall?.copyWith(
@@ -305,7 +306,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           Text(
                             t.contract_headerDescription,
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -316,8 +317,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       ),
                     ),
                   ),
-                  
-                  const SizedBox(height: 32),
+
+                  const SizedBox(height: AppSpacing.xxl),
                   
                   // Contract Percentage Field
                   _buildTextField(
@@ -334,8 +335,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                     ],
                   ),
                   
-                  const SizedBox(height: 24),
-                  
+                  const SizedBox(height: AppSpacing.xl),
+
                   // Full-time Hours Field
                   _buildTextField(
                     theme,
@@ -348,8 +349,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                     inputFormatters: [
                     ],
                   ),
-                  
-                  const SizedBox(height: 32),
+
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Employer Mode Dropdown
                   Text(
@@ -358,14 +359,14 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: colorScheme.outline),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       color: colorScheme.surface,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _employerMode,
@@ -405,9 +406,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
-                    _employerMode == 'strict' 
+                    _employerMode == 'strict'
                         ? t.contract_modeStrictDesc
                         : _employerMode == 'flexible'
                             ? t.contract_modeFlexibleDesc
@@ -416,26 +417,26 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  
-                  const SizedBox(height: 32),
-                  
+
+                  const SizedBox(height: AppSpacing.xxl),
+
                   // Starting Balance Section
                   // Pass null for Provider as we use local state here, or rework _buildStartingBalanceSection to not need Provider
                   // Actually, _buildStartingBalanceSection uses local controllers mostly but might default to provider.
                   // Let's just pass context.read since we are not updating it live.
                   _buildStartingBalanceSection(theme, colorScheme, context.read<ContractProvider>(), t),
-                  
-                  const SizedBox(height: 32),
+
+                  const SizedBox(height: AppSpacing.xxl),
                   
                   // Live Preview Card
                   Card(
                     elevation: 0,
                     color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(AppSpacing.xl),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -444,9 +445,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                               Icon(
                                 Icons.preview,
                                 color: colorScheme.secondary,
-                                size: 24,
+                                size: AppIconSize.md,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: AppSpacing.sm),
                               Text(
                                 t.contract_livePreview,
                                 style: theme.textTheme.titleMedium?.copyWith(
@@ -456,7 +457,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.lg),
                           
                           _buildPreviewRow(
                             theme,
@@ -494,7 +495,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                             Icons.today,
                           ),
                           
-                          const Divider(height: 24),
+                          const Divider(height: AppSpacing.xl),
                           
                           _buildPreviewRow(
                             theme,
@@ -514,9 +515,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       ),
                     ),
                   ),
-                  
-                  const SizedBox(height: 32),
-                  
+
+                  const SizedBox(height: AppSpacing.xxl),
+
                   // Action Buttons
                   Row(
                     children: [
@@ -526,14 +527,14 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           icon: const Icon(Icons.refresh),
                           label: Text(t.contract_resetToDefaults),
                           style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(0, 48),
+                            minimumSize: const Size(0, AppSpacing.xxxl),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: AppSpacing.lg),
                       Expanded(
                         flex: 2,
                         child: ElevatedButton.icon(
@@ -543,9 +544,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colorScheme.primary,
                             foregroundColor: colorScheme.onPrimary,
-                            minimumSize: const Size(0, 48),
+                            minimumSize: const Size(0, AppSpacing.xxxl),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                           ),
                         ),
@@ -580,7 +581,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -590,30 +591,30 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             suffixText: suffixText,
             errorText: errorText,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: BorderSide(
                 color: theme.colorScheme.outline,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: BorderSide(
                 color: theme.colorScheme.primary,
                 width: 2,
               ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: BorderSide(
                 color: theme.colorScheme.error,
               ),
             ),
             filled: true,
             fillColor: theme.colorScheme.surface,
-            contentPadding: const EdgeInsets.all(16),
+            contentPadding: const EdgeInsets.all(AppSpacing.lg),
           ),
         ),
       ],
@@ -628,17 +629,17 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
     bool isHighlighted = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         children: [
           Icon(
             icon,
-            size: 20,
-            color: isHighlighted 
-                ? theme.colorScheme.primary 
+            size: AppIconSize.sm,
+            color: isHighlighted
+                ? theme.colorScheme.primary
                 : theme.colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               label,
@@ -671,10 +672,10 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       elevation: 0,
       color: colorScheme.tertiaryContainer.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -684,9 +685,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                 Icon(
                   Icons.account_balance_wallet,
                   color: colorScheme.tertiary,
-                  size: 24,
+                  size: AppIconSize.md,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
                     t.contract_startingBalance,
@@ -698,7 +699,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               t.contract_startingBalanceDescription,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -706,7 +707,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
             // Start Tracking From Date
             Text(
@@ -716,15 +717,15 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                 color: colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             InkWell(
               onTap: () => _selectStartDate(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                 decoration: BoxDecoration(
                   border: Border.all(color: colorScheme.outline),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   color: colorScheme.surface,
                 ),
                 child: Row(
@@ -732,9 +733,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                     Icon(
                       Icons.calendar_today,
                       color: colorScheme.primary,
-                      size: 20,
+                      size: AppIconSize.sm,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Text(
                       DateFormat('MMMM d, yyyy').format(_trackingStartDate),
                       style: theme.textTheme.bodyLarge,
@@ -743,14 +744,14 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                     Icon(
                       Icons.edit,
                       color: colorScheme.onSurfaceVariant,
-                      size: 18,
+                      size: AppIconSize.xs,
                     ),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
             // Opening Time Balance
             Text(
@@ -760,7 +761,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                 color: colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // Credit/Deficit Toggle - full width row
             Row(
@@ -768,11 +769,11 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                 Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: colorScheme.outline),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     color: colorScheme.surface,
                   ),
                   child: ToggleButtons(
-                    borderRadius: BorderRadius.circular(11),
+                    borderRadius: BorderRadius.circular(AppRadius.md - 1),
                     isSelected: [!_isDeficit, _isDeficit],
                     onPressed: (index) {
                       setState(() {
@@ -785,7 +786,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       minHeight: 52,
                     ),
                     selectedColor: colorScheme.onPrimary,
-                    fillColor: _isDeficit ? Colors.red : Colors.green,
+                    fillColor: _isDeficit ? AppColors.error : AppColors.success,
                     color: colorScheme.onSurface,
                     children: [
                       Text(
@@ -804,7 +805,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   ),
                 ),
 
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
 
                 // Hours input
                 SizedBox(
@@ -821,14 +822,14 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       hintText: '0',
                       suffixText: 'h',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.lg),
                     ),
                   ),
                 ),
 
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
 
                 // Minutes input
                 SizedBox(
@@ -845,9 +846,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       hintText: '00',
                       suffixText: 'm',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.lg),
                     ),
                   ),
                 ),
@@ -855,7 +856,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             ),
 
             if (_openingBalanceError != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 _openingBalanceError!,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -864,24 +865,24 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
               ),
             ],
 
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Helper text
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
                     Icons.info_outline,
-                    size: 16,
+                    size: AppIconSize.xs,
                     color: colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       _isDeficit

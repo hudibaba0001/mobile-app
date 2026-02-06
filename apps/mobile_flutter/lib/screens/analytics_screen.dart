@@ -6,6 +6,7 @@ import '../viewmodels/analytics_view_model.dart';
 import '../services/admin_api_service.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
+import '../design/app_theme.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -52,9 +53,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     if (!_isAdmin) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Access denied. Admin privileges required.'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Access denied. Admin privileges required.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         context.go(AppRouter.homePath);
@@ -69,17 +70,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         title: Row(
           children: [
             const Text('Analytics Dashboard'),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.accent,
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: const Text(
+              child: Text(
                 'ADMIN',
-                style: TextStyle(
-                  fontSize: 10,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -104,21 +104,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 children: [
                   Icon(
                     Icons.error_outline,
-                    size: 64,
+                    size: AppIconSize.xl,
                     color: Theme.of(context).colorScheme.error,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     'Error loading dashboard',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     viewModel.error!,
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   ElevatedButton(
                     onPressed: () => viewModel.refresh(),
                     child: const Text('Retry'),
@@ -136,13 +136,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           return RefreshIndicator(
             onRefresh: viewModel.refresh,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // KPI Cards
                   _buildKPICards(data),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Charts Section
                   _buildChartsSection(data),
@@ -165,38 +165,38 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 fontWeight: FontWeight.bold,
               ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+          crossAxisSpacing: AppSpacing.lg,
+          mainAxisSpacing: AppSpacing.lg,
           childAspectRatio: 1.5,
           children: [
             _buildKPICard(
               'Total Hours (This Week)',
               '${data.totalHoursLoggedThisWeek.toStringAsFixed(1)}h',
               Icons.access_time,
-              Colors.blue,
+              AppColors.primary,
             ),
             _buildKPICard(
               'Active Users',
               data.activeUsers.toString(),
               Icons.people,
-              Colors.green,
+              AppColors.success,
             ),
             _buildKPICard(
               'Overtime Balance',
               '${data.overtimeBalance.toStringAsFixed(1)}h',
               Icons.trending_up,
-              data.overtimeBalance >= 0 ? Colors.orange : Colors.red,
+              data.overtimeBalance >= 0 ? AppColors.accent : AppColors.error,
             ),
             _buildKPICard(
               'Avg Daily Hours',
               '${data.averageDailyHours.toStringAsFixed(1)}h',
               Icons.analytics,
-              Colors.purple,
+              AppColors.secondary,
             ),
           ],
         ),
@@ -208,14 +208,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Card(
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, color: color, size: 24),
-                const SizedBox(width: 8),
+                Icon(icon, color: color, size: AppIconSize.md),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     title,
@@ -251,12 +251,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 fontWeight: FontWeight.bold,
               ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         // Daily Trends Chart
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -266,7 +266,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 SizedBox(
                   height: 200,
                   child: _buildDailyTrendsChart(data.dailyTrends),
@@ -276,12 +276,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
         // User Distribution Chart
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -291,7 +291,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 SizedBox(
                   height: 200,
                   child: _buildUserDistributionChart(data.userDistribution),
@@ -325,10 +325,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 if (value.toInt() >= 0 && value.toInt() < trends.length) {
                   final date = trends[value.toInt()].date;
                   return Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: AppSpacing.sm),
                     child: Text(
                       date,
-                      style: const TextStyle(fontSize: 10),
+                      style: Theme.of(context).textTheme.labelSmall,
                     ),
                   );
                 }
@@ -343,7 +343,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               getTitlesWidget: (value, meta) {
                 return Text(
                   '${value.toInt()}h',
-                  style: const TextStyle(fontSize: 10),
+                  style: Theme.of(context).textTheme.labelSmall,
                 );
               },
             ),
@@ -361,8 +361,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 color: Theme.of(context).colorScheme.primary,
                 width: 20,
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(4),
-                  topRight: Radius.circular(4),
+                  topLeft: Radius.circular(AppRadius.sm / 2),
+                  topRight: Radius.circular(AppRadius.sm / 2),
                 ),
               ),
             ],
@@ -389,8 +389,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             value: user.percentage,
             title: '${user.percentage.toStringAsFixed(1)}%',
             radius: 50,
-            titleStyle: const TextStyle(
-              fontSize: 12,
+            titleStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -402,14 +401,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Color _getColorForIndex(int index) {
     final colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.red,
-      Colors.purple,
-      Colors.teal,
-      Colors.pink,
-      Colors.indigo,
+      AppColors.primary,
+      AppColors.success,
+      AppColors.accent,
+      AppColors.error,
+      AppColors.secondary,
+      AppColors.secondaryLight,
+      AppColors.primaryLight,
+      AppColors.primaryDark,
     ];
     return colors[index % colors.length];
   }

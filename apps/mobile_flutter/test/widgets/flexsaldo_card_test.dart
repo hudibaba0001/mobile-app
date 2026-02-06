@@ -65,13 +65,14 @@ void main() {
       );
     }
 
-    testWidgets('renders FlexsaldoCard with Balance Today title', (tester) async {
+    testWidgets('renders FlexsaldoCard with month title and status', (tester) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Should show balance today title
-      expect(find.byIcon(Icons.account_balance_wallet_rounded), findsOneWidget);
-      expect(find.text('BALANCE TODAY'), findsOneWidget);
+      // Should show month status section
+      expect(find.byIcon(Icons.calendar_month_rounded), findsOneWidget);
+      expect(find.textContaining('This month:'), findsOneWidget);
+      expect(find.textContaining('Status (to date):'), findsOneWidget);
     });
 
     testWidgets('renders progress bar', (tester) async {

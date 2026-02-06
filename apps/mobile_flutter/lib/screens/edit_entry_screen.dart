@@ -8,6 +8,7 @@ import '../models/entry.dart';
 import '../services/travel_cache_service.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../design/app_theme.dart';
 
 /// Edit Entry screen for both travel and work entries.
 /// Features: Entry type switching, form validation, Material 3 theming.
@@ -241,7 +242,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(t.error_signInRequired),
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -378,7 +379,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.edit_errorSaving(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -438,10 +439,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               key: _formKey,
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(
-                  left: 24,
-                  right: 24,
-                  top: 24,
-                  bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
+                  left: AppSpacing.xl,
+                  right: AppSpacing.xl,
+                  top: AppSpacing.xl,
+                  bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.xl,
                 ),
                 child: _currentEntryType == EntryType.travel
                     ? _buildTravelForm(theme)
@@ -459,7 +460,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   Widget _buildEntryTypeToggle(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
@@ -471,9 +472,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: theme.colorScheme.primary.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
-        padding: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(AppSpacing.xs + 2),
         child: Row(
           children: [
             Expanded(
@@ -510,10 +511,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     return GestureDetector(
       onTap: () => _switchEntryType(type),
       child: Container(
-        height: 48,
+        height: AppSpacing.xxxl,
         decoration: BoxDecoration(
           color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           boxShadow: isSelected
               ? [
                   BoxShadow(
@@ -529,12 +530,12 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           children: [
             Icon(
               icon,
-              size: 20,
+              size: AppIconSize.sm,
               color: isSelected
                   ? theme.colorScheme.onPrimary
                   : theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               label,
               style: theme.textTheme.titleMedium?.copyWith(
@@ -565,14 +566,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             icon: const Icon(Icons.add),
             label: Text(AppLocalizations.of(context).travel_addLeg),
             style: OutlinedButton.styleFrom(
-              minimumSize: const Size(0, 48),
+              minimumSize: const Size(0, AppSpacing.xxxl),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         if (_travelEntries.length > 1)
           Text(
             'First leg updates this entry; extra legs become new entries.',
@@ -603,10 +604,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
           children: [
             _buildDurationChip(theme, 2),
             _buildDurationChip(theme, 4),
@@ -615,7 +616,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             _buildCopyYesterdayChip(theme),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xl),
 
         // Shifts
         ..._shifts.map((shift) => _buildShiftRow(theme, shift)),
@@ -627,14 +628,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             icon: const Icon(Icons.add),
             label: const Text('Add another shift'),
             style: OutlinedButton.styleFrom(
-              minimumSize: const Size(0, 48),
+              minimumSize: const Size(0, AppSpacing.xxxl),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         if (_shifts.length > 1)
           Text(
             'First shift updates this entry; extra shifts become new entries.',
@@ -658,12 +659,12 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   Widget _buildDurationChip(ThemeData theme, int hours) {
     return Material(
       color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child: InkWell(
         onTap: () => _applyQuickDuration(hours),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm + 2),
           child: Text(
             '+${hours}h',
             style: theme.textTheme.labelLarge?.copyWith(
@@ -695,21 +696,21 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   Widget _buildCopyYesterdayChip(ThemeData theme) {
     return Material(
       color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child: InkWell(
         onTap: _copyYesterday,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.content_copy_rounded,
-                size: 16,
+                size: AppIconSize.xs,
                 color: theme.colorScheme.onSecondaryContainer,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: AppSpacing.xs + 2),
               Text(
                 'Copy Yesterday',
                 style: theme.textTheme.labelLarge?.copyWith(
@@ -777,7 +778,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: controller,
           validator: validator,
@@ -785,16 +786,16 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: BorderSide(
                 color: theme.colorScheme.outline,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: BorderSide(
                 color: theme.colorScheme.primary,
                 width: 2,
@@ -802,7 +803,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             ),
             filled: true,
             fillColor: theme.colorScheme.surface,
-            contentPadding: EdgeInsets.all(maxLines > 1 ? 16 : 16),
+            contentPadding: const EdgeInsets.all(AppSpacing.lg),
           ),
         ),
       ],
@@ -811,14 +812,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   Widget _buildTravelEntryRow(ThemeData theme, _TravelLegDraft travelEntry) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withValues(alpha: 0.04),
         border: Border.all(
           color: theme.colorScheme.primary.withValues(alpha: 0.2),
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(
         children: [
@@ -830,10 +831,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                 children: [
                   Icon(
                     Icons.directions_car,
-                    size: 20,
+                    size: AppIconSize.sm,
                     color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     AppLocalizations.of(context).edit_trip(_travelEntries.indexOf(travelEntry) + 1),
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -847,7 +848,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               // Edit mode always has exactly 1 entry, so no remove button needed
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
           // From and To fields
           Row(
@@ -917,7 +918,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
           // Duration fields
           Row(
@@ -1046,7 +1047,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               // Edit mode always has exactly 1 entry, so no remove button needed
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
               Expanded(

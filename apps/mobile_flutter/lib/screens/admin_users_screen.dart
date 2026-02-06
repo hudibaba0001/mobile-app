@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/admin_user.dart';
 import '../services/admin_api_service.dart';
 import '../viewmodels/admin_users_view_model.dart';
+import '../design/app_theme.dart';
 
 class AdminUsersScreen extends StatelessWidget {
   const AdminUsersScreen({super.key});
@@ -49,7 +50,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
         children: [
           // Search and Filter Bar
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Row(
               children: [
                 // Search Field
@@ -60,13 +61,13 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                       hintText: 'Search users...',
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
                     onChanged: viewModel.setSearchQuery,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
                 // Filter Dropdown
                 Expanded(
                   child: DropdownButtonFormField<String>(
@@ -74,7 +75,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                     decoration: InputDecoration(
                       labelText: 'Filter by Role',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
                     items: const [
@@ -104,15 +105,15 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                       children: [
                         Icon(
                           Icons.error_outline,
-                          size: 48,
+                          size: AppIconSize.xl,
                           color: colorScheme.error,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
                         Text(
                           'Failed to load users',
                           style: theme.textTheme.titleMedium,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
                           viewModel.error!,
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -120,7 +121,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
                         ElevatedButton.icon(
                           onPressed: viewModel.fetchUsers,
                           icon: const Icon(Icons.refresh),
@@ -168,7 +169,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                             ),
                             child: Text(user.disabled ? 'Enable' : 'Disable'),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           TextButton.icon(
                             icon: const Icon(Icons.visibility_outlined),
                             label: const Text('Details'),
@@ -177,18 +178,18 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                           PopupMenuButton<String>(
                             icon: const Icon(Icons.more_vert),
                             itemBuilder: (context) => [
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: 'delete',
                                 child: Row(
                                   children: [
                                     Icon(
                                       Icons.delete_forever,
-                                      color: Colors.red,
+                                      color: Theme.of(context).colorScheme.error,
                                     ),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: AppSpacing.sm),
                                     Text(
                                       'Delete',
-                                      style: TextStyle(color: Colors.red),
+                                      style: TextStyle(color: Theme.of(context).colorScheme.error),
                                     ),
                                   ],
                                 ),
@@ -334,16 +335,16 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Warning: This action cannot be undone. All user data will be permanently deleted.',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               const Text(
                 'Type DELETE to confirm:',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               TextField(
                 onChanged: (value) {
                   setState(() => confirmationText = value);
@@ -373,12 +374,12 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
               child: isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
+                  ? SizedBox(
+                      width: AppIconSize.sm,
+                      height: AppIconSize.sm,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onError),
                       ),
                     )
                   : const Text('Confirm Delete'),

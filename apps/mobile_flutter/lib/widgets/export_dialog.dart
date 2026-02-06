@@ -55,13 +55,20 @@ class _ExportDialogState extends State<ExportDialog> {
       typePrefix = 'work_';
     }
 
-    if (_startDate != null && _endDate != null) {
+    if (!_includeAllData && _startDate != null && _endDate != null) {
       final start = DateFormat('yyyyMMdd').format(_startDate!);
       final end = DateFormat('yyyyMMdd').format(_endDate!);
       _customFileName = '${typePrefix}time_tracker_${start}_to_$end';
     } else {
       _customFileName = '${typePrefix}time_tracker_export';
     }
+  }
+
+  String _dateRangeLabel(AppLocalizations t) {
+    if (_startDate == null || _endDate == null) return t.dateRange_description;
+    final start = DateFormat('MMM dd, yyyy').format(_startDate!);
+    final end = DateFormat('MMM dd, yyyy').format(_endDate!);
+    return '$start - $end';
   }
 
   void _updateDefaultFileName() {
@@ -103,9 +110,11 @@ class _ExportDialogState extends State<ExportDialog> {
               onChanged: (value) {
                 setState(() {
                   _includeAllData = value ?? true;
-                  if (_includeAllData) {
-                    _startDate = null;
-                    _endDate = null;
+                  if (!_includeAllData && (_startDate == null || _endDate == null)) {
+                    final now = DateTime.now();
+                    final today = DateTime(now.year, now.month, now.day);
+                    _endDate = today;
+                    _startDate = today.subtract(const Duration(days: 30));
                   }
                   _updateDefaultFileName();
                 });
@@ -116,28 +125,12 @@ class _ExportDialogState extends State<ExportDialog> {
             if (!_includeAllData) ...[
               const SizedBox(height: 16),
 
-              // Start Date
+              // Date Range (single picker)
               ListTile(
-                title: Text(t.export_startDate),
-                subtitle: Text(
-                  _startDate != null
-                      ? DateFormat('MMM dd, yyyy').format(_startDate!)
-                      : t.export_selectStartDate,
-                ),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: () => _selectDate(true),
-              ),
-
-              // End Date
-              ListTile(
-                title: Text(t.export_endDate),
-                subtitle: Text(
-                  _endDate != null
-                      ? DateFormat('MMM dd, yyyy').format(_endDate!)
-                      : t.export_selectEndDate,
-                ),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: () => _selectDate(false),
+                title: Text(t.dateRange_title),
+                subtitle: Text(_dateRangeLabel(t)),
+                trailing: const Icon(Icons.date_range_rounded),
+                onTap: _selectDateRange,
               ),
             ],
 
@@ -312,11 +305,18 @@ class _ExportDialogState extends State<ExportDialog> {
 
     // Filter by date range
     if (!_includeAllData) {
+      final startDate = _startDate == null
+          ? null
+          : DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
+      // Inclusive end-of-day to avoid accidentally excluding entries on the end date.
+      final endDate = _endDate == null
+          ? null
+          : DateTime(_endDate!.year, _endDate!.month, _endDate!.day, 23, 59, 59, 999);
       filtered = filtered.where((entry) {
-        if (_startDate != null && entry.date.isBefore(_startDate!)) {
+        if (startDate != null && entry.date.isBefore(startDate)) {
           return false;
         }
-        if (_endDate != null && entry.date.isAfter(_endDate!)) {
+        if (endDate != null && entry.date.isAfter(endDate)) {
           return false;
         }
         return true;
@@ -333,27 +333,28 @@ class _ExportDialogState extends State<ExportDialog> {
     );
   }
 
-  Future<void> _selectDate(bool isStartDate) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDateRange() async {
+    final now = DateTime.now();
+
+    final initialRange = (_startDate != null && _endDate != null)
+        ? DateTimeRange(start: _startDate!, end: _endDate!)
+        : DateTimeRange(
+            start: now.subtract(const Duration(days: 30)),
+            end: now,
+          );
+
+    final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDate: isStartDate
-          ? (_startDate ?? DateTime.now().subtract(const Duration(days: 30)))
-          : (_endDate ?? DateTime.now()),
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      lastDate: now,
+      initialDateRange: initialRange,
     );
 
     if (picked != null) {
       setState(() {
-        if (isStartDate) {
-          _startDate = picked;
-          // Ensure end date is not before start date
-          if (_endDate != null && _endDate!.isBefore(picked)) {
-            _endDate = null;
-          }
-        } else {
-          _endDate = picked;
-        }
+        // Store date-only in state, but filter inclusively (end-of-day) when applying.
+        _startDate = DateTime(picked.start.year, picked.start.month, picked.start.day);
+        _endDate = DateTime(picked.end.year, picked.end.month, picked.end.day);
         _updateDefaultFileName();
       });
     }

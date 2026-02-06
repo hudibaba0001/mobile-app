@@ -272,7 +272,7 @@ class MonthlyStatusCard extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Line 1 (PRIMARY): Status (to date) - Behind by X or Ahead by X
+            // Line 1 (PRIMARY): Status (to date)
             Row(
               children: [
                 Text(
@@ -282,30 +282,11 @@ class MonthlyStatusCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isOverTarget
-                        ? positiveColor.withValues(alpha: 0.15)
-                        : negativeColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: isOverTarget ? positiveColor : negativeColor,
-                      width: 2,
-                    ),
-                  ),
-                  child: Text(
-                    isOverTarget
-                        ? 'Ahead by ${variance.abs().toStringAsFixed(1)}h'
-                        : 'Behind by ${variance.abs().toStringAsFixed(1)}h',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: isOverTarget ? positiveColor : negativeColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20,
-                    ),
+                Text(
+                  '${variance > 0 ? '+' : ''}${variance.toStringAsFixed(1)}h',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: isOverTarget ? positiveColor : negativeColor,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -559,14 +540,40 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
             ),
             const SizedBox(height: 16),
             
-            // Hours worked: X / Y hours
-            Text(
-              l10n.balance_hoursWorked(
-                widget.hoursWorked.toStringAsFixed(1),
-                targetForDisplay.toStringAsFixed(1),
+            // Worked (to date): X.Xh / Y.Yh
+            RichText(
+              text: TextSpan(
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+                children: [
+                  const TextSpan(text: 'Worked (to date): '),
+                  TextSpan(
+                    text: '${(widget.hoursWorked + (widget.creditHours ?? 0.0) + widget.adjustmentHours).toStringAsFixed(1)}h',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const TextSpan(text: ' / '),
+                  TextSpan(
+                    text: '${targetForDisplay.toStringAsFixed(1)}h',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
               ),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+            ),
+
+            const SizedBox(height: 6),
+
+            // Full year target
+            Text(
+              'Full year target: ${widget.targetHours.toStringAsFixed(0)}h',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
               ),
             ),
 

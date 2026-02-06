@@ -96,78 +96,98 @@ class _TrendsTabState extends State<TrendsTab> {
       }).toList(growable: false);
 
       return ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
           // Monthly Comparison
           Text(
-            t.trends_monthlyComparison,
-            style: theme.textTheme.titleLarge?.copyWith(
+            t.trends_monthlyComparison.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              letterSpacing: 1.2,
               fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           if (_absencesLoading || absenceProvider.isLoading)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: LinearProgressIndicator(
-                minHeight: 3,
+                minHeight: 2,
                 color: colorScheme.primary,
                 backgroundColor:
                     colorScheme.primary.withValues(alpha: 0.15),
               ),
             ),
           if (visibleMonths.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Text(
-                t.overview_noDataAvailable,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+              child: Center(
+                child: Text(
+                  t.overview_noDataAvailable,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             )
           else
-            ...visibleMonths.map((month) {
-              final leaves =
-                  leaveSummaries[_monthKey(month.month)] ??
-                      _MonthlyLeaveSummary.empty;
-              return _buildMonthlyBreakdownCard(
-                context,
-                theme,
-                month,
-                leaves,
-                timeProvider,
-                contractProvider,
-              );
-            }),
-          const SizedBox(height: 24),
+            Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: AppRadius.buttonRadius,
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.12),
+                ),
+              ),
+              child: Column(
+                children: visibleMonths.asMap().entries.map((mapEntry) {
+                  final index = mapEntry.key;
+                  final month = mapEntry.value;
+                  final leaves =
+                      leaveSummaries[_monthKey(month.month)] ??
+                          _MonthlyLeaveSummary.empty;
+                  final isLast = index == visibleMonths.length - 1;
+                  return Column(
+                    children: [
+                      _buildMonthlyBreakdownCard(
+                        context,
+                        theme,
+                        month,
+                        leaves,
+                        timeProvider,
+                        contractProvider,
+                      ),
+                      if (!isLast)
+                        Divider(
+                          height: 1,
+                          color: colorScheme.outline.withValues(alpha: 0.1),
+                        ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          const SizedBox(height: AppSpacing.xl),
 
           // Weekly Hours Chart
           Text(
-            AppLocalizations.of(context).trends_weeklyHours,
-            style: theme.textTheme.titleLarge?.copyWith(
+            AppLocalizations.of(context).trends_weeklyHours.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              letterSpacing: 1.2,
               fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           AspectRatio(
             aspectRatio: 1.8,
             child: Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: AppRadius.buttonRadius,
                 border: Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.2),
+                  color: colorScheme.outline.withValues(alpha: 0.12),
                 ),
               ),
               child: _buildWeeklyHoursChart(
@@ -176,17 +196,18 @@ class _TrendsTabState extends State<TrendsTab> {
                       List.filled(7, 0.0)),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
 
           // Daily Trends
           Text(
-            AppLocalizations.of(context).trends_dailyTrends,
-            style: theme.textTheme.titleLarge?.copyWith(
+            AppLocalizations.of(context).trends_dailyTrends.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              letterSpacing: 1.2,
               fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           ...(trendsData['dailyTrends'] as List<Map<String, dynamic>?>? ?? [])
               .map(
             (dayData) => _buildDailyTrendCard(context, theme, dayData),
@@ -278,7 +299,7 @@ class _TrendsTabState extends State<TrendsTab> {
   ) {
     final t = AppLocalizations.of(context);
     final colorScheme = theme.colorScheme;
-    final monthLabel = DateFormat('MMMM yyyy').format(month.month);
+    final monthLabel = DateFormat('MMM').format(month.month);
 
     // Calculate monthly target hours
     final monthlyTargetHours = timeProvider.monthlyTargetHours(
@@ -289,205 +310,143 @@ class _TrendsTabState extends State<TrendsTab> {
     // Calculate variance (actual - target)
     final varianceHours = month.totalHours - monthlyTargetHours;
     final isAhead = varianceHours >= 0;
-
-    // Define colors
     final statusColor = isAhead
         ? FlexsaldoColors.positive
         : FlexsaldoColors.negative;
-    final statusBackgroundColor = isAhead
-        ? FlexsaldoColors.positiveLight
-        : FlexsaldoColors.negativeLight;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colorScheme.primaryContainer.withValues(alpha: 0.08),
-            colorScheme.surfaceContainerHighest.withValues(alpha: 0.12),
-            colorScheme.secondaryContainer.withValues(alpha: 0.06),
-          ],
-          stops: const [0.0, 0.5, 1.0],
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.15),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.3 : 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Month title with icon
+          // Main row: Month | Work | Travel | Total | vs Target | Diff
           Row(
             children: [
-              Icon(
-                Icons.calendar_month_rounded,
-                size: AppIconSize.sm,
-                color: colorScheme.primary,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                monthLabel,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
+              // Month label
+              SizedBox(
+                width: 36,
+                child: Text(
+                  monthLabel,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                  ),
                 ),
               ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Work, Travel, Total breakdown
-          Row(
-            children: [
+              // Work
               Expanded(
-                child: _buildMonthlyMetric(
-                  theme,
-                  label: t.trends_work,
-                  value: month.workHours,
-                  valueColor: const Color(0xFF10B981), // Emerald
-                ),
-              ),
-              Expanded(
-                child: _buildMonthlyMetric(
-                  theme,
-                  label: t.trends_travel,
-                  value: month.travelHours,
-                  valueColor: const Color(0xFF6366F1), // Indigo
-                ),
-              ),
-              Expanded(
-                child: _buildMonthlyMetric(
-                  theme,
-                  label: t.trends_total,
-                  value: month.totalHours,
-                  valueColor: colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // vs Target and Status
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: statusBackgroundColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: statusColor.withValues(alpha: 0.3),
-                width: 1.5,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Target hours
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
                   children: [
                     Text(
-                      'vs Target',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
+                      '${month.workHours.toStringAsFixed(0)}h',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
-                      '${monthlyTargetHours.toStringAsFixed(0)}h',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
+                      t.trends_work,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
-
-                // Status badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusBackgroundColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.5),
-                      width: 1.5,
+              ),
+              // Travel
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      '${month.travelHours.toStringAsFixed(0)}h',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isAhead ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-                        color: statusColor,
-                        size: 20,
+                    Text(
+                      t.trends_travel,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        isAhead
-                            ? 'Ahead by ${varianceHours.abs().toStringAsFixed(1)}h'
-                            : 'Behind by ${varianceHours.abs().toStringAsFixed(1)}h',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: statusColor,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    ),
+                  ],
+                ),
+              ),
+              // Total
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      '${month.totalHours.toStringAsFixed(0)}h',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
                       ),
-                    ],
+                    ),
+                    Text(
+                      t.trends_total,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Target
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      '${monthlyTargetHours.toStringAsFixed(0)}h',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      'Target',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Difference
+              SizedBox(
+                width: 50,
+                child: Text(
+                  '${isAhead ? '+' : ''}${varianceHours.toStringAsFixed(0)}h',
+                  textAlign: TextAlign.right,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-
           if (leaves.hasAny) ...[
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (leaves.paidVacation > 0)
-                  _buildLeaveChip(
-                    theme,
-                    label: t.leave_paidVacation,
-                    count: leaves.paidVacation,
-                    color: AbsenceColors.paidVacation,
-                  ),
-                if (leaves.sickLeave > 0)
-                  _buildLeaveChip(
-                    theme,
-                    label: t.leave_sickLeave,
-                    count: leaves.sickLeave,
-                    color: AbsenceColors.sickLeave,
-                  ),
-                if (leaves.vab > 0)
-                  _buildLeaveChip(
-                    theme,
-                    label: t.leave_vab,
-                    count: leaves.vab,
-                    color: AbsenceColors.vab,
-                  ),
-                if (leaves.unpaid > 0)
-                  _buildLeaveChip(
-                    theme,
-                    label: t.leave_unpaid,
-                    count: leaves.unpaid,
-                    color: AbsenceColors.unpaid,
-                  ),
-              ],
+            const SizedBox(height: AppSpacing.sm),
+            Padding(
+              padding: const EdgeInsets.only(left: 36),
+              child: Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  if (leaves.paidVacation > 0)
+                    _buildLeaveLabel(theme, '${leaves.paidVacation} ${t.leave_paidVacation}'),
+                  if (leaves.sickLeave > 0)
+                    _buildLeaveLabel(theme, '${leaves.sickLeave} ${t.leave_sickLeave}'),
+                  if (leaves.vab > 0)
+                    _buildLeaveLabel(theme, '${leaves.vab} ${t.leave_vab}'),
+                  if (leaves.unpaid > 0)
+                    _buildLeaveLabel(theme, '${leaves.unpaid} ${t.leave_unpaid}'),
+                ],
+              ),
             ),
           ],
         ],
@@ -495,56 +454,16 @@ class _TrendsTabState extends State<TrendsTab> {
     );
   }
 
-  Widget _buildMonthlyMetric(
-    ThemeData theme, {
-    required String label,
-    required double value,
-    required Color valueColor,
-  }) {
-    final colorScheme = theme.colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '${value.toStringAsFixed(1)}h',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: valueColor,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
+  Widget _buildLeaveLabel(ThemeData theme, String text) {
+    return Text(
+      text,
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+        fontStyle: FontStyle.italic,
+      ),
     );
   }
 
-  Widget _buildLeaveChip(
-    ThemeData theme, {
-    required String label,
-    required int count,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        '$count $label',
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
 
   String _monthKey(DateTime date) {
     final month = date.month.toString().padLeft(2, '0');
