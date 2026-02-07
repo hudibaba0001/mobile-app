@@ -359,8 +359,8 @@ class Entry extends HiveObject {
       (e) => e.toString().split('.').last == typeString,
       orElse: () => EntryType.travel,
     );
-    final sourceLegacyId =
-        json['source_legacy_id'] as String? ?? json['sourceLegacyId'] as String?;
+    final sourceLegacyId = json['source_legacy_id'] as String? ??
+        json['sourceLegacyId'] as String?;
 
     final entry = Entry(
       id: json['id'] as String,

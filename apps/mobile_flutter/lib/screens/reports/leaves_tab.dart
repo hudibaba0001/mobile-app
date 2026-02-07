@@ -25,19 +25,20 @@ class _LeavesTabState extends State<LeavesTab> {
 
   Future<void> _loadAbsences() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final absenceProvider = context.read<AbsenceProvider>();
       final currentYear = DateTime.now().year;
-      
+
       // Load current year and previous year
       await absenceProvider.loadAbsences(year: currentYear);
       await absenceProvider.loadAbsences(year: currentYear - 1);
-      
+
       // Get absences from both years
       final currentYearAbsences = absenceProvider.absencesForYear(currentYear);
-      final previousYearAbsences = absenceProvider.absencesForYear(currentYear - 1);
-      
+      final previousYearAbsences =
+          absenceProvider.absencesForYear(currentYear - 1);
+
       // Combine and sort by date (most recent first)
       _allAbsences = [...currentYearAbsences, ...previousYearAbsences];
       _allAbsences.sort((a, b) => b.date.compareTo(a.date));
@@ -61,7 +62,8 @@ class _LeavesTabState extends State<LeavesTab> {
 
     // Calculate summaries by type for current year
     final currentYear = DateTime.now().year;
-    final currentYearAbsences = _allAbsences.where((a) => a.date.year == currentYear).toList();
+    final currentYearAbsences =
+        _allAbsences.where((a) => a.date.year == currentYear).toList();
     final summary = _calculateSummary(currentYearAbsences);
 
     return RefreshIndicator(
@@ -71,9 +73,9 @@ class _LeavesTabState extends State<LeavesTab> {
         children: [
           // Leave Summary Section
           _buildSummarySection(theme, colorScheme, summary, currentYear),
-          
+
           const SizedBox(height: 24),
-          
+
           // Recent Leaves Section
           _buildRecentLeavesSection(theme, colorScheme),
         ],
@@ -81,20 +83,22 @@ class _LeavesTabState extends State<LeavesTab> {
     );
   }
 
-  Map<AbsenceType, _LeaveSummary> _calculateSummary(List<AbsenceEntry> absences) {
+  Map<AbsenceType, _LeaveSummary> _calculateSummary(
+      List<AbsenceEntry> absences) {
     final Map<AbsenceType, _LeaveSummary> summary = {};
-    
+
     for (final type in AbsenceType.values) {
       summary[type] = _LeaveSummary(days: 0, totalMinutes: 0);
     }
-    
+
     for (final absence in absences) {
       final existing = summary[absence.type]!;
       // Count as 1 day if minutes == 0 (full day) or sum up partial days
       if (absence.minutes == 0) {
         summary[absence.type] = _LeaveSummary(
           days: existing.days + 1,
-          totalMinutes: existing.totalMinutes + 480, // Assume 8h day for full days
+          totalMinutes:
+              existing.totalMinutes + 480, // Assume 8h day for full days
         );
       } else {
         // Partial day - add fraction
@@ -105,7 +109,7 @@ class _LeavesTabState extends State<LeavesTab> {
         );
       }
     }
-    
+
     return summary;
   }
 
@@ -144,10 +148,11 @@ class _LeavesTabState extends State<LeavesTab> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Summary grid
             _buildSummaryRow(
-              theme, colorScheme,
+              theme,
+              colorScheme,
               icon: Icons.beach_access,
               iconColor: Colors.blue,
               label: 'Paid Vacation',
@@ -155,7 +160,8 @@ class _LeavesTabState extends State<LeavesTab> {
             ),
             const SizedBox(height: 12),
             _buildSummaryRow(
-              theme, colorScheme,
+              theme,
+              colorScheme,
               icon: Icons.local_hospital,
               iconColor: Colors.red,
               label: 'Sick Leave',
@@ -163,7 +169,8 @@ class _LeavesTabState extends State<LeavesTab> {
             ),
             const SizedBox(height: 12),
             _buildSummaryRow(
-              theme, colorScheme,
+              theme,
+              colorScheme,
               icon: Icons.child_care,
               iconColor: Colors.orange,
               label: 'VAB (Child Care)',
@@ -171,15 +178,16 @@ class _LeavesTabState extends State<LeavesTab> {
             ),
             const SizedBox(height: 12),
             _buildSummaryRow(
-              theme, colorScheme,
+              theme,
+              colorScheme,
               icon: Icons.event_busy,
               iconColor: Colors.grey,
               label: 'Unpaid Leave',
               value: summary[AbsenceType.unpaid]!,
             ),
-            
+
             const Divider(height: 24),
-            
+
             // Total
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -280,7 +288,6 @@ class _LeavesTabState extends State<LeavesTab> {
           ],
         ),
         const SizedBox(height: 12),
-        
         if (recentAbsences.isEmpty)
           Card(
             elevation: 0,
@@ -296,7 +303,8 @@ class _LeavesTabState extends State<LeavesTab> {
                     Icon(
                       Icons.event_available,
                       size: 48,
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -309,7 +317,8 @@ class _LeavesTabState extends State<LeavesTab> {
                     Text(
                       AppLocalizations.of(context).leave_noLeavesDescription,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                        color:
+                            colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -318,15 +327,17 @@ class _LeavesTabState extends State<LeavesTab> {
             ),
           )
         else
-          ...recentAbsences.map((absence) => _buildAbsenceCard(theme, colorScheme, absence)),
+          ...recentAbsences
+              .map((absence) => _buildAbsenceCard(theme, colorScheme, absence)),
       ],
     );
   }
 
-  Widget _buildAbsenceCard(ThemeData theme, ColorScheme colorScheme, AbsenceEntry absence) {
+  Widget _buildAbsenceCard(
+      ThemeData theme, ColorScheme colorScheme, AbsenceEntry absence) {
     final typeInfo = _getTypeInfo(absence.type);
     final dateFormat = DateFormat('MMM d, yyyy');
-    
+
     return Card(
       elevation: 0,
       color: colorScheme.surface,
@@ -377,7 +388,7 @@ class _LeavesTabState extends State<LeavesTab> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                absence.minutes == 0 
+                absence.minutes == 0
                     ? AppLocalizations.of(context).leave_fullDay
                     : '${(absence.minutes / 60).toStringAsFixed(1)}h',
                 style: theme.textTheme.labelMedium?.copyWith(
@@ -434,5 +445,6 @@ class _TypeInfo {
   final Color color;
   final String label;
 
-  const _TypeInfo({required this.icon, required this.color, required this.label});
+  const _TypeInfo(
+      {required this.icon, required this.color, required this.label});
 }

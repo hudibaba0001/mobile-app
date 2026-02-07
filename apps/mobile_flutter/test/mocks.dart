@@ -4,5 +4,9 @@ import 'package:myapp/services/profile_service.dart';
 
 import 'package:myapp/services/holiday_service.dart';
 
-@GenerateNiceMocks([MockSpec<SupabaseAuthService>(), MockSpec<ProfileService>(), MockSpec<HolidayService>()])
+@GenerateNiceMocks([
+  MockSpec<SupabaseAuthService>(),
+  MockSpec<ProfileService>(),
+  MockSpec<HolidayService>()
+])
 void main() {}

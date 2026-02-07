@@ -56,7 +56,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
-
                         _buildTextField(
                           label: t.password_emailLabel,
                           controller: _emailController,
@@ -66,7 +65,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           validator: _validateEmail,
                         ),
                         const SizedBox(height: 32),
-
                         ElevatedButton(
                           onPressed: _isLoading ? null : _handleResetPassword,
                           style: ElevatedButton.styleFrom(
@@ -82,15 +80,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white),
                                 )
                               : Text(
                                   t.password_sendResetLink,
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
                                 ),
                         ),
                         const SizedBox(height: 16),
-
                         TextButton(
                           onPressed: () => AppRouter.goToLogin(context),
                           child: Text(
@@ -137,7 +137,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(prefixIcon, size: 20),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
@@ -157,7 +158,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (value == null || value.trim().isEmpty) {
       return t.password_emailRequired;
     }
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     if (!emailRegex.hasMatch(value.trim())) {
       return t.password_emailInvalid;
     }

@@ -20,16 +20,16 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _contractPercentController = TextEditingController();
   final _fullTimeHoursController = TextEditingController();
-  
+
   // Starting balance fields
   final _openingHoursController = TextEditingController();
   final _openingMinutesController = TextEditingController();
   DateTime _trackingStartDate = DateTime(DateTime.now().year, 1, 1);
   bool _isDeficit = false; // false = credit (+), true = deficit (-)
-  
+
   // Employer mode
   String _employerMode = 'standard'; // 'standard', 'strict', 'flexible'
-  
+
   bool _isFormValid = false;
   String? _contractPercentError;
   String? _fullTimeHoursError;
@@ -42,9 +42,10 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final contractProvider = context.read<ContractProvider>();
 
-      _contractPercentController.text = contractProvider.contractPercent.toString();
+      _contractPercentController.text =
+          contractProvider.contractPercent.toString();
       _fullTimeHoursController.text = contractProvider.fullTimeHours.toString();
-      
+
       // Initialize starting balance fields
       _trackingStartDate = contractProvider.trackingStartDate;
       final absMinutes = contractProvider.openingFlexMinutes.abs();
@@ -53,13 +54,13 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       _openingHoursController.text = hours.toString();
       _openingMinutesController.text = mins.toString().padLeft(2, '0');
       _isDeficit = contractProvider.openingFlexMinutes < 0;
-      
+
       // Initialize employer mode
       _employerMode = contractProvider.employerMode;
-      
+
       _validateForm();
     });
-    
+
     // Add listeners for real-time validation
     _contractPercentController.addListener(_validateForm);
     _fullTimeHoursController.addListener(_validateForm);
@@ -104,7 +105,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
           _fullTimeHoursError = t.common_invalidNumber;
         } else if (fullTimeHours <= 0) {
           _fullTimeHoursError = t.contract_fullTimeHoursError;
-        } else if (fullTimeHours > 168) { // 24 hours * 7 days
+        } else if (fullTimeHours > 168) {
+          // 24 hours * 7 days
           _fullTimeHoursError = t.contract_maxHoursError;
         } else {
           _fullTimeHoursError = null;
@@ -114,14 +116,14 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       // Validate opening balance
       final hoursText = _openingHoursController.text.trim();
       final minutesText = _openingMinutesController.text.trim();
-      
+
       if (hoursText.isEmpty && minutesText.isEmpty) {
         // Both empty is valid (defaults to 0)
         _openingBalanceError = null;
       } else {
         final hours = int.tryParse(hoursText.isEmpty ? '0' : hoursText);
         final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText);
-        
+
         if (hours == null || hours < 0) {
           _openingBalanceError = t.contract_invalidHours;
         } else if (minutes == null || minutes < 0 || minutes >= 60) {
@@ -132,9 +134,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       }
 
       // Form is valid if all fields have no errors
-      _isFormValid = _contractPercentError == null && 
-                     _fullTimeHoursError == null && 
-                     _openingBalanceError == null;
+      _isFormValid = _contractPercentError == null &&
+          _fullTimeHoursError == null &&
+          _openingBalanceError == null;
     });
   }
 
@@ -142,20 +144,22 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
     final t = AppLocalizations.of(context);
     if (_isFormValid) {
       final contractProvider = context.read<ContractProvider>();
-      
+
       // Parse values
       final contractPercent = int.parse(_contractPercentController.text.trim());
       final fullTimeHours = int.parse(_fullTimeHoursController.text.trim());
-      
+
       final hoursText = _openingHoursController.text.trim();
       final minutesText = _openingMinutesController.text.trim();
       final hours = int.tryParse(hoursText.isEmpty ? '0' : hoursText) ?? 0;
-      final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
+      final minutes =
+          int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
       final totalMinutes = (hours * 60) + minutes;
       final signedMinutes = _isDeficit ? -totalMinutes : totalMinutes;
 
       // Update provider (saves to both local cache and Supabase)
-      await contractProvider.updateContractSettings(contractPercent, fullTimeHours);
+      await contractProvider.updateContractSettings(
+          contractPercent, fullTimeHours);
       await contractProvider.setTrackingStartDate(_trackingStartDate);
       await contractProvider.setOpeningFlexMinutes(signedMinutes);
       await contractProvider.setEmployerMode(_employerMode);
@@ -189,9 +193,11 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
               Navigator.of(dialogContext).pop();
               final contractProvider = context.read<ContractProvider>();
               contractProvider.resetToDefaults();
-              _contractPercentController.text = contractProvider.contractPercent.toString();
-              _fullTimeHoursController.text = contractProvider.fullTimeHours.toString();
-              
+              _contractPercentController.text =
+                  contractProvider.contractPercent.toString();
+              _fullTimeHoursController.text =
+                  contractProvider.fullTimeHours.toString();
+
               // Reset starting balance fields
               setState(() {
                 _trackingStartDate = contractProvider.trackingStartDate;
@@ -200,7 +206,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                 _isDeficit = false;
                 _employerMode = 'standard';
               });
-              
+
               _validateForm();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -239,7 +245,9 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             child: Text(
               t.common_save,
               style: TextStyle(
-                color: _isFormValid ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.5),
+                color: _isFormValid
+                    ? colorScheme.primary
+                    : colorScheme.onSurface.withValues(alpha: 0.5),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -251,16 +259,18 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
           // Local calculations for Live Preview
           final percent = int.tryParse(_contractPercentController.text) ?? 100;
           final fHours = int.tryParse(_fullTimeHoursController.text) ?? 40;
-          
+
           final allowedHours = (fHours * percent / 100).round();
           final allowedPerDay = allowedHours / 5.0;
-          
+
           // Opening balance formatting
           final hoursText = _openingHoursController.text.trim();
           final minutesText = _openingMinutesController.text.trim();
-          final opHours = int.tryParse(hoursText.isEmpty ? '0' : hoursText) ?? 0;
-          final opMins = int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
-          
+          final opHours =
+              int.tryParse(hoursText.isEmpty ? '0' : hoursText) ?? 0;
+          final opMins =
+              int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
+
           String openingFormatted;
           final sign = _isDeficit ? '−' : '+';
           if (opMins == 0) {
@@ -310,7 +320,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                           Text(
                             t.contract_headerDescription,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurface.withValues(alpha: 0.8),
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -319,7 +330,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   ),
 
                   const SizedBox(height: AppSpacing.xxl),
-                  
+
                   // Contract Percentage Field
                   _buildTextField(
                     theme,
@@ -334,7 +345,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       LengthLimitingTextInputFormatter(3),
                     ],
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.xl),
 
                   // Full-time Hours Field
@@ -346,8 +357,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                     suffixText: t.contract_hrsWeek,
                     errorText: _fullTimeHoursError,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                    ],
+                    inputFormatters: [],
                   ),
 
                   const SizedBox(height: AppSpacing.xxl),
@@ -366,7 +376,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       color: colorScheme.surface,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _employerMode,
@@ -424,14 +435,16 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   // Pass null for Provider as we use local state here, or rework _buildStartingBalanceSection to not need Provider
                   // Actually, _buildStartingBalanceSection uses local controllers mostly but might default to provider.
                   // Let's just pass context.read since we are not updating it live.
-                  _buildStartingBalanceSection(theme, colorScheme, context.read<ContractProvider>(), t),
+                  _buildStartingBalanceSection(
+                      theme, colorScheme, context.read<ContractProvider>(), t),
 
                   const SizedBox(height: AppSpacing.xxl),
-                  
+
                   // Live Preview Card
                   Card(
                     elevation: 0,
-                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
@@ -458,28 +471,26 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                             ],
                           ),
                           const SizedBox(height: AppSpacing.lg),
-                          
                           _buildPreviewRow(
                             theme,
                             t.contract_contractType,
-                            percent == 100 ? t.contract_fullTime : t.contract_partTime,
+                            percent == 100
+                                ? t.contract_fullTime
+                                : t.contract_partTime,
                             Icons.badge,
                           ),
-                          
                           _buildPreviewRow(
                             theme,
                             t.contract_percentage,
                             '$percent%',
                             Icons.percent,
                           ),
-                          
                           _buildPreviewRow(
                             theme,
                             t.contract_fullTimeHours,
                             '$fHours hours/week',
                             Icons.schedule,
                           ),
-                          
                           _buildPreviewRow(
                             theme,
                             t.contract_allowedHours,
@@ -487,23 +498,21 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                             Icons.check_circle,
                             isHighlighted: true,
                           ),
-                          
                           _buildPreviewRow(
                             theme,
                             t.contract_dailyHours,
-                            t.contract_hoursPerDayValue(allowedPerDay.toStringAsFixed(1)),
+                            t.contract_hoursPerDayValue(
+                                allowedPerDay.toStringAsFixed(1)),
                             Icons.today,
                           ),
-                          
                           const Divider(height: AppSpacing.xl),
-                          
                           _buildPreviewRow(
                             theme,
                             t.contract_startTrackingFrom,
-                            DateFormat('MMM d, yyyy').format(_trackingStartDate),
+                            DateFormat('MMM d, yyyy')
+                                .format(_trackingStartDate),
                             Icons.calendar_today,
                           ),
-                          
                           _buildPreviewRow(
                             theme,
                             t.contract_openingBalance,
@@ -652,8 +661,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             value,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: isHighlighted ? FontWeight.bold : FontWeight.w500,
-              color: isHighlighted 
-                  ? theme.colorScheme.primary 
+              color: isHighlighted
+                  ? theme.colorScheme.primary
                   : theme.colorScheme.onSurface,
             ),
           ),
@@ -661,7 +670,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       ),
     );
   }
-  
+
   Widget _buildStartingBalanceSection(
     ThemeData theme,
     ColorScheme colorScheme,
@@ -722,7 +731,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
               onTap: () => _selectStartDate(context),
               borderRadius: BorderRadius.circular(AppRadius.md),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                 decoration: BoxDecoration(
                   border: Border.all(color: colorScheme.outline),
                   borderRadius: BorderRadius.circular(AppRadius.md),
@@ -824,7 +834,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.lg),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md, vertical: AppSpacing.lg),
                     ),
                   ),
                 ),
@@ -848,7 +859,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.lg),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md, vertical: AppSpacing.lg),
                     ),
                   ),
                 ),
@@ -871,7 +883,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                color:
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Row(
@@ -901,7 +914,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       ),
     );
   }
-  
+
   Future<void> _selectStartDate(BuildContext context) async {
     final t = AppLocalizations.of(context);
     final now = DateTime.now();
@@ -912,7 +925,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       lastDate: now.add(const Duration(days: 365)),
       helpText: t.contract_startTrackingFrom,
     );
-    
+
     if (picked != null && picked != _trackingStartDate) {
       setState(() {
         _trackingStartDate = picked;

@@ -6,27 +6,28 @@ import '../config/map_config.dart';
 import 'travel_cache_service.dart';
 
 /// Service for calculating travel time and distance using Mapbox API
-/// 
+///
 /// This service uses the Mapbox Directions API to calculate:
 /// - Travel time by car
 /// - Distance between two addresses
 class MapService {
-  static const String _baseUrl = 'https://api.mapbox.com/directions/v5/mapbox/driving';
+  static const String _baseUrl =
+      'https://api.mapbox.com/directions/v5/mapbox/driving';
 
   /// Calculate travel time and distance between two addresses
-  /// 
+  ///
   /// [origin] - Starting address (e.g., "New York, NY")
   /// [destination] - Destination address (e.g., "Boston, MA")
   /// [originPlaceId] - Optional place ID for origin (for better caching)
   /// [destinationPlaceId] - Optional place ID for destination (for better caching)
   /// [useCache] - Whether to check cache first (default: true)
-  /// 
+  ///
   /// Returns a Map with:
   /// - 'durationMinutes': Travel time in minutes
   /// - 'distanceMeters': Distance in meters
   /// - 'durationText': Human-readable duration (e.g., "2 hours 30 mins")
   /// - 'distanceText': Human-readable distance (e.g., "200 km")
-  /// 
+  ///
   /// Throws an exception if the API call fails
   static Future<Map<String, dynamic>> calculateTravelTime({
     required String origin,
@@ -39,24 +40,25 @@ class MapService {
     if (useCache) {
       final cacheService = TravelCacheService();
       await cacheService.init();
-      
+
       final cached = cacheService.getCachedRoute(
         fromPlaceId: originPlaceId,
         toPlaceId: destinationPlaceId,
         fromText: origin,
         toText: destination,
       );
-      
+
       if (cached != null) {
-        debugPrint('MapService: ✅ Using cached route: ${cached.minutes} minutes');
-        final distanceMeters = cached.distanceKm != null 
+        debugPrint(
+            'MapService: ✅ Using cached route: ${cached.minutes} minutes');
+        final distanceMeters = cached.distanceKm != null
             ? (cached.distanceKm! * 1000).round()
             : null;
         return {
           'durationMinutes': cached.minutes,
           'distanceMeters': distanceMeters,
           'durationText': _formatDuration(cached.minutes),
-          'distanceText': cached.distanceKm != null 
+          'distanceText': cached.distanceKm != null
               ? _formatDistance(cached.distanceKm! * 1000)
               : '',
           'distanceKm': cached.distanceKm,
@@ -65,8 +67,7 @@ class MapService {
     }
     if (!MapConfig.isConfigured) {
       throw Exception(
-        'Mapbox API key not configured. Please add your API key in lib/config/map_config.dart'
-      );
+          'Mapbox API key not configured. Please add your API key in lib/config/map_config.dart');
     }
 
     try {
@@ -75,8 +76,9 @@ class MapService {
       final destCoords = await _geocodeAddress(destination);
 
       // Build the directions API URL with coordinates
-      final coordinates = '${originCoords['lng']},${originCoords['lat']};${destCoords['lng']},${destCoords['lat']}';
-      
+      final coordinates =
+          '${originCoords['lng']},${originCoords['lat']};${destCoords['lng']},${destCoords['lat']}';
+
       final uri = Uri.parse('$_baseUrl/$coordinates').replace(queryParameters: {
         'access_token': MapConfig.mapboxApiKey,
         'geometries': 'geojson',
@@ -84,12 +86,14 @@ class MapService {
         'steps': 'false',
       });
 
-      debugPrint('MapService: Calculating travel time from "$origin" to "$destination"');
-      
+      debugPrint(
+          'MapService: Calculating travel time from "$origin" to "$destination"');
+
       final response = await http.get(uri);
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to calculate travel time: ${response.statusCode}');
+        throw Exception(
+            'Failed to calculate travel time: ${response.statusCode}');
       }
 
       final data = json.decode(response.body);
@@ -105,16 +109,20 @@ class MapService {
       }
 
       final route = routes[0];
-      final duration = (route['duration'] as num).toDouble(); // Duration in seconds
-      final distance = (route['distance'] as num).toDouble(); // Distance in meters
+      final duration =
+          (route['duration'] as num).toDouble(); // Duration in seconds
+      final distance =
+          (route['distance'] as num).toDouble(); // Distance in meters
 
       final durationMinutes = (duration / 60).round();
       final durationText = _formatDuration(durationMinutes);
       final distanceText = _formatDistance(distance);
       final distanceKm = distance / 1000;
 
-      debugPrint('MapService: ✅ Calculated travel time: $durationMinutes minutes ($durationText)');
-      debugPrint('MapService: ✅ Distance: ${distanceKm.toStringAsFixed(1)} km ($distanceText)');
+      debugPrint(
+          'MapService: ✅ Calculated travel time: $durationMinutes minutes ($durationText)');
+      debugPrint(
+          'MapService: ✅ Distance: ${distanceKm.toStringAsFixed(1)} km ($distanceText)');
 
       // Cache the result
       if (useCache) {
@@ -145,7 +153,8 @@ class MapService {
 
   /// Geocode an address to get coordinates using Mapbox Geocoding API
   static Future<Map<String, double>> _geocodeAddress(String address) async {
-    final geocodeUrl = 'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(address)}.json';
+    final geocodeUrl =
+        'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(address)}.json';
     final uri = Uri.parse(geocodeUrl).replace(queryParameters: {
       'access_token': MapConfig.mapboxApiKey,
       'limit': '1',
@@ -159,7 +168,7 @@ class MapService {
 
     final data = json.decode(response.body);
     final features = data['features'] as List;
-    
+
     if (features.isEmpty) {
       throw Exception('Address not found: $address');
     }
@@ -197,10 +206,10 @@ class MapService {
   }
 
   /// Get address suggestions (autocomplete) using Mapbox Geocoding API
-  /// 
+  ///
   /// [query] - The search query (address or place name)
   /// [limit] - Maximum number of suggestions to return (default: 5)
-  /// 
+  ///
   /// Returns a list of suggested addresses with their full address strings
   static Future<List<String>> getAddressSuggestions(
     String query, {
@@ -215,7 +224,8 @@ class MapService {
     }
 
     try {
-      final geocodeUrl = 'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(query)}.json';
+      final geocodeUrl =
+          'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(query)}.json';
       final uri = Uri.parse(geocodeUrl).replace(queryParameters: {
         'access_token': MapConfig.mapboxApiKey,
         'limit': limit.toString(),
@@ -225,23 +235,28 @@ class MapService {
       final response = await http.get(uri);
 
       if (response.statusCode != 200) {
-        debugPrint('MapService: Failed to get address suggestions: ${response.statusCode}');
+        debugPrint(
+            'MapService: Failed to get address suggestions: ${response.statusCode}');
         return [];
       }
 
       final data = json.decode(response.body);
       final features = data['features'] as List?;
-      
+
       if (features == null || features.isEmpty) {
         return [];
       }
 
       // Extract address strings from features
-      final suggestions = features.map((feature) {
-        return feature['place_name'] as String? ?? '';
-      }).where((address) => address.isNotEmpty).toList();
+      final suggestions = features
+          .map((feature) {
+            return feature['place_name'] as String? ?? '';
+          })
+          .where((address) => address.isNotEmpty)
+          .toList();
 
-      debugPrint('MapService: Found ${suggestions.length} address suggestions for "$query"');
+      debugPrint(
+          'MapService: Found ${suggestions.length} address suggestions for "$query"');
       return suggestions;
     } catch (e) {
       debugPrint('MapService: Error getting address suggestions: $e');
@@ -252,4 +267,3 @@ class MapService {
   /// Check if the service is configured (API key is set)
   static bool get isConfigured => MapConfig.isConfigured;
 }
-

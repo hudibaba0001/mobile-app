@@ -10,13 +10,14 @@ class SupabaseAbsenceService {
   static const _uuid = Uuid();
 
   /// Fetch all absences for a user and year
-  /// 
+  ///
   /// Returns list of AbsenceEntry objects
-  Future<List<AbsenceEntry>> fetchAbsencesForYear(String userId, int year) async {
+  Future<List<AbsenceEntry>> fetchAbsencesForYear(
+      String userId, int year) async {
     try {
       final startDate = '$year-01-01';
       final endDate = '$year-12-31';
-      
+
       final response = await _supabase
           .from('absences')
           .select()
@@ -48,11 +49,8 @@ class SupabaseAbsenceService {
       data['user_id'] = userId;
       data['id'] = _uuid.v4(); // Generate UUID
 
-      final response = await _supabase
-          .from('absences')
-          .insert(data)
-          .select()
-          .single();
+      final response =
+          await _supabase.from('absences').insert(data).select().single();
 
       return response['id'] as String;
     } catch (e) {
@@ -61,10 +59,11 @@ class SupabaseAbsenceService {
   }
 
   /// Update an absence entry
-  Future<void> updateAbsence(String userId, String absenceId, AbsenceEntry absence) async {
+  Future<void> updateAbsence(
+      String userId, String absenceId, AbsenceEntry absence) async {
     try {
       final data = absence.toMap();
-      
+
       await _supabase
           .from('absences')
           .update(data)
@@ -88,4 +87,3 @@ class SupabaseAbsenceService {
     }
   }
 }
-

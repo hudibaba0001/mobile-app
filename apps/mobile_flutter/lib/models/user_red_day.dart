@@ -12,13 +12,13 @@ enum HalfDay {
 
 /// Source of the red day
 enum RedDaySource {
-  manual,   // User-added
-  company,  // From employer (future B2B)
+  manual, // User-added
+  company, // From employer (future B2B)
   imported, // Bulk import
 }
 
 /// Model for user-defined red days
-/// 
+///
 /// Users can mark their own personal red days (days off, etc.)
 /// Stored in Supabase `user_red_days` table
 class UserRedDay {
@@ -76,7 +76,8 @@ class UserRedDay {
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
       'user_id': userId,
-      'date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+      'date':
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
       'kind': kind == RedDayKind.full ? 'FULL' : 'HALF',
       'source': _sourceToString(source),
     };

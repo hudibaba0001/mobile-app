@@ -30,14 +30,14 @@ class AdminUser {
   }
 
   Map<String, dynamic> toJson() => {
-    'uid': uid,
-    'email': email,
-    'displayName': displayName,
-    'disabled': disabled,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
-    'settings': settings,
-  };
+        'uid': uid,
+        'email': email,
+        'displayName': displayName,
+        'disabled': disabled,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+        'settings': settings,
+      };
 
   @override
   String toString() =>

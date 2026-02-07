@@ -118,7 +118,7 @@ class NavigationService {
   /// Show bottom sheet with navigation options
   static void showNavigationSheet(BuildContext context) {
     final authService = context.read<AuthService>();
-    
+
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(

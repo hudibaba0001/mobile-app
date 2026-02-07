@@ -9,7 +9,7 @@ Shift makeShift({
 }) {
   final startParts = startHHMM.split(':');
   final endParts = endHHMM.split(':');
-  
+
   final start = DateTime(
     date.year,
     date.month,
@@ -17,7 +17,7 @@ Shift makeShift({
     int.parse(startParts[0]),
     int.parse(startParts[1]),
   );
-  
+
   final end = DateTime(
     date.year,
     date.month,

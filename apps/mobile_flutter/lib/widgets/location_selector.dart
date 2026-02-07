@@ -137,7 +137,8 @@ class _LocationSelectorState extends State<LocationSelector> {
     });
 
     try {
-      final suggestions = await MapService.getAddressSuggestions(query, limit: 5);
+      final suggestions =
+          await MapService.getAddressSuggestions(query, limit: 5);
       setState(() {
         _mapboxSuggestions = suggestions;
         _isLoadingMapboxSuggestions = false;
@@ -218,7 +219,10 @@ class _LocationSelectorState extends State<LocationSelector> {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.2),
                 ),
               ),
               child: _buildSuggestionsList(),
@@ -260,7 +264,8 @@ class _LocationSelectorState extends State<LocationSelector> {
             ),
           ),
           ..._suggestions.map((location) => _buildLocationTile(location)),
-          if (hasAddressSuggestions || hasMapboxSuggestions ||
+          if (hasAddressSuggestions ||
+              hasMapboxSuggestions ||
               (widget.showSaveOption && currentText.isNotEmpty))
             const Divider(height: 1),
         ],
@@ -278,7 +283,8 @@ class _LocationSelectorState extends State<LocationSelector> {
                     ),
               ),
             ),
-          ..._mapboxSuggestions.map((address) => _buildMapboxAddressTile(address)),
+          ..._mapboxSuggestions
+              .map((address) => _buildMapboxAddressTile(address)),
           if (hasAddressSuggestions ||
               (widget.showSaveOption && currentText.isNotEmpty))
             const Divider(height: 1),
@@ -442,7 +448,10 @@ class _LocationSelectorState extends State<LocationSelector> {
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -588,7 +597,8 @@ class _LocationSelectorState extends State<LocationSelector> {
             child: Text(t.common_cancel),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(controller.text.trim()),
             child: Text(t.common_save),
           ),
         ],

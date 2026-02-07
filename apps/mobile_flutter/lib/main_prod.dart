@@ -59,8 +59,7 @@ void main() async {
     await prefs.setBool(locationBoxResetKey, true);
   }
 
-  final locationBox =
-      await Hive.openBox<Location>(AppConstants.locationsBox);
+  final locationBox = await Hive.openBox<Location>(AppConstants.locationsBox);
   final locationRepository = LocationRepository(locationBox);
 
   // Initialize Supabase
@@ -173,7 +172,8 @@ class MyApp extends StatelessWidget {
               AbsenceProvider(authService, SupabaseAbsenceService()),
         ),
         // BalanceAdjustmentProvider depends on SupabaseAuthService
-        ChangeNotifierProxyProvider<SupabaseAuthService, BalanceAdjustmentProvider>(
+        ChangeNotifierProxyProvider<SupabaseAuthService,
+            BalanceAdjustmentProvider>(
           create: (context) {
             final authService = context.read<SupabaseAuthService>();
             final supabase = SupabaseConfig.client;
@@ -189,8 +189,13 @@ class MyApp extends StatelessWidget {
         ),
         // TimeProvider depends on EntryProvider, ContractProvider, AbsenceProvider, BalanceAdjustmentProvider, and HolidayService
         // Use ChangeNotifierProxyProvider5 since TimeProvider is a ChangeNotifier
-        ChangeNotifierProxyProvider5<EntryProvider, ContractProvider, AbsenceProvider,
-            BalanceAdjustmentProvider, HolidayService, TimeProvider>(
+        ChangeNotifierProxyProvider5<
+            EntryProvider,
+            ContractProvider,
+            AbsenceProvider,
+            BalanceAdjustmentProvider,
+            HolidayService,
+            TimeProvider>(
           create: (context) => TimeProvider(
             context.read<EntryProvider>(),
             context.read<ContractProvider>(),
@@ -201,7 +206,8 @@ class MyApp extends StatelessWidget {
           update: (context, entryProvider, contractProvider, absenceProvider,
                   adjustmentProvider, holidayService, previous) =>
               previous ??
-              TimeProvider(entryProvider, contractProvider, absenceProvider, adjustmentProvider, holidayService),
+              TimeProvider(entryProvider, contractProvider, absenceProvider,
+                  adjustmentProvider, holidayService),
         ),
         // Services
         Provider(create: (_) => TravelCacheService()..init()),

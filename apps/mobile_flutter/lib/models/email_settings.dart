@@ -80,9 +80,9 @@ class EmailSettings extends HiveObject {
   });
 
   // Convenience getters
-  bool get isConfigured => 
-      managerEmail.isNotEmpty && 
-      senderEmail.isNotEmpty && 
+  bool get isConfigured =>
+      managerEmail.isNotEmpty &&
+      senderEmail.isNotEmpty &&
       senderPassword.isNotEmpty;
 
   String get displayName => senderName.isNotEmpty ? senderName : senderEmail;
@@ -118,11 +118,14 @@ class EmailSettings extends HiveObject {
       autoSendDay: autoSendDay ?? this.autoSendDay,
       defaultReportFormat: defaultReportFormat ?? this.defaultReportFormat,
       defaultReportPeriod: defaultReportPeriod ?? this.defaultReportPeriod,
-      customSubjectTemplate: customSubjectTemplate ?? this.customSubjectTemplate,
-      customMessageTemplate: customMessageTemplate ?? this.customMessageTemplate,
+      customSubjectTemplate:
+          customSubjectTemplate ?? this.customSubjectTemplate,
+      customMessageTemplate:
+          customMessageTemplate ?? this.customMessageTemplate,
       includeCharts: includeCharts ?? this.includeCharts,
       includeSummary: includeSummary ?? this.includeSummary,
-      includeDetailedEntries: includeDetailedEntries ?? this.includeDetailedEntries,
+      includeDetailedEntries:
+          includeDetailedEntries ?? this.includeDetailedEntries,
       lastSentDate: lastSentDate ?? this.lastSentDate,
       smtpServer: smtpServer ?? this.smtpServer,
       smtpPort: smtpPort ?? this.smtpPort,
@@ -133,33 +136,33 @@ class EmailSettings extends HiveObject {
   // Validation methods
   List<String> validate() {
     final errors = <String>[];
-    
+
     if (managerEmail.isEmpty) {
       errors.add('Manager email is required');
     } else if (!_isValidEmail(managerEmail)) {
       errors.add('Manager email is not valid');
     }
-    
+
     if (senderEmail.isEmpty) {
       errors.add('Sender email is required');
     } else if (!_isValidEmail(senderEmail)) {
       errors.add('Sender email is not valid');
     }
-    
+
     if (senderPassword.isEmpty) {
       errors.add('Email password is required');
     } else if (senderPassword.length < 6) {
       errors.add('Email password must be at least 6 characters');
     }
-    
+
     if (smtpServer.isEmpty) {
       errors.add('SMTP server is required');
     }
-    
+
     if (smtpPort <= 0 || smtpPort > 65535) {
       errors.add('SMTP port must be between 1 and 65535');
     }
-    
+
     return errors;
   }
 

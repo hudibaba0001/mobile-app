@@ -22,4 +22,3 @@ abstract class AuthService {
   /// Check if user is admin (optional, can throw if not implemented)
   Future<bool> isAdmin();
 }
-

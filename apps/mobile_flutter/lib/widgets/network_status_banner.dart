@@ -23,7 +23,8 @@ class NetworkStatusBanner extends StatelessWidget {
         final syncError = entryProvider.syncError;
 
         // Show banner if offline, has pending sync, is syncing, or has sync error
-        final showBanner = isOffline || hasPendingSync || isSyncing || syncError != null;
+        final showBanner =
+            isOffline || hasPendingSync || isSyncing || syncError != null;
 
         return Column(
           children: [
@@ -305,7 +306,8 @@ class NetworkSnackbar {
           children: [
             const Icon(Icons.error_outline, color: Colors.white, size: 20),
             const SizedBox(width: 12),
-            Expanded(child: Text(message ?? 'Network error. Please try again.')),
+            Expanded(
+                child: Text(message ?? 'Network error. Please try again.')),
           ],
         ),
         backgroundColor: Theme.of(context).colorScheme.error,

@@ -10,9 +10,8 @@ void downloadFileWeb(Uint8List bytes, String fileName, String mimeType) {
   final anchor = html.AnchorElement(href: url)
     ..setAttribute('download', fileName)
     ..style.display = 'none';
-  
+
   html.document.body?.append(anchor);
   anchor.click();
   anchor.remove();
 }
-

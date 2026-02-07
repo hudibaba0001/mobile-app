@@ -23,7 +23,7 @@ void main() {
         ],
         createdAt: DateTime.now(),
       );
-      
+
       // Shift 1: 240 - 15 = 225 worked minutes
       // Shift 2: 240 - 30 = 210 worked minutes
       // Total: 225 + 210 = 435 worked minutes
@@ -40,7 +40,7 @@ void main() {
           unpaidBreakMinutes: 30,
         ),
       );
-      
+
       // 480 - 30 = 450 worked minutes
       expect(entry.totalWorkDuration?.inMinutes ?? 0, 450);
     });
@@ -54,7 +54,7 @@ void main() {
         shifts: null,
         createdAt: DateTime.now(),
       );
-      
+
       expect(entry.totalWorkDuration?.inMinutes ?? 0, 0);
     });
 
@@ -67,7 +67,7 @@ void main() {
         shifts: [],
         createdAt: DateTime.now(),
       );
-      
+
       expect(entry.totalWorkDuration?.inMinutes ?? 0, 0);
     });
   });

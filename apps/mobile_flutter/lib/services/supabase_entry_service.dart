@@ -19,9 +19,11 @@ class SupabaseEntryService {
   /// Uses batch queries instead of N+1 pattern for performance
   /// [limit] Number of entries per page (default 100, use null for all)
   /// [offset] Number of entries to skip (for pagination)
-  Future<List<Entry>> getAllEntries(String userId, {int? limit, int offset = 0}) async {
+  Future<List<Entry>> getAllEntries(String userId,
+      {int? limit, int offset = 0}) async {
     try {
-      debugPrint('SupabaseEntryService: Fetching entries for user: $userId (limit: $limit, offset: $offset)');
+      debugPrint(
+          'SupabaseEntryService: Fetching entries for user: $userId (limit: $limit, offset: $offset)');
 
       // Step 1: Fetch entries (with optional pagination)
       var query = _supabase
@@ -37,10 +39,12 @@ class SupabaseEntryService {
 
       final entriesResponse = await query;
 
-      debugPrint('SupabaseEntryService: Found ${entriesResponse.length} entries');
+      debugPrint(
+          'SupabaseEntryService: Found ${entriesResponse.length} entries');
 
       if (entriesResponse.isEmpty) {
-        debugPrint('SupabaseEntryService: No entries found in Supabase for user: $userId');
+        debugPrint(
+            'SupabaseEntryService: No entries found in Supabase for user: $userId');
         return [];
       }
 
@@ -70,7 +74,8 @@ class SupabaseEntryService {
           final entryId = segment['entry_id'] as String;
           segmentsByEntryId.putIfAbsent(entryId, () => []).add(segment);
         }
-        debugPrint('SupabaseEntryService: Batch loaded ${segmentsResponse.length} travel segments');
+        debugPrint(
+            'SupabaseEntryService: Batch loaded ${segmentsResponse.length} travel segments');
       }
 
       if (workEntryIds.isNotEmpty) {
@@ -85,7 +90,8 @@ class SupabaseEntryService {
           final entryId = shift['entry_id'] as String;
           shiftsByEntryId.putIfAbsent(entryId, () => []).add(shift);
         }
-        debugPrint('SupabaseEntryService: Batch loaded ${shiftsResponse.length} work shifts');
+        debugPrint(
+            'SupabaseEntryService: Batch loaded ${shiftsResponse.length} work shifts');
       }
 
       // Step 4: Merge data in memory (no more N+1 queries!)
@@ -110,21 +116,25 @@ class SupabaseEntryService {
           } else if (entryType == 'work') {
             final shifts = shiftsByEntryId[entryId];
             if (shifts != null && shifts.isNotEmpty) {
-              entryRow['shifts'] = shifts.map((shift) => _mapShiftFromDb(shift)).toList();
+              entryRow['shifts'] =
+                  shifts.map((shift) => _mapShiftFromDb(shift)).toList();
             }
           }
 
           entries.add(Entry.fromJson(entryRow));
         } catch (e) {
-          debugPrint('SupabaseEntryService: Error parsing entry from Supabase: $e');
+          debugPrint(
+              'SupabaseEntryService: Error parsing entry from Supabase: $e');
           debugPrint('SupabaseEntryService: Entry data: $entryRow');
         }
       }
 
-      debugPrint('SupabaseEntryService: Successfully loaded ${entries.length} entries (3 queries total)');
+      debugPrint(
+          'SupabaseEntryService: Successfully loaded ${entries.length} entries (3 queries total)');
       return entries;
     } catch (e) {
-      debugPrint('SupabaseEntryService: Error fetching entries from Supabase: $e');
+      debugPrint(
+          'SupabaseEntryService: Error fetching entries from Supabase: $e');
       debugPrint('SupabaseEntryService: Error type: ${e.runtimeType}');
       rethrow;
     }
@@ -151,10 +161,8 @@ class SupabaseEntryService {
   /// Get total entry count for pagination
   Future<int> getEntryCount(String userId) async {
     try {
-      final response = await _supabase
-          .from(_tableName)
-          .select('id')
-          .eq('user_id', userId);
+      final response =
+          await _supabase.from(_tableName).select('id').eq('user_id', userId);
       return response.length;
     } catch (e) {
       debugPrint('SupabaseEntryService: Error getting entry count: $e');
@@ -248,7 +256,8 @@ class SupabaseEntryService {
           } else if (entryType == 'work') {
             final shifts = shiftsByEntryId[entryId];
             if (shifts != null && shifts.isNotEmpty) {
-              entryRow['shifts'] = shifts.map((shift) => _mapShiftFromDb(shift)).toList();
+              entryRow['shifts'] =
+                  shifts.map((shift) => _mapShiftFromDb(shift)).toList();
             }
           }
 
@@ -285,7 +294,8 @@ class SupabaseEntryService {
       // Ensure entry ID is a valid UUID format
       String entryId = entry.id;
       if (!_isValidUUID(entryId)) {
-        debugPrint('SupabaseEntryService: ⚠️ Entry ID is not a UUID, generating new UUID');
+        debugPrint(
+            'SupabaseEntryService: ⚠️ Entry ID is not a UUID, generating new UUID');
         entryId = _uuid.v4();
         // Create a new entry with the UUID
         entry = entry.copyWith(id: entryId);
@@ -296,26 +306,28 @@ class SupabaseEntryService {
         'id': entryId,
         'user_id': entry.userId,
         'type': entry.type.toString().split('.').last,
-        'date': entry.date.toIso8601String().split('T')[0], // Date only, not timestamp
+        'date': entry.date
+            .toIso8601String()
+            .split('T')[0], // Date only, not timestamp
         'notes': entry.notes,
         'created_at': entry.createdAt.toIso8601String(),
-        'updated_at': entry.updatedAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+        'updated_at': entry.updatedAt?.toIso8601String() ??
+            DateTime.now().toIso8601String(),
       };
 
       debugPrint('SupabaseEntryService: Inserting entry with ID: $entryId');
       debugPrint('SupabaseEntryService: Entry data: $entryData');
-      
+
       // Insert into entries table
-      final entryResponse = await _supabase
-          .from(_tableName)
-          .insert(entryData)
-          .select()
-          .single();
+      final entryResponse =
+          await _supabase.from(_tableName).insert(entryData).select().single();
 
       debugPrint('SupabaseEntryService: ✅ Entry inserted into entries table');
 
       // Insert type-specific data
-      if (entry.type == EntryType.travel && entry.from != null && entry.to != null) {
+      if (entry.type == EntryType.travel &&
+          entry.from != null &&
+          entry.to != null) {
         final segmentData = {
           'id': _uuid.v4(), // Generate new ID for segment
           'entry_id': entryId,
@@ -325,15 +337,14 @@ class SupabaseEntryService {
           'segment_order': entry.segmentOrder ?? 1,
           'total_segments': entry.totalSegments ?? 1,
           'created_at': entry.createdAt.toIso8601String(),
-          'updated_at': entry.updatedAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+          'updated_at': entry.updatedAt?.toIso8601String() ??
+              DateTime.now().toIso8601String(),
         };
 
-        await _supabase
-            .from(_travelSegmentsTable)
-            .insert(segmentData);
-        
+        await _supabase.from(_travelSegmentsTable).insert(segmentData);
+
         debugPrint('SupabaseEntryService: ✅ Travel segment inserted');
-        
+
         // Add travel data to response for Entry.fromJson
         entryResponse['from_location'] = entry.from;
         entryResponse['to_location'] = entry.to;
@@ -341,30 +352,32 @@ class SupabaseEntryService {
         entryResponse['journey_id'] = segmentData['id'];
         entryResponse['segment_order'] = entry.segmentOrder;
         entryResponse['total_segments'] = entry.totalSegments;
-      } else if (entry.type == EntryType.work && entry.shifts != null && entry.shifts!.isNotEmpty) {
+      } else if (entry.type == EntryType.work &&
+          entry.shifts != null &&
+          entry.shifts!.isNotEmpty) {
         // Insert work shifts
         // Map Shift model to DB columns: start_time, end_time, location, unpaid_break_minutes, notes
         // DO NOT write 'description' column (doesn't exist in DB schema)
         final shiftsData = entry.shifts!.map((shift) {
           // Use notes if available, otherwise fall back to description for backward compatibility
           final dbNotes = shift.notes ?? shift.description;
-          
+
           // Convert local DateTime to UTC before storing in DB
           // Shift start/end are in local time (constructed from entry.date + TimeOfDay)
-          final startLocal = shift.start.isUtc 
-              ? shift.start.toLocal() 
+          final startLocal = shift.start.isUtc
+              ? shift.start.toLocal()
               : shift.start; // Already local
-          final endLocal = shift.end.isUtc 
-              ? shift.end.toLocal() 
+          final endLocal = shift.end.isUtc
+              ? shift.end.toLocal()
               : shift.end; // Already local
-          
+
           final startUtc = startLocal.toUtc();
           final endUtc = endLocal.toUtc();
-          
+
           debugPrint('SupabaseEntryService: Shift timezone conversion - '
               'start local: ${startLocal.toIso8601String()}, UTC: ${startUtc.toIso8601String()}, '
               'break: ${shift.unpaidBreakMinutes}, notes: $dbNotes');
-          
+
           return {
             'id': _uuid.v4(),
             'entry_id': entryId,
@@ -374,16 +387,16 @@ class SupabaseEntryService {
             'unpaid_break_minutes': shift.unpaidBreakMinutes,
             'notes': dbNotes,
             'created_at': entry.createdAt.toIso8601String(),
-            'updated_at': entry.updatedAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+            'updated_at': entry.updatedAt?.toIso8601String() ??
+                DateTime.now().toIso8601String(),
           };
         }).toList();
 
-        await _supabase
-            .from(_workShiftsTable)
-            .insert(shiftsData);
-        
-        debugPrint('SupabaseEntryService: ✅ ${shiftsData.length} work shift(s) inserted');
-        
+        await _supabase.from(_workShiftsTable).insert(shiftsData);
+
+        debugPrint(
+            'SupabaseEntryService: ✅ ${shiftsData.length} work shift(s) inserted');
+
         // Add shifts data to response for Entry.fromJson
         entryResponse['shifts'] = entry.shifts!.map((s) {
           final dbNotes = s.notes ?? s.description;
@@ -399,8 +412,9 @@ class SupabaseEntryService {
         }).toList();
       }
 
-      debugPrint('SupabaseEntryService: ✅ Entry inserted successfully: ${entryResponse['id']}');
-      
+      debugPrint(
+          'SupabaseEntryService: ✅ Entry inserted successfully: ${entryResponse['id']}');
+
       // Parse the response and ensure it uses the correct entry ID
       final updatedEntry = Entry.fromJson(entryResponse);
       // If we generated a new UUID, make sure the returned entry uses it
@@ -410,23 +424,31 @@ class SupabaseEntryService {
       return updatedEntry;
     } catch (e) {
       debugPrint('SupabaseEntryService: ❌ Error adding entry to Supabase: $e');
-      debugPrint('SupabaseEntryService: Entry data that failed: ${entry.toJson()}');
+      debugPrint(
+          'SupabaseEntryService: Entry data that failed: ${entry.toJson()}');
       debugPrint('SupabaseEntryService: Error type: ${e.runtimeType}');
       debugPrint('SupabaseEntryService: Error details: ${e.toString()}');
-      
+
       // Provide more specific error messages
       final errorStr = e.toString().toLowerCase();
       if (errorStr.contains('column') || errorStr.contains('pgrst')) {
         debugPrint('SupabaseEntryService: ⚠️ Column/schema issue detected');
-        debugPrint('SupabaseEntryService: Make sure you have run the correct schema SQL for your database structure');
-      } else if (errorStr.contains('uuid') || errorStr.contains('invalid input')) {
-        debugPrint('SupabaseEntryService: ⚠️ UUID format issue - entry ID: ${entry.id}');
-      } else if (errorStr.contains('foreign key') || errorStr.contains('constraint')) {
-        debugPrint('SupabaseEntryService: ⚠️ Foreign key or constraint violation');
-      } else if (errorStr.contains('permission') || errorStr.contains('policy')) {
-        debugPrint('SupabaseEntryService: ⚠️ RLS policy issue - check your Supabase RLS policies');
+        debugPrint(
+            'SupabaseEntryService: Make sure you have run the correct schema SQL for your database structure');
+      } else if (errorStr.contains('uuid') ||
+          errorStr.contains('invalid input')) {
+        debugPrint(
+            'SupabaseEntryService: ⚠️ UUID format issue - entry ID: ${entry.id}');
+      } else if (errorStr.contains('foreign key') ||
+          errorStr.contains('constraint')) {
+        debugPrint(
+            'SupabaseEntryService: ⚠️ Foreign key or constraint violation');
+      } else if (errorStr.contains('permission') ||
+          errorStr.contains('policy')) {
+        debugPrint(
+            'SupabaseEntryService: ⚠️ RLS policy issue - check your Supabase RLS policies');
       }
-      
+
       rethrow;
     }
   }
@@ -435,7 +457,9 @@ class SupabaseEntryService {
   bool _isValidUUID(String? id) {
     if (id == null || id.isEmpty) return false;
     // UUID format: 8-4-4-4-12 hex characters
-    final uuidRegex = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', caseSensitive: false);
+    final uuidRegex = RegExp(
+        r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+        caseSensitive: false);
     return uuidRegex.hasMatch(id);
   }
 
@@ -477,9 +501,7 @@ class SupabaseEntryService {
             'updated_at': DateTime.now().toIso8601String(),
           };
 
-          await _supabase
-              .from(_travelSegmentsTable)
-              .insert(segmentData);
+          await _supabase.from(_travelSegmentsTable).insert(segmentData);
         }
       } else if (entry.type == EntryType.work) {
         // Delete existing shifts and insert new ones
@@ -492,17 +514,19 @@ class SupabaseEntryService {
           // Map Shift model to DB columns (no description column)
           final shiftsData = entry.shifts!.map((shift) {
             final dbNotes = shift.notes ?? shift.description;
-            
+
             // Convert local DateTime to UTC before storing in DB
-            final startLocal = shift.start.isUtc ? shift.start.toLocal() : shift.start;
+            final startLocal =
+                shift.start.isUtc ? shift.start.toLocal() : shift.start;
             final endLocal = shift.end.isUtc ? shift.end.toLocal() : shift.end;
             final startUtc = startLocal.toUtc();
             final endUtc = endLocal.toUtc();
-            
-            debugPrint('SupabaseEntryService: Update shift timezone conversion - '
+
+            debugPrint(
+                'SupabaseEntryService: Update shift timezone conversion - '
                 'start local: ${startLocal.toIso8601String()}, UTC: ${startUtc.toIso8601String()}, '
                 'break: ${shift.unpaidBreakMinutes}, notes: $dbNotes');
-            
+
             return {
               'id': _uuid.v4(),
               'entry_id': entry.id,
@@ -516,9 +540,7 @@ class SupabaseEntryService {
             };
           }).toList();
 
-          await _supabase
-              .from(_workShiftsTable)
-              .insert(shiftsData);
+          await _supabase.from(_workShiftsTable).insert(shiftsData);
         }
       }
 
@@ -540,11 +562,8 @@ class SupabaseEntryService {
           .from(_travelSegmentsTable)
           .delete()
           .eq('entry_id', entryId);
-      
-      await _supabase
-          .from(_workShiftsTable)
-          .delete()
-          .eq('entry_id', entryId);
+
+      await _supabase.from(_workShiftsTable).delete().eq('entry_id', entryId);
 
       // Delete the entry
       await _supabase
@@ -552,10 +571,12 @@ class SupabaseEntryService {
           .delete()
           .eq('id', entryId)
           .eq('user_id', userId);
-      
-      debugPrint('SupabaseEntryService: ✅ Deleted entry $entryId and related data');
+
+      debugPrint(
+          'SupabaseEntryService: ✅ Deleted entry $entryId and related data');
     } catch (e) {
-      debugPrint('SupabaseEntryService: ❌ Error deleting entry from Supabase: $e');
+      debugPrint(
+          'SupabaseEntryService: ❌ Error deleting entry from Supabase: $e');
       rethrow;
     }
   }
@@ -601,7 +622,8 @@ class SupabaseEntryService {
             .order('start_time', ascending: true);
 
         if (shiftsResponse.isNotEmpty) {
-          entryResponse['shifts'] = shiftsResponse.map((shift) => _mapShiftFromDb(shift)).toList();
+          entryResponse['shifts'] =
+              shiftsResponse.map((shift) => _mapShiftFromDb(shift)).toList();
         }
       }
 
@@ -623,7 +645,7 @@ class SupabaseEntryService {
     if (entries.isEmpty) return [];
 
     final List<Entry> insertedEntries = [];
-    
+
     for (final entry in entries) {
       try {
         final inserted = await addEntry(entry);
@@ -637,4 +659,3 @@ class SupabaseEntryService {
     return insertedEntries;
   }
 }
-

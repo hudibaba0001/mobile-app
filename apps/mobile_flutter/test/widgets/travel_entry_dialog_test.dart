@@ -44,6 +44,7 @@ class StubSupabaseAuthService extends Mock
   @override
   bool get isInitialized => initialized;
 }
+
 void main() {
   setUpAll(() async {
     HttpOverrides.global = null;
@@ -65,7 +66,7 @@ void main() {
       mockEntryProvider = RecordingEntryProvider();
       mockAuthService = StubSupabaseAuthService();
       capturedEntries = null;
-      
+
       mockAuthService.user = User(
         id: 'test-user-id',
         email: 'test@example.com',
@@ -81,8 +82,7 @@ void main() {
     Widget createTestWidget({required Widget child}) {
       return MultiProvider(
         providers: [
-          ChangeNotifierProvider<EntryProvider>.value(
-              value: mockEntryProvider),
+          ChangeNotifierProvider<EntryProvider>.value(value: mockEntryProvider),
           ChangeNotifierProvider<SupabaseAuthService>.value(
               value: mockAuthService),
         ],
@@ -104,7 +104,9 @@ void main() {
       );
     }
 
-    testWidgets('TravelEntryDialog saves atomic travel entries via EntryProvider', (WidgetTester tester) async {
+    testWidgets(
+        'TravelEntryDialog saves atomic travel entries via EntryProvider',
+        (WidgetTester tester) async {
       final view = tester.view;
       view.physicalSize = const Size(2400, 2600);
       view.devicePixelRatio = 1.0;
@@ -120,7 +122,8 @@ void main() {
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (context) => const TravelEntryDialog(enableSuggestions: false),
+                  builder: (context) =>
+                      const TravelEntryDialog(enableSuggestions: false),
                 );
               },
               child: const Text('Open Dialog'),
@@ -149,8 +152,8 @@ void main() {
       await tester.enterText(find.byKey(const Key('travel_minutes_0')), '15');
       await tester.pumpAndSettle();
 
-      final saveButton =
-          tester.widget<ElevatedButton>(find.byKey(const Key('travel_save_button')));
+      final saveButton = tester
+          .widget<ElevatedButton>(find.byKey(const Key('travel_save_button')));
       expect(saveButton.onPressed, isNotNull);
       await tester.runAsync(() async {
         saveButton.onPressed!.call();
@@ -165,7 +168,8 @@ void main() {
       expect(capturedEntries!.first.travelMinutes, 75);
     });
 
-    testWidgets('WorkEntryDialog saves one Entry per shift via EntryProvider', (WidgetTester tester) async {
+    testWidgets('WorkEntryDialog saves one Entry per shift via EntryProvider',
+        (WidgetTester tester) async {
       final view = tester.view;
       view.physicalSize = const Size(2400, 2600);
       view.devicePixelRatio = 1.0;
@@ -181,7 +185,8 @@ void main() {
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (context) => const WorkEntryDialog(enableSuggestions: false),
+                  builder: (context) =>
+                      const WorkEntryDialog(enableSuggestions: false),
                 );
               },
               child: const Text('Open Work Dialog'),
@@ -212,8 +217,8 @@ void main() {
       await tester.enterText(find.byKey(const Key('work_end_1')), '12:00 PM');
       await tester.pumpAndSettle();
 
-      final saveButton =
-          tester.widget<ElevatedButton>(find.byKey(const Key('work_save_button')));
+      final saveButton = tester
+          .widget<ElevatedButton>(find.byKey(const Key('work_save_button')));
       expect(saveButton.onPressed, isNotNull);
       await tester.runAsync(() async {
         saveButton.onPressed!.call();

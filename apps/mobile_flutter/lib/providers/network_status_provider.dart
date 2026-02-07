@@ -40,7 +40,8 @@ class NetworkStatusProvider extends ChangeNotifier {
       final results = await _connectivity.checkConnectivity();
       _updateConnectivity(results);
     } catch (e) {
-      debugPrint('NetworkStatusProvider: Error checking initial connectivity: $e');
+      debugPrint(
+          'NetworkStatusProvider: Error checking initial connectivity: $e');
       // Assume online if we can't check
       _isOnline = true;
     }
@@ -58,24 +59,26 @@ class NetworkStatusProvider extends ChangeNotifier {
     final wasOnline = _isOnline;
 
     // Check if we have any valid connection
-    _isOnline = results.any((result) =>
-      result != ConnectivityResult.none
-    );
+    _isOnline = results.any((result) => result != ConnectivityResult.none);
 
-    debugPrint('NetworkStatusProvider: Connectivity changed - Online: $_isOnline (was: $wasOnline)');
+    debugPrint(
+        'NetworkStatusProvider: Connectivity changed - Online: $_isOnline (was: $wasOnline)');
 
     if (!_isOnline && wasOnline) {
       // Just went offline
       _wasOffline = true;
       _lastOfflineTime = DateTime.now();
-      debugPrint('NetworkStatusProvider: Device went OFFLINE at $_lastOfflineTime');
+      debugPrint(
+          'NetworkStatusProvider: Device went OFFLINE at $_lastOfflineTime');
     } else if (_isOnline && !wasOnline) {
       // Just came back online
       _lastOnlineTime = DateTime.now();
-      debugPrint('NetworkStatusProvider: Device came ONLINE at $_lastOnlineTime');
+      debugPrint(
+          'NetworkStatusProvider: Device came ONLINE at $_lastOnlineTime');
 
       if (_wasOffline) {
-        debugPrint('NetworkStatusProvider: Triggering connectivity restored callbacks...');
+        debugPrint(
+            'NetworkStatusProvider: Triggering connectivity restored callbacks...');
         _triggerConnectivityRestoredCallbacks();
       }
     }
@@ -98,7 +101,8 @@ class NetworkStatusProvider extends ChangeNotifier {
       try {
         await callback();
       } catch (e) {
-        debugPrint('NetworkStatusProvider: Error in connectivity restored callback: $e');
+        debugPrint(
+            'NetworkStatusProvider: Error in connectivity restored callback: $e');
       }
     }
   }

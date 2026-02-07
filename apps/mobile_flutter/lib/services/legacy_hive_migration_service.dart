@@ -1,9 +1,10 @@
-﻿// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/entry.dart';
+
 class _LegacyWorkRecord {
   final String id;
   final DateTime date;
@@ -289,7 +290,8 @@ class LegacyHiveMigrationService {
     );
   }
 
-  Entry _convertTravelRecord(_LegacyTravelRecord legacy, String sourceLegacyId) {
+  Entry _convertTravelRecord(
+      _LegacyTravelRecord legacy, String sourceLegacyId) {
     final normalizedDate = _dateOnlyUtc(legacy.date);
     final minutes = legacy.travelMinutes < 0 ? 0 : legacy.travelMinutes;
     final remarks = legacy.remarks.trim();

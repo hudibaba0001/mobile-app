@@ -190,7 +190,7 @@ class AdminApiService {
     try {
       final session = Supabase.instance.client.auth.currentSession;
       final token = session?.accessToken;
-      
+
       return {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

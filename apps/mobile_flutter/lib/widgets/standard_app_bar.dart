@@ -32,5 +32,3 @@ class StandardAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
-
-

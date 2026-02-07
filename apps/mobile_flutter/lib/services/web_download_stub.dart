@@ -6,4 +6,3 @@ void downloadFileWeb(Uint8List bytes, String fileName, String mimeType) {
   // This method should never be called on non-web platforms
   // due to kIsWeb check in ExportService
 }
-

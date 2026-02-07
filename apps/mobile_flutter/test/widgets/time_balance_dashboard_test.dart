@@ -23,8 +23,8 @@ void main() {
     );
   }
 
-  testWidgets(
-      'Yearly status uses adjustments so it matches year balance', (tester) async {
+  testWidgets('Yearly status uses adjustments so it matches year balance',
+      (tester) async {
     // Scenario: worked 26.6h, target 152h, adjustments +126h => net +0.6h
     // yearNetBalance = worked + adjustments - target = 26.6 + 126 - 152 = 0.6h
     // balanceToday = yearNetBalance + openingBalanceHours = 0.6 + 0 = 0.6h

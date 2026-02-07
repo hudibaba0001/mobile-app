@@ -32,30 +32,34 @@ class BackupService {
     final backupData = {
       'version': backupVersion,
       'timestamp': DateTime.now().toIso8601String(),
-      'travelEntries': travelBox.values.map((entry) => {
-        'id': entry.id,
-        'date': entry.date.toIso8601String(),
-        'departure': entry.departure,
-        'arrival': entry.arrival,
-        'info': entry.info,
-        'minutes': entry.minutes,
-        'createdAt': entry.createdAt.toIso8601String(),
-        'updatedAt': entry.updatedAt?.toIso8601String(),
-        'departureLocationId': entry.departureLocationId,
-        'arrivalLocationId': entry.arrivalLocationId,
-      }).toList(),
-      'locations': locationBox.values.map((location) => {
-        'id': location.id,
-        'name': location.name,
-        'address': location.address,
-        'createdAt': location.createdAt.toIso8601String(),
-        'usageCount': location.usageCount,
-        'isFavorite': location.isFavorite,
-      }).toList(),
+      'travelEntries': travelBox.values
+          .map((entry) => {
+                'id': entry.id,
+                'date': entry.date.toIso8601String(),
+                'departure': entry.departure,
+                'arrival': entry.arrival,
+                'info': entry.info,
+                'minutes': entry.minutes,
+                'createdAt': entry.createdAt.toIso8601String(),
+                'updatedAt': entry.updatedAt?.toIso8601String(),
+                'departureLocationId': entry.departureLocationId,
+                'arrivalLocationId': entry.arrivalLocationId,
+              })
+          .toList(),
+      'locations': locationBox.values
+          .map((location) => {
+                'id': location.id,
+                'name': location.name,
+                'address': location.address,
+                'createdAt': location.createdAt.toIso8601String(),
+                'usageCount': location.usageCount,
+                'isFavorite': location.isFavorite,
+              })
+          .toList(),
     };
 
     final jsonString = jsonEncode(backupData);
-    
+
     // Save to documents directory
     final directory = await getApplicationDocumentsDirectory();
     final file = File('${directory.path}/$backupFileName');
@@ -95,7 +99,7 @@ class BackupService {
     // Clear existing data
     final travelBox = Hive.box<TravelTimeEntry>(AppConstants.travelEntriesBox);
     final locationBox = Hive.box<Location>(AppConstants.locationsBox);
-    
+
     await travelBox.clear();
     await locationBox.clear();
 
@@ -124,7 +128,7 @@ class BackupService {
         info: entryData['info'] as String?,
         minutes: entryData['minutes'] as int,
         createdAt: DateTime.parse(entryData['createdAt'] as String),
-        updatedAt: entryData['updatedAt'] != null 
+        updatedAt: entryData['updatedAt'] != null
             ? DateTime.parse(entryData['updatedAt'] as String)
             : null,
         departureLocationId: entryData['departureLocationId'] as String?,
@@ -197,8 +201,9 @@ class BackupService {
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final autoBackupFileName = 'auto_backup_$timestamp.json';
-      
-      final travelBox = Hive.box<TravelTimeEntry>(AppConstants.travelEntriesBox);
+
+      final travelBox =
+          Hive.box<TravelTimeEntry>(AppConstants.travelEntriesBox);
       final locationBox = Hive.box<Location>(AppConstants.locationsBox);
 
       // Only create backup if there's data
@@ -209,26 +214,30 @@ class BackupService {
       final backupData = {
         'version': backupVersion,
         'timestamp': DateTime.now().toIso8601String(),
-        'travelEntries': travelBox.values.map((entry) => {
-          'id': entry.id,
-          'date': entry.date.toIso8601String(),
-          'departure': entry.departure,
-          'arrival': entry.arrival,
-          'info': entry.info,
-          'minutes': entry.minutes,
-          'createdAt': entry.createdAt.toIso8601String(),
-          'updatedAt': entry.updatedAt?.toIso8601String(),
-          'departureLocationId': entry.departureLocationId,
-          'arrivalLocationId': entry.arrivalLocationId,
-        }).toList(),
-        'locations': locationBox.values.map((location) => {
-          'id': location.id,
-          'name': location.name,
-          'address': location.address,
-          'createdAt': location.createdAt.toIso8601String(),
-          'usageCount': location.usageCount,
-          'isFavorite': location.isFavorite,
-        }).toList(),
+        'travelEntries': travelBox.values
+            .map((entry) => {
+                  'id': entry.id,
+                  'date': entry.date.toIso8601String(),
+                  'departure': entry.departure,
+                  'arrival': entry.arrival,
+                  'info': entry.info,
+                  'minutes': entry.minutes,
+                  'createdAt': entry.createdAt.toIso8601String(),
+                  'updatedAt': entry.updatedAt?.toIso8601String(),
+                  'departureLocationId': entry.departureLocationId,
+                  'arrivalLocationId': entry.arrivalLocationId,
+                })
+            .toList(),
+        'locations': locationBox.values
+            .map((location) => {
+                  'id': location.id,
+                  'name': location.name,
+                  'address': location.address,
+                  'createdAt': location.createdAt.toIso8601String(),
+                  'usageCount': location.usageCount,
+                  'isFavorite': location.isFavorite,
+                })
+            .toList(),
       };
 
       final jsonString = jsonEncode(backupData);
@@ -246,15 +255,18 @@ class BackupService {
 
   static Future<void> _cleanupOldBackups(Directory directory) async {
     try {
-      final files = directory.listSync()
-          .where((entity) => entity is File && entity.path.contains('auto_backup_'))
+      final files = directory
+          .listSync()
+          .where((entity) =>
+              entity is File && entity.path.contains('auto_backup_'))
           .cast<File>()
           .toList();
 
       if (files.length <= 5) return;
 
       // Sort by modification time (newest first)
-      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+      files
+          .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
 
       // Delete old backups (keep only the 5 most recent)
       for (int i = 5; i < files.length; i++) {

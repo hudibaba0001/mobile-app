@@ -6,7 +6,8 @@ class XlsxExporter {
     final excel = Excel.createExcel();
     final sheet = excel[excel.getDefaultSheet()!];
 
-    sheet.appendRow(data.headers.map((header) => TextCellValue(header)).toList());
+    sheet.appendRow(
+        data.headers.map((header) => TextCellValue(header)).toList());
 
     for (final row in data.rows) {
       sheet.appendRow(row.map((cell) {

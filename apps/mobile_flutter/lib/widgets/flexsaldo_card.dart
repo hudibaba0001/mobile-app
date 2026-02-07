@@ -31,27 +31,38 @@ class FlexsaldoCard extends StatelessWidget {
         final now = DateTime.now();
         final year = now.year;
         final month = now.month;
-        final monthName = DateFormat.MMMM(Localizations.localeOf(context).toString()).format(now);
+        final monthName =
+            DateFormat.MMMM(Localizations.localeOf(context).toString())
+                .format(now);
 
         // === MONTHLY VALUES (for secondary display) ===
-        final monthActualMinutes = timeProvider.monthActualMinutesToDate(year, month);
-        final monthCreditMinutes = timeProvider.monthCreditMinutesToDate(year, month);
-        final monthTargetMinutesToDate = timeProvider.monthTargetMinutesToDate(year, month);
+        final monthActualMinutes =
+            timeProvider.monthActualMinutesToDate(year, month);
+        final monthCreditMinutes =
+            timeProvider.monthCreditMinutesToDate(year, month);
+        final monthTargetMinutesToDate =
+            timeProvider.monthTargetMinutesToDate(year, month);
         final monthWorkedPlusCredited = monthActualMinutes + monthCreditMinutes;
-        final monthBalanceMinutes = monthWorkedPlusCredited - monthTargetMinutesToDate;
+        final monthBalanceMinutes =
+            monthWorkedPlusCredited - monthTargetMinutesToDate;
         final monthBalanceHours = monthBalanceMinutes / 60.0;
 
         // Full month target for display (not just to-date)
-        final fullMonthTargetHours = timeProvider.monthlyTargetHours(year: year, month: month);
+        final fullMonthTargetHours =
+            timeProvider.monthlyTargetHours(year: year, month: month);
 
         // === YEAR-TO-DATE VALUES ===
         final yearActualMinutes = timeProvider.yearActualMinutesToDate(year);
         final yearCreditMinutes = timeProvider.yearCreditMinutesToDate(year);
         final yearTargetMinutes = timeProvider.yearTargetMinutesToDate(year);
-        final yearAdjustmentMinutes = timeProvider.yearAdjustmentMinutesToDate(year);
+        final yearAdjustmentMinutes =
+            timeProvider.yearAdjustmentMinutesToDate(year);
 
         // Year net balance (without opening balance)
-        final yearNetMinutes = yearActualMinutes + yearCreditMinutes + yearAdjustmentMinutes - yearTargetMinutes;
+        final yearNetMinutes = yearActualMinutes +
+            yearCreditMinutes +
+            yearAdjustmentMinutes -
+            yearTargetMinutes;
 
         // === BALANCE TODAY (year-to-date + opening balance) ===
         final openingMinutes = contractProvider.openingFlexMinutes;
@@ -66,9 +77,8 @@ class FlexsaldoCard extends StatelessWidget {
 
         // Colors based on balance today (headline)
         final isPositive = balanceTodayMinutes >= 0;
-        final balanceColor = isPositive
-            ? FlexsaldoColors.positive
-            : FlexsaldoColors.negative;
+        final balanceColor =
+            isPositive ? FlexsaldoColors.positive : FlexsaldoColors.negative;
 
         // Format headline: Balance Today
         final balanceTodayText = isPositive
@@ -96,7 +106,8 @@ class FlexsaldoCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.3 : 0.08),
+                color: Colors.black.withValues(
+                    alpha: theme.brightness == Brightness.dark ? 0.3 : 0.08),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -182,7 +193,8 @@ class FlexsaldoCard extends StatelessWidget {
               Text(
                 'Full month target: ${fullMonthTargetHours.toStringAsFixed(0)}h',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  color:
+                      theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -220,7 +232,8 @@ class FlexsaldoCard extends StatelessWidget {
                   children: [
                     const TextSpan(text: 'Worked (to date): '),
                     TextSpan(
-                      text: '${((yearActualMinutes + yearCreditMinutes) / 60.0).toStringAsFixed(1)}h',
+                      text:
+                          '${((yearActualMinutes + yearCreditMinutes) / 60.0).toStringAsFixed(1)}h',
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         color: theme.colorScheme.primary,
@@ -238,7 +251,8 @@ class FlexsaldoCard extends StatelessWidget {
               if (contractProvider.hasOpeningBalance) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  t.balance_startingBalanceValue(contractProvider.openingFlexFormatted),
+                  t.balance_startingBalanceValue(
+                      contractProvider.openingFlexFormatted),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -254,7 +268,9 @@ class FlexsaldoCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     boxShadow: [
                       BoxShadow(
-                        color: (isMonthPositive ? FlexsaldoColors.positive : FlexsaldoColors.negative)
+                        color: (isMonthPositive
+                                ? FlexsaldoColors.positive
+                                : FlexsaldoColors.negative)
                             .withValues(alpha: 0.2),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
@@ -266,7 +282,9 @@ class FlexsaldoCard extends StatelessWidget {
                     minHeight: 10,
                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isMonthPositive ? FlexsaldoColors.positive : FlexsaldoColors.negative,
+                      isMonthPositive
+                          ? FlexsaldoColors.positive
+                          : FlexsaldoColors.negative,
                     ),
                   ),
                 ),

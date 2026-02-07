@@ -51,10 +51,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final entryProvider = context.read<EntryProvider>();
       final absenceProvider = context.read<AbsenceProvider>();
-      
+
       // Load absences for current year
       absenceProvider.loadAbsences(year: DateTime.now().year);
-      
+
       if (!entryProvider.isLoading) {
         // Always load/sync with Supabase on login
         entryProvider.loadEntries().then((_) {
@@ -98,7 +98,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
       // Get recent entries from EntryProvider (already loaded on startup)
       final allEntryProviderEntries = entryProvider.entries;
-      
+
       // Sort by date desc then updatedAt/createdAt desc
       final sortedEntries = List<Entry>.from(allEntryProviderEntries)
         ..sort((a, b) {
@@ -116,49 +116,52 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       final allEntries = <_EntryData>[];
 
       if (travelEnabled) {
-      // Convert travel entries
-      final travelEntries = sortedEntries.where((e) => e.type == EntryType.travel).take(5);
-      for (final entry in travelEntries) {
-        final fromText = entry.from ?? '';
-        final toText = entry.to ?? '';
-        final minutes = entry.travelMinutes ?? 0;
-        allEntries.add(_EntryData(
-          id: entry.id,
-          type: 'travel',
-          title: 'Travel: $fromText → $toText',
-          subtitle:
-              '${entry.date.toString().split(' ')[0]} • ${entry.notes?.isNotEmpty == true ? entry.notes : AppLocalizations.of(context).home_noRemarks}',
-          duration: '${minutes ~/ 60}h ${minutes % 60}m',
-          icon: Icons.directions_car,
-          date: entry.date,
-        ));
-      }
+        // Convert travel entries
+        final travelEntries =
+            sortedEntries.where((e) => e.type == EntryType.travel).take(5);
+        for (final entry in travelEntries) {
+          final fromText = entry.from ?? '';
+          final toText = entry.to ?? '';
+          final minutes = entry.travelMinutes ?? 0;
+          allEntries.add(_EntryData(
+            id: entry.id,
+            type: 'travel',
+            title: 'Travel: $fromText → $toText',
+            subtitle:
+                '${entry.date.toString().split(' ')[0]} • ${entry.notes?.isNotEmpty == true ? entry.notes : AppLocalizations.of(context).home_noRemarks}',
+            duration: '${minutes ~/ 60}h ${minutes % 60}m',
+            icon: Icons.directions_car,
+            date: entry.date,
+          ));
+        }
       }
 
       // Convert work entries
-      final workEntries = sortedEntries.where((e) => e.type == EntryType.work).take(5);
+      final workEntries =
+          sortedEntries.where((e) => e.type == EntryType.work).take(5);
       for (final entry in workEntries) {
         // Show shift time range + location (and worked minutes)
         final shift = entry.atomicShift ?? entry.shifts?.first;
         final workedMinutes = entry.totalWorkDuration?.inMinutes ?? 0;
         String title = AppLocalizations.of(context).home_workSession;
         String subtitle = entry.date.toString().split(' ')[0];
-        
+
         if (shift != null) {
           final startTime = TimeOfDay.fromDateTime(shift.start);
           final endTime = TimeOfDay.fromDateTime(shift.end);
-          title = '${_formatTimeOfDay(startTime)} - ${_formatTimeOfDay(endTime)}';
+          title =
+              '${_formatTimeOfDay(startTime)} - ${_formatTimeOfDay(endTime)}';
           if (shift.location != null && shift.location!.isNotEmpty) {
             subtitle += ' • ${shift.location}';
           }
         }
-        
+
         if (entry.notes?.isNotEmpty == true) {
           subtitle += ' • ${entry.notes}';
         } else {
           subtitle += ' • ${AppLocalizations.of(context).home_noRemarks}';
         }
-        
+
         allEntries.add(_EntryData(
           id: entry.id,
           type: 'work',
@@ -173,14 +176,15 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       // Convert absence entries (load current year)
       final currentYear = DateTime.now().year;
       final absences = absenceProvider.absencesForYear(currentYear);
-      debugPrint('Found ${absences.length} absence entries for year $currentYear');
-      
+      debugPrint(
+          'Found ${absences.length} absence entries for year $currentYear');
+
       for (final absence in absences.take(5)) {
         final typeLabel = _getAbsenceTypeLabel(absence.type);
         final durationText = absence.minutes == 0
             ? 'Full day'
             : '${absence.minutes ~/ 60}h ${absence.minutes % 60}m';
-        
+
         allEntries.add(_EntryData(
           id: absence.id ?? 'absence_${absence.date.millisecondsSinceEpoch}',
           type: 'absence',
@@ -254,9 +258,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         title: Builder(
           builder: (context) {
             final user = context.read<SupabaseAuthService>().currentUser;
-            final userName = user?.userMetadata?['full_name']
-                ?? user?.email?.split('@').first
-                ?? 'User';
+            final userName = user?.userMetadata?['full_name'] ??
+                user?.email?.split('@').first ??
+                'User';
             return Row(
               children: [
                 Container(
@@ -352,7 +356,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               const FlexsaldoCard(),
               const SizedBox(height: 16),
             ],
-            
+
             // Today's Total Card
             Consumer<EntryProvider>(
               builder: (context, entryProvider, _) =>
@@ -410,7 +414,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     final todayEnd = todayStart.add(const Duration(days: 1));
 
     final todayEntries = entryProvider.entries.where((entry) {
-      return entry.date.isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
+      return entry.date
+              .isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
           entry.date.isBefore(todayEnd);
     }).toList();
 
@@ -550,11 +555,13 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     // Calculate this week's totals
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
+    final weekStartDate =
+        DateTime(weekStart.year, weekStart.month, weekStart.day);
     final weekEndDate = weekStartDate.add(const Duration(days: 7));
 
     final weekEntries = entryProvider.entries.where((entry) {
-      return entry.date.isAfter(weekStartDate.subtract(const Duration(seconds: 1))) &&
+      return entry.date
+              .isAfter(weekStartDate.subtract(const Duration(seconds: 1))) &&
           entry.date.isBefore(weekEndDate);
     }).toList();
 
@@ -719,7 +726,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               GestureDetector(
                 onTap: () => AppRouter.goToHistory(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -767,7 +775,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      color: theme.colorScheme.primaryContainer
+                          .withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -849,7 +858,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           onTap: () => _openQuickView(entry),
           borderRadius: AppRadius.buttonRadius,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md, vertical: 14),
             child: Row(
               children: [
                 Container(
@@ -878,7 +888,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _entryTypeLabel(entry.type, AppLocalizations.of(context)),
+                        _entryTypeLabel(
+                            entry.type, AppLocalizations.of(context)),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: theme.colorScheme.onSurface,
@@ -907,7 +918,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -1479,8 +1491,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
         },
         onTap: () {
           final locationProvider = context.read<LocationProvider>();
-          final suggestions =
-              locationProvider.getAutocompleteSuggestions('');
+          final suggestions = locationProvider.getAutocompleteSuggestions('');
 
           if (suggestions.isNotEmpty) {
             _showSuggestions(theme, controller, suggestions);
@@ -1705,7 +1716,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           side: BorderSide(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.3),
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -1915,19 +1927,21 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           ? () async {
                               if (!mounted) return;
                               try {
-
                                 // Use EntryProvider instead of legacy repository
-                                final entryProvider = context.read<EntryProvider>();
-                                final authService = context.read<SupabaseAuthService>();
+                                final entryProvider =
+                                    context.read<EntryProvider>();
+                                final authService =
+                                    context.read<SupabaseAuthService>();
                                 final userId = authService.currentUser?.id;
                                 if (userId == null) return;
 
                                 // Create atomic entries for all trips (one Entry per trip)
                                 final entryDate = DateTime.now();
-                                final dayNotes = _notesController.text.trim().isEmpty 
-                                    ? null 
-                                    : _notesController.text.trim();
-                                
+                                final dayNotes =
+                                    _notesController.text.trim().isEmpty
+                                        ? null
+                                        : _notesController.text.trim();
+
                                 final travelEntries = _trips.map((trip) {
                                   return Entry.makeTravelAtomicFromLeg(
                                     userId: userId,
@@ -1935,18 +1949,20 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                     from: trip.fromController.text.trim(),
                                     to: trip.toController.text.trim(),
                                     minutes: trip.totalMinutes,
-                                    dayNotes: dayNotes, // Same notes for all trips on same day
+                                    dayNotes:
+                                        dayNotes, // Same notes for all trips on same day
                                   );
                                 }).toList();
 
                                 print(
                                     'Created ${travelEntries.length} travel entry/entries via EntryProvider');
-                                
+
                                 // Save all entries via EntryProvider (the ONLY write path)
                                 // Use batch save for efficiency
                                 print('Saving via EntryProvider (batch)...');
                                 await entryProvider.addEntries(travelEntries);
-                                print('Successfully saved ${travelEntries.length} entry/entries via EntryProvider!');
+                                print(
+                                    'Successfully saved ${travelEntries.length} entry/entries via EntryProvider!');
 
                                 Navigator.of(context).pop();
 
@@ -2713,7 +2729,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           side: BorderSide(
-                            color: theme.colorScheme.secondary.withValues(alpha: 0.3),
+                            color: theme.colorScheme.secondary
+                                .withValues(alpha: 0.3),
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -2926,22 +2943,25 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                 print('=== WORK ENTRY SAVE ATTEMPT ===');
 
                                 // Use EntryProvider instead of legacy repository
-                                final entryProvider = context.read<EntryProvider>();
-                                final authService = context.read<SupabaseAuthService>();
+                                final entryProvider =
+                                    context.read<EntryProvider>();
+                                final authService =
+                                    context.read<SupabaseAuthService>();
                                 final userId = authService.currentUser?.id;
                                 if (userId == null) return;
 
-                                final dayNotes = _notesController.text.trim().isEmpty
-                                    ? null
-                                    : _notesController.text.trim();
+                                final dayNotes =
+                                    _notesController.text.trim().isEmpty
+                                        ? null
+                                        : _notesController.text.trim();
                                 final now = DateTime.now();
                                 final entries = <Entry>[];
 
                                 for (final shift in _shifts) {
-                                  final startTod =
-                                      shift._parseTimeOfDay(shift.startTimeController.text);
-                                  final endTod =
-                                      shift._parseTimeOfDay(shift.endTimeController.text);
+                                  final startTod = shift._parseTimeOfDay(
+                                      shift.startTimeController.text);
+                                  final endTod = shift._parseTimeOfDay(
+                                      shift.endTimeController.text);
 
                                   if (startTod == null || endTod == null) {
                                     continue; // _isValid should prevent this
@@ -2964,7 +2984,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
 
                                   // Handle overnight shifts
                                   if (endDateTime.isBefore(startDateTime)) {
-                                    endDateTime = endDateTime.add(const Duration(days: 1));
+                                    endDateTime = endDateTime
+                                        .add(const Duration(days: 1));
                                   }
 
                                   final shiftModel = Shift(
@@ -2988,9 +3009,11 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   throw StateError('No valid shifts to save');
                                 }
 
-                                print('Saving ${entries.length} atomic work entries via EntryProvider...');
+                                print(
+                                    'Saving ${entries.length} atomic work entries via EntryProvider...');
                                 await entryProvider.addEntries(entries);
-                                print('Successfully saved ${entries.length} entry/entries via EntryProvider!');
+                                print(
+                                    'Successfully saved ${entries.length} entry/entries via EntryProvider!');
 
                                 Navigator.of(context).pop();
 
@@ -3167,7 +3190,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         key: Key('work_start_$index'),
                         controller: shift.startTimeController,
                         decoration: InputDecoration(
-                          hintText: AppLocalizations.of(context).home_timeExample,
+                          hintText:
+                              AppLocalizations.of(context).home_timeExample,
                           border: const OutlineInputBorder(),
                         ),
                         onChanged: (_) {
@@ -3197,7 +3221,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               Expanded(
                                 child: Text(
                                   shift.startTimeController.text.isEmpty
-                                      ? AppLocalizations.of(context).home_selectTime
+                                      ? AppLocalizations.of(context)
+                                          .home_selectTime
                                       : shift.startTimeController.text,
                                   style: TextStyle(
                                     color:
@@ -3263,7 +3288,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               Expanded(
                                 child: Text(
                                   shift.endTimeController.text.isEmpty
-                                      ? AppLocalizations.of(context).home_selectTime
+                                      ? AppLocalizations.of(context)
+                                          .home_selectTime
                                       : shift.endTimeController.text,
                                   style: TextStyle(
                                     color: shift.endTimeController.text.isEmpty

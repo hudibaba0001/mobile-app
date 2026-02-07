@@ -11,7 +11,7 @@ class AbsenceProvider extends ChangeNotifier {
 
   // In-memory storage: year -> list of absences
   final Map<int, List<AbsenceEntry>> _absencesByYear = {};
-  
+
   bool _isLoading = false;
   String? _error;
 
@@ -22,7 +22,8 @@ class AbsenceProvider extends ChangeNotifier {
 
   /// Load absences for a specific year
   /// Set [forceRefresh] to true to reload even if already cached
-  Future<void> loadAbsences({required int year, bool forceRefresh = false}) async {
+  Future<void> loadAbsences(
+      {required int year, bool forceRefresh = false}) async {
     // Skip if already loaded for this year (unless force refresh)
     if (!forceRefresh && _absencesByYear.containsKey(year)) {
       return;
@@ -42,7 +43,8 @@ class AbsenceProvider extends ChangeNotifier {
       final absences = await _absenceService.fetchAbsencesForYear(userId, year);
       _absencesByYear[year] = absences;
 
-      debugPrint('AbsenceProvider: Loaded ${absences.length} absences for year $year');
+      debugPrint(
+          'AbsenceProvider: Loaded ${absences.length} absences for year $year');
       notifyListeners();
     } catch (e) {
       _error = 'Failed to load absences: $e';
@@ -54,13 +56,13 @@ class AbsenceProvider extends ChangeNotifier {
   }
 
   /// Get all absences for a specific date
-  /// 
+  ///
   /// Returns empty list if no absences exist for that date
   List<AbsenceEntry> absencesForDate(DateTime date) {
     final normalized = DateTime(date.year, date.month, date.day);
     final year = normalized.year;
     final absences = _absencesByYear[year] ?? [];
-    
+
     return absences.where((absence) {
       return absence.date.year == normalized.year &&
           absence.date.month == normalized.month &&
@@ -69,27 +71,27 @@ class AbsenceProvider extends ChangeNotifier {
   }
 
   /// Calculate paid absence credit minutes for a specific date
-  /// 
+  ///
   /// Option A policy:
   /// - If any paid absence exists on that day:
   ///   - If any entry has minutes == 0, treat as full-day → return scheduledMinutes
   ///   - Else return min(scheduledMinutes, sum(paidAbsence.minutes))
   /// - Unpaid absences return 0 credit
-  /// 
+  ///
   /// [date] The date to check
   /// [scheduledMinutes] The scheduled minutes for that day
-  /// 
+  ///
   /// Returns the credit minutes (0 for unpaid or no absence)
   int paidAbsenceMinutesForDate(DateTime date, int scheduledMinutes) {
     final absences = absencesForDate(date);
-    
+
     if (absences.isEmpty) {
       return 0;
     }
 
     // Filter to paid absences only
     final paidAbsences = absences.where((a) => a.isPaid).toList();
-    
+
     if (paidAbsences.isEmpty) {
       return 0; // Only unpaid absences
     }
@@ -107,8 +109,8 @@ class AbsenceProvider extends ChangeNotifier {
     );
 
     // Return min(scheduledMinutes, totalPaidMinutes)
-    return totalPaidMinutes < scheduledMinutes 
-        ? totalPaidMinutes 
+    return totalPaidMinutes < scheduledMinutes
+        ? totalPaidMinutes
         : scheduledMinutes;
   }
 
@@ -202,4 +204,3 @@ class AbsenceProvider extends ChangeNotifier {
     }
   }
 }
-

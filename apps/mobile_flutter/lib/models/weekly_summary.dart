@@ -17,7 +17,7 @@ class WeeklySummary {
     final weekEnd = weekStart.add(const Duration(days: 6));
     final startMonth = _getMonthName(weekStart.month);
     final endMonth = _getMonthName(weekEnd.month);
-    
+
     if (weekStart.month == weekEnd.month) {
       return '$startMonth ${weekStart.day} - ${weekEnd.day}';
     } else {
@@ -30,7 +30,7 @@ class WeeklySummary {
     final weekEnd = weekStart.add(const Duration(days: 6));
     final startMonth = _getMonthNameShort(weekStart.month);
     final endMonth = _getMonthNameShort(weekEnd.month);
-    
+
     if (weekStart.month == weekEnd.month) {
       return '$startMonth ${weekStart.day}-${weekEnd.day}';
     } else {
@@ -79,4 +79,3 @@ class WeeklySummary {
     return 'WeeklySummary(Week $weekNumber, $year: ${actualWorkedHours}h)';
   }
 }
-

@@ -20,10 +20,10 @@ import '../screens/absence_management_screen.dart';
 import '../screens/account_status_gate.dart';
 
 class AppRouter {
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
   static const String loginPath = '/login';
   static const String forgotPasswordPath = '/forgot-password';
-
 
   static const String homePath = '/';
   static const String settingsPath = '/settings';
@@ -40,7 +40,6 @@ class AppRouter {
 
   static const String loginName = 'login';
   static const String forgotPasswordName = 'forgot-password';
-
 
   static const String homeName = 'home';
   static const String settingsName = 'settings';
@@ -114,7 +113,7 @@ class AppRouter {
         name: forgotPasswordName,
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
-      
+
       // Admin analytics (outside shell)
       GoRoute(
         path: analyticsPath,

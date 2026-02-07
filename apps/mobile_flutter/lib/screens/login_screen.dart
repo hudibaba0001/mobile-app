@@ -17,14 +17,15 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   String _errorMessage = '';
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -39,20 +40,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     if (widget.initialEmail != null && widget.initialEmail!.isNotEmpty) {
       _emailController.text = widget.initialEmail!;
     }
-    
+
     // Setup animations
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -62,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
       ),
     );
-    
+
     _animationController.forward();
   }
 
@@ -102,8 +103,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         String errorMessage = 'An error occurred during sign in.';
         final errStr = e.toString();
 
-        if (errStr.contains('invalid-credential') || errStr.contains('Invalid login credentials')) {
-          errorMessage = 'Invalid email or password. Please check your credentials.';
+        if (errStr.contains('invalid-credential') ||
+            errStr.contains('Invalid login credentials')) {
+          errorMessage =
+              'Invalid email or password. Please check your credentials.';
         }
 
         if (mounted) {
@@ -135,7 +138,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xxxl),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xl, vertical: AppSpacing.xxxl),
               child: FadeTransition(
                 opacity: _fadeAnimation,
                 child: SlideTransition(
@@ -158,13 +162,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       // Create Account Button
                       _buildCreateAccountButton(),
                       const SizedBox(height: AppSpacing.lg),
-                      
+
                       // Disclaimer text
                       Text(
                         'New users will be redirected to our account creation page',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.7),
-                        ),
+                              color: Colors.white.withValues(alpha: 0.7),
+                            ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -181,7 +185,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Widget _buildLogoCard() {
     final theme = Theme.of(context);
     return _GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl, vertical: AppSpacing.xxl),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xxxl, vertical: AppSpacing.xxl),
       child: Column(
         children: [
           // Clock icon with glow effect
@@ -240,7 +245,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               hintText: 'Email',
               prefixIcon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
-              validator: (v) => v == null || !v.contains('@') ? 'Invalid email' : null,
+              validator: (v) =>
+                  v == null || !v.contains('@') ? 'Invalid email' : null,
             ),
             const SizedBox(height: AppSpacing.lg),
 
@@ -255,7 +261,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
                   color: Colors.white.withValues(alpha: 0.6),
                 ),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
               validator: (v) => (v?.length ?? 0) < 6 ? 'Required' : null,
             ),
@@ -264,15 +271,18 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             // Error Message
             if (_errorMessage.isNotEmpty) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: AppColors.error.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+                  border:
+                      Border.all(color: AppColors.error.withValues(alpha: 0.4)),
                 ),
                 child: Text(
                   _errorMessage,
-                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
+                  style:
+                      theme.textTheme.bodySmall?.copyWith(color: Colors.white),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -344,7 +354,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 size: AppIconSize.sm,
               ),
               suffixIcon: suffixIcon,
-              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
@@ -444,7 +455,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       style: OutlinedButton.styleFrom(
         foregroundColor: Colors.white,
         side: const BorderSide(color: Colors.white, width: 2),
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.xxxl),
+        padding: const EdgeInsets.symmetric(
+            vertical: AppSpacing.lg, horizontal: AppSpacing.xxxl),
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.pillRadius,
         ),

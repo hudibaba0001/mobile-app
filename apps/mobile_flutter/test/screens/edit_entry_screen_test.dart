@@ -35,7 +35,7 @@ void main() {
     setUp(() {
       mockEntryProvider = MockEntryProvider();
       mockCacheService = MockTravelCacheService();
-      
+
       // Setup default mocks
       when(mockEntryProvider.entries).thenReturn([]);
       when(mockEntryProvider.updateEntry(any)).thenAnswer((_) async => {});
@@ -67,7 +67,8 @@ void main() {
       );
     }
 
-    testWidgets('save updates only one entry (work entry)', (WidgetTester tester) async {
+    testWidgets('save updates only one entry (work entry)',
+        (WidgetTester tester) async {
       final existingEntry = Entry.makeWorkAtomicFromShift(
         id: 'entry-123',
         userId: 'user1',
@@ -87,17 +88,18 @@ void main() {
       // Find and tap save button
       final saveButton = find.text('Save');
       expect(saveButton, findsOneWidget);
-      
+
       // Note: Actually tapping save would require filling in form fields,
       // which is complex. Instead, we verify the save logic by checking
       // that updateEntry is called exactly once and addEntry is never called.
-      
+
       // This test verifies the structure; actual save behavior is tested
       // through integration tests or by verifying the code logic.
       expect(find.byType(EditEntryScreen), findsOneWidget);
     });
 
-    testWidgets('save updates only one entry (travel entry)', (WidgetTester tester) async {
+    testWidgets('save updates only one entry (travel entry)',
+        (WidgetTester tester) async {
       final existingEntry = Entry.makeTravelAtomicFromLeg(
         id: 'entry-456',
         userId: 'user1',
@@ -114,12 +116,13 @@ void main() {
 
       // Verify screen loads
       expect(find.byType(EditEntryScreen), findsOneWidget);
-      
+
       // The save logic should only call updateEntry once, not addEntry
       // This is verified by the code structure (no loops creating new entries)
     });
 
-    testWidgets('edit mode does not show "Add another" buttons', (WidgetTester tester) async {
+    testWidgets('edit mode does not show "Add another" buttons',
+        (WidgetTester tester) async {
       final existingEntry = Entry.makeWorkAtomicFromShift(
         id: 'entry-789',
         userId: 'user1',

@@ -39,7 +39,7 @@ class CachedRoute {
 
 class TravelCacheService {
   static const String _storageKey = 'travel_route_cache';
-  
+
   // Cache structure: "fromPlaceId|toPlaceId|mode" or "fromText|toText|mode" -> CachedRoute
   Map<String, CachedRoute> _cache = {};
   bool _initialized = false;
@@ -47,10 +47,10 @@ class TravelCacheService {
   /// Initialize the cache from SharedPreferences
   Future<void> init() async {
     if (_initialized) return;
-    
+
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(_storageKey);
-    
+
     if (jsonString != null) {
       try {
         final Map<String, dynamic> decoded = jsonDecode(jsonString);
@@ -69,7 +69,7 @@ class TravelCacheService {
         print('Error parsing travel cache: $e');
       }
     }
-    
+
     _initialized = true;
   }
 
@@ -84,18 +84,18 @@ class TravelCacheService {
     String mode = 'driving',
   }) {
     if (!_initialized) return null;
-    
+
     String? key;
-    
+
     // Prefer placeId-based key if available
     if (fromPlaceId != null && toPlaceId != null) {
       key = _generatePlaceIdKey(fromPlaceId, toPlaceId, mode);
     } else if (fromText != null && toText != null) {
       key = _generateTextKey(fromText, toText, mode);
     }
-    
+
     if (key == null) return null;
-    
+
     final cached = _cache[key];
     if (cached == null || cached.isStale) {
       if (cached != null) {
@@ -104,12 +104,13 @@ class TravelCacheService {
       }
       return null;
     }
-    
+
     return cached;
   }
 
   /// Save a route to cache (positional args for backward compatibility with tests)
-  Future<void> saveRoute({required String from, required String to, required int minutes}) async {
+  Future<void> saveRoute(
+      {required String from, required String to, required int minutes}) async {
     await _saveRouteInternal(
       fromText: from,
       toText: to,
@@ -150,13 +151,13 @@ class TravelCacheService {
     String mode = 'driving',
   }) async {
     if (!_initialized) await init();
-    
+
     final route = CachedRoute(
       minutes: minutes,
       distanceKm: distanceKm,
       cachedAt: DateTime.now(),
     );
-    
+
     // Save with placeId key if available (both directions)
     if (fromPlaceId != null && toPlaceId != null) {
       final keyForward = _generatePlaceIdKey(fromPlaceId, toPlaceId, mode);
@@ -165,20 +166,20 @@ class TravelCacheService {
       final keyReverse = _generatePlaceIdKey(toPlaceId, fromPlaceId, mode);
       _cache[keyReverse] = route;
     }
-    
+
     // Also save with text key for fallback (both directions)
     if (fromText != null && toText != null) {
       // Normalize keys (trim + lowercase) for stable lookups
       final normalizedFrom = fromText.trim().toLowerCase();
       final normalizedTo = toText.trim().toLowerCase();
-      
+
       final keyForward = _generateTextKey(normalizedFrom, normalizedTo, mode);
       _cache[keyForward] = route;
       // Save reverse route
       final keyReverse = _generateTextKey(normalizedTo, normalizedFrom, mode);
       _cache[keyReverse] = route;
     }
-    
+
     await _persistCache();
   }
 
@@ -188,7 +189,8 @@ class TravelCacheService {
     await prefs.setString(_storageKey, jsonEncode(jsonMap));
   }
 
-  String _generatePlaceIdKey(String fromPlaceId, String toPlaceId, String mode) {
+  String _generatePlaceIdKey(
+      String fromPlaceId, String toPlaceId, String mode) {
     return '$fromPlaceId|$toPlaceId|$mode';
   }
 
@@ -201,7 +203,7 @@ class TravelCacheService {
   int? getMinutes(String from, String to) {
     final normalizedFrom = from.trim().toLowerCase();
     final normalizedTo = to.trim().toLowerCase();
-    
+
     var cached = getCachedRoute(fromText: normalizedFrom, toText: normalizedTo);
     // Try reverse direction (should be cached if reverse caching is working)
     cached ??= getCachedRoute(fromText: normalizedTo, toText: normalizedFrom);

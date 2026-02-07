@@ -45,7 +45,8 @@ class ContractProvider extends ChangeNotifier {
 
   /// Date from which to start tracking balances
   /// Defaults to Jan 1 of current year if not set.
-  DateTime get trackingStartDate => _trackingStartDate ?? DateTime(DateTime.now().year, 1, 1);
+  DateTime get trackingStartDate =>
+      _trackingStartDate ?? DateTime(DateTime.now().year, 1, 1);
 
   /// Whether a custom tracking start date has been set
   bool get hasCustomTrackingStartDate => _trackingStartDate != null;
@@ -101,7 +102,8 @@ class ContractProvider extends ChangeNotifier {
     try {
       final profile = await _profileService.fetchProfile();
       if (profile == null) {
-        debugPrint('ContractProvider: No profile found in Supabase, using local/default settings');
+        debugPrint(
+            'ContractProvider: No profile found in Supabase, using local/default settings');
         return;
       }
 
@@ -118,7 +120,8 @@ class ContractProvider extends ChangeNotifier {
       debugPrint('  contractPercent: $_contractPercent%');
       debugPrint('  fullTimeHours: $_fullTimeHours');
       debugPrint('  trackingStartDate: $_trackingStartDate');
-      debugPrint('  openingFlexMinutes: $_openingFlexMinutes ($openingFlexFormatted)');
+      debugPrint(
+          '  openingFlexMinutes: $_openingFlexMinutes ($openingFlexFormatted)');
       debugPrint('  employerMode: $_employerMode');
 
       // Update local cache to match
@@ -145,7 +148,8 @@ class ContractProvider extends ChangeNotifier {
       if (result != null) {
         debugPrint('ContractProvider: ✅ All settings saved to Supabase');
       } else {
-        debugPrint('ContractProvider: ⚠️ Failed to save to Supabase (user may not be authenticated)');
+        debugPrint(
+            'ContractProvider: ⚠️ Failed to save to Supabase (user may not be authenticated)');
       }
     } catch (e) {
       debugPrint('ContractProvider: Error saving to Supabase: $e');
@@ -186,7 +190,8 @@ class ContractProvider extends ChangeNotifier {
 
     final maxDate = DateTime.now().add(const Duration(days: 365));
     if (normalized.isAfter(maxDate)) {
-      throw ArgumentError('Start date cannot be more than 1 year in the future');
+      throw ArgumentError(
+          'Start date cannot be more than 1 year in the future');
     }
 
     if (_trackingStartDate != normalized) {
@@ -234,8 +239,10 @@ class ContractProvider extends ChangeNotifier {
 
   /// Validate and update all contract settings at once
   Future<void> updateContractSettings(int percent, int hours) async {
-    debugPrint('ContractProvider: updateContractSettings called with percent=$percent, hours=$hours');
-    debugPrint('ContractProvider: Current values: percent=$_contractPercent, hours=$_fullTimeHours');
+    debugPrint(
+        'ContractProvider: updateContractSettings called with percent=$percent, hours=$hours');
+    debugPrint(
+        'ContractProvider: Current values: percent=$_contractPercent, hours=$_fullTimeHours');
 
     if (percent < 0 || percent > 100) {
       throw ArgumentError('Contract percentage must be between 0 and 100');
@@ -247,13 +254,15 @@ class ContractProvider extends ChangeNotifier {
     bool changed = false;
 
     if (_contractPercent != percent) {
-      debugPrint('ContractProvider: Percent changed from $_contractPercent to $percent');
+      debugPrint(
+          'ContractProvider: Percent changed from $_contractPercent to $percent');
       _contractPercent = percent;
       changed = true;
     }
 
     if (_fullTimeHours != hours) {
-      debugPrint('ContractProvider: Hours changed from $_fullTimeHours to $hours');
+      debugPrint(
+          'ContractProvider: Hours changed from $_fullTimeHours to $hours');
       _fullTimeHours = hours;
       changed = true;
     }
@@ -335,7 +344,8 @@ class ContractProvider extends ChangeNotifier {
 
       // Load employer mode
       final savedMode = prefs.getString(_employerModeKey);
-      if (savedMode != null && ['standard', 'strict', 'flexible'].contains(savedMode)) {
+      if (savedMode != null &&
+          ['standard', 'strict', 'flexible'].contains(savedMode)) {
         _employerMode = savedMode;
       }
 
@@ -379,7 +389,8 @@ class ContractProvider extends ChangeNotifier {
   Future<void> _saveContractPercent() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_contractPercentKey, _contractPercent);
-    debugPrint('ContractProvider: SAVED contract percentage: $_contractPercent%');
+    debugPrint(
+        'ContractProvider: SAVED contract percentage: $_contractPercent%');
 
     // Also save to Supabase
     await saveToSupabase();
@@ -414,7 +425,8 @@ class ContractProvider extends ChangeNotifier {
   Future<void> _saveOpeningFlexMinutes() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_openingFlexMinutesKey, _openingFlexMinutes);
-    debugPrint('ContractProvider: SAVED opening flex minutes: $_openingFlexMinutes');
+    debugPrint(
+        'ContractProvider: SAVED opening flex minutes: $_openingFlexMinutes');
 
     await saveToSupabase();
   }
@@ -479,8 +491,10 @@ class ContractProvider extends ChangeNotifier {
     debugPrint('Local cache (SharedPreferences):');
     debugPrint('  $_contractPercentKey: ${prefs.getInt(_contractPercentKey)}');
     debugPrint('  $_fullTimeHoursKey: ${prefs.getInt(_fullTimeHoursKey)}');
-    debugPrint('  $_trackingStartDateKey: ${prefs.getString(_trackingStartDateKey)}');
-    debugPrint('  $_openingFlexMinutesKey: ${prefs.getInt(_openingFlexMinutesKey)}');
+    debugPrint(
+        '  $_trackingStartDateKey: ${prefs.getString(_trackingStartDateKey)}');
+    debugPrint(
+        '  $_openingFlexMinutesKey: ${prefs.getInt(_openingFlexMinutesKey)}');
     debugPrint('  $_employerModeKey: ${prefs.getString(_employerModeKey)}');
     debugPrint('=========================================');
   }

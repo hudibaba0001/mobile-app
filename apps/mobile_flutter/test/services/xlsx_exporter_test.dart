@@ -22,11 +22,15 @@ void main() {
 
       // Assert
       expect(sheet.maxRows, 3);
-      expect(sheet.cell(CellIndex.indexByString('A1')).value.toString(), 'Header 1');
-      expect(sheet.cell(CellIndex.indexByString('B1')).value.toString(), 'Header 2');
-      expect(sheet.cell(CellIndex.indexByString('A2')).value.toString(), 'Value 1');
+      expect(sheet.cell(CellIndex.indexByString('A1')).value.toString(),
+          'Header 1');
+      expect(sheet.cell(CellIndex.indexByString('B1')).value.toString(),
+          'Header 2');
+      expect(sheet.cell(CellIndex.indexByString('A2')).value.toString(),
+          'Value 1');
       expect(sheet.cell(CellIndex.indexByString('B2')).value.toString(), '2');
-      expect(sheet.cell(CellIndex.indexByString('A3')).value.toString(), 'Value 3');
+      expect(sheet.cell(CellIndex.indexByString('A3')).value.toString(),
+          'Value 3');
       expect(sheet.cell(CellIndex.indexByString('B3')).value.toString(), '4.5');
     });
 
@@ -60,8 +64,10 @@ void main() {
 
       // Assert
       expect(sheet.maxRows, 1);
-      expect(sheet.cell(CellIndex.indexByString('A1')).value.toString(), 'Header 1');
-      expect(sheet.cell(CellIndex.indexByString('B1')).value.toString(), 'Header 2');
+      expect(sheet.cell(CellIndex.indexByString('A1')).value.toString(),
+          'Header 1');
+      expect(sheet.cell(CellIndex.indexByString('B1')).value.toString(),
+          'Header 2');
     });
   });
 }

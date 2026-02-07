@@ -17,7 +17,8 @@ import '../screens/absence_management_screen.dart';
 import '../screens/account_status_gate.dart';
 
 class AppRouter {
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
   static const String loginPath = '/login';
   static const String homePath = '/';
   static const String settingsPath = '/settings';

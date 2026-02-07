@@ -126,13 +126,15 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                 TextFormField(
                   controller: _fromController,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context).simpleEntry_fromLocation,
+                    labelText:
+                        AppLocalizations.of(context).simpleEntry_fromLocation,
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.my_location),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context).simpleEntry_pleaseEnterDeparture;
+                      return AppLocalizations.of(context)
+                          .simpleEntry_pleaseEnterDeparture;
                     }
                     return null;
                   },
@@ -141,13 +143,15 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                 TextFormField(
                   controller: _toController,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context).simpleEntry_toLocation,
+                    labelText:
+                        AppLocalizations.of(context).simpleEntry_toLocation,
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.location_on),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context).simpleEntry_pleaseEnterArrival;
+                      return AppLocalizations.of(context)
+                          .simpleEntry_pleaseEnterArrival;
                     }
                     return null;
                   },

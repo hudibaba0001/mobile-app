@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 
 /// A styled card with consistent padding and decoration.
-/// 
+///
 /// Use this as the primary container for grouped content.
 class AppCard extends StatelessWidget {
   const AppCard({
@@ -26,13 +26,12 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
-    final cardColor = color ?? (isDark
-        ? AppColors.darkSurfaceElevated
-        : theme.colorScheme.surface);
-    
+
+    final cardColor = color ??
+        (isDark ? AppColors.darkSurfaceElevated : theme.colorScheme.surface);
+
     final effectiveRadius = borderRadius ?? AppRadius.cardRadius;
-    
+
     Widget cardContent = Container(
       padding: padding ?? AppSpacing.cardPadding,
       decoration: BoxDecoration(
@@ -45,7 +44,7 @@ class AppCard extends StatelessWidget {
       ),
       child: child,
     );
-    
+
     if (onTap != null) {
       cardContent = Material(
         color: Colors.transparent,
@@ -57,7 +56,7 @@ class AppCard extends StatelessWidget {
         ),
       );
     }
-    
+
     return Padding(
       padding: margin ?? EdgeInsets.zero,
       child: cardContent,
@@ -81,14 +80,15 @@ class AppSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Padding(
-      padding: padding ?? const EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.xl,
-        bottom: AppSpacing.md,
-      ),
+      padding: padding ??
+          const EdgeInsets.only(
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+            top: AppSpacing.xl,
+            bottom: AppSpacing.md,
+          ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -127,7 +127,7 @@ class MetricRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
@@ -207,7 +207,7 @@ class StatusPill extends StatelessWidget {
     final theme = Theme.of(context);
     final pillColor = color ?? theme.colorScheme.primary;
     final backgroundColor = pillColor.withValues(alpha: 0.15);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -260,7 +260,7 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Center(
       child: Padding(
         padding: AppSpacing.pagePadding,

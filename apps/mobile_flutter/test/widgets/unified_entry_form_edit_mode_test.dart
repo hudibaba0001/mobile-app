@@ -14,11 +14,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MockEntryProvider extends Mock implements EntryProvider {}
+
 class MockSupabaseAuthService extends Mock implements SupabaseAuthService {}
+
 class FakeHolidayService extends Mock implements HolidayService {
   @override
   RedDayInfo getRedDayInfo(DateTime date) => RedDayInfo(date: date);
 }
+
 void main() {
   setUpAll(() async {
     HttpOverrides.global = null;
@@ -40,7 +43,7 @@ void main() {
       mockEntryProvider = MockEntryProvider();
       mockAuthService = MockSupabaseAuthService();
       mockHolidayService = FakeHolidayService();
-      
+
       when(mockAuthService.currentUser).thenReturn(null);
     });
 
@@ -62,9 +65,12 @@ void main() {
         home: Scaffold(
           body: MultiProvider(
             providers: [
-              ChangeNotifierProvider<EntryProvider>.value(value: mockEntryProvider),
-              ChangeNotifierProvider<SupabaseAuthService>.value(value: mockAuthService),
-              ChangeNotifierProvider<HolidayService>.value(value: mockHolidayService),
+              ChangeNotifierProvider<EntryProvider>.value(
+                  value: mockEntryProvider),
+              ChangeNotifierProvider<SupabaseAuthService>.value(
+                  value: mockAuthService),
+              ChangeNotifierProvider<HolidayService>.value(
+                  value: mockHolidayService),
             ],
             child: UnifiedEntryForm(
               entryType: entryType,
@@ -75,7 +81,9 @@ void main() {
       );
     }
 
-    testWidgets('when existingEntry != null: allows adding more shifts and shows hint', (WidgetTester tester) async {
+    testWidgets(
+        'when existingEntry != null: allows adding more shifts and shows hint',
+        (WidgetTester tester) async {
       final existingEntry = Entry.makeWorkAtomicFromShift(
         userId: 'user1',
         date: DateTime(2025, 1, 15),
@@ -97,7 +105,9 @@ void main() {
       expect(addButtons, findsWidgets);
     });
 
-    testWidgets('when existingEntry != null: allows adding more travel legs and shows hint', (WidgetTester tester) async {
+    testWidgets(
+        'when existingEntry != null: allows adding more travel legs and shows hint',
+        (WidgetTester tester) async {
       final existingEntry = Entry.makeTravelAtomicFromLeg(
         userId: 'user1',
         date: DateTime(2025, 1, 15),
@@ -116,7 +126,8 @@ void main() {
       expect(find.textContaining('Add'), findsWidgets);
     });
 
-    testWidgets('"Add new entry for this date" button exists in edit mode', (WidgetTester tester) async {
+    testWidgets('"Add new entry for this date" button exists in edit mode',
+        (WidgetTester tester) async {
       final existingEntry = Entry.makeWorkAtomicFromShift(
         userId: 'user1',
         date: DateTime(2025, 1, 15),
@@ -136,7 +147,8 @@ void main() {
       expect(find.textContaining('Add'), findsWidgets);
     });
 
-    testWidgets('create mode (existingEntry == null) shows "Add Another Shift"', (WidgetTester tester) async {
+    testWidgets('create mode (existingEntry == null) shows "Add Another Shift"',
+        (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget(
         entryType: EntryType.work,
         existingEntry: null,
@@ -145,7 +157,7 @@ void main() {
 
       // Should find an add shift button in create mode
       expect(find.textContaining('Add'), findsWidgets);
-      
+
       // Verify the button is actually clickable (has an onPressed handler)
       final button = find.byType(OutlinedButton);
       expect(button, findsWidgets); // Should find at least one button

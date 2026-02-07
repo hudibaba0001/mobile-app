@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 const List<FontFeature> _tabularFigures = [FontFeature.tabularFigures()];
 
 /// Design System - Single Source of Truth
-/// 
+///
 /// This file defines the core design tokens and theme data for the app.
 /// All UI components should reference these values for consistency.
 
@@ -15,7 +15,7 @@ const List<FontFeature> _tabularFigures = [FontFeature.tabularFigures()];
 /// Spacing tokens for consistent padding/margins throughout the app.
 class AppSpacing {
   AppSpacing._();
-  
+
   static const double xs = 4.0;
   static const double sm = 8.0;
   static const double md = 12.0;
@@ -23,7 +23,7 @@ class AppSpacing {
   static const double xl = 24.0;
   static const double xxl = 32.0;
   static const double xxxl = 48.0;
-  
+
   /// Standard page padding
   static const EdgeInsets pagePadding = EdgeInsets.all(lg);
 
@@ -43,10 +43,10 @@ class AppSpacing {
 
   /// Dialog padding
   static const EdgeInsets dialogPadding = EdgeInsets.all(lg);
-  
+
   /// Card internal padding
   static const EdgeInsets cardPadding = EdgeInsets.all(lg);
-  
+
   /// Section spacing (between cards/sections)
   static const double sectionGap = xl;
 
@@ -57,12 +57,12 @@ class AppSpacing {
 /// Border radius tokens for consistent rounded corners.
 class AppRadius {
   AppRadius._();
-  
+
   static const double sm = 8.0;
   static const double md = 12.0;
   static const double lg = 16.0;
   static const double xl = 24.0;
-  
+
   static BorderRadius get cardRadius => BorderRadius.circular(lg);
   static BorderRadius get buttonRadius => BorderRadius.circular(md);
   static BorderRadius get chipRadius => BorderRadius.circular(sm);
@@ -72,7 +72,7 @@ class AppRadius {
 /// Icon size tokens for consistent iconography.
 class AppIconSize {
   AppIconSize._();
-  
+
   static const double xs = 16.0;
   static const double sm = 20.0;
   static const double md = 24.0;
@@ -83,17 +83,17 @@ class AppIconSize {
 /// Semantic colors for Flexsaldo display (muted for field worker readability).
 class FlexsaldoColors {
   FlexsaldoColors._();
-  
+
   /// Positive balance (worked more than target) - muted green
   static const Color positive = Color(0xFF22C55E);
   static const Color positiveLight = Color(0xFFDCFCE7);
   static const Color positiveDark = Color(0xFF16A34A);
-  
+
   /// Negative balance (worked less than target) - muted amber/orange
   static const Color negative = Color(0xFFF59E0B);
   static const Color negativeLight = Color(0xFFFEF3C7);
   static const Color negativeDark = Color(0xFFD97706);
-  
+
   /// Neutral (exactly on target)
   static const Color neutral = Color(0xFF6B7280);
   static const Color neutralLight = Color(0xFFF3F4F6);
@@ -124,25 +124,25 @@ class EntryColors {
 
 class AppColors {
   AppColors._();
-  
+
   // Primary (Blue)
   static const Color primary = Color(0xFF2563EB);
   static const Color primaryLight = Color(0xFF3B82F6);
   static const Color primaryDark = Color(0xFF1D4ED8);
   static const Color primaryContainer = Color(0xFFDBEAFE);
-  
+
   // Secondary (Teal)
   static const Color secondary = Color(0xFF0D9488);
   static const Color secondaryLight = Color(0xFF14B8A6);
   static const Color secondaryDark = Color(0xFF0F766E);
   static const Color secondaryContainer = Color(0xFFCCFBF1);
-  
+
   // Accent (Orange)
   static const Color accent = Color(0xFFF59E0B);
   static const Color accentLight = Color(0xFFFBBF24);
   static const Color accentDark = Color(0xFFD97706);
   static const Color accentContainer = Color(0xFFFEF3C7);
-  
+
   // Semantic
   static const Color success = Color(0xFF10B981);
   static const Color successContainer = Color(0xFFD1FAE5);
@@ -150,7 +150,7 @@ class AppColors {
   static const Color errorContainer = Color(0xFFFEE2E2);
   static const Color warning = Color(0xFFF59E0B);
   static const Color warningContainer = Color(0xFFFEF3C7);
-  
+
   // Neutrals (Gray scale)
   static const Color neutral50 = Color(0xFFF9FAFB);
   static const Color neutral100 = Color(0xFFF3F4F6);
@@ -162,7 +162,7 @@ class AppColors {
   static const Color neutral700 = Color(0xFF374151);
   static const Color neutral800 = Color(0xFF1F2937);
   static const Color neutral900 = Color(0xFF111827);
-  
+
   // Dark mode surface colors
   static const Color darkSurface = Color(0xFF121212);
   static const Color darkSurfaceVariant = Color(0xFF1E1E1E);
@@ -170,7 +170,7 @@ class AppColors {
 
   // Gradient colors (Login/Auth screens)
   static const Color gradientStart = Color(0xFF7B68EE); // Medium slate blue
-  static const Color gradientEnd = Color(0xFF6B5B95);   // Purple haze
+  static const Color gradientEnd = Color(0xFF6B5B95); // Purple haze
 }
 
 // =============================================================================
@@ -179,80 +179,80 @@ class AppColors {
 
 class AppTypography {
   AppTypography._();
-  
+
   /// Large hero numbers (Flexsaldo value)
   static TextStyle headline(Color color) => TextStyle(
-    fontSize: 30,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.2,
-    color: color,
-    height: 1.15,
-    fontFeatures: _tabularFigures,
-  );
-  
+        fontSize: 30,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.2,
+        color: color,
+        height: 1.15,
+        fontFeatures: _tabularFigures,
+      );
+
   /// Section titles
   static TextStyle sectionTitle(Color color) => TextStyle(
-    fontSize: 17,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0,
-    color: color,
-    height: 1.3,
-  );
-  
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0,
+        color: color,
+        height: 1.3,
+      );
+
   /// Card titles
   static TextStyle cardTitle(Color color) => TextStyle(
-    fontSize: 15,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.1,
-    color: color,
-    height: 1.35,
-  );
-  
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.1,
+        color: color,
+        height: 1.35,
+      );
+
   /// Body text
   static TextStyle body(Color color) => TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.2,
-    color: color,
-    height: 1.5,
-  );
-  
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.2,
+        color: color,
+        height: 1.5,
+      );
+
   /// Small caption text
   static TextStyle caption(Color color) => TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0.4,
-    color: color,
-    height: 1.4,
-  );
-  
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.4,
+        color: color,
+        height: 1.4,
+      );
+
   /// Button text
   static TextStyle button(Color color) => TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.3,
-    color: color,
-    height: 1.0,
-  );
-  
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.3,
+        color: color,
+        height: 1.0,
+      );
+
   /// Metric value (numbers in cards)
   static TextStyle metricValue(Color color) => TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 0,
-    color: color,
-    height: 1.2,
-    fontFeatures: _tabularFigures,
-  );
-  
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0,
+        color: color,
+        height: 1.2,
+        fontFeatures: _tabularFigures,
+      );
+
   /// Metric label (description under metric)
   static TextStyle metricLabel(Color color) => TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.2,
-    color: color,
-    height: 1.3,
-  );
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.2,
+        color: color,
+        height: 1.3,
+      );
 }
 
 // =============================================================================
@@ -261,7 +261,7 @@ class AppTypography {
 
 class AppThemeData {
   AppThemeData._();
-  
+
   /// Light theme
   static ThemeData light() {
     const scheme = ColorScheme.light(
@@ -319,7 +319,7 @@ class AppThemeData {
       bottomSheetTheme: _buildBottomSheetTheme(),
     );
   }
-  
+
   /// Dark theme (primary focus for field workers)
   static ThemeData dark() {
     const scheme = ColorScheme.dark(
@@ -377,11 +377,11 @@ class AppThemeData {
       bottomSheetTheme: _buildBottomSheetTheme(),
     );
   }
-  
+
   // ---------------------------------------------------------------------------
   // Private theme builders
   // ---------------------------------------------------------------------------
-  
+
   static TextTheme _buildTextTheme(Color onSurface) {
     TextStyle style({
       required double size,
@@ -400,21 +400,32 @@ class AppThemeData {
     }
 
     return TextTheme(
-      displayLarge: style(size: 34, weight: FontWeight.w700, height: 1.1, letterSpacing: -0.2),
-      displayMedium: style(size: 28, weight: FontWeight.w700, height: 1.15, letterSpacing: -0.1),
-      displaySmall: style(size: 24, weight: FontWeight.w600, height: 1.2, letterSpacing: -0.1),
+      displayLarge: style(
+          size: 34, weight: FontWeight.w700, height: 1.1, letterSpacing: -0.2),
+      displayMedium: style(
+          size: 28, weight: FontWeight.w700, height: 1.15, letterSpacing: -0.1),
+      displaySmall: style(
+          size: 24, weight: FontWeight.w600, height: 1.2, letterSpacing: -0.1),
       headlineLarge: style(size: 22, weight: FontWeight.w600, height: 1.2),
       headlineMedium: style(size: 20, weight: FontWeight.w600, height: 1.25),
       headlineSmall: style(size: 18, weight: FontWeight.w600, height: 1.3),
       titleLarge: style(size: 17, weight: FontWeight.w600, height: 1.35),
-      titleMedium: style(size: 15, weight: FontWeight.w600, height: 1.35, letterSpacing: 0.1),
-      titleSmall: style(size: 13, weight: FontWeight.w600, height: 1.35, letterSpacing: 0.1),
-      bodyLarge: style(size: 15, weight: FontWeight.w400, height: 1.5, letterSpacing: 0.2),
-      bodyMedium: style(size: 14, weight: FontWeight.w400, height: 1.5, letterSpacing: 0.2),
-      bodySmall: style(size: 12, weight: FontWeight.w400, height: 1.4, letterSpacing: 0.2),
-      labelLarge: style(size: 13, weight: FontWeight.w600, height: 1.2, letterSpacing: 0.3),
-      labelMedium: style(size: 12, weight: FontWeight.w600, height: 1.2, letterSpacing: 0.3),
-      labelSmall: style(size: 11, weight: FontWeight.w600, height: 1.2, letterSpacing: 0.3),
+      titleMedium: style(
+          size: 15, weight: FontWeight.w600, height: 1.35, letterSpacing: 0.1),
+      titleSmall: style(
+          size: 13, weight: FontWeight.w600, height: 1.35, letterSpacing: 0.1),
+      bodyLarge: style(
+          size: 15, weight: FontWeight.w400, height: 1.5, letterSpacing: 0.2),
+      bodyMedium: style(
+          size: 14, weight: FontWeight.w400, height: 1.5, letterSpacing: 0.2),
+      bodySmall: style(
+          size: 12, weight: FontWeight.w400, height: 1.4, letterSpacing: 0.2),
+      labelLarge: style(
+          size: 13, weight: FontWeight.w600, height: 1.2, letterSpacing: 0.3),
+      labelMedium: style(
+          size: 12, weight: FontWeight.w600, height: 1.2, letterSpacing: 0.3),
+      labelSmall: style(
+          size: 11, weight: FontWeight.w600, height: 1.2, letterSpacing: 0.3),
     );
   }
 
@@ -686,7 +697,8 @@ class AppThemeData {
       height: 68,
       indicatorColor: AppColors.primaryContainer,
       labelTextStyle: const WidgetStatePropertyAll(
-        TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.2),
+        TextStyle(
+            fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.2),
       ),
     );
   }

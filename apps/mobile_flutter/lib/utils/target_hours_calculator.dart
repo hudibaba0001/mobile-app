@@ -157,7 +157,7 @@ class TargetHoursCalculator {
 
     // Base scheduled minutes for this weekday
     final baseScheduled = base + ((idx >= 0 && idx < rem) ? 1 : 0);
-    
+
     // If a specific red day factor is provided, use it
     if (redDayFactor != null) {
       // Factor: 0.0 = full day off, 0.5 = half day, 1.0 = normal day
@@ -171,7 +171,7 @@ class TargetHoursCalculator {
 
     return baseScheduled;
   }
-  
+
   /// Calculate scheduled minutes for a date with red day info
   ///
   /// V1 Rule:
@@ -206,7 +206,7 @@ class TargetHoursCalculator {
     final base = weeklyTargetMinutes ~/ days;
     final rem = weeklyTargetMinutes % days;
     final baseScheduled = base + ((idx >= 0 && idx < rem) ? 1 : 0);
-    
+
     // Apply red day rules
     if (isFullRedDay) {
       return 0; // Full day off

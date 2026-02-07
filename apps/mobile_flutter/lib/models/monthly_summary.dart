@@ -53,4 +53,3 @@ class MonthlySummary {
     return 'MonthlySummary($monthName $year: ${actualWorkedHours}h)';
   }
 }
-

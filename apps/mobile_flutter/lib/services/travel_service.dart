@@ -1,4 +1,4 @@
-﻿import '../models/entry.dart';
+import '../models/entry.dart';
 import '../models/travel_summary.dart';
 import '../repositories/location_repository.dart';
 import '../utils/constants.dart';
@@ -20,12 +20,12 @@ class TravelService {
     EntryProvider? entryProvider,
   })  : _locationRepository = locationRepository,
         _entryProvider = entryProvider;
-  
+
   /// Set EntryProvider (for dependency injection)
   void setEntryProvider(EntryProvider entryProvider) {
     _entryProvider = entryProvider;
   }
-  
+
   /// Get EntryProvider from context if not set
   EntryProvider? _getEntryProvider() {
     if (_entryProvider != null) return _entryProvider;
@@ -59,16 +59,16 @@ class TravelService {
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
     }
-    
+
     // Ensure entries are loaded
     if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
       await entryProvider.loadEntries();
     }
-    
+
     // Filter travel entries in date range
     final userId = _currentUserId();
     final travelEntries = entryProvider.entries
-        .where((e) => 
+        .where((e) =>
             e.type == EntryType.travel &&
             e.userId == userId &&
             e.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
@@ -98,8 +98,7 @@ class TravelService {
         // Also count individual locations
         locationFrequency[entry.from!] =
             (locationFrequency[entry.from!] ?? 0) + 1;
-        locationFrequency[entry.to!] =
-            (locationFrequency[entry.to!] ?? 0) + 1;
+        locationFrequency[entry.to!] = (locationFrequency[entry.to!] ?? 0) + 1;
       }
     }
 
@@ -131,18 +130,18 @@ class TravelService {
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
     }
-    
+
     // Ensure entries are loaded
     if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
       await entryProvider.loadEntries();
     }
-    
+
     final userId = _currentUserId();
     final travelEntries = entryProvider.entries
         .where((e) => e.type == EntryType.travel && e.userId == userId)
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date)); // Most recent first
-    
+
     final routeFrequency = <String, int>{};
 
     // Count route frequency (look at last 50 entries)
@@ -226,12 +225,12 @@ class TravelService {
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
     }
-    
+
     // Ensure entries are loaded
     if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
       await entryProvider.loadEntries();
     }
-    
+
     final userId = _currentUserId();
     final travelEntries = entryProvider.entries
         .where((e) => e.type == EntryType.travel && e.userId == userId)
@@ -261,9 +260,8 @@ class TravelService {
 
     // Calculate date range
     final dates = travelEntries.map((e) => e.date).toList()..sort();
-    final daysDifference = dates.isNotEmpty 
-        ? dates.last.difference(dates.first).inDays + 1
-        : 0;
+    final daysDifference =
+        dates.isNotEmpty ? dates.last.difference(dates.first).inDays + 1 : 0;
 
     // Find most frequent route
     final routeFrequency = <String, int>{};
@@ -282,12 +280,14 @@ class TravelService {
       'totalEntries': travelEntries.length,
       'totalMinutes': totalMinutes,
       'totalHours': (totalMinutes / 60).round(),
-      'averageMinutesPerTrip': travelEntries.isNotEmpty ? totalMinutes / travelEntries.length : 0.0,
+      'averageMinutesPerTrip':
+          travelEntries.isNotEmpty ? totalMinutes / travelEntries.length : 0.0,
       'longestTrip': minutes.isNotEmpty ? minutes.last : 0,
       'shortestTrip': minutes.isNotEmpty ? minutes.first : 0,
       'mostFrequentRoute': mostFrequentRoute,
       'totalDays': daysDifference,
-      'averageTripsPerDay': daysDifference > 0 ? travelEntries.length / daysDifference : 0.0,
+      'averageTripsPerDay':
+          daysDifference > 0 ? travelEntries.length / daysDifference : 0.0,
     };
   }
 
@@ -310,16 +310,16 @@ class TravelService {
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
     }
-    
+
     // Ensure entries are loaded
     if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
       await entryProvider.loadEntries();
     }
-    
+
     final cutoffDate = DateTime.now().subtract(Duration(days: days));
     final userId = _currentUserId();
     final recentEntries = entryProvider.entries
-        .where((e) => 
+        .where((e) =>
             e.type == EntryType.travel &&
             e.userId == userId &&
             e.date.isAfter(cutoffDate.subtract(const Duration(days: 1))) &&
@@ -380,9 +380,9 @@ class TravelService {
     final peakDayNames =
         peakDays.take(3).map((e) => dayNames[e.key - 1]).toList();
 
-    final averageTripTime =
-        recentEntries.fold<int>(0, (sum, entry) => sum + (entry.travelMinutes ?? 0)) /
-            recentEntries.length;
+    final averageTripTime = recentEntries.fold<int>(
+            0, (sum, entry) => sum + (entry.travelMinutes ?? 0)) /
+        recentEntries.length;
 
     return {
       'commonDepartures': topDepartures,
@@ -418,12 +418,12 @@ class TravelService {
     if (entryProvider == null) {
       throw Exception('EntryProvider not available');
     }
-    
+
     // Ensure entries are loaded
     if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
       await entryProvider.loadEntries();
     }
-    
+
     final userId = _currentUserId();
     final travelEntries = entryProvider.entries
         .where((e) => e.type == EntryType.travel && e.userId == userId)
@@ -435,10 +435,12 @@ class TravelService {
 
     for (final entry in travelEntries) {
       // Search in departure, arrival, and notes
-      final fromMatch = entry.from?.toLowerCase().contains(lowercaseQuery) ?? false;
+      final fromMatch =
+          entry.from?.toLowerCase().contains(lowercaseQuery) ?? false;
       final toMatch = entry.to?.toLowerCase().contains(lowercaseQuery) ?? false;
-      final notesMatch = entry.notes?.toLowerCase().contains(lowercaseQuery) ?? false;
-      
+      final notesMatch =
+          entry.notes?.toLowerCase().contains(lowercaseQuery) ?? false;
+
       if (fromMatch || toMatch || notesMatch) {
         results.add(entry);
       }
@@ -462,4 +464,3 @@ class TravelService {
     throw Exception('No authenticated user');
   }
 }
-

@@ -90,7 +90,8 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
     _selectedPresetIndex = -1;
     for (var i = 0; i < presets.length; i++) {
       final (presetStart, presetEnd) = presets[i].getRange();
-      if (_isSameDay(_startDate, presetStart) && _isSameDay(_endDate, presetEnd)) {
+      if (_isSameDay(_startDate, presetStart) &&
+          _isSameDay(_endDate, presetEnd)) {
         _selectedPresetIndex = i;
         break;
       }
@@ -113,12 +114,8 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
 
   Future<void> _selectDate(bool isStartDate) async {
     final initialDate = isStartDate ? _startDate : _endDate;
-    final firstDate = isStartDate
-        ? DateTime(2020)
-        : _startDate;
-    final lastDate = isStartDate
-        ? _endDate
-        : DateTime.now();
+    final firstDate = isStartDate ? DateTime(2020) : _startDate;
+    final lastDate = isStartDate ? _endDate : DateTime.now();
 
     final date = await showDatePicker(
       context: context,
@@ -146,7 +143,7 @@ class _DateRangeDialogState extends State<DateRangeDialog> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final presets = _getPresets(context);
-    
+
     // Check preset match on build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _checkPresetMatch(context);

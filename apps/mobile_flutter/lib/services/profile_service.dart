@@ -55,7 +55,8 @@ class ProfileService {
   }) async {
     final user = _supabase.auth.currentUser;
     if (user == null) {
-      print('ProfileService: Cannot update contract settings - user not authenticated');
+      print(
+          'ProfileService: Cannot update contract settings - user not authenticated');
       return null;
     }
 
@@ -100,13 +101,10 @@ class ProfileService {
     }
 
     try {
-      await _supabase
-          .from('profiles')
-          .update({
-            field: value,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', user.id);
+      await _supabase.from('profiles').update({
+        field: value,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }).eq('id', user.id);
 
       print('ProfileService: ✅ Updated $field in Supabase');
     } catch (e) {

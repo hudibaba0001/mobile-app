@@ -297,7 +297,8 @@ class _ReportsScreenState extends State<ReportsScreen>
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
 
-    return ChangeNotifierProxyProvider<EntryProvider, CustomerAnalyticsViewModel>(
+    return ChangeNotifierProxyProvider<EntryProvider,
+        CustomerAnalyticsViewModel>(
       create: (context) => CustomerAnalyticsViewModel(),
       update: (context, entryProvider, viewModel) {
         final authService = context.read<SupabaseAuthService>();
@@ -341,8 +342,10 @@ class _ReportsScreenState extends State<ReportsScreen>
                   width: double.infinity,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  color:
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.08),
                   child: Row(
                     children: [
                       Icon(Icons.cloud_done,
@@ -379,8 +382,10 @@ class _ReportsScreenState extends State<ReportsScreen>
                 child: TabBar(
                   controller: _tabController,
                   labelColor: Theme.of(context).colorScheme.primary,
-                  unselectedLabelColor:
-                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  unselectedLabelColor: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                   indicatorColor: Theme.of(context).colorScheme.primary,
                   tabs: [
                     Tab(text: t.reports_overview),

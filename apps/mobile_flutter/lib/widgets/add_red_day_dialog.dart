@@ -59,8 +59,8 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
         date: widget.date,
         kind: _kind,
         half: _kind == RedDayKind.half ? _half : null,
-        reason: _reasonController.text.trim().isEmpty 
-            ? null 
+        reason: _reasonController.text.trim().isEmpty
+            ? null
             : _reasonController.text.trim(),
         source: RedDaySource.manual,
       );
@@ -71,8 +71,8 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.existingRedDay != null 
-                ? t.redDay_updated 
+            content: Text(widget.existingRedDay != null
+                ? t.redDay_updated
                 : t.redDay_added),
             backgroundColor: Colors.green,
           ),
@@ -166,7 +166,8 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(isEditing ? t.redDay_editRedDay : t.redDay_markAsRedDay),
+            child:
+                Text(isEditing ? t.redDay_editRedDay : t.redDay_markAsRedDay),
           ),
         ],
       ),
@@ -184,7 +185,8 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 20, color: theme.colorScheme.primary),
+                  Icon(Icons.calendar_today,
+                      size: 20, color: theme.colorScheme.primary),
                   const SizedBox(width: 12),
                   Expanded(child: Text(dateStr)),
                 ],
@@ -204,21 +206,27 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.red.shade600,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         t.redDay_auto,
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         redDayInfo.autoHolidayName ?? t.redDay_publicHoliday,
-                        style: TextStyle(color: Colors.red.shade800, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                            color: Colors.red.shade800,
+                            fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
@@ -231,7 +239,8 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
             // Kind selector
             Text(
               t.redDay_duration,
-              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             SegmentedButton<RedDayKind>(
@@ -284,7 +293,8 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
             // Reason field
             Text(
               t.form_notesOptional,
-              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             TextField(

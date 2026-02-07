@@ -177,7 +177,8 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   List<MonthlyBreakdown> get monthlyBreakdown {
     final filteredWorkEntries = _getFilteredWorkEntries();
     final filteredTravelEntries = _getFilteredTravelEntries();
-    return _calculateMonthlyBreakdown(filteredWorkEntries, filteredTravelEntries);
+    return _calculateMonthlyBreakdown(
+        filteredWorkEntries, filteredTravelEntries);
   }
 
   // Locations Tab Data
@@ -303,8 +304,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
           for (final leg in entry.travelLegs!) {
             locationCounts[leg.fromText] =
                 (locationCounts[leg.fromText] ?? 0) + 1;
-            locationCounts[leg.toText] =
-                (locationCounts[leg.toText] ?? 0) + 1;
+            locationCounts[leg.toText] = (locationCounts[leg.toText] ?? 0) + 1;
           }
         } else {
           if (entry.from != null && entry.from!.isNotEmpty) {
@@ -312,8 +312,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
                 (locationCounts[entry.from!] ?? 0) + 1;
           }
           if (entry.to != null && entry.to!.isNotEmpty) {
-            locationCounts[entry.to!] =
-                (locationCounts[entry.to!] ?? 0) + 1;
+            locationCounts[entry.to!] = (locationCounts[entry.to!] ?? 0) + 1;
           }
         }
       }
@@ -331,9 +330,9 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     }
 
     // Time management insight
-    final totalWorkHours =
-        workEntries.fold<int>(0, (sum, entry) => sum + _workMinutesForEntry(entry)) /
-            60.0;
+    final totalWorkHours = workEntries.fold<int>(
+            0, (sum, entry) => sum + _workMinutesForEntry(entry)) /
+        60.0;
     if (totalWorkHours > 0) {
       insights.add({
         'key': 'time_management',
@@ -503,10 +502,10 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _calculateLocationData(
       List<Entry> workEntries, List<Entry> travelEntries) {
     final locationMap = <String, Map<String, dynamic>>{};
-    final totalWorkMinutes =
-        workEntries.fold<int>(0, (sum, entry) => sum + _workMinutesForEntry(entry));
-    final totalTravelMinutes =
-        travelEntries.fold<int>(0, (sum, entry) => sum + _travelMinutesForEntry(entry));
+    final totalWorkMinutes = workEntries.fold<int>(
+        0, (sum, entry) => sum + _workMinutesForEntry(entry));
+    final totalTravelMinutes = travelEntries.fold<int>(
+        0, (sum, entry) => sum + _travelMinutesForEntry(entry));
 
     // Process work entries (locations from shift location or default)
     for (final entry in workEntries) {
@@ -570,8 +569,8 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     return locationsList;
   }
 
-  void _addTravelLocation(
-      Map<String, Map<String, dynamic>> locationMap, String location, int minutes) {
+  void _addTravelLocation(Map<String, Map<String, dynamic>> locationMap,
+      String location, int minutes) {
     if (location.isEmpty) return;
     if (!locationMap.containsKey(location)) {
       locationMap[location] = {

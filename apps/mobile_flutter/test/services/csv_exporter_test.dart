@@ -18,7 +18,8 @@ void main() {
       final csvString = CsvExporter.export(data);
 
       // Assert
-      expect(csvString, 'Header 1,Header 2\r\nValue 1,Value 2\r\nValue 3,Value 4\r\n');
+      expect(csvString,
+          'Header 1,Header 2\r\nValue 1,Value 2\r\nValue 3,Value 4\r\n');
     });
 
     test('should handle empty data', () {

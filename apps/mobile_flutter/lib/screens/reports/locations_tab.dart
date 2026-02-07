@@ -70,7 +70,8 @@ class LocationsTab extends StatelessWidget {
                 color: colorScheme.outline.withValues(alpha: 0.2),
               ),
             ),
-            child: _buildLocationDistributionChart(context, theme, locationsData),
+            child:
+                _buildLocationDistributionChart(context, theme, locationsData),
           ),
         ),
         const SizedBox(height: 24),
@@ -156,7 +157,8 @@ class LocationsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildLocationCard(BuildContext context, ThemeData theme, Map<String, dynamic> location) {
+  Widget _buildLocationCard(
+      BuildContext context, ThemeData theme, Map<String, dynamic> location) {
     final colorScheme = theme.colorScheme;
     final name = location['name'] as String;
     final totalHours = location['totalHours'] as double;

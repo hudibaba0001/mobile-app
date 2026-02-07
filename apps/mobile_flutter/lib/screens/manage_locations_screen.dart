@@ -149,7 +149,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                           controller: _addressController,
                           decoration: InputDecoration(
                             labelText: 'Address',
-                            hintText: AppLocalizations.of(context).location_fullAddress,
+                            hintText: AppLocalizations.of(context)
+                                .location_fullAddress,
                             prefixIcon: Icon(
                               Icons.location_on_outlined,
                               color: colorScheme.onSurfaceVariant,
@@ -236,7 +237,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: Text(AppLocalizations.of(context).location_addLocation),
+                                child: Text(AppLocalizations.of(context)
+                                    .location_addLocation),
                               ),
                             ),
                           ],
@@ -375,7 +377,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(24),
                                   decoration: BoxDecoration(
-                                    color: colorScheme.primary.withValues(alpha: 0.1),
+                                    color: colorScheme.primary
+                                        .withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -405,7 +408,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 FilledButton.icon(
                                   onPressed: _showAddLocationDialog,
                                   icon: const Icon(Icons.add),
-                                  label: Text(AppLocalizations.of(context).location_addFirstLocation),
+                                  label: Text(AppLocalizations.of(context)
+                                      .location_addFirstLocation),
                                   style: FilledButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24,
@@ -581,11 +585,13 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                       content: Text(t.location_deleteConfirm(location.name)),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.of(dialogContext).pop(false),
+                          onPressed: () =>
+                              Navigator.of(dialogContext).pop(false),
                           child: Text(t.common_cancel),
                         ),
                         FilledButton.tonal(
-                          onPressed: () => Navigator.of(dialogContext).pop(true),
+                          onPressed: () =>
+                              Navigator.of(dialogContext).pop(true),
                           style: FilledButton.styleFrom(
                             backgroundColor: colorScheme.errorContainer,
                             foregroundColor: colorScheme.onErrorContainer,

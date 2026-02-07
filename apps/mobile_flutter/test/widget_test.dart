@@ -15,7 +15,7 @@ void main() {
         ),
       ),
     );
-    
+
     expect(find.byType(MaterialApp), findsOneWidget);
     expect(find.text('App compiles successfully'), findsOneWidget);
   });

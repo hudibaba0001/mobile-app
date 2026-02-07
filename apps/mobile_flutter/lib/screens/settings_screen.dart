@@ -105,14 +105,16 @@ class SettingsScreen extends StatelessWidget {
   void _showHolidayInfoDialog(BuildContext context) {
     final t = AppLocalizations.of(context);
     final holidayService = context.read<HolidayService>();
-    final holidays = holidayService.getHolidaysWithNamesForYear(DateTime.now().year);
-    
+    final holidays =
+        holidayService.getHolidaysWithNamesForYear(DateTime.now().year);
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.event_available, color: Theme.of(dialogContext).colorScheme.primary),
+            Icon(Icons.event_available,
+                color: Theme.of(dialogContext).colorScheme.primary),
             const SizedBox(width: AppSpacing.md),
             Flexible(child: Text(t.settings_publicHolidays)),
           ],
@@ -126,8 +128,8 @@ class SettingsScreen extends StatelessWidget {
               Text(
                 t.settings_viewHolidays(DateTime.now().year),
                 style: Theme.of(dialogContext).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
               const SizedBox(height: AppSpacing.md),
               ConstrainedBox(
@@ -190,9 +192,13 @@ class SettingsScreen extends StatelessWidget {
                     Expanded(
                       child: Text(
                         t.redDay_holidayWorkNotice,
-                        style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(dialogContext).colorScheme.primary,
-                        ),
+                        style: Theme.of(dialogContext)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(
+                              color:
+                                  Theme.of(dialogContext).colorScheme.primary,
+                            ),
                       ),
                     ),
                   ],
@@ -262,52 +268,53 @@ class SettingsScreen extends StatelessWidget {
       appBar: StandardAppBar(title: t.settings_title),
       body: ListView(
         children: [
-            // User Info Section
-            if (user != null) ...[
-              AppCard(
-                margin: AppSpacing.pagePadding,
-                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.account_circle,
-                      size: AppIconSize.xl,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user.userMetadata?['full_name'] ??
-                                user.email?.split('@').first ??
-                                'User',
-                            style: AppTypography.cardTitle(
-                              theme.colorScheme.onSurface,
-                            ),
+          // User Info Section
+          if (user != null) ...[
+            AppCard(
+              margin: AppSpacing.pagePadding,
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.3),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.account_circle,
+                    size: AppIconSize.xl,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.userMetadata?['full_name'] ??
+                              user.email?.split('@').first ??
+                              'User',
+                          style: AppTypography.cardTitle(
+                            theme.colorScheme.onSurface,
                           ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            user.email ?? '—',
-                            style: AppTypography.body(
-                              theme.colorScheme.onSurfaceVariant,
-                            ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          user.email ?? '—',
+                          style: AppTypography.body(
+                            theme.colorScheme.onSurfaceVariant,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right),
-                      onPressed: () => AppRouter.goToProfile(context),
-                      tooltip: t.profile_title,
-                    ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: () => AppRouter.goToProfile(context),
+                    tooltip: t.profile_title,
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.lg),
-            ],
-          
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+
           // Theme Settings
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -317,14 +324,17 @@ class SettingsScreen extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                      themeProvider.isDarkMode
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(t.settings_theme, style: theme.textTheme.bodyLarge),
+                        Text(t.settings_theme,
+                            style: theme.textTheme.bodyLarge),
                         const SizedBox(height: 4),
                         Text(
                           themeProvider.themeModeDisplayName,
@@ -346,7 +356,8 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.language),
             title: Text(t.settings_language),
-            subtitle: Text(LocaleProvider.getDisplayName(localeProvider.locale)),
+            subtitle:
+                Text(LocaleProvider.getDisplayName(localeProvider.locale)),
             trailing: DropdownButton<Locale?>(
               value: localeProvider.locale,
               underline: const SizedBox(),
@@ -357,11 +368,13 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 DropdownMenuItem<Locale>(
                   value: const Locale('en'),
-                  child: Text(AppLocalizations.of(context).settings_languageEnglish),
+                  child: Text(
+                      AppLocalizations.of(context).settings_languageEnglish),
                 ),
                 DropdownMenuItem<Locale>(
                   value: const Locale('sv'),
-                  child: Text(AppLocalizations.of(context).settings_languageSwedish),
+                  child: Text(
+                      AppLocalizations.of(context).settings_languageSwedish),
                 ),
               ],
               onChanged: (Locale? locale) {
@@ -503,7 +516,6 @@ class SettingsScreen extends StatelessWidget {
           ),
 
           // Developer Options (only in debug mode)
-
         ],
       ),
     );

@@ -7,7 +7,7 @@ enum AbsenceType {
 }
 
 /// Model representing an absence entry
-/// 
+///
 /// Represents paid or unpaid absences (vacation, sick leave, VAB, etc.)
 /// Date is normalized to year/month/day only (no time component)
 class AbsenceEntry {
@@ -40,7 +40,8 @@ class AbsenceEntry {
   /// Convert to map for storage
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
-      'date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+      'date':
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
       'minutes': minutes,
       'type': type.name,
     };
@@ -59,7 +60,7 @@ class AbsenceEntry {
       int.parse(dateParts[1]),
       int.parse(dateParts[2]),
     );
-    
+
     final typeStr = map['type'] as String;
     AbsenceType type;
     switch (typeStr) {
@@ -95,4 +96,3 @@ class AbsenceEntry {
     return 'AbsenceEntry(${date.year}-${date.month}-${date.day}, ${minutes}min, ${type.name})';
   }
 }
-

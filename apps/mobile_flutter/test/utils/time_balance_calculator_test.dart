@@ -11,7 +11,8 @@ void main() {
       ];
       // Target defaults to 160.0
       // Balance = 0 - 160 = -160
-      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 160.0);
+      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries,
+          targetHours: 160.0);
       expect(balance, -160.0);
     });
 
@@ -20,7 +21,8 @@ void main() {
         MonthlySummary(year: 2024, month: 1, actualWorkedHours: 170),
       ];
       // Balance = 170 - 160 = +10
-      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 160.0);
+      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries,
+          targetHours: 160.0);
       expect(balance, 10.0);
     });
 
@@ -30,7 +32,8 @@ void main() {
         MonthlySummary(year: 2024, month: 2, actualWorkedHours: 150), // -10
       ];
       // Balance = +10 + (-10) = 0
-      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 160.0);
+      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries,
+          targetHours: 160.0);
       expect(balance, 0.0);
     });
 
@@ -40,7 +43,8 @@ void main() {
         MonthlySummary(year: 2023, month: 12, actualWorkedHours: 170), // +10
         MonthlySummary(year: 2024, month: 1, actualWorkedHours: 170), // +10
       ];
-      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 160.0);
+      final balance = TimeBalanceCalculator.calculateYearlyBalance(summaries,
+          targetHours: 160.0);
       expect(balance, 20.0);
     });
   });
@@ -87,29 +91,34 @@ void main() {
       // Month 1: Target 100h, Worked 90h => Variance -10h
       // Month 2: Target 100h, Worked 110h => Variance +10h
       // Net: 0h
-      
+
       final summaries = [
         MonthlySummary(year: 2024, month: 1, actualWorkedHours: 90),
         MonthlySummary(year: 2024, month: 2, actualWorkedHours: 110),
       ];
-      
-      var runningBalance = TimeBalanceCalculator.calculateYearlyBalance(summaries, targetHours: 100.0);
-      expect(runningBalance, 0.0, reason: "Without adjustment, balance should be 0");
-      
+
+      var runningBalance = TimeBalanceCalculator.calculateYearlyBalance(
+          summaries,
+          targetHours: 100.0);
+      expect(runningBalance, 0.0,
+          reason: "Without adjustment, balance should be 0");
+
       // Now add adjustment: +126h "Opening balance" equivalent
-      // The calculator itself just sums variances. 
+      // The calculator itself just sums variances.
       // Adjustments are usually added ON TOP of the calculator result in the Provider.
       // But let's verify the calculator result allows for clean addition.
-      
+
       const adjustment = 126.0;
       final totalBalance = runningBalance + adjustment;
       expect(totalBalance, 126.0);
-      
+
       // Regression check: If we have negative variance, ensure it subtraction works
       final badMonthSummary = [
-         MonthlySummary(year: 2024, month: 1, actualWorkedHours: 50), // -50h
+        MonthlySummary(year: 2024, month: 1, actualWorkedHours: 50), // -50h
       ];
-      runningBalance = TimeBalanceCalculator.calculateYearlyBalance(badMonthSummary, targetHours: 100.0);
+      runningBalance = TimeBalanceCalculator.calculateYearlyBalance(
+          badMonthSummary,
+          targetHours: 100.0);
       expect(runningBalance, -50.0);
       expect(runningBalance + adjustment, 76.0); // 126 - 50 = 76
     });

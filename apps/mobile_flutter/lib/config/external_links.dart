@@ -16,4 +16,3 @@ class ExternalLinks {
   /// URL for Privacy Policy
   static const String privacyUrl = '$_baseUrl/privacy';
 }
-

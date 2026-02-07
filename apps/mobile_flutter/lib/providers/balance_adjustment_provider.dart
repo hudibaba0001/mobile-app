@@ -11,7 +11,7 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
 
   // In-memory cache: year -> list of adjustments
   final Map<int, List<BalanceAdjustment>> _adjustmentsByYear = {};
-  
+
   bool _isLoading = false;
   String? _error;
 
@@ -25,7 +25,8 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
 
   /// Load adjustments for a specific year
   /// Set [forceRefresh] to true to reload even if already cached
-  Future<void> loadAdjustments({required int year, bool forceRefresh = false}) async {
+  Future<void> loadAdjustments(
+      {required int year, bool forceRefresh = false}) async {
     // Skip if already loaded for this year (unless force refresh)
     if (!forceRefresh && _adjustmentsByYear.containsKey(year)) {
       return;
@@ -48,7 +49,8 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
       );
       _adjustmentsByYear[year] = adjustments;
 
-      debugPrint('BalanceAdjustmentProvider: Loaded ${adjustments.length} adjustments for year $year');
+      debugPrint(
+          'BalanceAdjustmentProvider: Loaded ${adjustments.length} adjustments for year $year');
       notifyListeners();
     } catch (e) {
       _error = 'Failed to load adjustments: $e';

@@ -46,7 +46,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   // Travel-specific fields (legacy single travel - kept for backward compatibility)
   String? _departureLocation;
   String? _arrivalLocation;
-  
+
   // Travel legs (new multi-leg support)
   List<TravelLeg> _travelLegs = [];
   final Map<int, bool> _isCalculatingLeg = {}; // Track which leg is calculating
@@ -86,7 +86,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       // Default to today
       _selectedDate = DateTime.now();
     }
-    
+
     if (widget.existingEntry != null) {
       final entry = widget.existingEntry!;
 
@@ -115,8 +115,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           _arrivalLocation = entry.to;
           _durationMinutes = entry.travelMinutes ?? 0;
           _updateDurationControllers();
-          
-          if (_departureLocation != null && _arrivalLocation != null && _durationMinutes > 0) {
+
+          if (_departureLocation != null &&
+              _arrivalLocation != null &&
+              _durationMinutes > 0) {
             _travelLegs = [
               TravelLeg(
                 fromText: _departureLocation!,
@@ -126,10 +128,14 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               ),
             ];
             _legHoursControllers[0] = TextEditingController(
-              text: _durationMinutes > 0 ? (_durationMinutes ~/ 60).toString() : '',
+              text: _durationMinutes > 0
+                  ? (_durationMinutes ~/ 60).toString()
+                  : '',
             );
             _legMinutesControllers[0] = TextEditingController(
-              text: _durationMinutes > 0 ? (_durationMinutes % 60).toString() : '',
+              text: _durationMinutes > 0
+                  ? (_durationMinutes % 60).toString()
+                  : '',
             );
           }
         }
@@ -139,19 +145,21 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           _shifts = List<Shift>.from(entry.shifts!);
           final firstShift = _shifts.first;
           _workLocation = firstShift.location ?? entry.workLocation;
-          
+
           // Check if all shifts have the same location (determines toggle state)
-          final allSameLocation = _shifts.every((s) => s.location == _workLocation);
+          final allSameLocation =
+              _shifts.every((s) => s.location == _workLocation);
           _useLocationForAllShifts = allSameLocation && _workLocation != null;
-          
+
           // Initialize shift notes controllers
           for (var i = 0; i < _shifts.length; i++) {
-            _shiftNotesControllers[i] = TextEditingController(text: _shifts[i].notes ?? '');
+            _shiftNotesControllers[i] =
+                TextEditingController(text: _shifts[i].notes ?? '');
             _shiftBreakControllers[i] = TextEditingController(
               text: _shifts[i].unpaidBreakMinutes.toString(),
             );
           }
-          
+
           _selectedDate = DateTime(
             firstShift.start.year,
             firstShift.start.month,
@@ -174,12 +182,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   void _updateDurationControllers() {
-    _durationHoursController.text = _durationMinutes > 0
-        ? (_durationMinutes ~/ 60).toString()
-        : '';
-    _durationMinutesController.text = _durationMinutes > 0
-        ? (_durationMinutes % 60).toString()
-        : '';
+    _durationHoursController.text =
+        _durationMinutes > 0 ? (_durationMinutes ~/ 60).toString() : '';
+    _durationMinutesController.text =
+        _durationMinutes > 0 ? (_durationMinutes % 60).toString() : '';
   }
 
   @override
@@ -216,7 +222,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
         ),
         child: Form(
           key: _formKey,
@@ -432,7 +439,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   children: [
                     if (redDayInfo.isAutoHoliday)
                       Text(
-                        redDayInfo.autoHolidayName ?? AppLocalizations.of(context).entry_publicHoliday,
+                        redDayInfo.autoHolidayName ??
+                            AppLocalizations.of(context).entry_publicHoliday,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: Colors.red.shade800,
@@ -548,7 +556,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     final t = AppLocalizations.of(context);
     final isCalculating = _isCalculatingLeg[index] ?? false;
     final error = _legErrors[index];
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -575,7 +583,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   ),
                 // Source badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: leg.source == 'auto'
                         ? Colors.green.shade50
@@ -588,7 +597,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     ),
                   ),
                   child: Text(
-                    leg.source == 'auto' ? t.travel_sourceAuto : t.travel_sourceManual,
+                    leg.source == 'auto'
+                        ? t.travel_sourceAuto
+                        : t.travel_sourceManual,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: leg.source == 'auto'
                           ? Colors.green.shade700
@@ -609,7 +620,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // From location
             LocationSelector(
               labelText: AppLocalizations.of(context).entry_from,
@@ -635,7 +646,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               prefixIcon: Icons.my_location,
             ),
             const SizedBox(height: 12),
-            
+
             // To location
             LocationSelector(
               labelText: AppLocalizations.of(context).entry_to,
@@ -661,14 +672,16 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               prefixIcon: Icons.location_on,
             ),
             const SizedBox(height: 12),
-            
+
             // Duration input
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
-                    controller: _legHoursControllers[index] ??= TextEditingController(
-                      text: leg.minutes > 0 ? (leg.minutes ~/ 60).toString() : '',
+                    controller: _legHoursControllers[index] ??=
+                        TextEditingController(
+                      text:
+                          leg.minutes > 0 ? (leg.minutes ~/ 60).toString() : '',
                     ),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context).entry_hours,
@@ -678,10 +691,13 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
                       final hours = int.tryParse(value) ?? 0;
-                      final minutes = int.tryParse(_legMinutesControllers[index]?.text ?? '') ?? 0;
+                      final minutes = int.tryParse(
+                              _legMinutesControllers[index]?.text ?? '') ??
+                          0;
                       final totalMinutes = (hours * 60) + minutes;
                       setState(() {
-                        _travelLegs[index] = leg.copyWith(minutes: totalMinutes);
+                        _travelLegs[index] =
+                            leg.copyWith(minutes: totalMinutes);
                       });
                     },
                   ),
@@ -689,8 +705,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
-                    controller: _legMinutesControllers[index] ??= TextEditingController(
-                      text: leg.minutes > 0 ? (leg.minutes % 60).toString() : '',
+                    controller: _legMinutesControllers[index] ??=
+                        TextEditingController(
+                      text:
+                          leg.minutes > 0 ? (leg.minutes % 60).toString() : '',
                     ),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context).entry_minutes,
@@ -699,11 +717,14 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     ),
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
-                      final hours = int.tryParse(_legHoursControllers[index]?.text ?? '') ?? 0;
+                      final hours = int.tryParse(
+                              _legHoursControllers[index]?.text ?? '') ??
+                          0;
                       final minutes = int.tryParse(value) ?? 0;
                       final totalMinutes = (hours * 60) + minutes;
                       setState(() {
-                        _travelLegs[index] = leg.copyWith(minutes: totalMinutes);
+                        _travelLegs[index] =
+                            leg.copyWith(minutes: totalMinutes);
                       });
                     },
                   ),
@@ -711,11 +732,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Calculate button
             if (leg.fromText.isNotEmpty && leg.toText.isNotEmpty)
               OutlinedButton.icon(
-                onPressed: isCalculating ? null : () => _calculateTravelLeg(index),
+                onPressed:
+                    isCalculating ? null : () => _calculateTravelLeg(index),
                 icon: isCalculating
                     ? const SizedBox(
                         width: 16,
@@ -730,7 +752,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   minimumSize: const Size(double.infinity, 48),
                 ),
               ),
-            
+
             // Error message
             if (error != null) ...[
               const SizedBox(height: 8),
@@ -751,16 +773,17 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     setState(() {
       final previousLeg = _travelLegs.isNotEmpty ? _travelLegs.last : null;
       final newIndex = _travelLegs.length;
-      
+
       // Auto-copy previous leg's "to" to new leg's "from"
       _travelLegs.add(TravelLeg(
         fromText: previousLeg?.toText ?? '',
-        fromPlaceId: previousLeg?.toPlaceId, // Also copy placeId for better caching
+        fromPlaceId:
+            previousLeg?.toPlaceId, // Also copy placeId for better caching
         toText: '',
         minutes: 0,
         source: 'manual',
       ));
-      
+
       // Initialize controllers
       _legHoursControllers[newIndex] = TextEditingController();
       _legMinutesControllers[newIndex] = TextEditingController();
@@ -776,7 +799,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       _legMinutesControllers.remove(index);
       _isCalculatingLeg.remove(index);
       _legErrors.remove(index);
-      
+
       // Reindex controllers
       final newHoursControllers = <int, TextEditingController>{};
       final newMinutesControllers = <int, TextEditingController>{};
@@ -797,7 +820,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       _legMinutesControllers.clear();
       _legHoursControllers.addAll(newHoursControllers);
       _legMinutesControllers.addAll(newMinutesControllers);
-      
+
       _travelLegs.removeAt(index);
     });
   }
@@ -837,12 +860,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           calculatedAt: DateTime.now(),
         );
         // Update controllers
-        _legHoursControllers[index]?.text = durationMinutes > 0
-            ? (durationMinutes ~/ 60).toString()
-            : '';
-        _legMinutesControllers[index]?.text = durationMinutes > 0
-            ? (durationMinutes % 60).toString()
-            : '';
+        _legHoursControllers[index]?.text =
+            durationMinutes > 0 ? (durationMinutes ~/ 60).toString() : '';
+        _legMinutesControllers[index]?.text =
+            durationMinutes > 0 ? (durationMinutes % 60).toString() : '';
         _isCalculatingLeg[index] = false;
       });
 
@@ -851,7 +872,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context).entry_travelTimeCalculated(durationText, distanceText),
+              AppLocalizations.of(context)
+                  .entry_travelTimeCalculated(durationText, distanceText),
             ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
@@ -898,7 +920,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               _workLocation = location;
               // If toggle is ON, clear shift-specific locations so they use the new default
               if (_useLocationForAllShifts) {
-                _shifts = _shifts.map((shift) => shift.copyWith(location: null)).toList();
+                _shifts = _shifts
+                    .map((shift) => shift.copyWith(location: null))
+                    .toList();
               }
             });
           },
@@ -915,19 +939,23 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   _useLocationForAllShifts = value ?? true;
                   if (_useLocationForAllShifts) {
                     // Clear shift-specific locations so they all use the default
-                    _shifts = _shifts.map((shift) => shift.copyWith(location: null)).toList();
+                    _shifts = _shifts
+                        .map((shift) => shift.copyWith(location: null))
+                        .toList();
                   }
                 });
               },
             ),
             Expanded(
-                child: GestureDetector(
+              child: GestureDetector(
                 onTap: () {
                   setState(() {
                     _useLocationForAllShifts = !_useLocationForAllShifts;
                     if (_useLocationForAllShifts) {
                       // Clear shift-specific locations so they all use the default
-                      _shifts = _shifts.map((shift) => shift.copyWith(location: null)).toList();
+                      _shifts = _shifts
+                          .map((shift) => shift.copyWith(location: null))
+                          .toList();
                     }
                   });
                 },
@@ -976,7 +1004,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       // Clean up notes controller for removed shift
       _shiftNotesControllers[index]?.dispose();
       _shiftNotesControllers.remove(index);
-      
+
       // Reindex remaining controllers (shift indices down by 1 for shifts after removed one)
       final newControllers = <int, TextEditingController>{};
       for (var i = 0; i < _shifts.length; i++) {
@@ -1010,7 +1038,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       }
       _shiftBreakControllers.clear();
       _shiftBreakControllers.addAll(newBreakControllers);
-      
+
       _shifts.removeAt(index);
     });
   }
@@ -1044,15 +1072,17 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
       ] else ...[
         // Edit mode info text
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest
+                .withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
-              Icon(Icons.info_outline, size: 20, color: theme.colorScheme.onSurfaceVariant),
+              Icon(Icons.info_outline,
+                  size: 20, color: theme.colorScheme.onSurfaceVariant),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -1075,7 +1105,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     final spanMinutes = shift.duration.inMinutes;
     final breakMinutes = shift.unpaidBreakMinutes;
     final workedMinutes = shift.workedMinutes;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -1103,7 +1133,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Time selection row
             Row(
               children: [
@@ -1165,7 +1195,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Break control
             Text(
               t.form_unpaidBreakMinutes,
@@ -1188,7 +1218,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                         _shifts[index] = _shifts[index].copyWith(
                           unpaidBreakMinutes: minutes,
                         );
-                        _shiftBreakControllers[index]?.text = minutes.toString();
+                        _shiftBreakControllers[index]?.text =
+                            minutes.toString();
                       });
                     }
                   },
@@ -1198,7 +1229,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _shiftBreakControllers[index] ??=
-                  TextEditingController(text: shift.unpaidBreakMinutes.toString()),
+                  TextEditingController(
+                      text: shift.unpaidBreakMinutes.toString()),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
@@ -1216,12 +1248,13 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               },
             ),
             const SizedBox(height: 12),
-            
+
             // Computed values display
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                color: theme.colorScheme.surfaceContainerHighest
+                    .withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Row(
@@ -1247,7 +1280,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Shift location
             LocationSelector(
               labelText: AppLocalizations.of(context).form_shiftLocation,
@@ -1255,7 +1288,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   ? AppLocalizations.of(context).form_sameAsDefault
                   : AppLocalizations.of(context).form_shiftLocationHint,
               // When toggle is ON and shift has no specific location, show default
-              initialValue: shift.location ?? (_useLocationForAllShifts ? _workLocation : null),
+              initialValue: shift.location ??
+                  (_useLocationForAllShifts ? _workLocation : null),
               onLocationSelected: (location) {
                 setState(() {
                   // If user edits a shift location, toggle flips OFF
@@ -1264,7 +1298,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   }
                   // Only set shift.location if it's different from default (to allow null = use default)
                   if (location != _workLocation) {
-                    _shifts[index] = _shifts[index].copyWith(location: location);
+                    _shifts[index] =
+                        _shifts[index].copyWith(location: location);
                   } else {
                     // If user selects the same as default, clear shift-specific location
                     _shifts[index] = _shifts[index].copyWith(location: null);
@@ -1275,7 +1310,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               isRequired: false,
             ),
             const SizedBox(height: 12),
-            
+
             // Shift notes (collapsed by default)
             _buildShiftNotesField(theme, index, shift),
           ],
@@ -1285,9 +1320,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   Widget _buildShiftNotesField(ThemeData theme, int index, Shift shift) {
-    final controller = _shiftNotesControllers[index] ??= TextEditingController(text: shift.notes ?? '');
+    final controller = _shiftNotesControllers[index] ??=
+        TextEditingController(text: shift.notes ?? '');
     final hasNotes = controller.text.isNotEmpty;
-    
+
     return ExpansionTile(
       initiallyExpanded: hasNotes,
       title: Row(
@@ -1329,7 +1365,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             textCapitalization: TextCapitalization.sentences,
             onChanged: (value) {
               setState(() {
-                _shifts[index] = _shifts[index].copyWith(notes: value.trim().isEmpty ? null : value.trim());
+                _shifts[index] = _shifts[index].copyWith(
+                    notes: value.trim().isEmpty ? null : value.trim());
               });
             },
           ),
@@ -1338,7 +1375,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     );
   }
 
-  Widget _buildComputedValue(ThemeData theme, String label, String value, {bool isHighlighted = false}) {
+  Widget _buildComputedValue(ThemeData theme, String label, String value,
+      {bool isHighlighted = false}) {
     return Column(
       children: [
         Text(
@@ -1388,7 +1426,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
   Widget _buildActionButtons(ThemeData theme) {
     final t = AppLocalizations.of(context);
-    
+
     if (_isEditMode) {
       // Edit mode: Show "Add new entry" button + Save button
       return Column(
@@ -1432,7 +1470,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ],
       );
     }
-    
+
     // Create mode: Show Cancel + Save buttons
     return Row(
       children: [
@@ -1472,13 +1510,13 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   /// Open create entry form for the same date (and optionally prefill from current entry)
   void _openCreateEntryForDate() {
     if (!_isEditMode) return;
-    
+
     // Close current edit form
     Navigator.of(context).pop();
-    
+
     // Get the date from the entry being edited
     final editDate = widget.existingEntry!.date;
-    
+
     // Show create form in a bottom sheet with same date
     showModalBottomSheet(
       context: context,
@@ -1672,7 +1710,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(t.error_breakExceedsSpan(i + 1, shift.unpaidBreakMinutes, spanMinutes)),
+              content: Text(t.error_breakExceedsSpan(
+                  i + 1, shift.unpaidBreakMinutes, spanMinutes)),
               backgroundColor: Colors.red,
             ),
           );
@@ -1702,7 +1741,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         _selectedDate.day,
       );
 
-      final dayNotes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
+      final dayNotes = _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim();
 
       if (widget.entryType == EntryType.work) {
         // WORK MODE: Save one Entry per shift (atomic entries)
@@ -1712,10 +1753,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           final shift = entry.value;
           final notesController = _shiftNotesControllers[shiftIndex];
           final shiftNotes = notesController?.text.trim();
-          
+
           // Effective location: shift-specific if set, otherwise use default
           final effectiveLocation = shift.location ?? _workLocation;
-          
+
           final finalShift = shift.copyWith(
             // Use effective location (shift-specific or default)
             location: effectiveLocation,
@@ -1736,12 +1777,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               shift.end.minute,
             ),
           );
-          
+
           // Debug logging to verify break/notes persistence
           debugPrint('UnifiedEntryForm: Shift ${shiftIndex + 1} before save - '
               'break=${finalShift.unpaidBreakMinutes}, notes=${finalShift.notes}, '
               'location=${finalShift.location}');
-          
+
           return finalShift;
         }).toList();
 
@@ -1861,12 +1902,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        
+
         // Determine how many entries were saved
-        final entryCount = widget.entryType == EntryType.work 
-            ? _shifts.length 
+        final entryCount = widget.entryType == EntryType.work
+            ? _shifts.length
             : _travelLegs.length;
-        
+
         // Show success message (batch addEntries shows single message)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

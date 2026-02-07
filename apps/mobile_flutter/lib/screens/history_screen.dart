@@ -181,10 +181,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Semantics(
       label: '$label entries filter',
-      hint:
-          isSelected 
-            ? AppLocalizations.of(context).history_currentlySelected 
-            : AppLocalizations.of(context).history_tapToFilter(label),
+      hint: isSelected
+          ? AppLocalizations.of(context).history_currentlySelected
+          : AppLocalizations.of(context).history_tapToFilter(label),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -244,16 +243,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
               final t = AppLocalizations.of(context);
               return Row(
                 children: [
-                  _buildDateChip(context, t.common_today, DateRange.today, selectedRange),
-                  const SizedBox(width: 8),
                   _buildDateChip(
-                      context, t.history_yesterday, DateRange.yesterday, selectedRange),
+                      context, t.common_today, DateRange.today, selectedRange),
                   const SizedBox(width: 8),
-                  _buildDateChip(
-                      context, t.history_last7Days, DateRange.lastWeek, selectedRange),
+                  _buildDateChip(context, t.history_yesterday,
+                      DateRange.yesterday, selectedRange),
                   const SizedBox(width: 8),
-                  _buildDateChip(
-                      context, t.history_custom, DateRange.custom, selectedRange),
+                  _buildDateChip(context, t.history_last7Days,
+                      DateRange.lastWeek, selectedRange),
+                  const SizedBox(width: 8),
+                  _buildDateChip(context, t.history_custom, DateRange.custom,
+                      selectedRange),
                 ],
               );
             },
@@ -417,14 +417,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
               final entry = entries[index];
               // For work entries with multiple shifts, show each shift as a row
-              if (entry.type == EntryType.work && 
-                  entry.shifts != null && 
+              if (entry.type == EntryType.work &&
+                  entry.shifts != null &&
                   entry.shifts!.length > 1) {
                 return _buildWorkEntryWithShifts(context, entry);
               }
               // For travel entries with multiple legs, show each leg as a row
-              if (entry.type == EntryType.travel && 
-                  entry.travelLegs != null && 
+              if (entry.type == EntryType.travel &&
+                  entry.travelLegs != null &&
                   entry.travelLegs!.length > 1) {
                 return _buildTravelEntryWithLegs(context, entry);
               }
@@ -447,9 +447,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final Color lightColor = isWorkEntry
         ? const Color(0xFF10B981) // Emerald for work
         : const Color(0xFF6366F1); // Indigo for travel
-    final Color darkColor = isWorkEntry
-        ? const Color(0xFF059669)
-        : const Color(0xFF4F46E5);
+    final Color darkColor =
+        isWorkEntry ? const Color(0xFF059669) : const Color(0xFF4F46E5);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -562,9 +561,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           if (entry.isHolidayWork) ...[
                             const SizedBox(width: 6),
                             Tooltip(
-                              message: AppLocalizations.of(context).history_holidayWork(
-                                entry.holidayName ?? AppLocalizations.of(context).history_redDay
-                              ),
+                              message: AppLocalizations.of(context)
+                                  .history_holidayWork(entry.holidayName ??
+                                      AppLocalizations.of(context)
+                                          .history_redDay),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
@@ -575,7 +575,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  AppLocalizations.of(context).history_holidayWorkBadge,
+                                  AppLocalizations.of(context)
+                                      .history_holidayWorkBadge,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -589,7 +590,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             if (holidayInfo != null) ...[
                               const SizedBox(width: 6),
                               Tooltip(
-                                message: AppLocalizations.of(context).history_autoMarked(holidayInfo.name),
+                                message: AppLocalizations.of(context)
+                                    .history_autoMarked(holidayInfo.name),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 6,
@@ -600,7 +602,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    AppLocalizations.of(context).history_autoBadge,
+                                    AppLocalizations.of(context)
+                                        .history_autoBadge,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 10,
@@ -615,7 +618,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        entry.description ?? AppLocalizations.of(context).history_noDescription,
+                        entry.description ??
+                            AppLocalizations.of(context).history_noDescription,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -627,7 +631,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             child: Text(
                               _formatEntryDateTime(entry),
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.7),
                               ),
                             ),
                           ),
@@ -772,7 +777,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   void _showDeleteConfirmation(BuildContext context, Entry entry) {
     final t = AppLocalizations.of(context);
-    final typeStr = entry.type == EntryType.travel ? t.entry_travel : t.entry_work;
+    final typeStr =
+        entry.type == EntryType.travel ? t.entry_travel : t.entry_work;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -834,16 +840,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   String _formatEntryDateTime(Entry entry) {
     final dateStr = DateFormat('MMM dd, yyyy').format(entry.date);
-    
+
     // For work entries with shifts, show time range
-    if (entry.type == EntryType.work && entry.shifts != null && entry.shifts!.isNotEmpty) {
+    if (entry.type == EntryType.work &&
+        entry.shifts != null &&
+        entry.shifts!.isNotEmpty) {
       final firstShift = entry.shifts!.first;
       final lastShift = entry.shifts!.last;
       final startTime = DateFormat('h:mm a').format(firstShift.start);
       final endTime = DateFormat('h:mm a').format(lastShift.end);
       return '$dateStr • $startTime - $endTime';
     }
-    
+
     // For travel entries, just show the date
     return dateStr;
   }
@@ -854,7 +862,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final colorScheme = theme.colorScheme;
     final t = AppLocalizations.of(context);
     final dateStr = DateFormat('dd/MM').format(entry.date);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -863,7 +871,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           final shiftIndex = shiftEntry.key;
           final shift = shiftEntry.value;
           final shiftNumber = shiftIndex + 1;
-          
+
           return Card(
             elevation: 1,
             margin: EdgeInsets.only(
@@ -898,7 +906,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             Text(
                               t.form_shiftLabel(shiftNumber),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -916,14 +925,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            if (shift.location != null && shift.location!.isNotEmpty) ...[
+                            if (shift.location != null &&
+                                shift.location!.isNotEmpty) ...[
                               const SizedBox(height: 4),
                               Row(
                                 children: [
                                   Icon(
                                     Icons.location_on,
                                     size: 14,
-                                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                    color: colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.7),
                                   ),
                                   const SizedBox(width: 4),
                                   Flexible(
@@ -931,8 +942,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       shift.location!.length > 25
                                           ? '${shift.location!.substring(0, 25)}...'
                                           : shift.location!,
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurfaceVariant
+                                            .withValues(alpha: 0.7),
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -961,7 +974,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: colorScheme.secondary.withValues(alpha: 0.1),
+                              color:
+                                  colorScheme.secondary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -981,7 +995,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           );
         }),
-        
+
         // Daily total line
         Container(
           margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
@@ -1028,7 +1042,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final colorScheme = theme.colorScheme;
     final t = AppLocalizations.of(context);
     final dateStr = DateFormat('dd/MM').format(entry.date);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1037,7 +1051,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           final legIndex = legEntry.key;
           final leg = legEntry.value;
           final legNumber = legIndex + 1;
-          
+
           return Card(
             elevation: 1,
             margin: EdgeInsets.only(
@@ -1072,7 +1086,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             Text(
                               t.travel_legLabel(legNumber),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -1094,14 +1109,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             Row(
                               children: [
                                 Text(
-                                  _formatDuration(Duration(minutes: leg.minutes)),
+                                  _formatDuration(
+                                      Duration(minutes: leg.minutes)),
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                    color: colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.7),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: leg.source == 'auto'
                                         ? Colors.green.shade50
@@ -1109,7 +1127,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    leg.source == 'auto' ? t.travel_sourceAuto : t.travel_sourceManual,
+                                    leg.source == 'auto'
+                                        ? t.travel_sourceAuto
+                                        : t.travel_sourceManual,
                                     style: theme.textTheme.labelSmall?.copyWith(
                                       color: leg.source == 'auto'
                                           ? Colors.green.shade700
@@ -1130,7 +1150,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           );
         }),
-        
+
         // Daily total line
         Container(
           margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),

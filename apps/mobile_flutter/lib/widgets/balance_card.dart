@@ -9,7 +9,7 @@ class BalanceCard extends StatefulWidget {
   final DateTime? selectedDate;
   final VoidCallback? onTap;
   final bool showDetails;
-  
+
   const BalanceCard({
     super.key,
     this.selectedDate,
@@ -34,7 +34,7 @@ class _BalanceCardState extends State<BalanceCard>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
@@ -42,7 +42,7 @@ class _BalanceCardState extends State<BalanceCard>
       parent: _animationController,
       curve: Curves.elasticOut,
     ));
-    
+
     _progressAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -50,7 +50,7 @@ class _BalanceCardState extends State<BalanceCard>
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     _animationController.forward();
   }
 
@@ -64,12 +64,12 @@ class _BalanceCardState extends State<BalanceCard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Consumer<TravelProvider>(
       builder: (context, travelProvider, child) {
         final selectedDate = widget.selectedDate ?? DateTime.now();
         final dayStats = _calculateDayStats(travelProvider, selectedDate);
-        
+
         return AnimatedBuilder(
           animation: _animationController,
           builder: (context, child) {
@@ -121,7 +121,7 @@ class _BalanceCardState extends State<BalanceCard>
 
   Widget _buildHeader(ThemeData theme, DayStats stats) {
     final colorScheme = theme.colorScheme;
-    
+
     return Row(
       children: [
         Container(
@@ -167,7 +167,7 @@ class _BalanceCardState extends State<BalanceCard>
   Widget _buildBalanceIndicator(ThemeData theme, DayStats stats) {
     final colorScheme = theme.colorScheme;
     final isBalanced = (stats.workMinutes - stats.travelMinutes).abs() <= 30;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -186,9 +186,9 @@ class _BalanceCardState extends State<BalanceCard>
           ),
           const SizedBox(width: 6),
           Text(
-            isBalanced 
-              ? AppLocalizations.of(context).balance_balanced
-              : AppLocalizations.of(context).balance_unbalanced,
+            isBalanced
+                ? AppLocalizations.of(context).balance_balanced
+                : AppLocalizations.of(context).balance_unbalanced,
             style: theme.textTheme.labelSmall?.copyWith(
               color: isBalanced ? colorScheme.tertiary : colorScheme.error,
               fontWeight: FontWeight.w600,
@@ -203,7 +203,7 @@ class _BalanceCardState extends State<BalanceCard>
     final colorScheme = theme.colorScheme;
     final totalMinutes = stats.totalMinutes;
     final workRatio = totalMinutes > 0 ? stats.workMinutes / totalMinutes : 0.0;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -250,7 +250,8 @@ class _BalanceCardState extends State<BalanceCard>
                     ),
                   ),
                   Expanded(
-                    flex: ((1 - workRatio) * _progressAnimation.value * 100).toInt(),
+                    flex: ((1 - workRatio) * _progressAnimation.value * 100)
+                        .toInt(),
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: const BorderRadius.only(
@@ -277,7 +278,7 @@ class _BalanceCardState extends State<BalanceCard>
 
   Widget _buildDetailRow(ThemeData theme, DayStats stats) {
     final colorScheme = theme.colorScheme;
-    
+
     return Row(
       children: [
         Expanded(
@@ -321,7 +322,7 @@ class _BalanceCardState extends State<BalanceCard>
     required Color color,
   }) {
     final colorScheme = theme.colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(

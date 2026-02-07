@@ -5,13 +5,13 @@ import 'location.dart';
 enum SuggestionType {
   /// A location marked as favorite
   favorite,
-  
+
   /// A recently used location
   recent,
-  
+
   /// A saved location (not favorite or recent)
   saved,
-  
+
   /// A custom location entered by the user
   custom,
 }
@@ -21,13 +21,13 @@ enum SuggestionType {
 class AutocompleteSuggestion {
   /// The text to display as the main suggestion
   final String text;
-  
+
   /// Additional text to display below the main suggestion
   final String subtitle;
-  
+
   /// The type of suggestion (favorite, recent, saved, or custom)
   final SuggestionType type;
-  
+
   /// The associated Location object (null for custom suggestions)
   final Location? location;
 

@@ -18,12 +18,11 @@ import 'flexsaldo_card_test.mocks.dart';
 
 @GenerateMocks([SupabaseAuthService])
 void main() {
-  
   setUpAll(() async {
     HttpOverrides.global = null;
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
-  
+
     await Supabase.initialize(
       url: 'https://dummy.supabase.co',
       anonKey: 'dummy',
@@ -54,8 +53,10 @@ void main() {
         supportedLocales: const [Locale('en')],
         home: MultiProvider(
           providers: [
-            ChangeNotifierProvider<EntryProvider>.value(value: mockEntryProvider),
-            ChangeNotifierProvider<ContractProvider>.value(value: mockContractProvider),
+            ChangeNotifierProvider<EntryProvider>.value(
+                value: mockEntryProvider),
+            ChangeNotifierProvider<ContractProvider>.value(
+                value: mockContractProvider),
             ChangeNotifierProvider<TimeProvider>.value(value: timeProvider),
           ],
           child: Scaffold(
@@ -65,7 +66,8 @@ void main() {
       );
     }
 
-    testWidgets('renders FlexsaldoCard with month title and status', (tester) async {
+    testWidgets('renders FlexsaldoCard with month title and status',
+        (tester) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 

@@ -4,14 +4,14 @@ import '../models/weekly_summary.dart';
 /// Utility class for calculating time balance and yearly running totals
 class TimeBalanceCalculator {
   /// Calculate yearly running balance from monthly summaries
-  /// 
+  ///
   /// Iterates through months chronologically and calculates:
   /// - Monthly variance = actualWorkedHours - targetHours
   /// - Cumulative yearly balance (running sum of variances)
-  /// 
+  ///
   /// [monthlySummaries] List of MonthlySummary objects, should be sorted chronologically
   /// [targetHours] Target hours per month (default: 160)
-  /// 
+  ///
   /// Returns the cumulative yearly balance (positive = credit, negative = debt)
   static double calculateYearlyBalance(
     List<MonthlySummary> monthlySummaries, {
@@ -30,7 +30,7 @@ class TimeBalanceCalculator {
     for (final summary in sorted) {
       // Calculate monthly variance
       final monthlyVariance = summary.actualWorkedHours - targetHours;
-      
+
       // Add to running sum
       cumulativeYearlyBalance += monthlyVariance;
     }
@@ -39,10 +39,10 @@ class TimeBalanceCalculator {
   }
 
   /// Calculate monthly variance for a specific month
-  /// 
+  ///
   /// [actualWorkedHours] Hours actually worked in the month
   /// [targetHours] Target hours for the month (default: 160)
-  /// 
+  ///
   /// Returns the variance (positive = over, negative = under)
   static double calculateMonthlyVariance(
     double actualWorkedHours, {
@@ -52,7 +52,7 @@ class TimeBalanceCalculator {
   }
 
   /// Get detailed breakdown of monthly variances and cumulative balance
-  /// 
+  ///
   /// Returns a map with:
   /// - 'yearlyBalance': cumulative balance
   /// - 'monthlyVariances': list of variances per month
@@ -95,14 +95,14 @@ class TimeBalanceCalculator {
   }
 
   /// Calculate yearly running balance from weekly summaries
-  /// 
+  ///
   /// Iterates through weeks chronologically and calculates:
   /// - Weekly variance = actualWorkedHours - targetHours
   /// - Cumulative yearly balance (running sum of variances)
-  /// 
+  ///
   /// [weeklySummaries] List of WeeklySummary objects, should be sorted chronologically
   /// [targetHours] Target hours per week (default: 40)
-  /// 
+  ///
   /// Returns the cumulative yearly balance (positive = credit, negative = debt)
   static double calculateYearlyBalanceFromWeeks(
     List<WeeklySummary> weeklySummaries, {
@@ -123,7 +123,7 @@ class TimeBalanceCalculator {
     for (final summary in sorted) {
       // Calculate weekly variance
       final weeklyVariance = summary.actualWorkedHours - targetHours;
-      
+
       // Add to running sum
       cumulativeYearlyBalance += weeklyVariance;
     }
@@ -132,10 +132,10 @@ class TimeBalanceCalculator {
   }
 
   /// Calculate weekly variance for a specific week
-  /// 
+  ///
   /// [actualWorkedHours] Hours actually worked in the week
   /// [targetHours] Target hours for the week (default: 40)
-  /// 
+  ///
   /// Returns the variance (positive = over, negative = under)
   static double calculateWeeklyVariance(
     double actualWorkedHours, {
@@ -145,7 +145,7 @@ class TimeBalanceCalculator {
   }
 
   /// Get detailed breakdown of weekly variances and cumulative balance
-  /// 
+  ///
   /// Returns a map with:
   /// - 'yearlyBalance': cumulative balance
   /// - 'weeklyVariances': list of variances per week
@@ -190,4 +190,3 @@ class TimeBalanceCalculator {
     };
   }
 }
-

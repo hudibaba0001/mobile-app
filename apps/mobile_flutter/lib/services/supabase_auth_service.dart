@@ -48,7 +48,8 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     final session = currentSession;
     if (session?.expiresAt == null) return null;
 
-    final expiryTime = DateTime.fromMillisecondsSinceEpoch(session!.expiresAt! * 1000);
+    final expiryTime =
+        DateTime.fromMillisecondsSinceEpoch(session!.expiresAt! * 1000);
     final remaining = expiryTime.difference(DateTime.now());
     return remaining.isNegative ? Duration.zero : remaining;
   }
@@ -63,7 +64,8 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
       print('SupabaseAuthService: Auth event: $event');
 
       if (data.session != null) {
-        print('SupabaseAuthService: User authenticated: ${data.session!.user.email}');
+        print(
+            'SupabaseAuthService: User authenticated: ${data.session!.user.email}');
         _sessionExpiredNotified = false; // Reset on successful auth
       } else {
         print('SupabaseAuthService: User signed out or session expired');
@@ -185,7 +187,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
       // For now, we'll use a placeholder that Supabase will handle
       // The actual redirect URL should be configured in Supabase dashboard
       final redirectTo = 'kviktime://reset-password';
-      
+
       await _supabase.auth.resetPasswordForEmail(
         email,
         redirectTo: redirectTo,
@@ -227,16 +229,16 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     try {
       final user = currentUser;
       if (user == null) throw Exception('No authenticated user');
-      
+
       final updates = <String, dynamic>{};
       if (displayName != null) {
         updates['data'] = {'full_name': displayName};
       }
-      
+
       await _supabase.auth.updateUser(UserAttributes(
         data: updates['data'],
       ));
-      
+
       print('SupabaseAuthService: Profile updated successfully');
     } catch (e) {
       print('SupabaseAuthService: Failed to update profile: $e');
@@ -265,7 +267,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     String? displayName,
   }) async {
     await signUp(email, password);
-    
+
     // Update user metadata with display name if provided
     if (displayName != null) {
       await updateUserProfile(displayName: displayName);

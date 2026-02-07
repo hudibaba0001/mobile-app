@@ -1,5 +1,5 @@
 /// Model representing a balance adjustment entry
-/// 
+///
 /// Adjustments shift the running balance by +/- minutes without changing
 /// worked hours, scheduled hours, or credits. Used for manager corrections
 /// or manual balance fixes.
@@ -38,11 +38,11 @@ class BalanceAdjustment {
       effectiveDate: effectiveDate,
       deltaMinutes: map['delta_minutes'] as int,
       note: map['note'] as String?,
-      createdAt: map['created_at'] != null 
-          ? DateTime.parse(map['created_at'] as String) 
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'] as String)
           : null,
-      updatedAt: map['updated_at'] != null 
-          ? DateTime.parse(map['updated_at'] as String) 
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'] as String)
           : null,
     );
   }
@@ -69,7 +69,7 @@ class BalanceAdjustment {
     final absMinutes = deltaMinutes.abs();
     final hours = absMinutes ~/ 60;
     final mins = absMinutes % 60;
-    
+
     final sign = isNegative ? '−' : '+';
     if (mins == 0) {
       return '$sign${hours}h';

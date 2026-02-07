@@ -12,7 +12,8 @@ class AbsenceManagementScreen extends StatefulWidget {
   const AbsenceManagementScreen({super.key});
 
   @override
-  State<AbsenceManagementScreen> createState() => _AbsenceManagementScreenState();
+  State<AbsenceManagementScreen> createState() =>
+      _AbsenceManagementScreenState();
 }
 
 class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
@@ -34,7 +35,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(t.absence_title),
@@ -138,10 +139,10 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
             absencesByMonth.putIfAbsent(month, () => []).add(absence);
           }
 
-            return ListView.builder(
-              padding: AppSpacing.pagePadding,
-              itemCount: absencesByMonth.length,
-              itemBuilder: (context, index) {
+          return ListView.builder(
+            padding: AppSpacing.pagePadding,
+            itemCount: absencesByMonth.length,
+            itemBuilder: (context, index) {
               final month = absencesByMonth.keys.toList()..sort();
               final monthAbsences = absencesByMonth[month[index]]!;
               final monthName = DateFormat('MMMM yyyy').format(
@@ -152,7 +153,8 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                     child: Text(
                       monthName,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -183,7 +185,8 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     final dateFormat = DateFormat('EEEE, MMMM d');
     final dateStr = dateFormat.format(absence.date);
 
-    final (typeLabel, typeIcon, typeColor) = _getTypeInfo(context, absence.type);
+    final (typeLabel, typeIcon, typeColor) =
+        _getTypeInfo(context, absence.type);
 
     final hours = absence.minutes == 0
         ? t.absence_fullDay
@@ -223,7 +226,8 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     );
   }
 
-  (String, IconData, Color) _getTypeInfo(BuildContext context, AbsenceType type) {
+  (String, IconData, Color) _getTypeInfo(
+      BuildContext context, AbsenceType type) {
     final t = AppLocalizations.of(context);
     switch (type) {
       case AbsenceType.vacationPaid:
@@ -249,7 +253,8 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     await showAbsenceEntryDialog(context, year: _selectedYear);
   }
 
-  Future<void> _showEditAbsenceDialog(BuildContext context, AbsenceEntry absence) async {
+  Future<void> _showEditAbsenceDialog(
+      BuildContext context, AbsenceEntry absence) async {
     await showAbsenceEntryDialog(
       context,
       year: _selectedYear,
@@ -259,7 +264,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
 
   void _showDeleteConfirmation(BuildContext context, AbsenceEntry absence) {
     final t = AppLocalizations.of(context);
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -282,10 +287,11 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     );
   }
 
-  Future<void> _deleteAbsence(BuildContext context, AbsenceEntry absence) async {
+  Future<void> _deleteAbsence(
+      BuildContext context, AbsenceEntry absence) async {
     final t = AppLocalizations.of(context);
     final absenceProvider = context.read<AbsenceProvider>();
-    
+
     try {
       await absenceProvider.deleteAbsenceEntry(absence.id!, absence.date.year);
       if (context.mounted) {
@@ -307,5 +313,4 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
       }
     }
   }
-
 }

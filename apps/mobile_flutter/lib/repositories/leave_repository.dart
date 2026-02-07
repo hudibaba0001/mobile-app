@@ -10,9 +10,7 @@ class LeaveRepository {
 
   /// Get all leave entries for a user
   List<LeaveEntry> getAllForUser(String userId) {
-    return _box.values
-        .where((entry) => entry.userId == userId)
-        .toList()
+    return _box.values.where((entry) => entry.userId == userId).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 

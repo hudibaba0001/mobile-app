@@ -114,8 +114,7 @@ class _TrendsTabState extends State<TrendsTab> {
               child: LinearProgressIndicator(
                 minHeight: 2,
                 color: colorScheme.primary,
-                backgroundColor:
-                    colorScheme.primary.withValues(alpha: 0.15),
+                backgroundColor: colorScheme.primary.withValues(alpha: 0.15),
               ),
             ),
           if (visibleMonths.isEmpty)
@@ -143,9 +142,8 @@ class _TrendsTabState extends State<TrendsTab> {
                 children: visibleMonths.asMap().entries.map((mapEntry) {
                   final index = mapEntry.key;
                   final month = mapEntry.value;
-                  final leaves =
-                      leaveSummaries[_monthKey(month.month)] ??
-                          _MonthlyLeaveSummary.empty;
+                  final leaves = leaveSummaries[_monthKey(month.month)] ??
+                      _MonthlyLeaveSummary.empty;
                   final isLast = index == visibleMonths.length - 1;
                   return Column(
                     children: [
@@ -310,9 +308,8 @@ class _TrendsTabState extends State<TrendsTab> {
     // Calculate variance (actual - target)
     final varianceHours = month.totalHours - monthlyTargetHours;
     final isAhead = varianceHours >= 0;
-    final statusColor = isAhead
-        ? FlexsaldoColors.positive
-        : FlexsaldoColors.negative;
+    final statusColor =
+        isAhead ? FlexsaldoColors.positive : FlexsaldoColors.negative;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -438,13 +435,16 @@ class _TrendsTabState extends State<TrendsTab> {
                 runSpacing: AppSpacing.xs,
                 children: [
                   if (leaves.paidVacation > 0)
-                    _buildLeaveLabel(theme, '${leaves.paidVacation} ${t.leave_paidVacation}'),
+                    _buildLeaveLabel(theme,
+                        '${leaves.paidVacation} ${t.leave_paidVacation}'),
                   if (leaves.sickLeave > 0)
-                    _buildLeaveLabel(theme, '${leaves.sickLeave} ${t.leave_sickLeave}'),
+                    _buildLeaveLabel(
+                        theme, '${leaves.sickLeave} ${t.leave_sickLeave}'),
                   if (leaves.vab > 0)
                     _buildLeaveLabel(theme, '${leaves.vab} ${t.leave_vab}'),
                   if (leaves.unpaid > 0)
-                    _buildLeaveLabel(theme, '${leaves.unpaid} ${t.leave_unpaid}'),
+                    _buildLeaveLabel(
+                        theme, '${leaves.unpaid} ${t.leave_unpaid}'),
                 ],
               ),
             ),
@@ -463,7 +463,6 @@ class _TrendsTabState extends State<TrendsTab> {
       ),
     );
   }
-
 
   String _monthKey(DateTime date) {
     final month = date.month.toString().padLeft(2, '0');
@@ -712,6 +711,5 @@ class _MonthlyLeaveSummary {
     unpaid: 0,
   );
 
-  bool get hasAny =>
-      paidVacation > 0 || sickLeave > 0 || vab > 0 || unpaid > 0;
+  bool get hasAny => paidVacation > 0 || sickLeave > 0 || vab > 0 || unpaid > 0;
 }

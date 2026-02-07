@@ -33,7 +33,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
   @override
   void initState() {
     super.initState();
-    
+
     if (widget.existingAdjustment != null) {
       final adj = widget.existingAdjustment!;
       _selectedDate = adj.effectiveDate;
@@ -65,7 +65,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
       helpText: 'Adjustment effective date',
     );
-    
+
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
@@ -78,32 +78,34 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
     // Validate
     final hoursText = _hoursController.text.trim();
     final minutesText = _minutesController.text.trim();
-    
+
     final hours = int.tryParse(hoursText.isEmpty ? '0' : hoursText) ?? 0;
     final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
-    
+
     if (hours == 0 && minutes == 0) {
       setState(() => _error = t.adjustment_enterAmount);
       return;
     }
-    
+
     if (minutes < 0 || minutes >= 60) {
       setState(() => _error = t.contract_minutesError);
       return;
     }
-    
+
     final totalMinutes = (hours * 60) + minutes;
     final deltaMinutes = _isCredit ? totalMinutes : -totalMinutes;
-    final note = _noteController.text.trim().isEmpty ? null : _noteController.text.trim();
-    
+    final note = _noteController.text.trim().isEmpty
+        ? null
+        : _noteController.text.trim();
+
     setState(() {
       _isSaving = true;
       _error = null;
     });
-    
+
     try {
       final provider = context.read<BalanceAdjustmentProvider>();
-      
+
       if (_isEditing) {
         await provider.updateAdjustment(
           id: widget.existingAdjustment!.id!,
@@ -118,7 +120,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
           note: note,
         );
       }
-      
+
       if (mounted) {
         Navigator.of(context).pop(true); // Return true to indicate success
       }
@@ -133,7 +135,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
   Future<void> _delete() async {
     final t = AppLocalizations.of(context);
     if (!_isEditing || widget.existingAdjustment?.id == null) return;
-    
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -152,17 +154,17 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
         ],
       ),
     );
-    
+
     if (confirmed == true && mounted) {
       setState(() => _isSaving = true);
-      
+
       try {
         final provider = context.read<BalanceAdjustmentProvider>();
         await provider.deleteAdjustment(
           widget.existingAdjustment!.id!,
           _selectedDate.year,
         );
-        
+
         if (mounted) {
           Navigator.of(context).pop(true);
         }
@@ -190,7 +192,10 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
             color: colorScheme.primary,
           ),
           const SizedBox(width: 12),
-          Flexible(child: Text(_isEditing ? t.adjustment_editAdjustment : t.adjustment_addAdjustment)),
+          Flexible(
+              child: Text(_isEditing
+                  ? t.adjustment_editAdjustment
+                  : t.adjustment_addAdjustment)),
         ],
       ),
       content: SingleChildScrollView(
@@ -215,25 +220,27 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today, size: 20, color: colorScheme.primary),
+                    Icon(Icons.calendar_today,
+                        size: 20, color: colorScheme.primary),
                     const SizedBox(width: 12),
                     Text(dateFormat.format(_selectedDate)),
                     const Spacer(),
-                    Icon(Icons.edit, size: 18, color: colorScheme.onSurfaceVariant),
+                    Icon(Icons.edit,
+                        size: 18, color: colorScheme.onSurfaceVariant),
                   ],
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Amount input
             Text(
               t.adjustment_amount,
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: 8),
-            
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -259,14 +266,18 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                     fillColor: _isCredit ? Colors.green : Colors.red,
                     color: colorScheme.onSurface,
                     children: [
-                      Text('+', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                      Text('−', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('+',
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('−',
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(width: 12),
-                
+
                 // Hours
                 Expanded(
                   child: TextField(
@@ -286,9 +297,9 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(width: 8),
-                
+
                 // Minutes
                 SizedBox(
                   width: 80,
@@ -311,9 +322,9 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Note
             Text(
               t.form_notesOptional,
@@ -331,7 +342,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                 contentPadding: const EdgeInsets.all(16),
               ),
             ),
-            
+
             if (_error != null) ...[
               const SizedBox(height: 16),
               Container(
@@ -342,7 +353,8 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline, color: colorScheme.error, size: 20),
+                    Icon(Icons.error_outline,
+                        color: colorScheme.error, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(

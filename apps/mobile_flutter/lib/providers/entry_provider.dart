@@ -9,9 +9,9 @@ import '../utils/retry_helper.dart';
 
 /// Conflict resolution strategy when server and local have different versions
 enum ConflictStrategy {
-  serverWins,  // Always use server version (default - safest for data integrity)
-  localWins,   // Always use local version
-  newerWins,   // Use whichever has a more recent updatedAt timestamp
+  serverWins, // Always use server version (default - safest for data integrity)
+  localWins, // Always use local version
+  newerWins, // Use whichever has a more recent updatedAt timestamp
 }
 
 class EntryProvider extends ChangeNotifier {
@@ -89,48 +89,60 @@ class EntryProvider extends ChangeNotifier {
         // Test connection first
         final connectionOk = await _supabaseService.testConnection();
         if (!connectionOk) {
-          debugPrint('EntryProvider: ⚠️ Supabase connection test failed, will use local cache');
+          debugPrint(
+              'EntryProvider: ⚠️ Supabase connection test failed, will use local cache');
         }
-        
+
         debugPrint('EntryProvider: Loading entries from Supabase...');
         supabaseEntries = await _supabaseService.getAllEntries(userId);
-        debugPrint('EntryProvider: Loaded ${supabaseEntries.length} entries from Supabase');
-        
+        debugPrint(
+            'EntryProvider: Loaded ${supabaseEntries.length} entries from Supabase');
+
         // If Supabase is empty, check local cache and sync if needed
         if (supabaseEntries.isEmpty) {
-          debugPrint('EntryProvider: Supabase is empty, checking local cache...');
+          debugPrint(
+              'EntryProvider: Supabase is empty, checking local cache...');
           final localEntries = await _loadFromLocalCache(userId);
-          debugPrint('EntryProvider: Found ${localEntries.length} entries in local cache');
-          
+          debugPrint(
+              'EntryProvider: Found ${localEntries.length} entries in local cache');
+
           if (localEntries.isNotEmpty) {
-            debugPrint('EntryProvider: 🔄 Starting sync of ${localEntries.length} local entries to Supabase...');
+            debugPrint(
+                'EntryProvider: 🔄 Starting sync of ${localEntries.length} local entries to Supabase...');
             int syncedCount = 0;
             int failedCount = 0;
-            
+
             // Sync local entries to Supabase
             for (final entry in localEntries) {
               try {
-                debugPrint('EntryProvider: Attempting to sync entry ${entry.id} (${entry.type}) to Supabase...');
+                debugPrint(
+                    'EntryProvider: Attempting to sync entry ${entry.id} (${entry.type}) to Supabase...');
                 await _supabaseService.addEntry(entry);
                 syncedCount++;
-                debugPrint('EntryProvider: ✅ Successfully synced entry ${entry.id} to Supabase');
+                debugPrint(
+                    'EntryProvider: ✅ Successfully synced entry ${entry.id} to Supabase');
               } catch (e) {
                 failedCount++;
-                debugPrint('EntryProvider: ❌ Failed to sync entry ${entry.id}: $e');
+                debugPrint(
+                    'EntryProvider: ❌ Failed to sync entry ${entry.id}: $e');
                 debugPrint('EntryProvider: Entry data: ${entry.toJson()}');
                 // Continue with other entries even if one fails
               }
             }
-            
-            debugPrint('EntryProvider: Sync complete - Success: $syncedCount, Failed: $failedCount');
-            
+
+            debugPrint(
+                'EntryProvider: Sync complete - Success: $syncedCount, Failed: $failedCount');
+
             // Reload from Supabase after sync
             if (syncedCount > 0) {
-              debugPrint('EntryProvider: Reloading entries from Supabase after sync...');
+              debugPrint(
+                  'EntryProvider: Reloading entries from Supabase after sync...');
               supabaseEntries = await _supabaseService.getAllEntries(userId);
-              debugPrint('EntryProvider: ✅ Reloaded ${supabaseEntries.length} entries from Supabase after sync');
+              debugPrint(
+                  'EntryProvider: ✅ Reloaded ${supabaseEntries.length} entries from Supabase after sync');
             } else {
-              debugPrint('EntryProvider: ⚠️ No entries were synced, using local cache');
+              debugPrint(
+                  'EntryProvider: ⚠️ No entries were synced, using local cache');
               supabaseEntries = localEntries;
             }
           } else {
@@ -140,30 +152,34 @@ class EntryProvider extends ChangeNotifier {
           // Supabase has entries, but check if local has more (shouldn't happen, but just in case)
           final localEntries = await _loadFromLocalCache(userId);
           if (localEntries.length > supabaseEntries.length) {
-            debugPrint('EntryProvider: ⚠️ Local cache has more entries than Supabase, syncing...');
+            debugPrint(
+                'EntryProvider: ⚠️ Local cache has more entries than Supabase, syncing...');
             final supabaseIds = supabaseEntries.map((e) => e.id).toSet();
-            final entriesToSync = localEntries.where((e) => !supabaseIds.contains(e.id)).toList();
-            
+            final entriesToSync =
+                localEntries.where((e) => !supabaseIds.contains(e.id)).toList();
+
             for (final entry in entriesToSync) {
               try {
                 await _supabaseService.addEntry(entry);
-                debugPrint('EntryProvider: ✅ Synced missing entry ${entry.id} to Supabase');
+                debugPrint(
+                    'EntryProvider: ✅ Synced missing entry ${entry.id} to Supabase');
               } catch (e) {
-                debugPrint('EntryProvider: ❌ Failed to sync entry ${entry.id}: $e');
+                debugPrint(
+                    'EntryProvider: ❌ Failed to sync entry ${entry.id}: $e');
               }
             }
-            
+
             // Reload from Supabase
             supabaseEntries = await _supabaseService.getAllEntries(userId);
           }
         }
-        
+
         // Sync to local Hive cache
         await _syncToLocalCache(supabaseEntries, userId);
       } catch (e) {
         debugPrint('EntryProvider: Error loading from Supabase: $e');
         debugPrint('EntryProvider: Falling back to local cache...');
-        
+
         // FALLBACK: Load from local Hive cache if Supabase fails
         supabaseEntries = await _loadFromLocalCache(userId);
       }
@@ -207,7 +223,8 @@ class EntryProvider extends ChangeNotifier {
           shouldRetry: RetryHelper.shouldRetryNetworkError,
         );
         savedToServer = true;
-        debugPrint('EntryProvider: Entry saved to Supabase successfully with ID: ${savedEntry.id}');
+        debugPrint(
+            'EntryProvider: Entry saved to Supabase successfully with ID: ${savedEntry.id}');
 
         // CACHE: Save to local Hive cache
         await _saveToLocalCache(savedEntry, userId);
@@ -223,7 +240,8 @@ class EntryProvider extends ChangeNotifier {
         // Queue for later sync
         await _syncQueue.queueCreate(entryWithTimestamp, userId);
 
-        debugPrint('EntryProvider: ⚠️ Saved to local cache only (offline mode)');
+        debugPrint(
+            'EntryProvider: ⚠️ Saved to local cache only (offline mode)');
         debugPrint('EntryProvider: Entry queued for sync when online');
       }
 
@@ -262,21 +280,24 @@ class EntryProvider extends ChangeNotifier {
       for (final entry in entries) {
         try {
           Entry savedEntry;
-          
+
           try {
-            debugPrint('EntryProvider: Saving entry ${entry.type} to Supabase...');
+            debugPrint(
+                'EntryProvider: Saving entry ${entry.type} to Supabase...');
             savedEntry = await _supabaseService.addEntry(entry);
-            debugPrint('EntryProvider: Entry saved to Supabase successfully with ID: ${savedEntry.id}');
-            
+            debugPrint(
+                'EntryProvider: Entry saved to Supabase successfully with ID: ${savedEntry.id}');
+
             // CACHE: Save to local Hive cache
             await _saveToLocalCache(savedEntry, userId);
           } catch (e) {
             debugPrint('EntryProvider: ❌ ERROR saving entry to Supabase: $e');
-            
+
             // If Supabase fails, still save locally for offline support
             await _saveToLocalCache(entry, userId);
             savedEntry = entry;
-            debugPrint('EntryProvider: ⚠️ Saved to local cache only (offline mode)');
+            debugPrint(
+                'EntryProvider: ⚠️ Saved to local cache only (offline mode)');
           }
 
           savedEntries.add(savedEntry);
@@ -295,9 +316,10 @@ class EntryProvider extends ChangeNotifier {
 
       debugPrint(
           'EntryProvider: Batch add complete - Success: $successCount, Failed: $failureCount');
-      
+
       if (failureCount > 0) {
-        throw Exception('Some entries failed to save ($failureCount of ${entries.length})');
+        throw Exception(
+            'Some entries failed to save ($failureCount of ${entries.length})');
       }
     } catch (e) {
       debugPrint('EntryProvider: Error adding entries in batch: $e');
@@ -305,7 +327,8 @@ class EntryProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateEntry(Entry entry, {ConflictStrategy conflictStrategy = ConflictStrategy.newerWins}) async {
+  Future<void> updateEntry(Entry entry,
+      {ConflictStrategy conflictStrategy = ConflictStrategy.newerWins}) async {
     try {
       final userId = _authService.currentUser?.id;
       if (userId == null) {
@@ -328,9 +351,12 @@ class EntryProvider extends ChangeNotifier {
             () => _supabaseService.getEntryById(entry.id, userId),
           );
 
-          if (serverEntry != null && serverEntry.updatedAt != null && entry.updatedAt != null) {
+          if (serverEntry != null &&
+              serverEntry.updatedAt != null &&
+              entry.updatedAt != null) {
             if (serverEntry.updatedAt!.isAfter(entry.updatedAt!)) {
-              debugPrint('EntryProvider: ⚠️ Server has newer version, using server version');
+              debugPrint(
+                  'EntryProvider: ⚠️ Server has newer version, using server version');
               updatedEntry = serverEntry;
               await _updateInLocalCache(updatedEntry, userId);
               _updateLocalList(updatedEntry);
@@ -426,7 +452,8 @@ class EntryProvider extends ChangeNotifier {
         // Queue for later sync
         await _syncQueue.queueDelete(id, userId);
 
-        debugPrint('EntryProvider: Deleted from local cache only (offline mode)');
+        debugPrint(
+            'EntryProvider: Deleted from local cache only (offline mode)');
         debugPrint('EntryProvider: Delete queued for sync when online');
       }
 
@@ -435,7 +462,8 @@ class EntryProvider extends ChangeNotifier {
       _applyFilters();
       notifyListeners();
 
-      debugPrint('EntryProvider: Deleted ${entry.type} entry with ID: $id (server: $deletedFromServer)');
+      debugPrint(
+          'EntryProvider: Deleted ${entry.type} entry with ID: $id (server: $deletedFromServer)');
     } catch (e) {
       debugPrint('EntryProvider: Error deleting entry: $e');
       throw Exception('Unable to delete entry. Please try again.');
@@ -517,8 +545,10 @@ class EntryProvider extends ChangeNotifier {
       }
 
       // Find and delete demo entries (those with IDs starting with 'sample_')
-      final demoEntries = _entries.where((entry) => entry.id.startsWith('sample_')).toList();
-      debugPrint('EntryProvider: Found ${demoEntries.length} demo entries to delete');
+      final demoEntries =
+          _entries.where((entry) => entry.id.startsWith('sample_')).toList();
+      debugPrint(
+          'EntryProvider: Found ${demoEntries.length} demo entries to delete');
 
       for (final entry in demoEntries) {
         try {
@@ -535,7 +565,8 @@ class EntryProvider extends ChangeNotifier {
       _error = null;
 
       notifyListeners();
-      debugPrint('EntryProvider: Cleared demo entries (${demoEntries.length} entries)');
+      debugPrint(
+          'EntryProvider: Cleared demo entries (${demoEntries.length} entries)');
     } catch (e) {
       _error = 'Failed to clear demo entries: $e';
       notifyListeners();
@@ -559,7 +590,8 @@ class EntryProvider extends ChangeNotifier {
 
       // Get all current entries to delete them
       final allEntries = List<Entry>.from(_entries);
-      debugPrint('EntryProvider: Deleting ${allEntries.length} entries from Supabase and local cache');
+      debugPrint(
+          'EntryProvider: Deleting ${allEntries.length} entries from Supabase and local cache');
 
       // Delete entries from Supabase and local cache
       for (final entry in allEntries) {
@@ -567,7 +599,7 @@ class EntryProvider extends ChangeNotifier {
           // Delete from Supabase first
           await _supabaseService.deleteEntry(entry.id, userId);
           debugPrint('EntryProvider: Deleted ${entry.id} from Supabase');
-          
+
           // Then delete from local cache (Entry directly)
           await _deleteFromLocalCache(entry, userId);
         } catch (e) {
@@ -582,7 +614,8 @@ class EntryProvider extends ChangeNotifier {
       _error = null;
 
       notifyListeners();
-      debugPrint('EntryProvider: Cleared all entries (${allEntries.length} entries)');
+      debugPrint(
+          'EntryProvider: Cleared all entries (${allEntries.length} entries)');
     } catch (e) {
       _error = 'Failed to clear entries: $e';
       notifyListeners();
@@ -601,7 +634,8 @@ class EntryProvider extends ChangeNotifier {
     try {
       await _initEntriesBox();
       if (_entriesBox == null) {
-        debugPrint('EntryProvider: Entries box not available, skipping cache sync');
+        debugPrint(
+            'EntryProvider: Entries box not available, skipping cache sync');
         return;
       }
 
@@ -609,7 +643,8 @@ class EntryProvider extends ChangeNotifier {
         // Store Entry directly in Hive (preserves all fields: shifts, unpaid breaks, notes, travel legs, etc.)
         await _entriesBox!.put(entry.id, entry);
       }
-      debugPrint('EntryProvider: Synced ${entries.length} entries to local cache');
+      debugPrint(
+          'EntryProvider: Synced ${entries.length} entries to local cache');
     } catch (e) {
       debugPrint('EntryProvider: Error syncing to local cache: $e');
       // Don't throw - cache sync failure shouldn't break the app
@@ -622,16 +657,17 @@ class EntryProvider extends ChangeNotifier {
     try {
       await _initEntriesBox();
       if (_entriesBox == null) {
-        debugPrint('EntryProvider: Entries box not available, returning empty list');
+        debugPrint(
+            'EntryProvider: Entries box not available, returning empty list');
         return [];
       }
 
       // Load all entries from Hive and filter by userId
-      final allEntries = _entriesBox!.values
-          .where((entry) => entry.userId == userId)
-          .toList();
+      final allEntries =
+          _entriesBox!.values.where((entry) => entry.userId == userId).toList();
 
-      debugPrint('EntryProvider: Loaded ${allEntries.length} entries from local cache');
+      debugPrint(
+          'EntryProvider: Loaded ${allEntries.length} entries from local cache');
       return allEntries;
     } catch (e) {
       debugPrint('EntryProvider: Error loading from local cache: $e');
@@ -645,7 +681,8 @@ class EntryProvider extends ChangeNotifier {
     try {
       await _initEntriesBox();
       if (_entriesBox == null) {
-        debugPrint('EntryProvider: Entries box not available, skipping cache save');
+        debugPrint(
+            'EntryProvider: Entries box not available, skipping cache save');
         return;
       }
 
@@ -664,7 +701,8 @@ class EntryProvider extends ChangeNotifier {
     try {
       await _initEntriesBox();
       if (_entriesBox == null) {
-        debugPrint('EntryProvider: Entries box not available, skipping cache update');
+        debugPrint(
+            'EntryProvider: Entries box not available, skipping cache update');
         return;
       }
 
@@ -683,7 +721,8 @@ class EntryProvider extends ChangeNotifier {
     try {
       await _initEntriesBox();
       if (_entriesBox == null) {
-        debugPrint('EntryProvider: Entries box not available, skipping cache delete');
+        debugPrint(
+            'EntryProvider: Entries box not available, skipping cache delete');
         return;
       }
 
@@ -704,11 +743,13 @@ class EntryProvider extends ChangeNotifier {
         throw Exception('User not authenticated');
       }
 
-      debugPrint('EntryProvider: Starting sync of local entries to Supabase...');
+      debugPrint(
+          'EntryProvider: Starting sync of local entries to Supabase...');
 
       // Load entries from local cache
       final localEntries = await _loadFromLocalCache(userId);
-      debugPrint('EntryProvider: Found ${localEntries.length} local entries to sync');
+      debugPrint(
+          'EntryProvider: Found ${localEntries.length} local entries to sync');
 
       if (localEntries.isEmpty) {
         debugPrint('EntryProvider: No local entries to sync');
@@ -719,9 +760,11 @@ class EntryProvider extends ChangeNotifier {
       List<Entry> supabaseEntries = [];
       try {
         supabaseEntries = await _supabaseService.getAllEntries(userId);
-        debugPrint('EntryProvider: Found ${supabaseEntries.length} existing entries in Supabase');
+        debugPrint(
+            'EntryProvider: Found ${supabaseEntries.length} existing entries in Supabase');
       } catch (e) {
-        debugPrint('EntryProvider: Error fetching from Supabase (will sync all local entries): $e');
+        debugPrint(
+            'EntryProvider: Error fetching from Supabase (will sync all local entries): $e');
       }
 
       final supabaseIds = supabaseEntries.map((e) => e.id).toSet();
@@ -732,7 +775,8 @@ class EntryProvider extends ChangeNotifier {
       // Sync each local entry that doesn't exist in Supabase
       for (final entry in localEntries) {
         if (supabaseIds.contains(entry.id)) {
-          debugPrint('EntryProvider: Entry ${entry.id} already exists in Supabase, skipping');
+          debugPrint(
+              'EntryProvider: Entry ${entry.id} already exists in Supabase, skipping');
           skippedCount++;
           continue;
         }
@@ -747,7 +791,8 @@ class EntryProvider extends ChangeNotifier {
         }
       }
 
-      debugPrint('EntryProvider: Sync complete - Synced: $syncedCount, Skipped: $skippedCount, Errors: $errorCount');
+      debugPrint(
+          'EntryProvider: Sync complete - Synced: $syncedCount, Skipped: $skippedCount, Errors: $errorCount');
 
       // Reload entries after sync
       await loadEntries();
@@ -776,7 +821,8 @@ class EntryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      debugPrint('EntryProvider: Processing ${_syncQueue.pendingCount} pending sync operations...');
+      debugPrint(
+          'EntryProvider: Processing ${_syncQueue.pendingCount} pending sync operations...');
 
       final result = await _syncQueue.processQueue((operation) async {
         switch (operation.type) {
@@ -793,18 +839,21 @@ class EntryProvider extends ChangeNotifier {
             }
             break;
           case SyncOperationType.delete:
-            await _supabaseService.deleteEntry(operation.entryId, operation.userId);
+            await _supabaseService.deleteEntry(
+                operation.entryId, operation.userId);
             break;
         }
       });
 
       if (result.succeeded > 0) {
         _pendingOfflineOperations = _syncQueue.pendingCount;
-        debugPrint('EntryProvider: Sync complete - ${result.succeeded}/${result.processed} succeeded');
+        debugPrint(
+            'EntryProvider: Sync complete - ${result.succeeded}/${result.processed} succeeded');
       }
 
       if (result.hasFailures) {
-        _syncError = 'Some items failed to sync (${result.failed} of ${result.processed})';
+        _syncError =
+            'Some items failed to sync (${result.failed} of ${result.processed})';
       }
 
       return result;

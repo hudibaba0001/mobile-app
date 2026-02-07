@@ -12,7 +12,7 @@ class PieChartStats extends StatefulWidget {
   final bool showLegend;
   final bool showPercentages;
   final double? height;
-  
+
   const PieChartStats({
     super.key,
     this.startDate,
@@ -32,7 +32,7 @@ class _PieChartStatsState extends State<PieChartStats>
   late AnimationController _hoverController;
   late Animation<double> _animation;
   late Animation<double> _hoverAnimation;
-  
+
   int touchedIndex = -1;
 
   @override
@@ -42,12 +42,12 @@ class _PieChartStatsState extends State<PieChartStats>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _hoverController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
+
     _animation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -55,7 +55,7 @@ class _PieChartStatsState extends State<PieChartStats>
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     _hoverAnimation = Tween<double>(
       begin: 1.0,
       end: 1.1,
@@ -63,7 +63,7 @@ class _PieChartStatsState extends State<PieChartStats>
       parent: _hoverController,
       curve: Curves.easeInOut,
     ));
-    
+
     _animationController.forward();
   }
 
@@ -78,11 +78,11 @@ class _PieChartStatsState extends State<PieChartStats>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Consumer<TravelProvider>(
       builder: (context, travelProvider, child) {
         final stats = _calculateStats(travelProvider);
-        
+
         return Card(
           elevation: 2,
           shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
@@ -119,7 +119,7 @@ class _PieChartStatsState extends State<PieChartStats>
 
   Widget _buildHeader(ThemeData theme) {
     final colorScheme = theme.colorScheme;
-    
+
     return Row(
       children: [
         Container(
@@ -160,11 +160,11 @@ class _PieChartStatsState extends State<PieChartStats>
 
   Widget _buildPieChart(ThemeData theme, ChartStats stats) {
     final colorScheme = theme.colorScheme;
-    
+
     if (stats.totalMinutes == 0) {
       return _buildEmptyState(theme);
     }
-    
+
     return PieChart(
       PieChartData(
         pieTouchData: PieTouchData(
@@ -177,7 +177,8 @@ class _PieChartStatsState extends State<PieChartStats>
                 _hoverController.reverse();
                 return;
               }
-              touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+              touchedIndex =
+                  pieTouchResponse.touchedSection!.touchedSectionIndex;
               _hoverController.forward();
             });
           },
@@ -194,13 +195,13 @@ class _PieChartStatsState extends State<PieChartStats>
     ColorScheme colorScheme,
     ChartStats stats,
   ) {
-    final workPercentage = stats.totalMinutes > 0 
+    final workPercentage = stats.totalMinutes > 0
         ? (stats.workMinutes / stats.totalMinutes * 100)
         : 0.0;
-    final travelPercentage = stats.totalMinutes > 0 
+    final travelPercentage = stats.totalMinutes > 0
         ? (stats.travelMinutes / stats.totalMinutes * 100)
         : 0.0;
-    
+
     return [
       // Work section
       PieChartSectionData(
@@ -233,7 +234,7 @@ class _PieChartStatsState extends State<PieChartStats>
 
   Widget _buildLegend(ThemeData theme, ChartStats stats) {
     final colorScheme = theme.colorScheme;
-    
+
     return Column(
       children: [
         _buildLegendItem(
@@ -241,7 +242,7 @@ class _PieChartStatsState extends State<PieChartStats>
           color: colorScheme.secondary,
           label: AppLocalizations.of(context).chart_workTime,
           value: _formatDuration(stats.workMinutes),
-          percentage: stats.totalMinutes > 0 
+          percentage: stats.totalMinutes > 0
               ? (stats.workMinutes / stats.totalMinutes * 100).toInt()
               : 0,
           isSelected: touchedIndex == 0,
@@ -252,7 +253,7 @@ class _PieChartStatsState extends State<PieChartStats>
           color: colorScheme.primary,
           label: AppLocalizations.of(context).chart_travelTime,
           value: _formatDuration(stats.travelMinutes),
-          percentage: stats.totalMinutes > 0 
+          percentage: stats.totalMinutes > 0
               ? (stats.travelMinutes / stats.totalMinutes * 100).toInt()
               : 0,
           isSelected: touchedIndex == 1,
@@ -291,18 +292,15 @@ class _PieChartStatsState extends State<PieChartStats>
     required bool isSelected,
   }) {
     final colorScheme = theme.colorScheme;
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isSelected 
-            ? color.withValues(alpha: 0.1)
-            : Colors.transparent,
+        color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
-        border: isSelected 
-            ? Border.all(color: color.withValues(alpha: 0.3))
-            : null,
+        border:
+            isSelected ? Border.all(color: color.withValues(alpha: 0.3)) : null,
       ),
       child: Row(
         children: [
@@ -349,7 +347,7 @@ class _PieChartStatsState extends State<PieChartStats>
 
   Widget _buildEmptyState(ThemeData theme) {
     final colorScheme = theme.colorScheme;
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -393,12 +391,12 @@ class _PieChartStatsState extends State<PieChartStats>
     if (widget.startDate == null && widget.endDate == null) {
       return t.chart_allTime;
     }
-    
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final startDate = widget.startDate ?? today;
     final endDate = widget.endDate ?? today;
-    
+
     if (startDate == endDate && startDate == today) {
       return t.chart_today;
     } else if (startDate == endDate) {
@@ -410,8 +408,18 @@ class _PieChartStatsState extends State<PieChartStats>
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return '${months[date.month - 1]} ${date.day}';
   }

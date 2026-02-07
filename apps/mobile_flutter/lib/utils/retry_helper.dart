@@ -23,7 +23,7 @@ class RetryHelper {
         return await operation();
       } catch (error, stackTrace) {
         attempt++;
-        
+
         // Check if we should retry this error
         if (shouldRetry != null && !shouldRetry(error)) {
           rethrow;
@@ -41,7 +41,8 @@ class RetryHelper {
         // Wait before retrying with exponential backoff
         await Future.delayed(currentDelay);
         currentDelay = Duration(
-          milliseconds: (currentDelay.inMilliseconds * backoffMultiplier).round(),
+          milliseconds:
+              (currentDelay.inMilliseconds * backoffMultiplier).round(),
         );
       }
     }
@@ -53,7 +54,7 @@ class RetryHelper {
   /// Determines if an error should be retried (for storage operations)
   static bool shouldRetryStorageError(dynamic error) {
     final errorString = error.toString().toLowerCase();
-    
+
     // Retry on temporary storage issues
     if (errorString.contains('locked') ||
         errorString.contains('busy') ||
@@ -78,7 +79,7 @@ class RetryHelper {
   /// Determines if a network error should be retried
   static bool shouldRetryNetworkError(dynamic error) {
     final errorString = error.toString().toLowerCase();
-    
+
     // Retry on temporary network issues
     if (errorString.contains('timeout') ||
         errorString.contains('connection') ||
@@ -126,7 +127,7 @@ class RetryHelper {
         return await operation();
       } catch (error) {
         attempt++;
-        
+
         if (shouldRetry != null && !shouldRetry(error)) {
           rethrow;
         }
@@ -136,14 +137,16 @@ class RetryHelper {
         }
 
         // Add jitter to prevent thundering herd
-        final jitter = currentDelay.inMilliseconds * jitterFactor * random.nextDouble();
+        final jitter =
+            currentDelay.inMilliseconds * jitterFactor * random.nextDouble();
         final jitteredDelay = Duration(
           milliseconds: currentDelay.inMilliseconds + jitter.round(),
         );
 
         await Future.delayed(jitteredDelay);
         currentDelay = Duration(
-          milliseconds: (currentDelay.inMilliseconds * backoffMultiplier).round(),
+          milliseconds:
+              (currentDelay.inMilliseconds * backoffMultiplier).round(),
         );
       }
     }
@@ -167,7 +170,7 @@ class RetryHelper {
         await Future.delayed(delay);
       }
     }
-    
+
     throw Exception('Simple retry failed unexpectedly');
   }
 }

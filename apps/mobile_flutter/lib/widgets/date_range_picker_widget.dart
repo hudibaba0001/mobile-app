@@ -78,8 +78,8 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: Theme.of(context).colorScheme.primary,
-            ),
+                  primary: Theme.of(context).colorScheme.primary,
+                ),
           ),
           child: child!,
         );
@@ -207,12 +207,12 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
           Text(
             widget.label!,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: AppConstants.smallPadding),
         ],
-        
+
         // Date range input
         InkWell(
           onTap: _selectDateRange,
@@ -241,18 +241,23 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                             ? '${DateFormat(AppConstants.dateFormat).format(_startDate!)} - ${DateFormat(AppConstants.dateFormat).format(_endDate!)}'
                             : 'Select date range',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: _startDate != null && _endDate != null
-                              ? Theme.of(context).colorScheme.onSurface
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                              color: _startDate != null && _endDate != null
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                            ),
                       ),
                       if (_startDate != null && _endDate != null) ...[
                         const SizedBox(height: 2),
                         Text(
                           '${_endDate!.difference(_startDate!).inDays + 1} days',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                       ],
                     ],
@@ -309,8 +314,8 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
           Text(
             AppLocalizations.of(context).dateRange_quickSelect,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: AppConstants.smallPadding),
           Wrap(
@@ -320,7 +325,8 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
               return ActionChip(
                 label: Text(_getQuickRangeLabel(range)),
                 onPressed: () => _setQuickDateRange(range),
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
               );
             }).toList(),
           ),

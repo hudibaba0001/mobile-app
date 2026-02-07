@@ -20,7 +20,7 @@ class TravelProvider extends ChangeNotifier {
   TravelProvider() {
     _loadEntries();
   }
-  
+
   /// Get EntryProvider from context
   EntryProvider? _getEntryProvider() {
     try {
@@ -46,8 +46,10 @@ class TravelProvider extends ChangeNotifier {
 
   // Statistics getters - Updated to use Entry model's travelMinutes field
   int get totalEntries => _entries.length;
-  int get totalMinutes => _entries.fold(0, (sum, entry) => sum + (entry.travelMinutes ?? 0));
-  double get averageMinutesPerTrip => totalEntries > 0 ? totalMinutes / totalEntries : 0;
+  int get totalMinutes =>
+      _entries.fold(0, (sum, entry) => sum + (entry.travelMinutes ?? 0));
+  double get averageMinutesPerTrip =>
+      totalEntries > 0 ? totalMinutes / totalEntries : 0;
   String get formattedTotalTime {
     final hours = totalMinutes ~/ 60;
     final minutes = totalMinutes % 60;
@@ -65,7 +67,7 @@ class TravelProvider extends ChangeNotifier {
         if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
           await entryProvider.loadEntries();
         }
-        
+
         // Filter to travel entries only
         _entries = entryProvider.entries
             .where((e) => e.type == EntryType.travel)
@@ -185,14 +187,18 @@ class TravelProvider extends ChangeNotifier {
   void _applyFilters() {
     _filteredEntries = _entries.where((entry) {
       // Date filter
-      final isInDateRange = entry.date.isAfter(_filterStartDate.subtract(const Duration(days: 1))) &&
-                           entry.date.isBefore(_filterEndDate.add(const Duration(days: 1)));
+      final isInDateRange = entry.date
+              .isAfter(_filterStartDate.subtract(const Duration(days: 1))) &&
+          entry.date.isBefore(_filterEndDate.add(const Duration(days: 1)));
 
       // Search filter
       final matchesSearch = _searchQuery.isEmpty ||
-          entry.from?.toLowerCase().contains(_searchQuery.toLowerCase()) == true ||
-          entry.to?.toLowerCase().contains(_searchQuery.toLowerCase()) == true ||
-          entry.notes?.toLowerCase().contains(_searchQuery.toLowerCase()) == true;
+          entry.from?.toLowerCase().contains(_searchQuery.toLowerCase()) ==
+              true ||
+          entry.to?.toLowerCase().contains(_searchQuery.toLowerCase()) ==
+              true ||
+          entry.notes?.toLowerCase().contains(_searchQuery.toLowerCase()) ==
+              true;
 
       return isInDateRange && matchesSearch;
     }).toList();
@@ -214,7 +220,8 @@ class TravelProvider extends ChangeNotifier {
       return;
     }
 
-    final totalMinutes = _filteredEntries.fold(0, (sum, entry) => sum + (entry.travelMinutes ?? 0));
+    final totalMinutes = _filteredEntries.fold(
+        0, (sum, entry) => sum + (entry.travelMinutes ?? 0));
     final locationFrequency = <String, int>{};
 
     for (final entry in _filteredEntries) {
@@ -237,7 +244,7 @@ class TravelProvider extends ChangeNotifier {
   List<Entry> getEntriesInDateRange(DateTime startDate, DateTime endDate) {
     return _entries.where((entry) {
       return entry.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
-             entry.date.isBefore(endDate.add(const Duration(days: 1)));
+          entry.date.isBefore(endDate.add(const Duration(days: 1)));
     }).toList();
   }
 

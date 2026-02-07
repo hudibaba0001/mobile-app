@@ -73,7 +73,7 @@ class _ExportDialogState extends State<ExportDialog> {
 
   void _updateDefaultFileName() {
     _calculateDefaultFileName();
-    
+
     // Update the controller text if it's different (controller is initialized after initState)
     if (mounted && _fileNameController.text != _customFileName) {
       _fileNameController.text = _customFileName;
@@ -110,7 +110,8 @@ class _ExportDialogState extends State<ExportDialog> {
               onChanged: (value) {
                 setState(() {
                   _includeAllData = value ?? true;
-                  if (!_includeAllData && (_startDate == null || _endDate == null)) {
+                  if (!_includeAllData &&
+                      (_startDate == null || _endDate == null)) {
                     final now = DateTime.now();
                     final today = DateTime(now.year, now.month, now.day);
                     _endDate = today;
@@ -264,9 +265,14 @@ class _ExportDialogState extends State<ExportDialog> {
                   ),
                   const SizedBox(height: 8),
                   Text(t.export_totalEntries(filteredEntries.length)),
-                  Text(t.export_travelEntries(filteredEntries.where((e) => e.type == EntryType.travel).length)),
-                  Text(t.export_workEntries(filteredEntries.where((e) => e.type == EntryType.work).length)),
-                  Text(t.export_totalHours(_calculateTotalHours(filteredEntries).toStringAsFixed(2))),
+                  Text(t.export_travelEntries(filteredEntries
+                      .where((e) => e.type == EntryType.travel)
+                      .length)),
+                  Text(t.export_workEntries(filteredEntries
+                      .where((e) => e.type == EntryType.work)
+                      .length)),
+                  Text(t.export_totalHours(_calculateTotalHours(filteredEntries)
+                      .toStringAsFixed(2))),
                 ],
               ),
             ),
@@ -297,9 +303,11 @@ class _ExportDialogState extends State<ExportDialog> {
 
     // Filter by entry type
     if (_entryTypeFilter == 'travel') {
-      filtered = filtered.where((entry) => entry.type == EntryType.travel).toList();
+      filtered =
+          filtered.where((entry) => entry.type == EntryType.travel).toList();
     } else if (_entryTypeFilter == 'work') {
-      filtered = filtered.where((entry) => entry.type == EntryType.work).toList();
+      filtered =
+          filtered.where((entry) => entry.type == EntryType.work).toList();
     }
     // If 'both', no type filtering needed
 
@@ -311,7 +319,8 @@ class _ExportDialogState extends State<ExportDialog> {
       // Inclusive end-of-day to avoid accidentally excluding entries on the end date.
       final endDate = _endDate == null
           ? null
-          : DateTime(_endDate!.year, _endDate!.month, _endDate!.day, 23, 59, 59, 999);
+          : DateTime(
+              _endDate!.year, _endDate!.month, _endDate!.day, 23, 59, 59, 999);
       filtered = filtered.where((entry) {
         if (startDate != null && entry.date.isBefore(startDate)) {
           return false;
@@ -353,7 +362,8 @@ class _ExportDialogState extends State<ExportDialog> {
     if (picked != null) {
       setState(() {
         // Store date-only in state, but filter inclusively (end-of-day) when applying.
-        _startDate = DateTime(picked.start.year, picked.start.month, picked.start.day);
+        _startDate =
+            DateTime(picked.start.year, picked.start.month, picked.start.day);
         _endDate = DateTime(picked.end.year, picked.end.month, picked.end.day);
         _updateDefaultFileName();
       });

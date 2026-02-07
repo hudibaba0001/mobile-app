@@ -30,15 +30,17 @@ void main() {
       final exportData = ExportService.prepareExportData(entries);
 
       // Travel-only export uses travel + entry columns
-      expect(exportData.headers, equals([
-        'Type',
-        'Date',
-        'From',
-        'To',
-        'Travel Minutes',
-        'Travel Distance (km)',
-        'Entry Notes',
-      ]));
+      expect(
+          exportData.headers,
+          equals([
+            'Type',
+            'Date',
+            'From',
+            'To',
+            'Travel Minutes',
+            'Travel Distance (km)',
+            'Entry Notes',
+          ]));
 
       expect(exportData.rows[0], [
         'travel',
@@ -74,24 +76,26 @@ void main() {
       final exportData = ExportService.prepareExportData(entries);
 
       // Work-only export headers
-      expect(exportData.headers, equals([
-        'Type',
-        'Date',
-        'Shift Number',
-        'Shift Start',
-        'Shift End',
-        'Span Minutes',
-        'Unpaid Break Minutes',
-        'Worked Minutes',
-        'Worked Hours',
-        'Shift Location',
-        'Shift Notes',
-        'Entry Notes',
-        'Created At',
-        'Updated At',
-        'Holiday Work',
-        'Holiday Name',
-      ]));
+      expect(
+          exportData.headers,
+          equals([
+            'Type',
+            'Date',
+            'Shift Number',
+            'Shift Start',
+            'Shift End',
+            'Span Minutes',
+            'Unpaid Break Minutes',
+            'Worked Minutes',
+            'Worked Hours',
+            'Shift Location',
+            'Shift Notes',
+            'Entry Notes',
+            'Created At',
+            'Updated At',
+            'Holiday Work',
+            'Holiday Name',
+          ]));
 
       final row = exportData.rows[0];
       expect(row[0], 'work');
@@ -103,9 +107,11 @@ void main() {
       expect(row[11], 'Productive day'); // Entry Notes
     });
 
-    test('given 2 work entries + 2 travel entries same date: CSV row count equals expected', () {
+    test(
+        'given 2 work entries + 2 travel entries same date: CSV row count equals expected',
+        () {
       final date = DateTime(2025, 1, 15);
-      
+
       // Two atomic work entries for same date
       final workEntry1 = Entry.makeWorkAtomicFromShift(
         userId: 'user1',
@@ -116,7 +122,7 @@ void main() {
           unpaidBreakMinutes: 15,
         ),
       );
-      
+
       final workEntry2 = Entry.makeWorkAtomicFromShift(
         userId: 'user1',
         date: date,
@@ -126,7 +132,7 @@ void main() {
           unpaidBreakMinutes: 30,
         ),
       );
-      
+
       // Two atomic travel entries for same date
       final travelEntry1 = Entry.makeTravelAtomicFromLeg(
         userId: 'user1',
@@ -135,7 +141,7 @@ void main() {
         to: 'Office',
         minutes: 30,
       );
-      
+
       final travelEntry2 = Entry.makeTravelAtomicFromLeg(
         userId: 'user1',
         date: date,
@@ -143,30 +149,33 @@ void main() {
         to: 'Home',
         minutes: 25,
       );
-      
+
       final entries = [workEntry1, workEntry2, travelEntry1, travelEntry2];
       final exportData = ExportService.prepareExportData(entries);
-      
+
       // 4 atomic rows + 1 totals row
       expect(exportData.rows.length, 5);
-      
+
       // Verify worked minutes and unpaid break minutes in rows
       // Work entry 1: worked = 240 - 15 = 225, break = 15
-      final workRows = exportData.rows.where((row) => row[0] == 'work').toList();
+      final workRows =
+          exportData.rows.where((row) => row[0] == 'work').toList();
       final workRow1 = workRows[0];
       final workRow2 = workRows[1];
       // In combined export, travel placeholders (8) precede work columns
       expect(workRow1[14], 15); // Unpaid Break Minutes
       expect(workRow1[15], 225); // Worked Minutes
-      
+
       // Work entry 2: worked = 240 - 30 = 210, break = 30
       expect(workRow2[14], 30); // Unpaid Break Minutes
       expect(workRow2[15], 210); // Worked Minutes
     });
 
-    test('given 2 work entries + 2 travel entries same date: XLSX row count equals expected', () {
+    test(
+        'given 2 work entries + 2 travel entries same date: XLSX row count equals expected',
+        () {
       final date = DateTime(2025, 1, 16);
-      
+
       final workEntry1 = Entry.makeWorkAtomicFromShift(
         userId: 'user1',
         date: date,
@@ -176,7 +185,7 @@ void main() {
           unpaidBreakMinutes: 30,
         ),
       );
-      
+
       final workEntry2 = Entry.makeWorkAtomicFromShift(
         userId: 'user1',
         date: date,
@@ -186,7 +195,7 @@ void main() {
           unpaidBreakMinutes: 15,
         ),
       );
-      
+
       final travelEntry1 = Entry.makeTravelAtomicFromLeg(
         userId: 'user1',
         date: date,
@@ -194,7 +203,7 @@ void main() {
         to: 'B',
         minutes: 20,
       );
-      
+
       final travelEntry2 = Entry.makeTravelAtomicFromLeg(
         userId: 'user1',
         date: date,
@@ -202,21 +211,22 @@ void main() {
         to: 'C',
         minutes: 15,
       );
-      
+
       final entries = [workEntry1, workEntry2, travelEntry1, travelEntry2];
       final exportData = ExportService.prepareExportData(entries);
-      
+
       // XLSX uses same data structure as CSV
       expect(exportData.rows.length, 5);
-      
+
       // Spot-check worked_minutes and unpaid_break_minutes cells
       // Work entry 1: worked = 480 - 30 = 450, break = 30
-      final workRows = exportData.rows.where((row) => row[0] == 'work').toList();
+      final workRows =
+          exportData.rows.where((row) => row[0] == 'work').toList();
       final workRow1 = workRows[0];
       final workRow2 = workRows[1];
       expect(workRow1[14], 30); // Unpaid Break Minutes
       expect(workRow1[15], 450); // Worked Minutes
-      
+
       // Work entry 2: worked = 240 - 15 = 225, break = 15
       expect(workRow2[14], 15); // Unpaid Break Minutes
       expect(workRow2[15], 225); // Worked Minutes

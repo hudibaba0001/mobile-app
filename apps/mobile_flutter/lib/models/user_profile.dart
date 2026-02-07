@@ -11,7 +11,8 @@ class UserProfile {
   // Stripe subscription fields
   final String? stripeCustomerId;
   final String? stripeSubscriptionId;
-  final String? subscriptionStatus; // 'pending', 'trialing', 'active', 'past_due', 'canceled'
+  final String?
+      subscriptionStatus; // 'pending', 'trialing', 'active', 'past_due', 'canceled'
   final DateTime? currentPeriodEnd;
   // Contract settings (synced to cloud)
   final int contractPercent;
@@ -48,7 +49,7 @@ class UserProfile {
   bool get hasAcceptedLegal => true;
 
   /// Check if subscription is active (including trialing)
-  bool get hasActiveSubscription => 
+  bool get hasActiveSubscription =>
       subscriptionStatus == 'active' || subscriptionStatus == 'trialing';
 
   /// Check if user can access the app (has accepted legal AND has active subscription)
@@ -125,4 +126,3 @@ class UserProfile {
     return 'UserProfile(id: $id, email: $email, subscription: $subscriptionStatus, hasLegal: $hasAcceptedLegal)';
   }
 }
-

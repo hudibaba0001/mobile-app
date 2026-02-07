@@ -13,7 +13,8 @@ import 'xlsx_exporter.dart';
 import 'dart:convert' show utf8;
 
 // Conditional import for web download functionality
-import 'web_download_stub.dart' if (dart.library.html) 'web_download_web.dart' as web_download;
+import 'web_download_stub.dart' if (dart.library.html) 'web_download_web.dart'
+    as web_download;
 
 class ExportService {
   static const String _fileNamePrefix = 'time_tracker_export';
@@ -25,7 +26,8 @@ class ExportService {
     final hasWork = entries.any((entry) => entry.type == EntryType.work);
     final includeTravelColumns = hasTravel;
     final includeWorkColumns = hasWork;
-    final includeAuditColumns = includeWorkColumns; // remove audit columns from travel-only exports
+    final includeAuditColumns =
+        includeWorkColumns; // remove audit columns from travel-only exports
 
     int totalTravelMinutes = 0;
     double totalTravelDistanceKm = 0.0;
@@ -78,13 +80,13 @@ class ExportService {
                 leg.minutes, // Travel Minutes
                 leg.distanceKm ?? 0.0, // Travel Distance (km)
               ],
-              if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
+              if (includeWorkColumns)
+                ...List.filled(9, ''), // Work placeholders
               entry.notes ?? '', // Entry Notes
               if (includeAuditColumns) ...[
                 DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
                 entry.updatedAt != null
-                    ? DateFormat('yyyy-MM-dd HH:mm:ss')
-                        .format(entry.updatedAt!)
+                    ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
                     : '',
                 '', // Holiday Work (not applicable for travel)
                 '', // Holiday Name
@@ -131,7 +133,8 @@ class ExportService {
           rows.add([
             entry.type.name,
             DateFormat('yyyy-MM-dd').format(entry.date),
-            if (includeTravelColumns) ...List.filled(8, ''), // Travel placeholders
+            if (includeTravelColumns)
+              ...List.filled(8, ''), // Travel placeholders
             if (includeWorkColumns) ...[
               i + 1, // Shift Number
               DateFormat('HH:mm').format(shift.start), // Shift Start
@@ -160,7 +163,8 @@ class ExportService {
         rows.add([
           entry.type.name,
           DateFormat('yyyy-MM-dd').format(entry.date),
-          if (includeTravelColumns) ...List.filled(8, ''), // Travel placeholders
+          if (includeTravelColumns)
+            ...List.filled(8, ''), // Travel placeholders
           if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
           entry.notes ?? '', // Entry Notes
           if (includeAuditColumns) ...[
@@ -228,7 +232,7 @@ class ExportService {
       // Create CSV data
       final exportData = prepareExportData(entries);
       final csvData = CsvExporter.export(exportData);
-      
+
       if (csvData.isEmpty) {
         throw Exception('Generated CSV data is empty');
       }
@@ -274,7 +278,8 @@ class ExportService {
 
       if (kIsWeb) {
         // Web: Trigger browser download
-        _downloadFileWeb(excelData, fullFileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        _downloadFileWeb(excelData, fullFileName,
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         return ''; // Web doesn't return a file path
       } else {
         // Mobile/Desktop: Save to file system
@@ -328,7 +333,8 @@ class ExportService {
       for (final file in files) {
         if (file is File &&
             file.path.contains(_fileNamePrefix) &&
-            (file.path.endsWith(_csvFileExtension) || file.path.endsWith(_excelFileExtension))) {
+            (file.path.endsWith(_csvFileExtension) ||
+                file.path.endsWith(_excelFileExtension))) {
           await file.delete();
         }
       }
@@ -343,8 +349,8 @@ class ExportService {
     if (!kIsWeb) return;
 
     // Convert data to bytes if it's a String (CSV), otherwise use as-is (Excel Uint8List)
-    final bytes = data is String 
-        ? Uint8List.fromList(utf8.encode(data)) 
+    final bytes = data is String
+        ? Uint8List.fromList(utf8.encode(data))
         : data as Uint8List;
 
     if (bytes.isEmpty) {

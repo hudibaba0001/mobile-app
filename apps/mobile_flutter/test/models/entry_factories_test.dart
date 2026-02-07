@@ -11,19 +11,19 @@ void main() {
         location: 'Office',
         notes: 'Regular work',
       );
-      
+
       final entry = Entry.makeWorkAtomicFromShift(
         userId: 'user1',
         date: DateTime(2025, 1, 15),
         shift: shift,
         dayNotes: 'Day notes',
       );
-      
+
       // Should have exactly 1 shift
       expect(entry.shifts, isNotNull);
       expect(entry.shifts!.length, 1);
       expect(entry.shifts!.first, shift);
-      
+
       // Entry properties
       expect(entry.type, EntryType.work);
       expect(entry.userId, 'user1');
@@ -46,7 +46,7 @@ void main() {
         distanceKm: 15.5,
         calculatedAt: DateTime(2025, 1, 15, 8, 0),
       );
-      
+
       // Entry properties
       expect(entry.type, EntryType.travel);
       expect(entry.userId, 'user1');
@@ -55,7 +55,7 @@ void main() {
       expect(entry.to, 'Office');
       expect(entry.travelMinutes, 30);
       expect(entry.notes, 'Commute');
-      
+
       // Should be atomic (single leg, not in travelLegs list)
       // Note: makeTravelAtomicFromLeg creates legacy format (from/to fields)
       // not travelLegs list, so we check the legacy fields
@@ -67,7 +67,7 @@ void main() {
     test('makeWorkAtomicFromShift() with custom id and createdAt', () {
       final customId = 'custom-id-123';
       final customCreatedAt = DateTime(2025, 1, 1);
-      
+
       final entry = Entry.makeWorkAtomicFromShift(
         userId: 'user1',
         date: DateTime(2025, 1, 15),
@@ -78,7 +78,7 @@ void main() {
         id: customId,
         createdAt: customCreatedAt,
       );
-      
+
       expect(entry.id, customId);
       expect(entry.createdAt, customCreatedAt);
       expect(entry.shifts!.length, 1);
@@ -94,7 +94,7 @@ void main() {
         segmentOrder: 1,
         totalSegments: 3,
       );
-      
+
       expect(entry.segmentOrder, 1);
       expect(entry.totalSegments, 3);
     });

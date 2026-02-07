@@ -1,11 +1,11 @@
 /// Holiday calendar for Sweden
-/// 
+///
 /// Provides fixed-date holidays, Easter-based movable holidays,
 /// and special Saturday holidays (Midsummer, All Saints' Day)
 class SwedenHolidayCalendar {
   /// Cache for holidays per year (performance optimization)
   final Map<int, Set<DateTime>> _holidayCache = {};
-  
+
   /// Cache for holiday names per year (performance optimization)
   final Map<int, Map<DateTime, String>> _nameCache = {};
 
@@ -13,7 +13,7 @@ class SwedenHolidayCalendar {
   static DateTime d(DateTime x) => DateTime(x.year, x.month, x.day);
 
   /// Calculate Easter Sunday for a given year using Gregorian computus
-  /// 
+  ///
   /// Algorithm: Anonymous Gregorian algorithm
   /// Returns Easter Sunday as a DateTime
   static DateTime _easterSunday(int year) {
@@ -35,43 +35,47 @@ class SwedenHolidayCalendar {
   }
 
   /// Get all holidays for a given year (cached for performance)
-  /// 
+  ///
   /// Returns a set of normalized dates (year/month/day only)
   Set<DateTime> holidaysForYear(int year) {
     return _holidayCache.putIfAbsent(year, () {
       final holidays = <DateTime>{};
 
-    // Fixed-date holidays
-    holidays.add(d(DateTime(year, 1, 1))); // New Year's Day
-    holidays.add(d(DateTime(year, 1, 6))); // Epiphany
-    holidays.add(d(DateTime(year, 5, 1))); // May Day
-    holidays.add(d(DateTime(year, 6, 6))); // National Day
-    holidays.add(d(DateTime(year, 12, 25))); // Christmas Day
-    holidays.add(d(DateTime(year, 12, 26))); // Boxing Day
+      // Fixed-date holidays
+      holidays.add(d(DateTime(year, 1, 1))); // New Year's Day
+      holidays.add(d(DateTime(year, 1, 6))); // Epiphany
+      holidays.add(d(DateTime(year, 5, 1))); // May Day
+      holidays.add(d(DateTime(year, 6, 6))); // National Day
+      holidays.add(d(DateTime(year, 12, 25))); // Christmas Day
+      holidays.add(d(DateTime(year, 12, 26))); // Boxing Day
 
-    // Easter-based movable holidays
-    final easterSunday = _easterSunday(year);
-    holidays.add(d(easterSunday.subtract(const Duration(days: 2)))); // Good Friday
-    holidays.add(d(easterSunday)); // Easter Sunday
-    holidays.add(d(easterSunday.add(const Duration(days: 1)))); // Easter Monday
-    holidays.add(d(easterSunday.add(const Duration(days: 39)))); // Ascension Day (39 days after Easter)
-    
-    // Pentecost Sunday (50 days after Easter)
-    holidays.add(d(easterSunday.add(const Duration(days: 49)))); // Pentecost Sunday
+      // Easter-based movable holidays
+      final easterSunday = _easterSunday(year);
+      holidays.add(
+          d(easterSunday.subtract(const Duration(days: 2)))); // Good Friday
+      holidays.add(d(easterSunday)); // Easter Sunday
+      holidays
+          .add(d(easterSunday.add(const Duration(days: 1)))); // Easter Monday
+      holidays.add(d(easterSunday.add(
+          const Duration(days: 39)))); // Ascension Day (39 days after Easter)
 
-    // Midsummer Day: Saturday between Jun 20-26
-    final midsummer = _midsummerDay(year);
-    if (midsummer != null) {
-      holidays.add(d(midsummer));
-    }
+      // Pentecost Sunday (50 days after Easter)
+      holidays.add(
+          d(easterSunday.add(const Duration(days: 49)))); // Pentecost Sunday
 
-    // All Saints' Day: Saturday between Oct 31-Nov 6
-    final allSaints = _allSaintsDay(year);
-    if (allSaints != null) {
-      holidays.add(d(allSaints));
-    }
+      // Midsummer Day: Saturday between Jun 20-26
+      final midsummer = _midsummerDay(year);
+      if (midsummer != null) {
+        holidays.add(d(midsummer));
+      }
 
-    return holidays;
+      // All Saints' Day: Saturday between Oct 31-Nov 6
+      final allSaints = _allSaintsDay(year);
+      if (allSaints != null) {
+        holidays.add(d(allSaints));
+      }
+
+      return holidays;
     });
   }
 
@@ -83,14 +87,14 @@ class SwedenHolidayCalendar {
   }
 
   /// Get the name of a holiday for a given date (cached for performance)
-  /// 
+  ///
   /// Returns null if the date is not a holiday
   String? holidayName(DateTime date) {
     final normalized = d(date);
     if (!isHoliday(normalized)) return null;
 
     final year = normalized.year;
-    
+
     // Check cache first
     final yearCache = _nameCache.putIfAbsent(year, () => <DateTime, String>{});
     if (yearCache.containsKey(normalized)) {
@@ -144,7 +148,8 @@ class SwedenHolidayCalendar {
   static DateTime? _midsummerDay(int year) {
     for (int day = 20; day <= 26; day++) {
       final date = DateTime(year, 6, day);
-      if (date.weekday == 6) { // Saturday
+      if (date.weekday == 6) {
+        // Saturday
         return date;
       }
     }
@@ -158,15 +163,15 @@ class SwedenHolidayCalendar {
     if (oct31.weekday == 6) {
       return oct31;
     }
-    
+
     // Check Nov 1-6
     for (int day = 1; day <= 6; day++) {
       final date = DateTime(year, 11, day);
-      if (date.weekday == 6) { // Saturday
+      if (date.weekday == 6) {
+        // Saturday
         return date;
       }
     }
     return null; // Should never happen, but handle edge case
   }
 }
-

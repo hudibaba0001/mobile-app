@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 
 /// Primary button - for main actions.
-/// 
+///
 /// Filled style, prominent appearance.
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
@@ -23,7 +23,7 @@ class PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     Widget buttonChild = isLoading
         ? SizedBox(
             width: AppIconSize.sm,
@@ -49,18 +49,21 @@ class PrimaryButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: theme.colorScheme.onPrimary,
-        disabledBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.5),
+        disabledBackgroundColor:
+            theme.colorScheme.primary.withValues(alpha: 0.5),
         minimumSize: isExpanded ? const Size.fromHeight(48) : null,
       ),
       child: buttonChild,
     );
 
-    return isExpanded ? SizedBox(width: double.infinity, child: button) : button;
+    return isExpanded
+        ? SizedBox(width: double.infinity, child: button)
+        : button;
   }
 }
 
 /// Secondary button - for supporting actions.
-/// 
+///
 /// Outlined style, less prominent than primary.
 class SecondaryButton extends StatelessWidget {
   const SecondaryButton({
@@ -81,7 +84,7 @@ class SecondaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     Widget buttonChild = isLoading
         ? SizedBox(
             width: AppIconSize.sm,
@@ -115,12 +118,14 @@ class SecondaryButton extends StatelessWidget {
       child: buttonChild,
     );
 
-    return isExpanded ? SizedBox(width: double.infinity, child: button) : button;
+    return isExpanded
+        ? SizedBox(width: double.infinity, child: button)
+        : button;
   }
 }
 
 /// Tertiary button - for subtle actions.
-/// 
+///
 /// Text-only style, minimal visual weight.
 class TertiaryButton extends StatelessWidget {
   const TertiaryButton({
@@ -140,7 +145,7 @@ class TertiaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final buttonColor = color ?? theme.colorScheme.primary;
-    
+
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
@@ -178,10 +183,10 @@ class QuickChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Material(
-      color: isSelected 
-          ? theme.colorScheme.primaryContainer 
+      color: isSelected
+          ? theme.colorScheme.primaryContainer
           : theme.colorScheme.surfaceContainerHighest,
       borderRadius: AppRadius.chipRadius,
       child: InkWell(
@@ -199,8 +204,8 @@ class QuickChip extends StatelessWidget {
                 Icon(
                   icon,
                   size: AppIconSize.xs,
-                  color: isSelected 
-                      ? theme.colorScheme.onPrimaryContainer 
+                  color: isSelected
+                      ? theme.colorScheme.onPrimaryContainer
                       : theme.colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: AppSpacing.xs),
@@ -208,8 +213,8 @@ class QuickChip extends StatelessWidget {
               Text(
                 label,
                 style: AppTypography.button(
-                  isSelected 
-                      ? theme.colorScheme.onPrimaryContainer 
+                  isSelected
+                      ? theme.colorScheme.onPrimaryContainer
                       : theme.colorScheme.onSurfaceVariant,
                 ),
               ),

@@ -5,7 +5,7 @@ import '../providers/theme_provider.dart';
 import '../l10n/generated/app_localizations.dart';
 
 /// A Material 3 styled Dark Mode toggle component for the Settings screen.
-/// 
+///
 /// This widget provides a settings list item with:
 /// - Leading sun/moon icon that changes based on theme
 /// - "Dark Mode" label with subtitle
@@ -23,33 +23,33 @@ class DarkModeToggle extends StatelessWidget {
 
         return Semantics(
           label: 'Dark mode toggle',
-          hint: isDarkMode 
+          hint: isDarkMode
               ? 'Currently enabled. Tap to switch to light mode'
               : 'Currently disabled. Tap to switch to dark mode',
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _toggleDarkMode(context, themeProvider),
-                borderRadius: AppRadius.buttonRadius,
-                child: Container(
-                  padding: AppSpacing.listItemPadding,
-                  constraints: const BoxConstraints(
-                    minHeight: AppSpacing.tileHeight,
-                  ),
-                  child: Row(
-                    children: [
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _toggleDarkMode(context, themeProvider),
+              borderRadius: AppRadius.buttonRadius,
+              child: Container(
+                padding: AppSpacing.listItemPadding,
+                constraints: const BoxConstraints(
+                  minHeight: AppSpacing.tileHeight,
+                ),
+                child: Row(
+                  children: [
                     // Leading Icon Container
                     _buildLeadingIcon(context, isDarkMode),
-                    
+
                     const SizedBox(width: AppSpacing.lg),
-                    
+
                     // Title and Subtitle
                     Expanded(
                       child: _buildTitleSection(context, isDarkMode),
                     ),
-                    
+
                     const SizedBox(width: AppSpacing.lg),
-                    
+
                     // Toggle Switch
                     _buildToggleSwitch(context, themeProvider, isDarkMode),
                   ],
@@ -150,13 +150,13 @@ class DarkModeToggle extends StatelessWidget {
   /// Handles the dark mode toggle action
   void _toggleDarkMode(BuildContext context, ThemeProvider themeProvider) {
     final newValue = !themeProvider.isDarkMode;
-    
+
     // Update the theme
     themeProvider.setDarkMode(newValue);
-    
+
     // Provide haptic feedback
     _provideHapticFeedback();
-    
+
     // Show confirmation snackbar
     _showToggleConfirmation(context, newValue);
   }
@@ -170,10 +170,9 @@ class DarkModeToggle extends StatelessWidget {
   /// Shows a brief confirmation message
   void _showToggleConfirmation(BuildContext context, bool isDarkMode) {
     final t = AppLocalizations.of(context);
-    final message = isDarkMode 
-        ? t.settings_darkModeEnabled
-        : t.settings_lightModeEnabled;
-    
+    final message =
+        isDarkMode ? t.settings_darkModeEnabled : t.settings_lightModeEnabled;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -192,7 +191,7 @@ class DarkModeToggle extends StatelessWidget {
 extension DarkModeToggleExtensions on ThemeProvider {
   /// Gets the current dark mode state
   bool get isDarkMode => themeMode == ThemeMode.dark;
-  
+
   /// Sets the dark mode state and persists it
   void setDarkMode(bool isDarkMode) {
     final newThemeMode = isDarkMode ? ThemeMode.dark : ThemeMode.light;

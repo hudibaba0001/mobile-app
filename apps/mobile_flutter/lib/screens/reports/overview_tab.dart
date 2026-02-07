@@ -225,8 +225,8 @@ class OverviewTab extends StatelessWidget {
     );
   }
 
-  Widget _buildDistributionChart(
-      BuildContext context, ThemeData theme, Map<String, dynamic> overviewData) {
+  Widget _buildDistributionChart(BuildContext context, ThemeData theme,
+      Map<String, dynamic> overviewData) {
     final colorScheme = theme.colorScheme;
     final workMinutes = overviewData['totalWorkMinutes'] as int;
     final travelMinutes = overviewData['totalTravelMinutes'] as int;

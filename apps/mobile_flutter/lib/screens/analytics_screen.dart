@@ -72,7 +72,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             const Text('Analytics Dashboard'),
             const SizedBox(width: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
                 color: AppColors.accent,
                 borderRadius: BorderRadius.circular(AppRadius.md),
@@ -80,9 +81,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: Text(
                 'ADMIN',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
               ),
             ),
           ],
@@ -312,7 +313,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: trends.map((t) => t.totalHours).reduce((a, b) => a > b ? a : b) * 1.2,
+        maxY: trends.map((t) => t.totalHours).reduce((a, b) => a > b ? a : b) *
+            1.2,
         barTouchData: BarTouchData(enabled: false),
         titlesData: FlTitlesData(
           show: true,
@@ -390,9 +392,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             title: '${user.percentage.toStringAsFixed(1)}%',
             radius: 50,
             titleStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
           );
         }).toList(),
       ),

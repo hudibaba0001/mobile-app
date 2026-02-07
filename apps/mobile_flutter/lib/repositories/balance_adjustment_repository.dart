@@ -70,7 +70,8 @@ class BalanceAdjustmentRepository {
           .map((row) => BalanceAdjustment.fromMap(row as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      debugPrint('BalanceAdjustmentRepository: Error listing all adjustments: $e');
+      debugPrint(
+          'BalanceAdjustmentRepository: Error listing all adjustments: $e');
       rethrow;
     }
   }
@@ -96,7 +97,8 @@ class BalanceAdjustmentRepository {
           .select()
           .single();
 
-      debugPrint('BalanceAdjustmentRepository: Created adjustment: ${adjustment.deltaFormatted}');
+      debugPrint(
+          'BalanceAdjustmentRepository: Created adjustment: ${adjustment.deltaFormatted}');
       return BalanceAdjustment.fromMap(response);
     } catch (e) {
       debugPrint('BalanceAdjustmentRepository: Error creating adjustment: $e');

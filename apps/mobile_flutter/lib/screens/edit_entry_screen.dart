@@ -1,4 +1,4 @@
-﻿// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -151,32 +151,34 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   void _checkForCachedRoute(_TravelLegDraft entry) {
     if (!mounted) return;
-    
+
     final from = entry.fromController.text.trim();
     final to = entry.toController.text.trim();
-    
+
     if (from.isEmpty || to.isEmpty) return;
-    
+
     // Only auto-fill if duration is empty or zero
     final currentHours = int.tryParse(entry.durationHoursController.text) ?? 0;
-    final currentMinutes = int.tryParse(entry.durationMinutesController.text) ?? 0;
-    
+    final currentMinutes =
+        int.tryParse(entry.durationMinutesController.text) ?? 0;
+
     if (currentHours > 0 || currentMinutes > 0) return;
-    
+
     final cache = context.read<TravelCacheService>();
     final cachedMinutes = cache.getRouteDuration(from, to);
-    
+
     if (cachedMinutes != null && cachedMinutes > 0) {
       final h = cachedMinutes ~/ 60;
       final m = cachedMinutes % 60;
-      
+
       entry.durationHoursController.text = h > 0 ? h.toString() : '';
       entry.durationMinutesController.text = m > 0 ? m.toString() : '';
       _validateForm();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Duration auto-filled from history ($cachedMinutes min)'),
+          content:
+              Text('Duration auto-filled from history ($cachedMinutes min)'),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -321,10 +323,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         // Update existing entry with first draft, then create new entries for additional drafts
         final drafts = List<_Shift>.from(_shifts);
         final firstShift = drafts.first;
-        final firstStart =
-            _parseTimeOfDay(firstShift.startTimeController.text, baseDate: entryDate);
-        final firstEnd =
-            _parseTimeOfDay(firstShift.endTimeController.text, baseDate: entryDate);
+        final firstStart = _parseTimeOfDay(firstShift.startTimeController.text,
+            baseDate: entryDate);
+        final firstEnd = _parseTimeOfDay(firstShift.endTimeController.text,
+            baseDate: entryDate);
 
         if (firstStart != null && firstEnd != null) {
           final updatedEntry = Entry(
@@ -442,7 +444,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   left: AppSpacing.xl,
                   right: AppSpacing.xl,
                   top: AppSpacing.xl,
-                  bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.xl,
+                  bottom:
+                      MediaQuery.viewInsetsOf(context).bottom + AppSpacing.xl,
                 ),
                 child: _currentEntryType == EntryType.travel
                     ? _buildTravelForm(theme)
@@ -664,7 +667,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         onTap: () => _applyQuickDuration(hours),
         borderRadius: BorderRadius.circular(AppRadius.sm),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm + 2),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg, vertical: AppSpacing.sm + 2),
           child: Text(
             '+${hours}h',
             style: theme.textTheme.labelLarge?.copyWith(
@@ -682,7 +686,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     if (_shifts.isEmpty) {
       _addShift();
     }
-    
+
     final shift = _shifts.first;
     // Default start at 08:00
     shift.startTimeController.text = '08:00';
@@ -701,7 +705,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         onTap: _copyYesterday,
         borderRadius: BorderRadius.circular(AppRadius.sm),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -729,33 +734,38 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   void _copyYesterday() {
     final entryProvider = context.read<EntryProvider>();
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    
+
     // Find yesterday's work entry
-    final yesterdayEntry = entryProvider.entries.where((entry) =>
-        entry.type == EntryType.work &&
-        entry.date.year == yesterday.year &&
-        entry.date.month == yesterday.month &&
-        entry.date.day == yesterday.day
-    ).firstOrNull;
-    
-    if (yesterdayEntry == null || yesterdayEntry.shifts == null || yesterdayEntry.shifts!.isEmpty) {
+    final yesterdayEntry = entryProvider.entries
+        .where((entry) =>
+            entry.type == EntryType.work &&
+            entry.date.year == yesterday.year &&
+            entry.date.month == yesterday.month &&
+            entry.date.day == yesterday.day)
+        .firstOrNull;
+
+    if (yesterdayEntry == null ||
+        yesterdayEntry.shifts == null ||
+        yesterdayEntry.shifts!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No work entry found for yesterday')),
       );
       return;
     }
-    
+
     // Apply yesterday's shift times
     if (_shifts.isEmpty) {
       _addShift();
     }
-    
+
     final yesterdayShift = yesterdayEntry.shifts!.first;
     final shift = _shifts.first;
-    shift.startTimeController.text = _formatTimeOfDay(TimeOfDay.fromDateTime(yesterdayShift.start));
-    shift.endTimeController.text = _formatTimeOfDay(TimeOfDay.fromDateTime(yesterdayShift.end));
+    shift.startTimeController.text =
+        _formatTimeOfDay(TimeOfDay.fromDateTime(yesterdayShift.start));
+    shift.endTimeController.text =
+        _formatTimeOfDay(TimeOfDay.fromDateTime(yesterdayShift.end));
     _validateForm();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Copied yesterday\'s shift times')),
     );
@@ -836,7 +846,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
-                    AppLocalizations.of(context).edit_trip(_travelEntries.indexOf(travelEntry) + 1),
+                    AppLocalizations.of(context)
+                        .edit_trip(_travelEntries.indexOf(travelEntry) + 1),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: theme.colorScheme.primary,
@@ -865,7 +876,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     TextFormField(
                       controller: travelEntry.fromController,
                       decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context).edit_departureHint,
+                        hintText:
+                            AppLocalizations.of(context).edit_departureHint,
                         prefixIcon: const Icon(Icons.my_location, size: 20),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -886,7 +898,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   color: theme.colorScheme.primary,
                   tooltip: 'Swap From/To',
                   style: IconButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+                    backgroundColor: theme.colorScheme.primaryContainer
+                        .withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -904,7 +917,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     TextFormField(
                       controller: travelEntry.toController,
                       decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context).edit_destinationHint,
+                        hintText:
+                            AppLocalizations.of(context).edit_destinationHint,
                         prefixIcon: const Icon(Icons.location_on, size: 20),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -997,7 +1011,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                             .withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                          color:
+                              theme.colorScheme.outline.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Center(
@@ -1037,7 +1052,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                AppLocalizations.of(context).edit_shift(_shifts.indexOf(shift) + 1),
+                AppLocalizations.of(context)
+                    .edit_shift(_shifts.indexOf(shift) + 1),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.primary,
@@ -1181,7 +1197,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : Text(AppLocalizations.of(context).edit_save),

@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_red_day.dart';
 
 /// Repository for user-defined red days
-/// 
+///
 /// Handles CRUD operations for the `user_red_days` table in Supabase
 class UserRedDayRepository {
   final SupabaseClient _supabase;
@@ -20,8 +20,10 @@ class UserRedDayRepository {
     required DateTime endDate,
   }) async {
     try {
-      final startStr = '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}';
-      final endStr = '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}';
+      final startStr =
+          '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}';
+      final endStr =
+          '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}';
 
       final response = await _supabase
           .from(_tableName)
@@ -75,7 +77,8 @@ class UserRedDayRepository {
     required DateTime date,
   }) async {
     try {
-      final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
       final response = await _supabase
           .from(_tableName)
@@ -96,7 +99,7 @@ class UserRedDayRepository {
   Future<UserRedDay> upsert(UserRedDay redDay) async {
     try {
       final data = redDay.toJson();
-      
+
       final response = await _supabase
           .from(_tableName)
           .upsert(data, onConflict: 'user_id,date')
@@ -133,7 +136,8 @@ class UserRedDayRepository {
     required DateTime date,
   }) async {
     try {
-      final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
       await _supabase
           .from(_tableName)

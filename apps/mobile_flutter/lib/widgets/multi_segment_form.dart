@@ -400,7 +400,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
 
               // Add new segment form
               Text(
-                _segments.isEmpty 
+                _segments.isEmpty
                     ? AppLocalizations.of(context).multiSegment_firstSegment
                     : AppLocalizations.of(context).multiSegment_addNextSegment,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -418,8 +418,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                   prefixIcon: const Icon(Icons.location_on),
                   border: const OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                    Validators.validateRequired(value, AppLocalizations.of(context).form_departureLocation),
+                validator: (value) => Validators.validateRequired(
+                    value, AppLocalizations.of(context).form_departureLocation),
               ),
 
               const SizedBox(height: AppConstants.smallPadding),
@@ -433,8 +433,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                   prefixIcon: const Icon(Icons.location_on),
                   border: const OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                    Validators.validateRequired(value, AppLocalizations.of(context).form_arrivalLocation),
+                validator: (value) => Validators.validateRequired(
+                    value, AppLocalizations.of(context).form_arrivalLocation),
               ),
 
               const SizedBox(height: AppConstants.smallPadding),
@@ -443,8 +443,10 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               TextFormField(
                 controller: _minutesController,
                 decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context).multiSegment_travelTimeMinutes,
-                  hintText: AppLocalizations.of(context).multiSegment_travelTimeHint,
+                  labelText: AppLocalizations.of(context)
+                      .multiSegment_travelTimeMinutes,
+                  hintText:
+                      AppLocalizations.of(context).multiSegment_travelTimeHint,
                   prefixIcon: const Icon(Icons.access_time),
                   border: const OutlineInputBorder(),
                 ),
@@ -459,7 +461,8 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                 controller: _infoController,
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context).entry_notes,
-                  hintText: AppLocalizations.of(context).form_additionalInformation,
+                  hintText:
+                      AppLocalizations.of(context).form_additionalInformation,
                   prefixIcon: const Icon(Icons.note),
                   border: const OutlineInputBorder(),
                 ),
@@ -477,8 +480,10 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                       onPressed: _addSegment,
                       icon: const Icon(Icons.add),
                       label: Text(_segments.isEmpty
-                          ? AppLocalizations.of(context).multiSegment_addFirstSegment
-                          : AppLocalizations.of(context).multiSegment_addNextSegment),
+                          ? AppLocalizations.of(context)
+                              .multiSegment_addFirstSegment
+                          : AppLocalizations.of(context)
+                              .multiSegment_addNextSegment),
                     ),
                   ),
 
@@ -495,9 +500,10 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.save),
-                      label: Text(_isLoading 
+                      label: Text(_isLoading
                           ? AppLocalizations.of(context).multiSegment_saving
-                          : AppLocalizations.of(context).multiSegment_saveJourney),
+                          : AppLocalizations.of(context)
+                              .multiSegment_saveJourney),
                     ),
                   ),
                 ],

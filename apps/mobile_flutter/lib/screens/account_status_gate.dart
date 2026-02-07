@@ -26,7 +26,8 @@ class AccountStatusGate extends StatefulWidget {
   State<AccountStatusGate> createState() => _AccountStatusGateState();
 }
 
-class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindingObserver {
+class _AccountStatusGateState extends State<AccountStatusGate>
+    with WidgetsBindingObserver {
   final _profileService = ProfileService();
   UserProfile? _profile;
   bool _isLoading = true;
@@ -131,7 +132,7 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
     if (_profile == null) {
       return 'Your subscription is not active.';
     }
-    
+
     final status = _profile!.subscriptionStatus;
     if (status == 'pending') {
       return 'Your payment was not completed. Please complete the signup process to start your free trial.';
@@ -232,9 +233,11 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                 ElevatedButton.icon(
                   onPressed: _openSignupPage,
                   icon: const Icon(Icons.open_in_new),
-                  label: Text(AppLocalizations.of(context).auth_completeRegistration),
+                  label: Text(
+                      AppLocalizations.of(context).auth_completeRegistration),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -288,9 +291,11 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
                 ElevatedButton.icon(
                   onPressed: _openManageSubscription,
                   icon: const Icon(Icons.open_in_new),
-                  label: Text(AppLocalizations.of(context).settings_manageSubscription),
+                  label: Text(
+                      AppLocalizations.of(context).settings_manageSubscription),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -315,4 +320,3 @@ class _AccountStatusGateState extends State<AccountStatusGate> with WidgetsBindi
     return widget.child;
   }
 }
-

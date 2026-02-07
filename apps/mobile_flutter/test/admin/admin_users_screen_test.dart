@@ -74,7 +74,8 @@ void main() {
 
     // Verify confirmation dialog appears
     expect(find.text('Disable User'), findsOneWidget);
-    expect(find.text('Are you sure you want to disable Test User 1?'), findsOneWidget);
+    expect(find.text('Are you sure you want to disable Test User 1?'),
+        findsOneWidget);
 
     // Confirm disable
     final confirmButton = find.widgetWithText(FilledButton, 'Disable');
@@ -101,7 +102,8 @@ void main() {
 
     // Verify confirmation dialog appears
     expect(find.text('Enable User'), findsOneWidget);
-    expect(find.text('Are you sure you want to enable Test User 2?'), findsOneWidget);
+    expect(find.text('Are you sure you want to enable Test User 2?'),
+        findsOneWidget);
 
     // Confirm enable
     final confirmButton = find.widgetWithText(FilledButton, 'Enable');
@@ -112,7 +114,8 @@ void main() {
     verify(mockAdminApiService.enableUser('user2')).called(1);
   });
 
-  testWidgets('delete confirmation dialog appears correctly', (WidgetTester tester) async {
+  testWidgets('delete confirmation dialog appears correctly',
+      (WidgetTester tester) async {
     when(mockAdminApiService.fetchUsers()).thenAnswer((_) async => mockUsers);
     when(mockAdminApiService.deleteUser(any)).thenAnswer((_) async {
       return;
@@ -134,7 +137,8 @@ void main() {
     // Verify dialog appears with correct content
     expect(find.text('Confirm Permanent Deletion'), findsOneWidget);
     expect(
-      find.text('Warning: This action cannot be undone. All user data will be permanently deleted.'),
+      find.text(
+          'Warning: This action cannot be undone. All user data will be permanently deleted.'),
       findsOneWidget,
     );
     expect(find.text('Type DELETE to confirm:'), findsOneWidget);
@@ -143,14 +147,14 @@ void main() {
     final deleteButton = find.widgetWithText(FilledButton, 'Confirm Delete');
     expect(tester.widget<FilledButton>(deleteButton).onPressed, isNull);
 
-         // Type incorrect confirmation
-     await tester.enterText(find.byType(TextField).last, 'delete');
-     await tester.pump();
-     expect(tester.widget<FilledButton>(deleteButton).onPressed, isNull);
+    // Type incorrect confirmation
+    await tester.enterText(find.byType(TextField).last, 'delete');
+    await tester.pump();
+    expect(tester.widget<FilledButton>(deleteButton).onPressed, isNull);
 
-     // Type correct confirmation
-     await tester.enterText(find.byType(TextField).last, 'DELETE');
-     await tester.pump();
+    // Type correct confirmation
+    await tester.enterText(find.byType(TextField).last, 'DELETE');
+    await tester.pump();
     expect(tester.widget<FilledButton>(deleteButton).onPressed, isNotNull);
 
     // Confirm deletion

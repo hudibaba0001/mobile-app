@@ -55,11 +55,11 @@ void main() {
       );
       expect(val, 480);
     });
-    
+
     test('Non-work day (Sunday) returns 0 even if normal', () {
       final val = TargetHoursCalculator.scheduledMinutesWithRedDayInfo(
         date: DateTime(2024, 1, 7), // Sunday
-        weeklyTargetMinutes: 2400, 
+        weeklyTargetMinutes: 2400,
         isFullRedDay: false,
         isHalfRedDay: false,
       );

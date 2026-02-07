@@ -105,9 +105,10 @@ void main() {
       });
 
       final success = await viewModel.disableUser(mockUsers[0]);
-      
+
       verify(mockAdminApiService.disableUser('user1')).called(1);
-      verify(mockAdminApiService.fetchUsers()).called(2); // Initial + after disable
+      verify(mockAdminApiService.fetchUsers())
+          .called(2); // Initial + after disable
       expect(success, isTrue);
       expect(viewModel.error, isNull);
     });
@@ -118,9 +119,10 @@ void main() {
       });
 
       final success = await viewModel.enableUser(mockUsers[1]);
-      
+
       verify(mockAdminApiService.enableUser('user2')).called(1);
-      verify(mockAdminApiService.fetchUsers()).called(2); // Initial + after enable
+      verify(mockAdminApiService.fetchUsers())
+          .called(2); // Initial + after enable
       expect(success, isTrue);
       expect(viewModel.error, isNull);
     });
@@ -131,9 +133,10 @@ void main() {
       });
 
       final success = await viewModel.deleteUser(mockUsers[0]);
-      
+
       verify(mockAdminApiService.deleteUser('user1')).called(1);
-      verify(mockAdminApiService.fetchUsers()).called(2); // Initial + after delete
+      verify(mockAdminApiService.fetchUsers())
+          .called(2); // Initial + after delete
       expect(success, isTrue);
       expect(viewModel.error, isNull);
     });
@@ -142,7 +145,7 @@ void main() {
       when(mockAdminApiService.deleteUser('user1')).thenThrow('Test error');
 
       final success = await viewModel.deleteUser(mockUsers[0]);
-      
+
       expect(success, isFalse);
       expect(viewModel.error, equals('Test error'));
     });

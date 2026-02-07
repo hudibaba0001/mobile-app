@@ -35,15 +35,15 @@ class SyncOperation {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'type': type.name,
-    'entryId': entryId,
-    'userId': userId,
-    'entryData': entryData,
-    'createdAt': createdAt.toIso8601String(),
-    'retryCount': retryCount,
-    'lastError': lastError,
-  };
+        'id': id,
+        'type': type.name,
+        'entryId': entryId,
+        'userId': userId,
+        'entryData': entryData,
+        'createdAt': createdAt.toIso8601String(),
+        'retryCount': retryCount,
+        'lastError': lastError,
+      };
 
   factory SyncOperation.fromJson(Map<String, dynamic> json) {
     return SyncOperation(
@@ -96,7 +96,8 @@ class SyncQueueService extends ChangeNotifier {
             debugPrint('SyncQueueService: Error parsing queued operation: $e');
           }
         }
-        debugPrint('SyncQueueService: Loaded ${_queue.length} pending operations from storage');
+        debugPrint(
+            'SyncQueueService: Loaded ${_queue.length} pending operations from storage');
       }
 
       _initialized = true;
@@ -117,10 +118,12 @@ class SyncQueueService extends ChangeNotifier {
     if (existingIndex != -1) {
       // Replace existing operation with newer one
       _queue[existingIndex] = operation;
-      debugPrint('SyncQueueService: Updated existing operation for entry ${operation.entryId}');
+      debugPrint(
+          'SyncQueueService: Updated existing operation for entry ${operation.entryId}');
     } else {
       _queue.add(operation);
-      debugPrint('SyncQueueService: Queued ${operation.type.name} operation for entry ${operation.entryId}');
+      debugPrint(
+          'SyncQueueService: Queued ${operation.type.name} operation for entry ${operation.entryId}');
     }
 
     await _persist();
@@ -159,7 +162,8 @@ class SyncQueueService extends ChangeNotifier {
     );
     if (createIndex != -1) {
       _queue.removeAt(createIndex);
-      debugPrint('SyncQueueService: Removed pending create for deleted entry $entryId');
+      debugPrint(
+          'SyncQueueService: Removed pending create for deleted entry $entryId');
       await _persist();
       notifyListeners();
       return;
@@ -202,7 +206,8 @@ class SyncQueueService extends ChangeNotifier {
     int failed = 0;
     final List<SyncOperation> toRemove = [];
 
-    debugPrint('SyncQueueService: Processing ${_queue.length} pending operations...');
+    debugPrint(
+        'SyncQueueService: Processing ${_queue.length} pending operations...');
 
     for (final operation in List.from(_queue)) {
       processed++;
@@ -216,17 +221,20 @@ class SyncQueueService extends ChangeNotifier {
 
         toRemove.add(operation);
         succeeded++;
-        debugPrint('SyncQueueService: Successfully processed ${operation.type.name} for ${operation.entryId}');
+        debugPrint(
+            'SyncQueueService: Successfully processed ${operation.type.name} for ${operation.entryId}');
       } catch (e) {
         operation.retryCount++;
         operation.lastError = e.toString();
         failed++;
 
         if (operation.retryCount >= maxRetries) {
-          debugPrint('SyncQueueService: Max retries reached for ${operation.entryId}, removing from queue');
+          debugPrint(
+              'SyncQueueService: Max retries reached for ${operation.entryId}, removing from queue');
           toRemove.add(operation);
         } else {
-          debugPrint('SyncQueueService: Failed to process ${operation.type.name} for ${operation.entryId}: $e (retry ${operation.retryCount}/$maxRetries)');
+          debugPrint(
+              'SyncQueueService: Failed to process ${operation.type.name} for ${operation.entryId}: $e (retry ${operation.retryCount}/$maxRetries)');
         }
       }
     }
@@ -240,8 +248,10 @@ class SyncQueueService extends ChangeNotifier {
     _isProcessing = false;
     notifyListeners();
 
-    debugPrint('SyncQueueService: Queue processing complete - Processed: $processed, Succeeded: $succeeded, Failed: $failed');
-    return SyncResult(processed: processed, succeeded: succeeded, failed: failed);
+    debugPrint(
+        'SyncQueueService: Queue processing complete - Processed: $processed, Succeeded: $succeeded, Failed: $failed');
+    return SyncResult(
+        processed: processed, succeeded: succeeded, failed: failed);
   }
 
   /// Remove a specific operation from the queue

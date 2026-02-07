@@ -26,16 +26,17 @@ class TravelSummary {
     this.weeklyMinutes,
     this.longestTripMinutes = 0,
     this.shortestTripMinutes = 0,
-  }) : averageMinutesPerTrip = totalEntries > 0 ? totalMinutes / totalEntries : 0,
-       mostFrequentRoute = _getMostFrequentRoute(locationFrequency),
-       totalHours = (totalMinutes / 60).round();
+  })  : averageMinutesPerTrip =
+            totalEntries > 0 ? totalMinutes / totalEntries : 0,
+        mostFrequentRoute = _getMostFrequentRoute(locationFrequency),
+        totalHours = (totalMinutes / 60).round();
 
   static String _getMostFrequentRoute(Map<String, int> locationFrequency) {
     if (locationFrequency.isEmpty) return 'No routes';
-    
+
     var sortedEntries = locationFrequency.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    
+
     return sortedEntries.first.key;
   }
 

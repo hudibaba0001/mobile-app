@@ -22,7 +22,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     final user = context.read<SupabaseAuthService>().currentUser;
     if (user != null) {
-      _nameController.text = user.userMetadata?['full_name'] ?? user.email ?? '';
+      _nameController.text =
+          user.userMetadata?['full_name'] ?? user.email ?? '';
     }
   }
 
@@ -94,7 +95,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // User Info Section
           Card(
             elevation: 0,
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            color: theme.colorScheme.surfaceContainerHighest
+                .withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -117,7 +119,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           Text(
-                            user.userMetadata?['full_name'] ?? user.email ?? '—',
+                            user.userMetadata?['full_name'] ??
+                                user.email ??
+                                '—',
                             style: theme.textTheme.bodyLarge,
                           ),
                         ],
@@ -173,7 +177,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _showEditNameDialog(BuildContext context, User user) async {
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final controller = TextEditingController(text: user.userMetadata?['full_name'] ?? user.email ?? '');
+    final controller = TextEditingController(
+        text: user.userMetadata?['full_name'] ?? user.email ?? '');
 
     return showDialog<void>(
       context: context,

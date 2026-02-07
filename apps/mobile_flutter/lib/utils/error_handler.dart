@@ -67,7 +67,7 @@ class ErrorHandler {
 
   static void _showErrorToUser(BuildContext context, AppError error) {
     final userMessage = _getUserFriendlyMessage(error);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(userMessage),

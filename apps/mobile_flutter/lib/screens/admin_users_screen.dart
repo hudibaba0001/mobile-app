@@ -22,7 +22,8 @@ class _AdminUsersScreenContent extends StatefulWidget {
   const _AdminUsersScreenContent();
 
   @override
-  State<_AdminUsersScreenContent> createState() => _AdminUsersScreenContentState();
+  State<_AdminUsersScreenContent> createState() =>
+      _AdminUsersScreenContentState();
 }
 
 class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
@@ -83,7 +84,8 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                       DropdownMenuItem(value: 'Admin', child: Text('Admin')),
                       DropdownMenuItem(value: 'User', child: Text('User')),
                     ],
-                    onChanged: (value) => viewModel.setFilterRole(value ?? 'All'),
+                    onChanged: (value) =>
+                        viewModel.setFilterRole(value ?? 'All'),
                   ),
                 ),
               ],
@@ -184,12 +186,16 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                                   children: [
                                     Icon(
                                       Icons.delete_forever,
-                                      color: Theme.of(context).colorScheme.error,
+                                      color:
+                                          Theme.of(context).colorScheme.error,
                                     ),
                                     const SizedBox(width: AppSpacing.sm),
                                     Text(
                                       'Delete',
-                                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .error),
                                     ),
                                   ],
                                 ),
@@ -197,7 +203,8 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                             ],
                             onSelected: (value) {
                               if (value == 'delete') {
-                                _showDeleteConfirmation(context, user, viewModel);
+                                _showDeleteConfirmation(
+                                    context, user, viewModel);
                               }
                             },
                           ),
@@ -241,9 +248,9 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
     );
   }
 
-  Future<void> _disableUser(BuildContext context, AdminUser user, AdminUsersViewModel viewModel) async {
-    final confirmed =
-        await showDialog<bool>(
+  Future<void> _disableUser(BuildContext context, AdminUser user,
+      AdminUsersViewModel viewModel) async {
+    final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Disable User'),
@@ -283,9 +290,9 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
     );
   }
 
-  Future<void> _enableUser(BuildContext context, AdminUser user, AdminUsersViewModel viewModel) async {
-    final confirmed =
-        await showDialog<bool>(
+  Future<void> _enableUser(BuildContext context, AdminUser user,
+      AdminUsersViewModel viewModel) async {
+    final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Enable User'),
@@ -322,10 +329,11 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
     );
   }
 
-  Future<void> _showDeleteConfirmation(BuildContext context, AdminUser user, AdminUsersViewModel viewModel) async {
+  Future<void> _showDeleteConfirmation(BuildContext context, AdminUser user,
+      AdminUsersViewModel viewModel) async {
     String confirmationText = '';
     bool isLoading = false;
-    
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -358,7 +366,8 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
           ),
           actions: [
             TextButton(
-              onPressed: isLoading ? null : () => Navigator.of(context).pop(false),
+              onPressed:
+                  isLoading ? null : () => Navigator.of(context).pop(false),
               child: const Text('Cancel'),
             ),
             FilledButton(
@@ -379,7 +388,8 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                       height: AppIconSize.sm,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onError),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).colorScheme.onError),
                       ),
                     )
                   : const Text('Confirm Delete'),

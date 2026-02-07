@@ -62,16 +62,17 @@ class ImportService {
           continue;
         }
 
-        final atomicEntry = entry.travelLegs != null && entry.travelLegs!.isNotEmpty
-            ? entry
-            : Entry.makeTravelAtomicFromLeg(
-                userId: entry.userId,
-                date: entry.date,
-                from: entry.from ?? '',
-                to: entry.to ?? '',
-                minutes: entry.travelMinutes ?? 0,
-                dayNotes: entry.notes,
-              );
+        final atomicEntry =
+            entry.travelLegs != null && entry.travelLegs!.isNotEmpty
+                ? entry
+                : Entry.makeTravelAtomicFromLeg(
+                    userId: entry.userId,
+                    date: entry.date,
+                    from: entry.from ?? '',
+                    to: entry.to ?? '',
+                    minutes: entry.travelMinutes ?? 0,
+                    dayNotes: entry.notes,
+                  );
 
         final dedupeKey =
             '${atomicEntry.userId}-${atomicEntry.date.toIso8601String()}-${atomicEntry.from}-${atomicEntry.to}-${atomicEntry.travelMinutes}-${atomicEntry.notes}';
@@ -230,16 +231,17 @@ class ImportService {
           continue;
         }
 
-        final atomicEntry = entry.travelLegs != null && entry.travelLegs!.isNotEmpty
-            ? entry
-            : Entry.makeTravelAtomicFromLeg(
-                userId: entry.userId,
-                date: entry.date,
-                from: entry.from ?? '',
-                to: entry.to ?? '',
-                minutes: entry.travelMinutes ?? 0,
-                dayNotes: entry.notes,
-              );
+        final atomicEntry =
+            entry.travelLegs != null && entry.travelLegs!.isNotEmpty
+                ? entry
+                : Entry.makeTravelAtomicFromLeg(
+                    userId: entry.userId,
+                    date: entry.date,
+                    from: entry.from ?? '',
+                    to: entry.to ?? '',
+                    minutes: entry.travelMinutes ?? 0,
+                    dayNotes: entry.notes,
+                  );
 
         final dedupeKey =
             '${atomicEntry.userId}-${atomicEntry.date.toIso8601String()}-${atomicEntry.from}-${atomicEntry.to}-${atomicEntry.travelMinutes}-${atomicEntry.notes}';
@@ -268,7 +270,8 @@ class ImportService {
       date: DateTime.parse(data['date'] as String),
       from: data['departure'] as String? ?? data['from'] as String?,
       to: data['arrival'] as String? ?? data['to'] as String?,
-      travelMinutes: (data['minutes'] as int?) ?? (data['travelMinutes'] as int?) ?? 0,
+      travelMinutes:
+          (data['minutes'] as int?) ?? (data['travelMinutes'] as int?) ?? 0,
       notes: data['info'] as String? ?? data['notes'] as String?,
       createdAt: data['createdAt'] != null
           ? DateTime.parse(data['createdAt'] as String)

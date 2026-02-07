@@ -23,8 +23,7 @@ class StorageService {
   }) async {
     try {
       // Generate filename if not provided
-      final name =
-          fileName ??
+      final name = fileName ??
           '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
 
       // Read file bytes
@@ -146,15 +145,15 @@ class StorageService {
         final size = metadata != null && metadata.containsKey('size')
             ? (metadata['size'] as num?)?.toInt() ?? 0
             : 0;
-        
+
         // Parse dates safely from String?
-        final createdAt = item.createdAt != null 
-            ? DateTime.tryParse(item.createdAt!) ?? DateTime.now() 
+        final createdAt = item.createdAt != null
+            ? DateTime.tryParse(item.createdAt!) ?? DateTime.now()
             : DateTime.now();
-        final updatedAt = item.updatedAt != null 
-            ? DateTime.tryParse(item.updatedAt!) ?? DateTime.now() 
+        final updatedAt = item.updatedAt != null
+            ? DateTime.tryParse(item.updatedAt!) ?? DateTime.now()
             : DateTime.now();
-        
+
         return FileMetadata(
           name: item.name,
           size: size,
@@ -173,9 +172,9 @@ class StorageService {
 /// Custom exception for storage operations
 class StorageException implements Exception {
   final String message;
-  
+
   StorageException(this.message);
-  
+
   @override
   String toString() => 'StorageException: $message';
 }
@@ -186,14 +185,15 @@ class FileMetadata {
   final int size;
   final DateTime createdAt;
   final DateTime updatedAt;
-  
+
   FileMetadata({
     required this.name,
     required this.size,
     required this.createdAt,
     required this.updatedAt,
   });
-  
+
   @override
-  String toString() => 'FileMetadata(name: $name, size: $size, createdAt: $createdAt)';
+  String toString() =>
+      'FileMetadata(name: $name, size: $size, createdAt: $createdAt)';
 }

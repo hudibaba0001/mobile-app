@@ -31,14 +31,17 @@ void main() {
       // Use getMinutes for canonical API
       final reverseDuration = service.getMinutes('Uppsala', 'Stockholm');
       expect(reverseDuration, 55);
-      
+
       // getRouteDuration also works (delegates to getMinutes)
-      final reverseDurationLegacy = service.getRouteDuration('Uppsala', 'Stockholm');
+      final reverseDurationLegacy =
+          service.getRouteDuration('Uppsala', 'Stockholm');
       expect(reverseDurationLegacy, 55);
     });
 
-    test('should match routes case-insensitively and ignoring whitespace', () async {
-      await service.saveRoute(from: '  Stockholm  ', to: 'Uppsala', minutes: 55);
+    test('should match routes case-insensitively and ignoring whitespace',
+        () async {
+      await service.saveRoute(
+          from: '  Stockholm  ', to: 'Uppsala', minutes: 55);
 
       final duration = service.getRouteDuration('stockholm', 'uppsala');
       expect(duration, 55);

@@ -4,7 +4,7 @@ import '../services/admin_api_service.dart';
 
 class AdminUsersViewModel extends ChangeNotifier {
   final AdminApiService _adminApiService;
-  
+
   List<AdminUser>? _users;
   String? _searchQuery;
   String _filterRole = 'All';
@@ -31,7 +31,7 @@ class AdminUsersViewModel extends ChangeNotifier {
 
   List<AdminUser> get filteredUsers {
     if (_users == null) return [];
-    
+
     var filteredUsers = _users!;
 
     // Apply role filter
