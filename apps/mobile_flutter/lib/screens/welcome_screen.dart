@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/app_router.dart';
+import '../config/external_links.dart';
 import '../l10n/generated/app_localizations.dart';
 
 /// Welcome screen that serves as the entry point for new users
@@ -150,8 +151,7 @@ class WelcomeScreen extends StatelessWidget {
 
   /// Launch the sign up URL in external browser
   Future<void> _launchSignUpUrl(BuildContext context) async {
-    const url = 'https://www.app.kviktime.se/create-account';
-    final uri = Uri.parse(url);
+    final uri = Uri.parse(ExternalLinks.signupUrl);
 
     try {
       if (await canLaunchUrl(uri)) {
