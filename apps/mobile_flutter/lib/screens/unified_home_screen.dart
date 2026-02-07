@@ -446,7 +446,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+      padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -457,7 +457,13 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           ],
         ),
         borderRadius: AppRadius.cardRadius,
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
       ),
       child: Row(
         children: [
@@ -474,7 +480,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xxs),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   totalText,
                   style: theme.textTheme.headlineMedium?.copyWith(
@@ -573,12 +579,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       return '${mins}m';
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return AppCard(
+      padding: AppSpacing.cardPadding,
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -586,10 +589,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             children: [
               Icon(
                 Icons.calendar_today_rounded,
-                size: 18,
+                size: AppIconSize.sm,
                 color: theme.colorScheme.primary,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 t.common_thisWeek,
                 style: theme.textTheme.titleSmall?.copyWith(
@@ -599,35 +602,32 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              if (travelEnabled) ...[
-                Expanded(
-                  child: _buildCompactStat(
-                    theme,
-                    icon: Icons.directions_car_rounded,
-                    value: formatHours(travelDuration),
-                    label: t.entry_travel,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
-                ),
-              ],
-              Expanded(
-                child: _buildCompactStat(
-                  theme,
-                  icon: Icons.work_rounded,
-                  value: formatHours(workDuration),
-                  label: t.entry_work,
-                  color: theme.colorScheme.secondary,
-                ),
-              ),
-            ],
+          const SizedBox(height: AppSpacing.md),
+          if (travelEnabled)
+            MetricRow(
+              icon: Icons.directions_car_rounded,
+              label: t.entry_travel,
+              value: formatHours(travelDuration),
+              iconColor: theme.colorScheme.onSurfaceVariant,
+              valueColor: theme.colorScheme.onSurface,
+            ),
+          MetricRow(
+            icon: Icons.work_rounded,
+            label: t.entry_work,
+            value: formatHours(workDuration),
+            iconColor: theme.colorScheme.onSurfaceVariant,
+            valueColor: theme.colorScheme.onSurface,
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            child: Divider(),
+          ),
+          MetricRow(
+            icon: Icons.functions_rounded,
+            label: t.edit_total,
+            value: formatHours(travelDuration + workDuration),
+            iconColor: theme.colorScheme.primary,
+            valueColor: theme.colorScheme.primary,
           ),
         ],
       ),

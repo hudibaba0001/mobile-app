@@ -10,6 +10,8 @@ import '../services/map_service.dart';
 import '../services/holiday_service.dart';
 import '../widgets/keyboard_aware_form_container.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../design/app_theme.dart';
+import '../design/design.dart';
 
 /// Unified entry form for both travel and work entries
 /// Provides appropriate fields based on entry type
@@ -211,10 +213,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
     return KeyboardAwareFormContainer(
       child: Container(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
         ),
         child: Form(
           key: _formKey,
@@ -269,7 +271,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               const SizedBox(height: 20),
 
               // Work-specific fields
-              if (!isTravel) ..._buildWorkSpecificFields(theme),
+              ...(!isTravel ? _buildWorkSpecificFields(theme) : []),
 
               // Notes Section
               _buildNotesSection(theme),
@@ -417,10 +419,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       ),
                       child: Text(
                         badge,
-                        style: const TextStyle(
+                        style: theme.textTheme.labelSmall?.copyWith(
                           color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
