@@ -446,7 +446,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -456,14 +456,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             theme.colorScheme.primary.withValues(alpha: 0.85),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        borderRadius: AppRadius.cardRadius,
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Row(
         children: [
@@ -476,15 +470,15 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 Text(
                   t.common_today,
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: AppSpacing.xxs),
                 Text(
                   totalText,
                   style: theme.textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -493,34 +487,43 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           ),
           // Breakdown
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.15),
               borderRadius: AppRadius.buttonRadius,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (travelEnabled) ...[
-                  Icon(Icons.directions_car_rounded,
-                      color: Colors.white.withValues(alpha: 0.9), size: 16),
-                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.directions_car_rounded,
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
+                    size: AppIconSize.sm,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
                     travelText,
                     style: theme.textTheme.labelLarge?.copyWith(
-                      color: Colors.white,
+                      color: theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.sm),
                 ],
-                Icon(Icons.work_rounded,
-                    color: Colors.white.withValues(alpha: 0.9), size: 16),
-                const SizedBox(width: 4),
+                Icon(
+                  Icons.work_rounded,
+                  color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
+                  size: AppIconSize.sm,
+                ),
+                const SizedBox(width: AppSpacing.xs),
                 Text(
                   workText,
                   style: theme.textTheme.labelLarge?.copyWith(
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
