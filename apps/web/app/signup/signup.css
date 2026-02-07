@@ -5,7 +5,7 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
-  justify-center;
+  justify-content: center;
   padding: 40px 20px;
 }
 
@@ -23,7 +23,7 @@
 .brand-icon {
   display: inline-flex;
   align-items: center;
-  justify-center;
+  justify-content: center;
   width: 64px;
   height: 64px;
   border-radius: 50%;
@@ -102,7 +102,7 @@
 .strength-header {
   display: flex;
   align-items: center;
-  justify-between;
+  justify-content: space-between;
   margin-bottom: 8px;
 }
 
@@ -166,7 +166,7 @@
   background: #10b981;
   display: flex;
   align-items: center;
-  justify-center;
+  justify-content: center;
   color: white;
 }
 
