@@ -28,9 +28,7 @@ export default function AdminLoginPage() {
         throw new Error(data.error || 'Login failed');
       }
 
-      // Store access token
-      localStorage.setItem('admin_access_token', data.accessToken);
-
+      // Token is set as httpOnly cookie by the API
       // Redirect to dashboard
       router.push('/admin/dashboard');
     } catch (err: unknown) {

@@ -4,32 +4,37 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-function getEmailFromToken(): string {
-  if (typeof window === 'undefined') return '';
-  const token = localStorage.getItem('admin_access_token');
-  if (!token) return '';
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.email || 'Admin';
-  } catch {
-    return 'Admin';
-  }
-}
-
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [userEmail] = useState<string>(getEmailFromToken);
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_access_token');
-    if (!token) {
-      router.push('/admin/login');
-    }
+    // Verify session via httpOnly cookie (not accessible to JS/XSS)
+    fetch('/api/auth/me')
+      .then((res) => {
+        if (!res.ok) {
+          router.push('/admin/login');
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data?.email) {
+          setUserEmail(data.email);
+        }
+      })
+      .catch(() => {
+        router.push('/admin/login');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_access_token');
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/admin/login');
   };
 
@@ -38,6 +43,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Users', href: '/admin/users', icon: '\u{1F465}' },
     { name: 'Analytics', href: '/admin/analytics', icon: '\u{1F4C8}' },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">

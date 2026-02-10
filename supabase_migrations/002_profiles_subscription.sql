@@ -92,19 +92,53 @@ CREATE POLICY "Users can view own profile"
   FOR SELECT
   USING (auth.uid() = id);
 
--- Policy: Users can update only specific non-subscription fields
--- Subscription fields can only be updated by service role (webhooks)
+-- Policy: Users can update their own profile row
+-- A BEFORE UPDATE trigger (prevent_profile_escalation) blocks changes to
+-- protected columns: is_admin, subscription_status, stripe_customer_id,
+-- stripe_subscription_id, current_period_end, email.
+-- Service role bypasses the trigger for webhook/admin operations.
 CREATE POLICY "Users can update own profile limited"
   ON profiles
   FOR UPDATE
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
--- Note: For maximum security, you can create a separate table for 
--- subscription data that users cannot modify at all, but for simplicity
--- we rely on the web/webhook to be the only writer of subscription fields.
+-- Trigger function: blocks non-service-role users from updating sensitive columns
+CREATE OR REPLACE FUNCTION prevent_profile_escalation()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF current_setting('role', true) = 'service_role' THEN
+    RETURN NEW;
+  END IF;
 
--- Insert policy for service role only (handled by RLS being off for service role)
--- The service role bypasses RLS entirely
+  IF NEW.is_admin IS DISTINCT FROM OLD.is_admin THEN
+    RAISE EXCEPTION 'Cannot modify admin status';
+  END IF;
+  IF NEW.subscription_status IS DISTINCT FROM OLD.subscription_status THEN
+    RAISE EXCEPTION 'Cannot modify subscription status';
+  END IF;
+  IF NEW.stripe_customer_id IS DISTINCT FROM OLD.stripe_customer_id THEN
+    RAISE EXCEPTION 'Cannot modify Stripe customer ID';
+  END IF;
+  IF NEW.stripe_subscription_id IS DISTINCT FROM OLD.stripe_subscription_id THEN
+    RAISE EXCEPTION 'Cannot modify Stripe subscription ID';
+  END IF;
+  IF NEW.current_period_end IS DISTINCT FROM OLD.current_period_end THEN
+    RAISE EXCEPTION 'Cannot modify subscription period';
+  END IF;
+  IF NEW.email IS DISTINCT FROM OLD.email THEN
+    RAISE EXCEPTION 'Cannot modify email directly';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public;
+
+DROP TRIGGER IF EXISTS profile_escalation_guard ON profiles;
+CREATE TRIGGER profile_escalation_guard
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION prevent_profile_escalation();
 
 COMMENT ON TABLE profiles IS 'User profiles with subscription and consent data. Subscription fields updated by Stripe webhooks only.';

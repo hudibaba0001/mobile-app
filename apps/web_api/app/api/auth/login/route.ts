@@ -41,12 +41,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return the access token
-    return NextResponse.json({
-      accessToken: data.session?.access_token,
+    // Set token in httpOnly cookie (not accessible to JS/XSS)
+    const response = NextResponse.json({
       user: data.user,
       expiresAt: data.session?.expires_at,
     });
+
+    response.cookies.set('admin_access_token', data.session?.access_token || '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: data.session?.expires_in || 3600,
+    });
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

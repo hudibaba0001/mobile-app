@@ -35,16 +35,23 @@ export async function withAdminAuth(
     return rateLimitResponse;
   }
 
+  // Check Authorization header first, then fall back to httpOnly cookie
   const authHeader = request.headers.get('authorization');
+  const cookieToken = request.cookies.get('admin_access_token')?.value;
+  let token: string | undefined;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (authHeader?.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else if (cookieToken) {
+    token = cookieToken;
+  }
+
+  if (!token) {
     return NextResponse.json(
-      { error: 'Missing or invalid authorization header' },
+      { error: 'Missing or invalid authorization' },
       { status: 401 }
     );
   }
-
-  const token = authHeader.substring(7);
   const user = await verifyToken(token);
 
   if (!user) {
