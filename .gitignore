@@ -31,7 +31,21 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+# Build output
+build/
+
+# Node/Next.js
+node_modules/
+.next/
+
+# Firebase tooling output
+.firebase/
+
+# Local artifacts
+Screen_recording_*.webm
+latest report.txt
+locat.txt
+screen shorts/Screenshot_20260209_214645.png
 
 # Symbolication related
 app.*.symbols

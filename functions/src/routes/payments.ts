@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 const router = express.Router();
 
 // Initialize Stripe with your secret key
-const stripe = new Stripe('sk_test_51RrleLLUAmVQpcCRnVfGLj2jUzNbkv1u9AeMwZSbBKJ2tpPmLHovJaSSaZhR7AAci37cB36eiQJ7NrHdOTJzOOcX00RQaDOwgn', {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 });
 

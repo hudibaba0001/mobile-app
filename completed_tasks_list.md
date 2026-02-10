@@ -55,7 +55,7 @@
 - ✅ **Account Creation Page**: `https://app-kviktime-se.web.app/create-account`
 - ✅ **Stripe Keys Integration**:
   - Publishable Key: `pk_test_51RrleLLUAmVQpcCRcBRThMOQo1naQeFV4t2zKuOhkHE1bpBJiwnYo5rlzPOHNChrrGeMHI6crSJaz8DEFOzNlzLq00Q5cBvuCe`
-  - Secret Key: `sk_test_51RrleLLUAmVQpcCRnVfGLj2jUzNbkv1u9AeMwZSbBKJ2tpPmLHovJaSSaZhR7AAci37cB36eiQJ7NrHdOTJzOOcX00RQaDOwgn`
+  - Secret Key: `sk_[REDACTED]`
 - ✅ **Subscription Plan**: 150 SEK/month flat rate
 - ✅ **Price ID**: `price_1Rrm0vLUAmVQpcCRPCe9XF18`
 - ✅ **Payment Flow**: Customer creation → Subscription → Redirect to app
