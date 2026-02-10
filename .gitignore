@@ -1,3 +1,8 @@
+# Signing keys
+**/key.properties
+**/*.jks
+**/*.keystore
+
 # Miscellaneous
 *.class
 *.log

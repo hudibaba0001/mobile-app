@@ -1,23 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 import { stripe } from '@/lib/stripe'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { email } = body
+    // Verify the caller is authenticated via Supabase JWT
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+    const token = authHeader.replace('Bearer ', '')
+    const supabaseAuth = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const supabase = createServiceRoleClient()
 
-    // Look up profile by email
+    // Look up profile by authenticated user ID (not by email from body)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('stripe_customer_id')
-      .eq('email', email)
+      .eq('id', user.id)
       .single()
 
     if (profileError || !profile?.stripe_customer_id) {

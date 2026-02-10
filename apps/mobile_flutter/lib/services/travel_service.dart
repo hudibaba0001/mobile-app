@@ -222,10 +222,19 @@ class TravelService {
   }
 
   String _escapeCsvField(String field) {
-    if (field.contains(',') || field.contains('"') || field.contains('\n')) {
-      return '"${field.replaceAll('"', '""')}"';
+    // Prevent CSV formula injection
+    var sanitized = field;
+    if (sanitized.isNotEmpty) {
+      final firstChar = sanitized[0];
+      if (firstChar == '=' || firstChar == '+' || firstChar == '-' ||
+          firstChar == '@' || firstChar == '\t' || firstChar == '\r') {
+        sanitized = "'$sanitized";
+      }
     }
-    return field;
+    if (sanitized.contains(',') || sanitized.contains('"') || sanitized.contains('\n')) {
+      return '"${sanitized.replaceAll('"', '""')}"';
+    }
+    return sanitized;
   }
 
   /// Get travel statistics for analytics

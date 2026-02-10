@@ -1,0 +1,343 @@
+**Step 1: Comprehensive Planning Phase (Analysis Blueprint)**  
+- **Phase 0 — Scope & Inventory (100% surface coverage)**
+  - Enumerate all first-party modules: Flutter app (`apps/mobile_flutter`), Next.js admin API/UI (`apps/web_api`), Next.js signup/billing (`apps/web`), Firebase Functions API (`functions`), Supabase SQL/migrations (`supabase*`, `*.sql`), static web assets (`public`), CI (`.github/workflows`).
+  - Classify files: source vs generated vs third-party/vendor (`node_modules`, `.next`, `build`, `.dart_tool`, compiled JS under `functions/lib`).
+  - Produce quantitative inventory: file counts, LOC, largest files, complexity proxies, test footprint.
+- **Phase 1 — Baseline Static Validation**
+  - Flutter/Dart: analyzer (`flutter analyze`), lint config (`analysis_options.yaml`), test inventory, generated code review boundaries (`*.g.dart`, `l10n/generated/*`).
+  - Node/TS: project configs (`package.json`, eslint configs), basic pattern scans for unsafe APIs.
+- **Phase 2 — Security Deep Dive (OWASP Mobile Top 10 + OWASP Top 10 alignment)**
+  - **AuthN/AuthZ**: role checks, admin gates, token handling, session expiry handling, server-side enforcement vs client-side gating, IDOR risks.
+  - **Data at Rest**: Hive, SharedPreferences, exported files/backups, credential storage, multi-user device/account-switch behavior.
+  - **Data in Transit**: HTTP usage, TLS assumptions, timeouts, error handling; API endpoints exposure; CORS.
+  - **Backend/API**: Firebase Functions routes, Next.js API routes (admin + billing), Stripe flows, webhook verification, rate limiting robustness.
+  - **Database/RLS**: Supabase RLS correctness (especially `profiles`), policy intent vs actual guarantees, sensitive columns, trigger hardening (`search_path`), schema drift vs app expectations.
+  - **Secrets/Supply Chain**: keys/tokens in source, docs, artifacts; env file hygiene; dependency vulnerability posture (noting that CVE validation requires external DB access).
+- **Phase 3 — Performance Deep Dive (Flutter + backend)**
+  - Flutter: startup sequencing, sync queue processing, repeated SharedPreferences serialization, widget rebuild hotspots (large widgets), network request patterns, batching, pagination, caching.
+  - Backend: unbounded reads, N+1 queries, in-memory filtering of whole tables, rate-limit scalability, Stripe/Supabase call patterns.
+- **Phase 4 — Code Quality & Maintainability**
+  - Architectural consistency (Supabase vs Firebase coexistence), duplication, dead code, overly-large files, lint suppressions, test gaps, repo hygiene (generated artifacts committed).
+- **Phase 5 — Cross-Cutting Scenario Simulation**
+  - Offline → online transitions, queued operations replay, account switching on shared device, low-memory conditions, huge datasets, i18n/a11y regressions.
+- **Phase 6 — Reporting**
+  - Produce a hierarchical report: Security / Performance / Code Quality, each split by severity and module, with evidence (`path:line`), consequences, standards mapping, and cross-references.
+
+---
+
+**Step 2: Rigorous Execution Phase (What Was Examined + Metrics)**  
+- **Repository structure (observed)**: `apps/mobile_flutter`, `apps/web_api`, `apps/web`, `functions`, `supabase`, `supabase_migrations`, `public`, plus many generated/vendor artifacts (`node_modules`, `.next`, Flutter `build/`, `.dart_tool`).  
+- **Static checks executed**
+  - Flutter analyzer: `flutter analyze` in `apps/mobile_flutter` → “No issues found”.  
+- **Codebase metrics (computed)**
+  - Flutter app source: `apps/mobile_flutter/lib` → 157 Dart files, ~54,839 LOC (includes generated localizations).  
+  - Flutter tests: `apps/mobile_flutter/test` → 38 Dart files, ~5,615 LOC.  
+  - Rough Dart complexity proxy (excluding `l10n/generated` and `*.g.dart`): 146 files; average “complexity score/file” ~41.3; median ~24.5; top hotspots include `apps/mobile_flutter/lib/models/entry.dart`, `apps/mobile_flutter/lib/widgets/unified_entry_form.dart`, `apps/mobile_flutter/lib/screens/unified_home_screen*.dart`.  
+  - TS/JS (excluding `node_modules`, `.next`):  
+    - `apps/web_api` → 24 files, ~2,275 LOC.  
+    - `apps/web` → 16 files, ~994 LOC.  
+    - `functions/src` → 11 files, ~847 LOC.  
+- **High-signal secret/key scan (excluding `node_modules/.next/build`)**
+  - Found hardcoded Stripe secret key usage in Firebase Functions source/artifacts and references in docs/artifacts (details below, secrets redacted).
+  - Found Supabase anon key hardcoded in Flutter config.
+  - Found plaintext SMTP password field in SQL schema and corresponding client sync/storage code.
+- **Notable local workspace hazards**
+  - Presence of an untracked file named `nul` (Windows device-name collision) triggers tooling errors during repo-wide scans; treat as repo hygiene defect.
+
+---
+
+**Step 3: Detailed Reporting Phase (Comprehensive Final Report)**
+
+**Executive Summary**  
+- Multiple **critical** authorization and secret-handling failures exist across the backend and billing surfaces:
+  - Unauthenticated Stripe customer portal creation by **email only** (`apps/web`) enables **subscription takeover**.  
+  - Firebase Functions payment/account-creation endpoints use a **hardcoded Stripe secret key**, are **unauthenticated**, and log **highly sensitive data (including passwords)**.  
+  - Firebase Functions user management routes are effectively **admin endpoints** but are only protected by “any valid Firebase token,” enabling **user enumeration and arbitrary deletion**.  
+  - Supabase `profiles` RLS policy claims “limited” updates but in practice allows users to update **any column** on their profile row (including subscription/admin fields if present), enabling **privilege escalation** and **paywall bypass**.  
+  - Email settings design stores **SMTP sender_password** in plaintext (database + local Hive), creating a high-impact credential compromise risk.  
+- Performance and maintainability are meaningfully impacted by:
+  - Large, complex Flutter UI files and providers, heavy debug logging, and repeated SharedPreferences serialization for caches/queues.
+  - Backend endpoints that fetch whole tables then filter in memory, and balance calculations that run many sequential queries.
+
+---
+
+**Security Bugs — Critical**
+
+- **Unauthenticated Stripe billing portal creation (subscription takeover by email)**  
+  - **Location:** `apps/web/app/api/billing/portal/route.ts:5`  
+  - **Severity:** Critical  
+  - **Evidence:** Uses service-role Supabase client and creates a Stripe portal session from `email` with no auth context. (`apps/web/app/api/billing/portal/route.ts:8`, `apps/web/app/api/billing/portal/route.ts:14`, `apps/web/app/api/billing/portal/route.ts:34`)  
+  - **Consequence:** Anyone who knows/guesses a user’s email can obtain a valid Stripe Customer Portal session URL, potentially changing payment method, canceling subscription, viewing invoices (depends on Stripe portal configuration).  
+  - **Standards violated:** OWASP Top 10 (Broken Access Control / IDOR class); OWASP Mobile Top 10 analog: M6 (Insecure Authorization) for the overall system.  
+  - **Cross-references:** Also undermines mobile subscription gating in `apps/mobile_flutter/lib/screens/account_status_gate.dart` (subscription status is treated as a gate).  
+  - **Snippet (non-secret):**
+    ```ts
+    const { email } = body
+    const { data: profile } = await supabase.from('profiles')
+      .select('stripe_customer_id').eq('email', email).single()
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: profile.stripe_customer_id,
+    })
+    ```
+
+- **Hardcoded Stripe secret key in Firebase Functions (secret exposure + misuse)**  
+  - **Location:** `functions/src/routes/payments.ts:8`  
+  - **Severity:** Critical  
+  - **Evidence:** Stripe client is initialized with an inline `sk_test_...` (redacted here).  
+  - **Consequence:** Secret key exposure enables unauthorized Stripe API access (charges, customer data access, subscription manipulation) depending on environment and deployment; additionally, key presence in source/artifacts increases accidental leakage risk.  
+  - **Standards violated:** OWASP Mobile Top 10 M10 (Extraneous Functionality) / general secrets management best practices; OWASP Top 10 (Cryptographic Failures / Security Misconfiguration).  
+  - **Cross-references:** Key also appears in compiled artifact `functions/lib/routes/payments.js:44` and in documentation artifact `completed_tasks_list.md:58` (indicates repeated propagation of the secret).
+
+- **Unauthenticated payment/account creation endpoints in Firebase Functions**  
+  - **Location:** `functions/src/app.ts:77`  
+  - **Severity:** Critical  
+  - **Evidence:** Payments router mounted with comment “no auth required for now”: `app.use('/payments', paymentsRouter);` (`functions/src/app.ts:77`)  
+  - **Consequence:** Public callers can invoke payment/customer/subscription/account creation endpoints. This enables abuse (resource/cost amplification), creation of arbitrary accounts, and potential fraud paths (depending on Stripe configuration).  
+  - **Standards violated:** OWASP Top 10 (Broken Access Control; Security Misconfiguration).  
+  - **Cross-references:** `public/create-account.html:623` calls this endpoint directly.
+
+- **Logging of highly sensitive data (including plaintext passwords) in Firebase Functions account creation**  
+  - **Location:** `functions/src/routes/payments.ts:131`  
+  - **Severity:** Critical  
+  - **Evidence:** `userData` includes `password` from request body and is logged: `console.log('Creating Firebase user with data:', userData);` (`functions/src/routes/payments.ts:131`). Payment method ID and PII are also logged (`functions/src/routes/payments.ts:96`, `functions/src/routes/payments.ts:97`).  
+  - **Consequence:** Centralized logs become a credential/PII exfiltration source; logs are frequently accessible to operators, third-party log processors, and sometimes broader internal audiences.  
+  - **Standards violated:** OWASP Mobile Top 10 M2 (Insecure Data Storage) (logs are data-at-rest), OWASP Top 10 (Sensitive Data Exposure class).
+
+- **Firebase Functions user-management endpoints insufficiently authorized (IDOR: enumerate and delete arbitrary users)**  
+  - **Locations:**  
+    - Mounting insecure router: `functions/src/app.ts:13`, `functions/src/app.ts:73`  
+    - Router lacks admin gating: `functions/src/routes/users.routes.ts:9`, `functions/src/routes/users.routes.ts:12`  
+    - Controller performs global read and arbitrary delete: `functions/src/controllers/users.controller.ts:10`, `functions/src/controllers/users.controller.ts:27`  
+  - **Severity:** Critical  
+  - **Evidence:** `users.routes.ts` exposes `GET /` and `DELETE /:userId` without `requireAdmin`. The secure alternative exists (`functions/src/routes/users.ts:16`) but is **not used** by `app.ts`.  
+  - **Consequence:** Any authenticated Firebase user can read the entire `users` collection and delete arbitrary user documents by ID, enabling data loss and privacy breaches.  
+  - **Standards violated:** OWASP Top 10 (Broken Access Control), OWASP Mobile Top 10 M6 (Insecure Authorization).  
+  - **Cross-references:** `functions/src/middleware/auth.middleware.ts` includes `requireAdmin` but it is not applied on the router actually mounted.
+
+- **Supabase RLS policy on `profiles` allows users to update all columns (subscription/admin self-escalation + paywall bypass)**  
+  - **Location:** `supabase_migrations/002_profiles_subscription.sql:97` (policy definition), plus policy intent comments at `supabase_migrations/002_profiles_subscription.sql:95`  
+  - **Severity:** Critical  
+  - **Evidence:** Policy “Users can update own profile limited” is defined as FOR UPDATE with only row ownership checks (`supabase_migrations/002_profiles_subscription.sql:99`, `supabase_migrations/002_profiles_subscription.sql:101`). RLS cannot enforce “column-level” restrictions here; the comment suggests subscription fields are service-role only, but the shown policy does not enforce that.  
+  - **Consequence:** If `profiles` includes fields like `subscription_status`, `stripe_customer_id`, `stripe_subscription_id`, or `is_admin` (used by `apps/web_api` and Flutter client), users can set them on their own row, enabling:
+    - marking subscription “active” without payment (bypass `AccountStatusGate`),  
+    - setting `is_admin = true` to access admin APIs (if column exists),  
+    - corrupting Stripe linkage fields.  
+  - **Standards violated:** OWASP Top 10 (Broken Access Control), OWASP Mobile Top 10 M6.  
+  - **Cross-references:**  
+    - Mobile admin check: `apps/mobile_flutter/lib/services/supabase_auth_service.dart:227`  
+    - Web API admin middleware uses `profiles.is_admin`: `apps/web_api/lib/middleware.ts:57`  
+    - Web signup/webhook write `subscription_status`: `apps/web/app/api/stripe/webhook/route.ts` and `apps/web/app/api/signup/checkout/route.ts`  
+  - **Snippet (non-secret):**
+    ```sql
+    -- Policy: Users can update only specific non-subscription fields
+    CREATE POLICY "Users can update own profile limited"
+      ON profiles
+      FOR UPDATE
+      USING (auth.uid() = id)
+      WITH CHECK (auth.uid() = id);
+    ```
+
+- **Plaintext SMTP credential storage design (DB + client sync + local storage)**  
+  - **Locations:**  
+    - DB schema includes plaintext `sender_password`: `supabase_email_settings.sql:9`  
+    - Flutter model stores `senderPassword` in Hive: `apps/mobile_flutter/lib/models/email_settings.dart:14`  
+    - Provider writes it to local Hive box: `apps/mobile_flutter/lib/providers/email_settings_provider.dart:38` and sets password from UI: `apps/mobile_flutter/lib/providers/email_settings_provider.dart:146`  
+    - Repository syncs it to/from Supabase: `apps/mobile_flutter/lib/repositories/supabase_email_settings_repository.dart:27`, `apps/mobile_flutter/lib/repositories/supabase_email_settings_repository.dart:59`  
+  - **Severity:** Critical  
+  - **Consequence:** Compromise of Supabase DB (or any client/session that can read its own row) reveals a reusable email password; compromise of device storage reveals the same. This is a high-impact “credential theft” class issue (users often reuse passwords; SMTP creds can be used for mailbox access or impersonation).  
+  - **Standards violated:** OWASP Mobile Top 10 M2 (Insecure Data Storage), M5 (Insufficient Cryptography); OWASP Top 10 (Sensitive Data Exposure).  
+  - **Cross-references:** Any auto-send/report feature becomes a high-value attack surface if it relies on these credentials.
+
+---
+
+**Security Bugs — High**
+
+- **Offline sync queue persists full entry payloads in SharedPreferences (unencrypted, large, cross-account mixing risk)**  
+  - **Locations:**  
+    - Storage key: `apps/mobile_flutter/lib/services/sync_queue_service.dart:68`  
+    - Persisting JSON: `apps/mobile_flutter/lib/services/sync_queue_service.dart:277`  
+    - Entry payload stored: `apps/mobile_flutter/lib/services/sync_queue_service.dart:21`, `apps/mobile_flutter/lib/services/sync_queue_service.dart:140`  
+    - Queue processing does not filter by current user: `apps/mobile_flutter/lib/providers/entry_provider.dart:827` (processes whole queue)  
+  - **Severity:** High  
+  - **Consequence:**  
+    - Confidentiality: entries (locations, notes, dates) are written in plaintext to SharedPreferences.  
+    - Integrity: operations for user A may remain and later be replayed while user B is logged in (depends on RLS enforcement and how `Entry.fromJson` maps `userId`).  
+    - Availability: queue JSON can grow large; SharedPreferences is not designed for large blobs.  
+  - **Standards violated:** OWASP Mobile Top 10 M2, M7.  
+  - **Cross-references:** `apps/mobile_flutter/lib/providers/entry_provider.dart:807` triggers sync on connectivity restore (`apps/mobile_flutter/lib/main.dart`).
+
+- **Supabase storage uses public URLs for attachments/avatars (potential data exposure if buckets are public/misconfigured)**  
+  - **Locations:** `apps/mobile_flutter/lib/services/storage_service.dart:48`, `apps/mobile_flutter/lib/services/storage_service.dart:92`, `apps/mobile_flutter/lib/services/storage_service.dart:123`  
+  - **Severity:** High  
+  - **Consequence:** If the Supabase storage buckets are public (or become public), any leaked object path yields direct access to user documents/photos; path guessing becomes plausible (paths are structured and may use user IDs).  
+  - **Standards violated:** OWASP Mobile Top 10 M2/M6.
+
+- **Client-side admin gating incomplete in Flutter router (admin UI exposure without route-level enforcement)**  
+  - **Location:** `apps/mobile_flutter/lib/config/app_router.dart:79` (only analytics route checks admin), admin users route exists at `apps/mobile_flutter/lib/config/app_router.dart:161`  
+  - **Severity:** High  
+  - **Consequence:** Non-admin authenticated users can navigate to admin user-management UI routes; even if backend blocks actions, this increases attack surface and information leakage (endpoint discovery, error detail leakage).  
+  - **Cross-references:** `apps/mobile_flutter/lib/screens/admin_users_screen.dart` uses admin APIs without local admin gating.
+
+- **Android “release” build signed with debug keystore configuration**  
+  - **Location:** `apps/mobile_flutter/android/app/build.gradle.kts:40`  
+  - **Severity:** High  
+  - **Consequence:** Release artifacts signed with debug keys are easier to tamper/repackage; undermines trust and increases risk of malicious repackaging/trojan distribution (OWASP Mobile Top 10 M8).  
+
+- **Admin tokens stored in `localStorage` in `apps/web_api` (XSS blast radius expansion)**  
+  - **Locations:** `apps/web_api/app/admin/login/page.tsx:32`, `apps/web_api/components/AdminLayout.tsx:9`  
+  - **Severity:** High  
+  - **Consequence:** Any XSS in the admin UI (now or future) becomes an account takeover vector via token theft; `localStorage` is accessible to injected scripts.  
+  - **Standards violated:** OWASP Top 10 (XSS impact amplification), OWASP Mobile analog: insecure session handling.
+
+---
+
+**Security Bugs — Medium**
+
+- **Hardcoded Supabase anon key in Flutter app config (risk if RLS misconfigured / key reuse)**  
+  - **Location:** `apps/mobile_flutter/lib/config/supabase_config.dart:7`  
+  - **Severity:** Medium  
+  - **Consequence:** Anon keys are typically “public,” but they become dangerous when combined with weak/incorrect RLS or exposed endpoints; hardcoding makes key rotation operationally harder.  
+  - **Cross-references:** The `profiles` RLS weakness makes “public anon key” substantially riskier.
+
+- **Hardcoded Mapbox token and location caching in plaintext**  
+  - **Locations:**  
+    - Token: `apps/mobile_flutter/lib/config/map_config.dart:18`  
+    - Cache persistence: `apps/mobile_flutter/lib/services/travel_cache_service.dart:189`  
+  - **Severity:** Medium  
+  - **Consequence:** Token abuse (quota/cost) + privacy risk (addresses stored and persisted).  
+
+- **CSV formula injection risk in export (user-controlled fields exported without sanitization)**  
+  - **Locations:** `apps/mobile_flutter/lib/services/csv_exporter.dart:1`, plus export includes notes/locations in `apps/mobile_flutter/lib/services/export_service.dart`  
+  - **Severity:** Medium  
+  - **Consequence:** If a manager opens exported CSV in Excel/Sheets, malicious values beginning with `=`, `+`, `-`, `@` can be interpreted as formulas (exfiltration via external links, command execution in some contexts).  
+  - **Standards violated:** OWASP Top 10 (Injection class, CSV injection subtype).
+
+- **Rate limiting identifier derivation uses unverified JWT payload (bypass potential)**  
+  - **Location:** `apps/web_api/lib/rate-limit.ts:85`  
+  - **Severity:** Medium  
+  - **Consequence:** Because `withAdminAuth` applies rate limiting before token verification, an attacker can submit syntactically valid but forged JWTs with varying `sub` to evade per-identifier limits (even if the request later fails auth, it still consumes compute).  
+
+- **CORS localhost regex may match non-localhost origins**  
+  - **Location:** `functions/src/app.ts` (origin whitelist logic)  
+  - **Severity:** Medium  
+  - **Consequence:** `/localhost:\d+$/` matches any origin string ending in `localhost:PORT`, including hostnames like `https://evil-localhost:3000` (depends on how origins appear). Expands cross-origin access unintentionally.
+
+---
+
+**Security Bugs — Low (but real)**  
+- **Sensitive debug logging across Flutter services/providers**  
+  - **Locations:**  
+    - Auth email logging: `apps/mobile_flutter/lib/services/supabase_auth_service.dart:67`, `apps/mobile_flutter/lib/services/supabase_auth_service.dart:136`  
+    - Entry data logging: `apps/mobile_flutter/lib/providers/entry_provider.dart:128`, `apps/mobile_flutter/lib/services/supabase_entry_service.dart:551`  
+  - **Severity:** Low→Medium (environment-dependent)  
+  - **Consequence:** PII and operational details can leak into device logs or crash reports.
+
+---
+
+**Performance Issues — High**
+
+- **Repeated SharedPreferences (de)serialization for caches and queues**  
+  - **Travel cache writes full JSON map frequently:** `apps/mobile_flutter/lib/services/travel_cache_service.dart:189`  
+  - **Sync queue stores potentially large JSON payload:** `apps/mobile_flutter/lib/services/sync_queue_service.dart:277`  
+  - **Severity:** High  
+  - **Impact:** UI jank / startup regressions due to synchronous JSON encode/decode + disk writes; increased GC pressure; risk of SharedPreferences size constraints.
+
+- **MapService repeatedly instantiates and initializes cache per call**  
+  - **Location:** `apps/mobile_flutter/lib/services/map_service.dart:41`, `apps/mobile_flutter/lib/services/map_service.dart:129`  
+  - **Severity:** High  
+  - **Impact:** Adds latency to travel-time calculations; redundant disk I/O; worsens under frequent lookups (autocomplete, repeated route calculations).
+
+- **Web API debug export fetches entire tables then filters in memory**  
+  - **Location:** `apps/web_api/app/api/admin/users/[id]/export/route.ts` (fetches `work_shifts` and `travel_segments` without user filter, then filters locally)  
+  - **Severity:** High  
+  - **Impact:** Large data transfers, slow response times, memory pressure, potential row caps/timeouts.
+
+---
+
+**Performance Issues — Medium**
+
+- **Balance calculation does many queries per request**  
+  - **Location:** `apps/web_api/lib/balance-calculator.ts` (monthly loop and per-month queries)  
+  - **Severity:** Medium  
+  - **Impact:** Slow admin detail views, increased Supabase load; scales poorly with long histories.
+
+- **Firebase analytics controller reads full collections for date ranges**  
+  - **Location:** `functions/src/controllers/analytics.controller.ts`  
+  - **Severity:** Medium  
+  - **Impact:** Firestore read amplification and higher costs; slow dashboards.
+
+- **Flutter startup is heavily sequentialized**  
+  - **Location:** `apps/mobile_flutter/lib/main.dart`  
+  - **Severity:** Medium  
+  - **Impact:** Longer cold start due to many awaited initializations and box opens before first frame.
+
+---
+
+**Performance Issues — Low**
+
+- **Missing explicit HTTP timeouts in MapService**  
+  - **Location:** `apps/mobile_flutter/lib/services/map_service.dart` (multiple `http.get` calls)  
+  - **Severity:** Low  
+  - **Impact:** Hangs on poor networks, slow UX; can cascade into retries/queue growth.
+
+---
+
+**Poor Code Quality — High**
+
+- **Mixed backend stacks (Supabase auth/data vs Firebase auth/functions) without clear boundary**  
+  - **Locations:** Supabase usage across Flutter (`apps/mobile_flutter/lib/services/supabase_auth_service.dart`) vs Firebase Functions and static signup pages (`functions/src/*`, `public/create-account.html`).  
+  - **Severity:** High  
+  - **Consequence:** Increased security risk via “forgotten” endpoints, inconsistent auth models, duplicated billing/account flows, unclear ownership of subscription state.
+
+- **Extremely large/complex Flutter UI and model files (maintainability + hidden performance risk)**  
+  - **Locations:** `apps/mobile_flutter/lib/screens/unified_home_screen.dart`, `apps/mobile_flutter/lib/widgets/unified_entry_form.dart`, `apps/mobile_flutter/lib/models/entry.dart`  
+  - **Severity:** High  
+  - **Consequence:** Harder to reason about rebuild boundaries, state coupling, regression risk; complexity proxy hotspots correlate with defect density.
+
+- **Repo hygiene: generated artifacts and vendor directories present**  
+  - **Observed:** `node_modules/`, `.next/`, Flutter `build/`, `.dart_tool/` present in workspace; tooling friction (e.g., `nul` file) and increased likelihood of leaking secrets/build outputs.  
+  - **Severity:** High  
+  - **Consequence:** Larger attack surface, slower CI, accidental disclosure risk.
+
+---
+
+**Poor Code Quality — Medium**
+
+- **Duplicate/conflicting model definitions (`Location`)**  
+  - **Locations:** `apps/mobile_flutter/lib/location.dart:5` and `apps/mobile_flutter/lib/models/location.dart:5`  
+  - **Severity:** Medium  
+  - **Consequence:** Risk of type/import confusion, Hive adapter/typeId collision confusion, and long-term maintenance debt.
+
+- **Documentation drift vs implementation**  
+  - **Location:** `apps/web_api/README.md` TODOs conflict with actual middleware behavior; security notes incomplete.  
+  - **Severity:** Medium  
+  - **Consequence:** Operational misconfiguration risk (admins may think checks exist/do not exist).
+
+- **Linting disabled in Firebase Functions project**  
+  - **Location:** `functions/package.json` (`lint`: “disabled for now”)  
+  - **Severity:** Medium  
+  - **Consequence:** Increases probability of shipping dangerous logging, missing auth checks, and inconsistent error handling.
+
+---
+
+**Cross-Cutting Scenario Risks (Simulated)**  
+- **Account switching on shared device (Flutter):** persisted sync queue and caches can retain user A data and replay when user B logs in (`apps/mobile_flutter/lib/services/sync_queue_service.dart:68`, `apps/mobile_flutter/lib/providers/entry_provider.dart:827`).  
+- **Offline burst + reconnect:** large pending queue JSON + repeated retries can amplify disk writes and UI notifications; failures can become “sticky” and silently drop operations after retry thresholds.  
+- **Subscription enforcement integrity:** `AccountStatusGate` relies on profile state; if `profiles` update policy is broad, client-side gating is not trustworthy.
+
+---
+
+**Overall Codebase Health Scorecard (Evidence-Based, Local)**  
+- Flutter analyzer: clean (`flutter analyze` reported no issues).  
+- Flutter size: ~54.8k LOC in `lib/`, ~5.6k LOC in tests (about 10% by LOC; coverage depth unknown).  
+- Complexity proxy (Dart, excluding generated): average score ~41.3; hotspots concentrated in a small set of large files.  
+- High-risk surfaces: billing portal API, payments/functions routes, Supabase `profiles` RLS, plaintext credential storage.
+
+---
+
+**Prioritized Remediation Order (No code patches; “what to fix first”)**  
+- **Immediate (Critical containment):** billing portal email-only access; hardcoded Stripe secret key exposure; unauthenticated payments endpoints; Firebase `/users` admin endpoints lacking admin auth; Supabase `profiles` update policy mismatch.  
+- **Next (High risk reduction):** eliminate plaintext SMTP password storage; fix offline sync queue persistence and account mixing; resolve release signing with debug keys; reduce sensitive logging.  
+- **Then (Stability/performance):** SharedPreferences large-blob usage; unbounded backend reads; balance/export query inefficiencies; reduce complexity hotspots and duplication.
+
+If you want, I can continue with a “module-by-module, file-by-file” appendix of additional medium/low findings (it will be long), but the items above are already enough to justify emergency-level security action.
