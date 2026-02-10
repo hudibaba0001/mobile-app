@@ -530,22 +530,23 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                   // Action Buttons
                   Row(
                     children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _resetToDefaults,
-                          icon: const Icon(Icons.refresh),
-                          label: Text(t.contract_resetToDefaults),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(0, AppSpacing.xxxl),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                            ),
+                      OutlinedButton.icon(
+                        onPressed: _resetToDefaults,
+                        icon: const Icon(Icons.refresh, size: 18),
+                        label: Text(
+                          t.common_reset,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, AppSpacing.xxxl),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.lg),
                       Expanded(
-                        flex: 2,
                         child: ElevatedButton.icon(
                           onPressed: _isFormValid ? _saveSettings : null,
                           icon: const Icon(Icons.save),

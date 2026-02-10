@@ -791,8 +791,68 @@ abstract class AppLocalizations {
   /// No description provided for @balance_includesOpening.
   ///
   /// In en, this message translates to:
-  /// **'Includes opening balance ({balance}) as of {date}'**
+  /// **'Inkluderar ingående saldo ({balance}) per {date}'**
   String balance_includesOpening(String balance, String date);
+
+  /// No description provided for @balance_yearlyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly ({year})'**
+  String balance_yearlyLabel(int year);
+
+  /// No description provided for @balance_thisMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This month: {month}'**
+  String balance_thisMonthLabel(String month);
+
+  /// No description provided for @balance_statusToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Status (to date):'**
+  String get balance_statusToDate;
+
+  /// No description provided for @balance_workedToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked (to date):'**
+  String get balance_workedToDate;
+
+  /// No description provided for @balance_fullMonthTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Full month target: {hours}h'**
+  String balance_fullMonthTarget(String hours);
+
+  /// No description provided for @balance_creditedPaidLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {hours}h credited (paid leave)'**
+  String balance_creditedPaidLeave(String hours);
+
+  /// No description provided for @balance_manualAdjustments.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h manual adjustments'**
+  String balance_manualAdjustments(String hours);
+
+  /// No description provided for @balance_percentFullMonthTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of full month target'**
+  String balance_percentFullMonthTarget(String percent);
+
+  /// No description provided for @balance_fullYearTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Full year target: {hours}h'**
+  String balance_fullYearTarget(String hours);
+
+  /// No description provided for @balance_includesAdjustments.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes adjustments: {hours}h'**
+  String balance_includesAdjustments(String hours);
 
   /// No description provided for @adjustment_title.
   ///
@@ -1303,6 +1363,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Shift'**
   String get entry_addShift;
+
+  /// No description provided for @entry_travelLegUpdateNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'First leg updates the existing entry; extra legs become new entries.'**
+  String get entry_travelLegUpdateNotice;
 
   /// No description provided for @error_loadingData.
   ///
@@ -4034,6 +4100,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add details about your travel...'**
   String get travel_notesHint;
+
+  /// No description provided for @auth_newToKvikTime.
+  ///
+  /// In en, this message translates to:
+  /// **'New to KvikTime?'**
+  String get auth_newToKvikTime;
+
+  /// No description provided for @auth_createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get auth_createAccount;
+
+  /// No description provided for @auth_redirectNote.
+  ///
+  /// In en, this message translates to:
+  /// **'New users will be redirected to our account creation page'**
+  String get auth_redirectNote;
+
+  /// No description provided for @auth_invalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email'**
+  String get auth_invalidEmail;
+
+  /// No description provided for @auth_passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get auth_passwordRequired;
 }
 
 class _AppLocalizationsDelegate

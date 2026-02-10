@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../models/email_settings.dart';
+import '../repositories/supabase_email_settings_repository.dart';
+import '../services/supabase_auth_service.dart';
 import '../utils/error_handler.dart';
 
 class EmailSettingsProvider extends ChangeNotifier {
@@ -8,12 +10,24 @@ class EmailSettingsProvider extends ChangeNotifier {
   Box<EmailSettings>? _settingsBox;
   bool _isLoading = false;
   AppError? _lastError;
+  SupabaseEmailSettingsRepository? _supabaseRepo;
+  SupabaseAuthService? _authService;
 
   // Getters
   EmailSettings get settings => _settings;
   bool get isLoading => _isLoading;
   AppError? get lastError => _lastError;
   bool get isConfigured => _settings.isConfigured;
+
+  /// Set Supabase dependencies for cloud sync
+  void setSupabaseDeps(SupabaseEmailSettingsRepository repo, SupabaseAuthService auth) {
+    _supabaseRepo = repo;
+    _authService = auth;
+    // Sync current settings to cloud
+    _syncToCloud();
+  }
+
+  String? get _userId => _authService?.currentUser?.id;
 
   /// Initialize the provider
   Future<void> initialize() async {
@@ -44,6 +58,30 @@ class EmailSettingsProvider extends ChangeNotifier {
     } catch (error) {
       _handleError(error);
     }
+  }
+
+  /// Load settings from Supabase and merge with local
+  Future<void> loadFromCloud() async {
+    final userId = _userId;
+    if (userId == null || _supabaseRepo == null) return;
+
+    try {
+      final cloudSettings = await _supabaseRepo!.getSettings(userId);
+      if (cloudSettings != null && cloudSettings.isConfigured) {
+        _settings = cloudSettings;
+        await _saveSettings();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('EmailSettingsProvider: Error loading from cloud: $e');
+    }
+  }
+
+  /// Fire-and-forget sync to cloud
+  void _syncToCloud() {
+    final userId = _userId;
+    if (userId == null || _supabaseRepo == null) return;
+    _supabaseRepo!.saveSettings(userId, _settings);
   }
 
   /// Save settings to storage
@@ -80,6 +118,7 @@ class EmailSettingsProvider extends ChangeNotifier {
       final success = await _saveSettings();
 
       if (success) {
+        _syncToCloud();
         notifyListeners();
       }
 
@@ -287,6 +326,7 @@ class EmailSettingsProvider extends ChangeNotifier {
     final success = await _saveSettings();
 
     if (success) {
+      _syncToCloud();
       notifyListeners();
     }
 
@@ -299,6 +339,7 @@ class EmailSettingsProvider extends ChangeNotifier {
       if (_settingsBox != null) {
         await _settingsBox!.clear();
         _settings = EmailSettings();
+        _syncToCloud();
         notifyListeners();
         return true;
       }

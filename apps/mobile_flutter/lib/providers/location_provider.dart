@@ -3,16 +3,28 @@ import 'package:flutter/foundation.dart';
 import '../models/location.dart';
 import '../models/autocomplete_suggestion.dart';
 import '../repositories/location_repository.dart';
+import '../repositories/supabase_location_repository.dart';
+import '../services/supabase_auth_service.dart';
 
 class LocationProvider extends ChangeNotifier {
   final LocationRepository _repository;
+  SupabaseLocationRepository? _supabaseRepo;
+  SupabaseAuthService? _authService;
   List<Location> _locations = [];
   bool _isLoading = false;
   String? _error;
 
-  LocationProvider(this._repository) {
-    refreshLocations();
+  LocationProvider(this._repository);
+
+  /// Set Supabase dependencies for cloud sync
+  void setSupabaseDeps(SupabaseLocationRepository repo, SupabaseAuthService auth) {
+    _supabaseRepo = repo;
+    _authService = auth;
+    // Sync existing local locations to cloud on first setup
+    _syncAllToCloud();
   }
+
+  String? get _userId => _authService?.currentUser?.id;
 
   List<Location> get locations => _locations;
   bool get isLoading => _isLoading;
@@ -41,10 +53,63 @@ class LocationProvider extends ChangeNotifier {
     }
   }
 
+  /// Load locations from Supabase and merge with local
+  Future<void> loadFromCloud() async {
+    final userId = _userId;
+    if (userId == null || _supabaseRepo == null) return;
+
+    try {
+      final cloudLocations = await _supabaseRepo!.getAllLocations(userId);
+      if (cloudLocations.isNotEmpty) {
+        // Merge: cloud locations override local ones by ID
+        final localMap = {for (final loc in _locations) loc.id: loc};
+        for (final cloudLoc in cloudLocations) {
+          localMap[cloudLoc.id] = cloudLoc;
+          await _repository.add(cloudLoc); // Save to Hive
+        }
+        _updateState(() {
+          _locations = localMap.values.toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('LocationProvider: Error loading from cloud: $e');
+    }
+  }
+
+  /// Sync all local locations to cloud
+  Future<void> _syncAllToCloud() async {
+    final userId = _userId;
+    if (userId == null || _supabaseRepo == null) return;
+
+    try {
+      final locations = _repository.getAll();
+      if (locations.isNotEmpty) {
+        await _supabaseRepo!.syncAllLocations(userId, locations);
+      }
+    } catch (e) {
+      debugPrint('LocationProvider: Error syncing to cloud: $e');
+    }
+  }
+
+  /// Fire-and-forget sync a single location to cloud
+  void _syncToCloud(Location location) {
+    final userId = _userId;
+    if (userId == null || _supabaseRepo == null) return;
+    _supabaseRepo!.upsertLocation(userId, location);
+  }
+
+  /// Fire-and-forget delete from cloud
+  void _deleteFromCloud(String locationId) {
+    final userId = _userId;
+    if (userId == null || _supabaseRepo == null) return;
+    _supabaseRepo!.deleteLocation(userId, locationId);
+  }
+
   /// Add a new location
   Future<void> addLocation(Location location) async {
     try {
       await _repository.add(location);
+      _syncToCloud(location);
       await refreshLocations();
     } catch (e) {
       debugPrint('Error adding location: $e');
@@ -58,6 +123,7 @@ class LocationProvider extends ChangeNotifier {
   Future<void> deleteLocation(Location location) async {
     try {
       await _repository.delete(location);
+      _deleteFromCloud(location.id);
       await refreshLocations();
     } catch (e) {
       debugPrint('Error deleting location: $e');
@@ -71,6 +137,7 @@ class LocationProvider extends ChangeNotifier {
   Future<void> updateLocation(Location location) async {
     try {
       await _repository.update(location);
+      _syncToCloud(location);
       await refreshLocations();
     } catch (e) {
       debugPrint('Error updating location: $e');
@@ -219,6 +286,7 @@ class LocationProvider extends ChangeNotifier {
       final updatedLocation =
           location.copyWith(isFavorite: !location.isFavorite);
       await _repository.update(updatedLocation);
+      _syncToCloud(updatedLocation);
       await refreshLocations();
     } catch (e) {
       debugPrint('Error toggling favorite: $e');
@@ -236,6 +304,7 @@ class LocationProvider extends ChangeNotifier {
       final updatedLocation =
           location.copyWith(usageCount: location.usageCount + 1);
       await _repository.update(updatedLocation);
+      _syncToCloud(updatedLocation);
       await refreshLocations();
     } catch (e) {
       debugPrint('Error incrementing usage count: $e');

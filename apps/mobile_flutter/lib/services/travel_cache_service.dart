@@ -1,5 +1,5 @@
-// ignore_for_file: avoid_print
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Cached route data with timestamp
@@ -66,7 +66,7 @@ class TravelCacheService {
         _cache.removeWhere((key, route) => route.isStale);
         await _persistCache(); // Save cleaned cache
       } catch (e) {
-        print('Error parsing travel cache: $e');
+        debugPrint('Error parsing travel cache: $e');
       }
     }
 

@@ -403,7 +403,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String balance_includesOpening(String balance, String date) {
-    return 'Includes opening balance ($balance) as of $date';
+    return 'Inkluderar ingående saldo ($balance) per $date';
+  }
+
+  @override
+  String balance_yearlyLabel(int year) {
+    return 'Yearly ($year)';
+  }
+
+  @override
+  String balance_thisMonthLabel(String month) {
+    return 'This month: $month';
+  }
+
+  @override
+  String get balance_statusToDate => 'Status (to date):';
+
+  @override
+  String get balance_workedToDate => 'Worked (to date):';
+
+  @override
+  String balance_fullMonthTarget(String hours) {
+    return 'Full month target: ${hours}h';
+  }
+
+  @override
+  String balance_creditedPaidLeave(String hours) {
+    return '+ ${hours}h credited (paid leave)';
+  }
+
+  @override
+  String balance_manualAdjustments(String hours) {
+    return '${hours}h manual adjustments';
+  }
+
+  @override
+  String balance_percentFullMonthTarget(String percent) {
+    return '$percent% of full month target';
+  }
+
+  @override
+  String balance_fullYearTarget(String hours) {
+    return 'Full year target: ${hours}h';
+  }
+
+  @override
+  String balance_includesAdjustments(String hours) {
+    return 'Includes adjustments: ${hours}h';
   }
 
   @override
@@ -692,6 +738,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entry_addShift => 'Add Shift';
+
+  @override
+  String get entry_travelLegUpdateNotice =>
+      'First leg updates the existing entry; extra legs become new entries.';
 
   @override
   String get error_loadingData => 'Error loading data';
@@ -2203,4 +2253,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travel_notesHint => 'Add details about your travel...';
+
+  @override
+  String get auth_newToKvikTime => 'New to KvikTime?';
+
+  @override
+  String get auth_createAccount => 'Create Account';
+
+  @override
+  String get auth_redirectNote =>
+      'New users will be redirected to our account creation page';
+
+  @override
+  String get auth_invalidEmail => 'Invalid email';
+
+  @override
+  String get auth_passwordRequired => 'Password is required';
 }

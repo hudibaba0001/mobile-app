@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
@@ -329,7 +330,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                        DateFormat.yMMMd().format(_selectedDate),
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
@@ -375,7 +376,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                        DateFormat.yMMMd().format(_selectedDate),
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
@@ -542,7 +543,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         if (_isEditMode && _travelLegs.length > 1) ...[
           const SizedBox(height: 8),
           Text(
-            'First leg updates the existing entry; extra legs become new entries.',
+            AppLocalizations.of(context).entry_travelLegUpdateNotice,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -1210,7 +1211,14 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               children: [0, 15, 30, 45, 60].map((minutes) {
                 final isSelected = shift.unpaidBreakMinutes == minutes;
                 return FilterChip(
-                  label: Text('$minutes'),
+                  label: Text(
+                    '$minutes',
+                    style: TextStyle(
+                      color: isSelected
+                          ? theme.colorScheme.onSecondaryContainer
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
                   selected: isSelected,
                   onSelected: (selected) {
                     if (selected) {

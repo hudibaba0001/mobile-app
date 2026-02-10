@@ -408,6 +408,52 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
+  String balance_yearlyLabel(int year) {
+    return 'År ($year)';
+  }
+
+  @override
+  String balance_thisMonthLabel(String month) {
+    return 'Denna månad: $month';
+  }
+
+  @override
+  String get balance_statusToDate => 'Status (hittills):';
+
+  @override
+  String get balance_workedToDate => 'Arbetat (hittills):';
+
+  @override
+  String balance_fullMonthTarget(String hours) {
+    return 'Mål denna månad: ${hours}h';
+  }
+
+  @override
+  String balance_creditedPaidLeave(String hours) {
+    return '+ ${hours}h tillgodoräknat (betald ledighet)';
+  }
+
+  @override
+  String balance_manualAdjustments(String hours) {
+    return '${hours}h manuella justeringar';
+  }
+
+  @override
+  String balance_percentFullMonthTarget(String percent) {
+    return '$percent% av månadsmålet';
+  }
+
+  @override
+  String balance_fullYearTarget(String hours) {
+    return 'Årsmål: ${hours}h';
+  }
+
+  @override
+  String balance_includesAdjustments(String hours) {
+    return 'Inkluderar justeringar: ${hours}h';
+  }
+
+  @override
   String get adjustment_title => 'Saldojusteringar';
 
   @override
@@ -694,6 +740,10 @@ class AppLocalizationsSv extends AppLocalizations {
   String get entry_addShift => 'Lägg till pass';
 
   @override
+  String get entry_travelLegUpdateNotice =>
+      'Första delen uppdaterar befintlig post; ytterligare delar blir nya poster.';
+
+  @override
   String get error_loadingData => 'Fel vid laddning av data';
 
   @override
@@ -790,11 +840,11 @@ class AppLocalizationsSv extends AppLocalizations {
   String get settings_region => 'Region';
 
   @override
-  String get settings_travelLogging => 'Travel time logging';
+  String get settings_travelLogging => 'Restidsloggning';
 
   @override
   String get settings_travelLoggingDesc =>
-      'Enable travel time entry and related stats';
+      'Aktivera restidsinmatning och relaterad statistik';
 
   @override
   String get common_unknown => 'Okänd';
@@ -825,13 +875,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get common_invalidNumber => 'Ange ett giltigt nummer';
 
   @override
-  String get common_noDataToExport => 'No data to export';
+  String get common_noDataToExport => 'Ingen data att exportera';
 
   @override
-  String get common_exportSuccess => 'Export successful';
+  String get common_exportSuccess => 'Export lyckades';
 
   @override
-  String get common_exportFailed => 'Export failed';
+  String get common_exportFailed => 'Export misslyckades';
 
   @override
   String get home_title => 'Tidrapportering';
@@ -2199,4 +2249,20 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get travel_notesHint => 'Lägg till detaljer om din resa...';
+
+  @override
+  String get auth_newToKvikTime => 'Ny på KvikTime?';
+
+  @override
+  String get auth_createAccount => 'Skapa konto';
+
+  @override
+  String get auth_redirectNote =>
+      'Nya användare omdirigeras till vår kontoregistreringssida';
+
+  @override
+  String get auth_invalidEmail => 'Ogiltig e-postadress';
+
+  @override
+  String get auth_passwordRequired => 'Lösenord krävs';
 }

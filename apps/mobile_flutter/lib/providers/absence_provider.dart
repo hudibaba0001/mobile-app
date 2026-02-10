@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 import '../models/absence.dart';
 import '../services/supabase_absence_service.dart';
 import '../services/supabase_auth_service.dart';
@@ -12,6 +13,9 @@ class AbsenceProvider extends ChangeNotifier {
   // In-memory storage: year -> list of absences
   final Map<int, List<AbsenceEntry>> _absencesByYear = {};
 
+  // Hive local cache
+  Box<AbsenceEntry>? _hiveBox;
+
   bool _isLoading = false;
   String? _error;
 
@@ -19,6 +23,54 @@ class AbsenceProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// Initialize Hive box for local caching
+  Future<void> initHive(Box<AbsenceEntry> box) async {
+    _hiveBox = box;
+    _loadFromHive();
+  }
+
+  /// Load cached absences from Hive into memory
+  void _loadFromHive() {
+    if (_hiveBox == null) return;
+
+    for (final absence in _hiveBox!.values) {
+      final year = absence.date.year;
+      _absencesByYear.putIfAbsent(year, () => []);
+      final existing = _absencesByYear[year]!;
+      if (!existing.any((a) => a.id == absence.id)) {
+        existing.add(absence);
+      }
+    }
+  }
+
+  /// Save absences for a year to Hive
+  void _saveToHive(int year) {
+    if (_hiveBox == null) return;
+
+    try {
+      final absences = _absencesByYear[year] ?? [];
+      // Remove old entries for this year
+      final keysToRemove = <dynamic>[];
+      for (final key in _hiveBox!.keys) {
+        final entry = _hiveBox!.get(key);
+        if (entry != null && entry.date.year == year) {
+          keysToRemove.add(key);
+        }
+      }
+      for (final key in keysToRemove) {
+        _hiveBox!.delete(key);
+      }
+      // Add current entries
+      for (final absence in absences) {
+        if (absence.id != null) {
+          _hiveBox!.put(absence.id, absence);
+        }
+      }
+    } catch (e) {
+      debugPrint('AbsenceProvider: Error saving to Hive: $e');
+    }
+  }
 
   /// Load absences for a specific year
   /// Set [forceRefresh] to true to reload even if already cached
@@ -42,6 +94,7 @@ class AbsenceProvider extends ChangeNotifier {
 
       final absences = await _absenceService.fetchAbsencesForYear(userId, year);
       _absencesByYear[year] = absences;
+      _saveToHive(year);
 
       debugPrint(
           'AbsenceProvider: Loaded ${absences.length} absences for year $year');
@@ -49,6 +102,11 @@ class AbsenceProvider extends ChangeNotifier {
     } catch (e) {
       _error = 'Failed to load absences: $e';
       debugPrint('AbsenceProvider: Error loading absences: $_error');
+      // Fall back to Hive cache (already loaded in _loadFromHive)
+      if (_absencesByYear.containsKey(year)) {
+        debugPrint('AbsenceProvider: Using cached data for year $year');
+        _error = null;
+      }
       notifyListeners();
     } finally {
       _setLoading(false);
@@ -56,8 +114,6 @@ class AbsenceProvider extends ChangeNotifier {
   }
 
   /// Get all absences for a specific date
-  ///
-  /// Returns empty list if no absences exist for that date
   List<AbsenceEntry> absencesForDate(DateTime date) {
     final normalized = DateTime(date.year, date.month, date.day);
     final year = normalized.year;
@@ -71,17 +127,6 @@ class AbsenceProvider extends ChangeNotifier {
   }
 
   /// Calculate paid absence credit minutes for a specific date
-  ///
-  /// Option A policy:
-  /// - If any paid absence exists on that day:
-  ///   - If any entry has minutes == 0, treat as full-day → return scheduledMinutes
-  ///   - Else return min(scheduledMinutes, sum(paidAbsence.minutes))
-  /// - Unpaid absences return 0 credit
-  ///
-  /// [date] The date to check
-  /// [scheduledMinutes] The scheduled minutes for that day
-  ///
-  /// Returns the credit minutes (0 for unpaid or no absence)
   int paidAbsenceMinutesForDate(DateTime date, int scheduledMinutes) {
     final absences = absencesForDate(date);
 
@@ -93,13 +138,13 @@ class AbsenceProvider extends ChangeNotifier {
     final paidAbsences = absences.where((a) => a.isPaid).toList();
 
     if (paidAbsences.isEmpty) {
-      return 0; // Only unpaid absences
+      return 0;
     }
 
     // Check if any paid absence has minutes == 0 (full day)
     final hasFullDay = paidAbsences.any((a) => a.minutes == 0);
     if (hasFullDay) {
-      return scheduledMinutes; // Full day credit
+      return scheduledMinutes;
     }
 
     // Sum all paid absence minutes
@@ -108,7 +153,6 @@ class AbsenceProvider extends ChangeNotifier {
       (sum, absence) => sum + absence.minutes,
     );
 
-    // Return min(scheduledMinutes, totalPaidMinutes)
     return totalPaidMinutes < scheduledMinutes
         ? totalPaidMinutes
         : scheduledMinutes;
@@ -123,8 +167,6 @@ class AbsenceProvider extends ChangeNotifier {
       }
 
       await _absenceService.addAbsence(userId, absence);
-
-      // Reload the year (force refresh since we just modified data)
       await loadAbsences(year: absence.date.year, forceRefresh: true);
     } catch (e) {
       _error = 'Failed to add absence: $e';
@@ -143,8 +185,6 @@ class AbsenceProvider extends ChangeNotifier {
       }
 
       await _absenceService.updateAbsence(userId, absenceId, absence);
-
-      // Reload the year (force refresh since we just modified data)
       await loadAbsences(year: absence.date.year, forceRefresh: true);
     } catch (e) {
       _error = 'Failed to update absence: $e';
@@ -163,8 +203,6 @@ class AbsenceProvider extends ChangeNotifier {
       }
 
       await _absenceService.deleteAbsence(userId, absenceId);
-
-      // Reload the year (force refresh since we just modified data)
       await loadAbsences(year: year, forceRefresh: true);
     } catch (e) {
       _error = 'Failed to delete absence: $e';

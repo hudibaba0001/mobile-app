@@ -138,6 +138,16 @@
   "balance_details": "Detaljer",
   "balance_informationalOnly": "Endast informativt",
   "balance_includesOpening": "Inkluderar ingående saldo ({balance}) per {date}",
+  "balance_yearlyLabel": "År ({year})",
+  "balance_thisMonthLabel": "Denna månad: {month}",
+  "balance_statusToDate": "Status (hittills):",
+  "balance_workedToDate": "Arbetat (hittills):",
+  "balance_fullMonthTarget": "Mål denna månad: {hours}h",
+  "balance_creditedPaidLeave": "+ {hours}h tillgodoräknat (betald ledighet)",
+  "balance_manualAdjustments": "{hours}h manuella justeringar",
+  "balance_percentFullMonthTarget": "{percent}% av månadsmålet",
+  "balance_fullYearTarget": "Årsmål: {hours}h",
+  "balance_includesAdjustments": "Inkluderar justeringar: {hours}h",
 
   "adjustment_title": "Saldojusteringar",
   "adjustment_description": "Manuella korrigeringar av ditt saldo (t.ex. chefsjusteringar)",
@@ -235,6 +245,7 @@
   "entry_notes": "Anteckningar",
   "entry_shifts": "Pass",
   "entry_addShift": "Lägg till pass",
+  "entry_travelLegUpdateNotice": "Första delen uppdaterar befintlig post; ytterligare delar blir nya poster.",
 
   "error_loadingData": "Fel vid laddning av data",
   "error_loadingBalance": "Fel vid laddning av saldo",
@@ -269,7 +280,9 @@
   "settings_welcomeScreen": "Visa välkomstskärm",
   "settings_welcomeScreenDesc": "Visa introduktion vid nästa start",
   "settings_region": "Region",
-  
+  "settings_travelLogging": "Restidsloggning",
+  "settings_travelLoggingDesc": "Aktivera restidsinmatning och relaterad statistik",
+
   "common_unknown": "Okänd",
   "common_noRemarks": "Inga anteckningar",
   "common_workSession": "Arbetspass",
@@ -278,6 +291,9 @@
   "common_profile": "Profil",
   "common_required": "{field} krävs",
   "common_invalidNumber": "Ange ett giltigt nummer",
+  "common_noDataToExport": "Ingen data att exportera",
+  "common_exportSuccess": "Export lyckades",
+  "common_exportFailed": "Export misslyckades",
 
   "home_title": "Tidrapportering",
   "home_subtitle": "Spåra din produktivitet",
@@ -847,5 +863,10 @@
   "form_span": "Spann",
   "form_break": "Rast",
   "form_worked": "Arbetat",
-  "form_worked": "Arbetat"
+
+  "auth_newToKvikTime": "Ny på KvikTime?",
+  "auth_createAccount": "Skapa konto",
+  "auth_redirectNote": "Nya användare omdirigeras till vår kontoregistreringssida",
+  "auth_invalidEmail": "Ogiltig e-postadress",
+  "auth_passwordRequired": "Lösenord krävs"
 }

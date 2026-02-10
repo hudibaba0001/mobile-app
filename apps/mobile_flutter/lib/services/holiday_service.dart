@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 import '../calendar/sweden_holidays.dart';
 import '../models/user_red_day.dart';
 import '../repositories/user_red_day_repository.dart';
@@ -81,6 +82,9 @@ class HolidayService extends ChangeNotifier {
   /// Cache of personal red days by year
   final Map<int, List<UserRedDay>> _personalRedDaysCache = {};
 
+  /// Hive local cache
+  Box<UserRedDay>? _hiveBox;
+
   /// Current user ID (set when authenticated)
   String? _userId;
 
@@ -91,6 +95,54 @@ class HolidayService extends ChangeNotifier {
   /// Current country code for holidays
   final String _countryCode = 'SE';
   String get countryCode => _countryCode;
+
+  /// Initialize Hive box for local caching
+  Future<void> initHive(Box<UserRedDay> box) async {
+    _hiveBox = box;
+    _loadFromHive();
+  }
+
+  /// Load cached red days from Hive into memory
+  void _loadFromHive() {
+    if (_hiveBox == null) return;
+
+    for (final redDay in _hiveBox!.values) {
+      final year = redDay.date.year;
+      _personalRedDaysCache.putIfAbsent(year, () => []);
+      final existing = _personalRedDaysCache[year]!;
+      if (!existing.any((rd) => rd.id == redDay.id)) {
+        existing.add(redDay);
+      }
+    }
+  }
+
+  /// Save red days for a year to Hive
+  void _saveToHive(int year) {
+    if (_hiveBox == null) return;
+
+    try {
+      final redDays = _personalRedDaysCache[year] ?? [];
+      // Remove old entries for this year
+      final keysToRemove = <dynamic>[];
+      for (final key in _hiveBox!.keys) {
+        final entry = _hiveBox!.get(key);
+        if (entry != null && entry.date.year == year) {
+          keysToRemove.add(key);
+        }
+      }
+      for (final key in keysToRemove) {
+        _hiveBox!.delete(key);
+      }
+      // Add current entries
+      for (final rd in redDays) {
+        if (rd.id != null) {
+          _hiveBox!.put(rd.id, rd);
+        }
+      }
+    } catch (e) {
+      debugPrint('HolidayService: Error saving to Hive: $e');
+    }
+  }
 
   /// Initialize with repository and user ID
   void initialize({
@@ -120,9 +172,14 @@ class HolidayService extends ChangeNotifier {
         year: year,
       );
       _personalRedDaysCache[year] = redDays;
+      _saveToHive(year);
       notifyListeners();
     } catch (e) {
       debugPrint('HolidayService: Error loading personal red days: $e');
+      // Fall back to Hive cache
+      if (_personalRedDaysCache.containsKey(year)) {
+        debugPrint('HolidayService: Using cached red days for year $year');
+      }
     }
   }
 
@@ -167,6 +224,7 @@ class HolidayService extends ChangeNotifier {
       existing.add(saved);
     }
     _personalRedDaysCache[year] = existing;
+    _saveToHive(year);
 
     notifyListeners();
     return saved;
@@ -186,6 +244,7 @@ class HolidayService extends ChangeNotifier {
         rd.date.month == date.month &&
         rd.date.day == date.day);
     _personalRedDaysCache[year] = existing;
+    _saveToHive(year);
 
     notifyListeners();
   }

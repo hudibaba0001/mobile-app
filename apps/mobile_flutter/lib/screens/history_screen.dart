@@ -618,11 +618,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        entry.description ??
-                            AppLocalizations.of(context).history_noDescription,
+                        _travelRouteText(entry) ??
+                            entry.description ??
+                            AppLocalizations.of(context)
+                                .history_noDescription,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Row(
@@ -836,6 +840,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
     } else {
       return '${minutes}m';
     }
+  }
+
+  /// Returns a "From → To" string for travel entries, or null for non-travel.
+  String? _travelRouteText(Entry entry) {
+    if (entry.type != EntryType.travel) return null;
+    // Prefer travelLegs (new format)
+    if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
+      final first = entry.travelLegs!.first;
+      final last = entry.travelLegs!.last;
+      return '${first.fromText} \u2192 ${last.toText}';
+    }
+    // Fallback to legacy from/to fields
+    if (entry.from != null && entry.to != null) {
+      return '${entry.from} \u2192 ${entry.to}';
+    }
+    return null;
   }
 
   String _formatEntryDateTime(Entry entry) {

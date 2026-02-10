@@ -9,9 +9,11 @@ import '../utils/retry_helper.dart';
 
 class ImportService {
   final EntryProvider _entryProvider;
+  final String _userId;
 
-  ImportService({required EntryProvider entryProvider})
-      : _entryProvider = entryProvider;
+  ImportService({required EntryProvider entryProvider, required String userId})
+      : _entryProvider = entryProvider,
+        _userId = userId;
 
   /// Import travel entries from CSV file
   Future<ImportResult> importFromCSV(String filePath) async {
@@ -119,7 +121,7 @@ class ImportService {
           : null;
 
       return Entry(
-        userId: 'imported_user', // TODO: Get from auth service
+        userId: _userId,
         type: EntryType.travel,
         date: date,
         from: departure,
@@ -265,7 +267,7 @@ class ImportService {
   Entry _parseJSONEntry(Map<String, dynamic> data) {
     return Entry(
       id: data['id'] as String?,
-      userId: data['userId'] as String? ?? 'imported_user',
+      userId: data['userId'] as String? ?? _userId,
       type: EntryType.travel,
       date: DateTime.parse(data['date'] as String),
       from: data['departure'] as String? ?? data['from'] as String?,

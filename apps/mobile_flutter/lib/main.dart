@@ -23,6 +23,8 @@ import 'providers/absence_provider.dart';
 import 'providers/balance_adjustment_provider.dart';
 import 'services/supabase_auth_service.dart';
 import 'repositories/balance_adjustment_repository.dart';
+import 'repositories/supabase_location_repository.dart';
+import 'repositories/supabase_email_settings_repository.dart';
 import 'services/supabase_absence_service.dart';
 import 'repositories/user_red_day_repository.dart';
 import 'services/admin_api_service.dart';
@@ -35,6 +37,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/entry.dart';
 import 'models/location.dart';
+import 'models/absence.dart';
+import 'models/balance_adjustment.dart';
+import 'models/user_red_day.dart';
+import 'models/absence_entry_adapter.dart';
+import 'models/balance_adjustment_adapter.dart';
+import 'models/user_red_day_adapter.dart';
 import 'utils/constants.dart';
 
 void main() async {
@@ -50,6 +58,9 @@ void main() async {
   Hive.registerAdapter(EntryAdapter());
   Hive.registerAdapter(EntryTypeAdapter());
   Hive.registerAdapter(LocationAdapter());
+  Hive.registerAdapter(AbsenceEntryAdapter());
+  Hive.registerAdapter(BalanceAdjustmentAdapter());
+  Hive.registerAdapter(UserRedDayAdapter());
 
   const locationBoxResetKey = 'locations_box_typeid_reset_v1';
   final prefs = await SharedPreferences.getInstance();
@@ -65,6 +76,12 @@ void main() async {
 
   final locationBox = await Hive.openBox<Location>(AppConstants.locationsBox);
   final locationRepository = LocationRepository(locationBox);
+
+  // Open Hive boxes for cached data
+  final absenceBox = await Hive.openBox<AbsenceEntry>('absences_cache');
+  final adjustmentBox =
+      await Hive.openBox<BalanceAdjustment>('balance_adjustments_cache');
+  final redDayBox = await Hive.openBox<UserRedDay>('user_red_days_cache');
 
   // Initialize Supabase
   await SupabaseConfig.initialize();
@@ -95,6 +112,17 @@ void main() async {
   final settingsProvider = SettingsProvider();
   await settingsProvider.init();
 
+  // Set up Supabase dependencies for settings
+  final supabase = SupabaseConfig.client;
+  settingsProvider.setSupabaseDeps(supabase, userId);
+  if (userId != null) {
+    await settingsProvider.loadFromCloud();
+  }
+
+  // Create Supabase repositories for location and email settings
+  final supabaseLocationRepo = SupabaseLocationRepository(supabase);
+  final supabaseEmailSettingsRepo = SupabaseEmailSettingsRepository(supabase);
+
   runApp(
     MyApp(
       authService: authService,
@@ -102,6 +130,11 @@ void main() async {
       contractProvider: contractProvider,
       settingsProvider: settingsProvider,
       locationRepository: locationRepository,
+      supabaseLocationRepo: supabaseLocationRepo,
+      supabaseEmailSettingsRepo: supabaseEmailSettingsRepo,
+      absenceBox: absenceBox,
+      adjustmentBox: adjustmentBox,
+      redDayBox: redDayBox,
     ),
   );
 }
@@ -112,6 +145,11 @@ class MyApp extends StatelessWidget {
   final ContractProvider contractProvider;
   final SettingsProvider settingsProvider;
   final LocationRepository locationRepository;
+  final SupabaseLocationRepository supabaseLocationRepo;
+  final SupabaseEmailSettingsRepository supabaseEmailSettingsRepo;
+  final Box<AbsenceEntry> absenceBox;
+  final Box<BalanceAdjustment> adjustmentBox;
+  final Box<UserRedDay> redDayBox;
 
   const MyApp({
     super.key,
@@ -120,6 +158,11 @@ class MyApp extends StatelessWidget {
     required this.contractProvider,
     required this.settingsProvider,
     required this.locationRepository,
+    required this.supabaseLocationRepo,
+    required this.supabaseEmailSettingsRepo,
+    required this.absenceBox,
+    required this.adjustmentBox,
+    required this.redDayBox,
   });
 
   @override
@@ -138,11 +181,24 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<ContractProvider>.value(
           value: contractProvider,
         ),
-        ChangeNotifierProvider(create: (_) => EmailSettingsProvider()),
+        ChangeNotifierProvider(create: (_) {
+          final provider = EmailSettingsProvider();
+          provider.initialize();
+          // Set up Supabase sync
+          provider.setSupabaseDeps(supabaseEmailSettingsRepo, authService);
+          if (authService.currentUser != null) {
+            provider.loadFromCloud();
+          }
+          return provider;
+        }),
         ChangeNotifierProvider(create: (_) => LocalEntryProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProxyProvider<SupabaseAuthService, HolidayService>(
-          create: (_) => HolidayService(),
+          create: (_) {
+            final service = HolidayService();
+            service.initHive(redDayBox);
+            return service;
+          },
           update: (context, authService, previous) {
             final holidayService = previous ?? HolidayService();
             final userId = authService.currentUser?.id;
@@ -158,8 +214,16 @@ class MyApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProvider(create: (_) => TravelProvider()),
-        ChangeNotifierProvider(
-            create: (_) => LocationProvider(locationRepository)),
+        ChangeNotifierProvider(create: (_) {
+          final provider = LocationProvider(locationRepository);
+          // Set up Supabase sync
+          provider.setSupabaseDeps(supabaseLocationRepo, authService);
+          provider.refreshLocations();
+          if (authService.currentUser != null) {
+            provider.loadFromCloud();
+          }
+          return provider;
+        }),
         ChangeNotifierProxyProvider<SupabaseAuthService, EntryProvider>(
           create: (context) =>
               EntryProvider(context.read<SupabaseAuthService>()),
@@ -171,7 +235,9 @@ class MyApp extends StatelessWidget {
           create: (context) {
             final authService = context.read<SupabaseAuthService>();
             final absenceService = SupabaseAbsenceService();
-            return AbsenceProvider(authService, absenceService);
+            final provider = AbsenceProvider(authService, absenceService);
+            provider.initHive(absenceBox);
+            return provider;
           },
           update: (context, authService, previous) =>
               previous ??
@@ -184,7 +250,10 @@ class MyApp extends StatelessWidget {
             final authService = context.read<SupabaseAuthService>();
             final supabase = SupabaseConfig.client;
             final repository = BalanceAdjustmentRepository(supabase);
-            return BalanceAdjustmentProvider(authService, repository);
+            final provider =
+                BalanceAdjustmentProvider(authService, repository);
+            provider.initHive(adjustmentBox);
+            return provider;
           },
           update: (context, authService, previous) {
             if (previous != null) return previous;

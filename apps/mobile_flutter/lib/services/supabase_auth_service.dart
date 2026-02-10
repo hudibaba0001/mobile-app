@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
@@ -61,19 +60,19 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     // Listen to auth state changes
     _supabase.auth.onAuthStateChange.listen((data) {
       final event = data.event;
-      print('SupabaseAuthService: Auth event: $event');
+      debugPrint('SupabaseAuthService: Auth event: $event');
 
       if (data.session != null) {
-        print(
+        debugPrint(
             'SupabaseAuthService: User authenticated: ${data.session!.user.email}');
         _sessionExpiredNotified = false; // Reset on successful auth
       } else {
-        print('SupabaseAuthService: User signed out or session expired');
+        debugPrint('SupabaseAuthService: User signed out or session expired');
       }
 
       // Handle specific auth events
       if (event == AuthChangeEvent.tokenRefreshed) {
-        print('SupabaseAuthService: Token refreshed successfully');
+        debugPrint('SupabaseAuthService: Token refreshed successfully');
         _sessionExpiredNotified = false;
       } else if (event == AuthChangeEvent.signedOut) {
         // Check if this was due to session expiry vs user action
@@ -87,7 +86,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     });
 
     _initialized = true;
-    print('SupabaseAuthService: Initialized');
+    debugPrint('SupabaseAuthService: Initialized');
   }
 
   /// Attempt to refresh the session token
@@ -96,22 +95,22 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     try {
       final session = currentSession;
       if (session == null) {
-        print('SupabaseAuthService: No session to refresh');
+        debugPrint('SupabaseAuthService: No session to refresh');
         return false;
       }
 
-      print('SupabaseAuthService: Attempting to refresh session...');
+      debugPrint('SupabaseAuthService: Attempting to refresh session...');
       final response = await _supabase.auth.refreshSession();
 
       if (response.session != null) {
-        print('SupabaseAuthService: Session refreshed successfully');
+        debugPrint('SupabaseAuthService: Session refreshed successfully');
         return true;
       } else {
-        print('SupabaseAuthService: Session refresh failed - no new session');
+        debugPrint('SupabaseAuthService: Session refresh failed - no new session');
         return false;
       }
     } catch (e) {
-      print('SupabaseAuthService: Session refresh error: $e');
+      debugPrint('SupabaseAuthService: Session refresh error: $e');
       return false;
     }
   }
@@ -134,32 +133,32 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
 
   // Sign in with email and password
   Future<AuthResponse> signIn(String email, String password) async {
-    print('SupabaseAuthService: Attempting sign in for email: $email');
+    debugPrint('SupabaseAuthService: Attempting sign in for email: $email');
     try {
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      print('SupabaseAuthService: Sign in successful');
+      debugPrint('SupabaseAuthService: Sign in successful');
       return response;
     } catch (e) {
-      print('SupabaseAuthService: Sign in failed: $e');
+      debugPrint('SupabaseAuthService: Sign in failed: $e');
       rethrow;
     }
   }
 
   // Sign up with email and password
   Future<AuthResponse> signUp(String email, String password) async {
-    print('SupabaseAuthService: Attempting sign up for email: $email');
+    debugPrint('SupabaseAuthService: Attempting sign up for email: $email');
     try {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
       );
-      print('SupabaseAuthService: Sign up successful');
+      debugPrint('SupabaseAuthService: Sign up successful');
       return response;
     } catch (e) {
-      print('SupabaseAuthService: Sign up failed: $e');
+      debugPrint('SupabaseAuthService: Sign up failed: $e');
       rethrow;
     }
   }
@@ -167,12 +166,12 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
   // Sign out (AuthService interface)
   @override
   Future<void> signOut() async {
-    print('SupabaseAuthService: Signing out...');
+    debugPrint('SupabaseAuthService: Signing out...');
     try {
       await _supabase.auth.signOut();
-      print('SupabaseAuthService: Sign out successful');
+      debugPrint('SupabaseAuthService: Sign out successful');
     } catch (e) {
-      print('SupabaseAuthService: Sign out failed: $e');
+      debugPrint('SupabaseAuthService: Sign out failed: $e');
       rethrow;
     }
   }
@@ -180,7 +179,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
   // Reset password (AuthService interface)
   @override
   Future<void> sendPasswordResetEmail(String email) async {
-    print('SupabaseAuthService: Sending password reset email to: $email');
+    debugPrint('SupabaseAuthService: Sending password reset email to: $email');
     try {
       // Get redirect URL - use a deep link that opens the app
       // For mobile apps, this should be a custom URL scheme or universal link
@@ -192,9 +191,9 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
         email,
         redirectTo: redirectTo,
       );
-      print('SupabaseAuthService: Password reset email sent');
+      debugPrint('SupabaseAuthService: Password reset email sent');
     } catch (e) {
-      print('SupabaseAuthService: Password reset failed: $e');
+      debugPrint('SupabaseAuthService: Password reset failed: $e');
       rethrow;
     }
   }
@@ -216,12 +215,24 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
   @override
   String? get currentUserEmail => currentUser?.email;
 
-  // Check if user is admin (placeholder implementation)
+  // Check if user is admin by querying the profiles table
   @override
   Future<bool> isAdmin() async {
-    // TODO: Implement admin check based on user metadata or database
-    // For now, return false for all users
-    return false;
+    final user = currentUser;
+    if (user == null) return false;
+
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      return (response?['is_admin'] as bool?) ?? false;
+    } catch (e) {
+      debugPrint('SupabaseAuthService: Error checking admin status: $e');
+      return false;
+    }
   }
 
   // Update user profile
@@ -239,9 +250,9 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
         data: updates['data'],
       ));
 
-      print('SupabaseAuthService: Profile updated successfully');
+      debugPrint('SupabaseAuthService: Profile updated successfully');
     } catch (e) {
-      print('SupabaseAuthService: Failed to update profile: $e');
+      debugPrint('SupabaseAuthService: Failed to update profile: $e');
       rethrow;
     }
   }

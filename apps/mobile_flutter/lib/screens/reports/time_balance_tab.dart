@@ -68,7 +68,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Error loading balance',
+                  AppLocalizations.of(context).error_loadingBalance,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
@@ -225,7 +225,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Balance Adjustments',
+                    AppLocalizations.of(context).adjustment_title,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.tertiary,
@@ -259,7 +259,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
             const SizedBox(height: 12),
 
             Text(
-              'Manual corrections to your balance (e.g., manager adjustments)',
+              AppLocalizations.of(context).adjustment_description,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -286,7 +286,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               const Divider(),
               const SizedBox(height: 12),
               Text(
-                'Recent Adjustments',
+                AppLocalizations.of(context).adjustment_recent,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -342,7 +342,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    adjustment.note ?? 'Adjustment',
+                    adjustment.note ?? AppLocalizations.of(context).adjustment_title,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),

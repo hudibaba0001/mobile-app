@@ -2,6 +2,7 @@
 // ignore_for_file: avoid_print
 // ignore_for_file: unused_element
 
+import 'package:intl/intl.dart';
 import '../design/design.dart';
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
@@ -128,7 +129,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             type: 'travel',
             title: 'Travel: $fromText → $toText',
             subtitle:
-                '${entry.date.toString().split(' ')[0]} • ${entry.notes?.isNotEmpty == true ? entry.notes : AppLocalizations.of(context).home_noRemarks}',
+                '${DateFormat.yMMMd().format(entry.date)} • ${entry.notes?.isNotEmpty == true ? entry.notes : AppLocalizations.of(context).home_noRemarks}',
             duration: '${minutes ~/ 60}h ${minutes % 60}m',
             icon: Icons.directions_car,
             date: entry.date,
@@ -144,7 +145,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         final shift = entry.atomicShift ?? entry.shifts?.first;
         final workedMinutes = entry.totalWorkDuration?.inMinutes ?? 0;
         String title = AppLocalizations.of(context).home_workSession;
-        String subtitle = entry.date.toString().split(' ')[0];
+        String subtitle = DateFormat.yMMMd().format(entry.date);
 
         if (shift != null) {
           final startTime = TimeOfDay.fromDateTime(shift.start);
@@ -182,14 +183,14 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       for (final absence in absences.take(5)) {
         final typeLabel = _getAbsenceTypeLabel(absence.type);
         final durationText = absence.minutes == 0
-            ? 'Full day'
+            ? AppLocalizations.of(context).absence_fullDay
             : '${absence.minutes ~/ 60}h ${absence.minutes % 60}m';
 
         allEntries.add(_EntryData(
           id: absence.id ?? 'absence_${absence.date.millisecondsSinceEpoch}',
           type: 'absence',
           title: typeLabel,
-          subtitle: absence.date.toString().split(' ')[0],
+          subtitle: DateFormat.yMMMd().format(absence.date),
           duration: durationText,
           icon: _getAbsenceIcon(absence.type),
           date: absence.date,
@@ -323,26 +324,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             tooltip: t.common_profile,
           ),
           const SizedBox(width: 8),
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                Icons.settings_rounded,
-                color: colorScheme.onSurfaceVariant,
-                size: 20,
-              ),
-            ),
-            onPressed: () => AppRouter.goToSettings(context),
-            tooltip: t.nav_settings,
-          ),
+
           const SizedBox(width: 16),
         ],
       ),
@@ -1954,14 +1936,14 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   );
                                 }).toList();
 
-                                print(
+                                debugPrint(
                                     'Created ${travelEntries.length} travel entry/entries via EntryProvider');
 
                                 // Save all entries via EntryProvider (the ONLY write path)
                                 // Use batch save for efficiency
-                                print('Saving via EntryProvider (batch)...');
+                                debugPrint('Saving via EntryProvider (batch)...');
                                 await entryProvider.addEntries(travelEntries);
-                                print(
+                                debugPrint(
                                     'Successfully saved ${travelEntries.length} entry/entries via EntryProvider!');
 
                                 Navigator.of(context).pop();
@@ -2940,7 +2922,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           ? () async {
                               if (!mounted) return;
                               try {
-                                print('=== WORK ENTRY SAVE ATTEMPT ===');
+                                debugPrint('=== WORK ENTRY SAVE ATTEMPT ===');
 
                                 // Use EntryProvider instead of legacy repository
                                 final entryProvider =
@@ -3009,10 +2991,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   throw StateError('No valid shifts to save');
                                 }
 
-                                print(
+                                debugPrint(
                                     'Saving ${entries.length} atomic work entries via EntryProvider...');
                                 await entryProvider.addEntries(entries);
-                                print(
+                                debugPrint(
                                     'Successfully saved ${entries.length} entry/entries via EntryProvider!');
 
                                 Navigator.of(context).pop();

@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+import 'package:flutter/foundation.dart';
 import '../config/supabase_config.dart';
 import '../models/user_profile.dart';
 
@@ -33,7 +33,7 @@ class ProfileService {
 
       return UserProfile.fromMap(profileData);
     } catch (e) {
-      print('ProfileService: Error fetching profile: $e');
+      debugPrint('ProfileService: Error fetching profile: $e');
       rethrow;
     }
   }
@@ -55,7 +55,7 @@ class ProfileService {
   }) async {
     final user = _supabase.auth.currentUser;
     if (user == null) {
-      print(
+      debugPrint(
           'ProfileService: Cannot update contract settings - user not authenticated');
       return null;
     }
@@ -80,14 +80,14 @@ class ProfileService {
           .maybeSingle();
 
       if (response == null) {
-        print('ProfileService: Profile not found after update');
+        debugPrint('ProfileService: Profile not found after update');
         return null;
       }
 
-      print('ProfileService: ✅ Contract settings saved to Supabase');
+      debugPrint('ProfileService: ✅ Contract settings saved to Supabase');
       return UserProfile.fromMap(response);
     } catch (e) {
-      print('ProfileService: Error updating contract settings: $e');
+      debugPrint('ProfileService: Error updating contract settings: $e');
       rethrow;
     }
   }
@@ -96,7 +96,7 @@ class ProfileService {
   Future<void> updateContractField(String field, dynamic value) async {
     final user = _supabase.auth.currentUser;
     if (user == null) {
-      print('ProfileService: Cannot update $field - user not authenticated');
+      debugPrint('ProfileService: Cannot update $field - user not authenticated');
       return;
     }
 
@@ -106,9 +106,9 @@ class ProfileService {
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', user.id);
 
-      print('ProfileService: ✅ Updated $field in Supabase');
+      debugPrint('ProfileService: ✅ Updated $field in Supabase');
     } catch (e) {
-      print('ProfileService: Error updating $field: $e');
+      debugPrint('ProfileService: Error updating $field: $e');
       rethrow;
     }
   }

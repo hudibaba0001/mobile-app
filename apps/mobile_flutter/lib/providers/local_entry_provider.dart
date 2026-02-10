@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/entry.dart';
@@ -72,7 +71,7 @@ class LocalEntryProvider extends ChangeNotifier {
       _clearError();
 
       if (kDebugMode) {
-        print('✅ Entry added: ${entry.type.name} - ${entry.formattedDuration}');
+        debugPrint('✅ Entry added: ${entry.type.name} - ${entry.formattedDuration}');
       }
 
       return true;
@@ -98,7 +97,7 @@ class LocalEntryProvider extends ChangeNotifier {
       _clearError();
 
       if (kDebugMode) {
-        print(
+        debugPrint(
           '✅ Entry updated: ${entry.type.name} - ${entry.formattedDuration}',
         );
       }
@@ -126,7 +125,7 @@ class LocalEntryProvider extends ChangeNotifier {
       _clearError();
 
       if (kDebugMode) {
-        print('✅ Entry deleted: $entryId');
+        debugPrint('✅ Entry deleted: $entryId');
       }
 
       return true;
@@ -246,7 +245,7 @@ class LocalEntryProvider extends ChangeNotifier {
   void _setError(String error) {
     _error = error;
     if (kDebugMode) {
-      print('❌ LocalEntryProvider Error: $error');
+      debugPrint('❌ LocalEntryProvider Error: $error');
     }
     notifyListeners();
   }

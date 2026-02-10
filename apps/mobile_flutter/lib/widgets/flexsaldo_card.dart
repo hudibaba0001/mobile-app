@@ -126,7 +126,7 @@ class FlexsaldoCard extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
-                    'This month: $monthName',
+                    t.balance_thisMonthLabel(monthName),
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: theme.colorScheme.onSurface,
@@ -142,7 +142,7 @@ class FlexsaldoCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'Status (to date): ',
+                    t.balance_statusToDate,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
@@ -170,7 +170,7 @@ class FlexsaldoCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                   children: [
-                    const TextSpan(text: 'Worked (to date): '),
+                    TextSpan(text: '${t.balance_workedToDate} '),
                     TextSpan(
                       text: '${workedText}h',
                       style: TextStyle(
@@ -191,7 +191,7 @@ class FlexsaldoCard extends StatelessWidget {
 
               // Line 3 (small): Full month target: XXXh
               Text(
-                'Full month target: ${fullMonthTargetHours.toStringAsFixed(0)}h',
+                t.balance_fullMonthTarget(fullMonthTargetHours.toStringAsFixed(0)),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color:
                       theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
@@ -204,7 +204,7 @@ class FlexsaldoCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Yearly ($year)',
+                    t.balance_yearlyLabel(year),
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
@@ -230,7 +230,7 @@ class FlexsaldoCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                   children: [
-                    const TextSpan(text: 'Worked (to date): '),
+                    TextSpan(text: '${t.balance_workedToDate} '),
                     TextSpan(
                       text:
                           '${((yearActualMinutes + yearCreditMinutes) / 60.0).toStringAsFixed(1)}h',

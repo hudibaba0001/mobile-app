@@ -1892,14 +1892,14 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   );
                                 }).toList();
 
-                                print(
+                                debugPrint(
                                     'Created ${travelEntries.length} travel entry/entries via EntryProvider');
 
                                 // Save all entries via EntryProvider (the ONLY write path)
                                 // Use batch save for efficiency
-                                print('Saving via EntryProvider (batch)...');
+                                debugPrint('Saving via EntryProvider (batch)...');
                                 await entryProvider.addEntries(travelEntries);
-                                print(
+                                debugPrint(
                                     'Successfully saved ${travelEntries.length} entry/entries via EntryProvider!');
 
                                 Navigator.of(context).pop();
@@ -2881,7 +2881,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           ? () async {
                               if (!mounted) return;
                               try {
-                                print('=== WORK ENTRY SAVE ATTEMPT ===');
+                                debugPrint('=== WORK ENTRY SAVE ATTEMPT ===');
 
                                 // Use EntryProvider instead of legacy repository
                                 final entryProvider =
@@ -2950,10 +2950,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   throw StateError('No valid shifts to save');
                                 }
 
-                                print(
+                                debugPrint(
                                     'Saving ${entries.length} atomic work entries via EntryProvider...');
                                 await entryProvider.addEntries(entries);
-                                print(
+                                debugPrint(
                                     'Successfully saved ${entries.length} entry/entries via EntryProvider!');
 
                                 Navigator.of(context).pop();

@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/travel_time_entry.dart';
@@ -69,9 +69,9 @@ class MigrationService {
         }
       }
 
-      print('Migration from v0 to v1 completed successfully');
+      debugPrint('Migration from v0 to v1 completed successfully');
     } catch (e) {
-      print('Migration failed: $e');
+      debugPrint('Migration failed: $e');
       // Don't rethrow - app should still work with old data
     }
   }

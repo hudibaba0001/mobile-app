@@ -197,7 +197,57 @@
   "balance_contractBalanceNoDate": "Contract balance (since start)",
   "balance_details": "Details",
   "balance_informationalOnly": "Informational only",
-  "balance_includesOpening": "Includes opening balance ({balance}) as of {date}",
+  "balance_includesOpening": "Inkluderar ingående saldo ({balance}) per {date}",
+  "balance_yearlyLabel": "Yearly ({year})",
+  "@balance_yearlyLabel": {
+    "placeholders": {
+      "year": {"type": "int"}
+    }
+  },
+  "balance_thisMonthLabel": "This month: {month}",
+  "@balance_thisMonthLabel": {
+    "placeholders": {
+      "month": {"type": "String"}
+    }
+  },
+  "balance_statusToDate": "Status (to date):",
+  "balance_workedToDate": "Worked (to date):",
+  "balance_fullMonthTarget": "Full month target: {hours}h",
+  "@balance_fullMonthTarget": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "balance_creditedPaidLeave": "+ {hours}h credited (paid leave)",
+  "@balance_creditedPaidLeave": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "balance_manualAdjustments": "{hours}h manual adjustments",
+  "@balance_manualAdjustments": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "balance_percentFullMonthTarget": "{percent}% of full month target",
+  "@balance_percentFullMonthTarget": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "balance_fullYearTarget": "Full year target: {hours}h",
+  "@balance_fullYearTarget": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "balance_includesAdjustments": "Includes adjustments: {hours}h",
+  "@balance_includesAdjustments": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
   "@balance_includesOpening": {
     "placeholders": {
       "balance": {"type": "String"},
@@ -341,6 +391,7 @@
   "entry_notes": "Notes",
   "entry_shifts": "Shifts",
   "entry_addShift": "Add Shift",
+  "entry_travelLegUpdateNotice": "First leg updates the existing entry; extra legs become new entries.",
 
   "error_loadingData": "Error loading data",
   "error_loadingBalance": "Error loading balance",
@@ -1242,5 +1293,11 @@
   "travel_notesHint": "Add details about your travel...",
   "form_span": "Span",
   "form_break": "Break",
-  "form_worked": "Worked"
+  "form_worked": "Worked",
+
+  "auth_newToKvikTime": "New to KvikTime?",
+  "auth_createAccount": "Create Account",
+  "auth_redirectNote": "New users will be redirected to our account creation page",
+  "auth_invalidEmail": "Invalid email",
+  "auth_passwordRequired": "Password is required"
 }

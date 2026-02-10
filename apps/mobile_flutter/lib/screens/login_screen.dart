@@ -6,6 +6,7 @@ import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/external_links.dart';
 import '../design/app_theme.dart';
+import '../l10n/generated/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -156,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen>
                       const SizedBox(height: AppSpacing.xxl),
 
                       // Divider with text
-                      _buildDividerWithText('New to KvikTime?'),
+                      _buildDividerWithText(AppLocalizations.of(context).auth_newToKvikTime),
                       const SizedBox(height: AppSpacing.xl),
 
                       // Create Account Button
@@ -165,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                       // Disclaimer text
                       Text(
-                        'New users will be redirected to our account creation page',
+                        AppLocalizations.of(context).auth_redirectNote,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Colors.white.withValues(alpha: 0.7),
                             ),
@@ -220,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Sign in to your account',
+            AppLocalizations.of(context).auth_signInPrompt,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.8),
             ),
@@ -242,18 +243,18 @@ class _LoginScreenState extends State<LoginScreen>
             // Email field
             _buildGlassTextField(
               controller: _emailController,
-              hintText: 'Email',
+              hintText: AppLocalizations.of(context).auth_emailLabel,
               prefixIcon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
               validator: (v) =>
-                  v == null || !v.contains('@') ? 'Invalid email' : null,
+                  v == null || !v.contains('@') ? AppLocalizations.of(context).auth_invalidEmail : null,
             ),
             const SizedBox(height: AppSpacing.lg),
 
             // Password field
             _buildGlassTextField(
               controller: _passwordController,
-              hintText: 'Password',
+              hintText: AppLocalizations.of(context).auth_passwordLabel,
               prefixIcon: Icons.lock_outline,
               obscureText: _obscurePassword,
               suffixIcon: IconButton(
@@ -264,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen>
                 onPressed: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
               ),
-              validator: (v) => (v?.length ?? 0) < 6 ? 'Required' : null,
+              validator: (v) => (v?.length ?? 0) < 6 ? AppLocalizations.of(context).auth_passwordRequired : null,
             ),
             const SizedBox(height: AppSpacing.xl),
 
@@ -301,7 +302,7 @@ class _LoginScreenState extends State<LoginScreen>
                   foregroundColor: Colors.white.withValues(alpha: 0.9),
                 ),
                 child: Text(
-                  'Forgot Password?',
+                  AppLocalizations.of(context).auth_forgotPassword,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: Colors.white.withValues(alpha: 0.9),
@@ -394,7 +395,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
               )
             : Text(
-                'Sign In',
+                AppLocalizations.of(context).auth_signInButton,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
@@ -462,7 +463,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       ),
       child: Text(
-        'Create Account',
+        AppLocalizations.of(context).auth_createAccount,
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
           letterSpacing: 0.5,

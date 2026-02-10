@@ -13,6 +13,22 @@ class TravelService {
   // TODO: Remove once legacy location lookup is fully retired
   // ignore: unused_field
   final LocationRepository _locationRepository;
+
+  /// Get origin text from an entry, preferring travelLegs over legacy fields
+  static String? _getOrigin(Entry entry) {
+    if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
+      return entry.travelLegs!.first.fromText;
+    }
+    return entry.from;
+  }
+
+  /// Get destination text from an entry, preferring travelLegs over legacy fields
+  static String? _getDestination(Entry entry) {
+    if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
+      return entry.travelLegs!.last.toText;
+    }
+    return entry.to;
+  }
   EntryProvider? _entryProvider;
 
   TravelService({
@@ -91,14 +107,16 @@ class TravelService {
 
     // Count location frequency
     for (final entry in travelEntries) {
-      if (entry.from != null && entry.to != null) {
-        final route = '${entry.from} â†’ ${entry.to}';
+      final origin = _getOrigin(entry);
+      final destination = _getDestination(entry);
+      if (origin != null && destination != null) {
+        final route = '$origin \u2192 $destination';
         locationFrequency[route] = (locationFrequency[route] ?? 0) + 1;
 
         // Also count individual locations
-        locationFrequency[entry.from!] =
-            (locationFrequency[entry.from!] ?? 0) + 1;
-        locationFrequency[entry.to!] = (locationFrequency[entry.to!] ?? 0) + 1;
+        locationFrequency[origin] =
+            (locationFrequency[origin] ?? 0) + 1;
+        locationFrequency[destination] = (locationFrequency[destination] ?? 0) + 1;
       }
     }
 
@@ -146,8 +164,10 @@ class TravelService {
 
     // Count route frequency (look at last 50 entries)
     for (final entry in travelEntries.take(50)) {
-      if (entry.from != null && entry.to != null) {
-        final route = '${entry.from} â†’ ${entry.to}';
+      final origin = _getOrigin(entry);
+      final destination = _getDestination(entry);
+      if (origin != null && destination != null) {
+        final route = '$origin \u2192 $destination';
         routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
       }
     }
@@ -180,14 +200,16 @@ class TravelService {
 
     // Add data rows
     for (final entry in entries) {
+      final origin = _getOrigin(entry);
+      final destination = _getDestination(entry);
       if (entry.type == EntryType.travel &&
-          entry.from != null &&
-          entry.to != null) {
+          origin != null &&
+          destination != null) {
         final row = [
           _escapeCsvField(
               entry.date.toIso8601String().split('T')[0]), // Date only
-          _escapeCsvField(entry.from!),
-          _escapeCsvField(entry.to!),
+          _escapeCsvField(origin),
+          _escapeCsvField(destination),
           entry.minutes.toString(),
           _escapeCsvField(entry.notes ?? ''),
           _escapeCsvField(entry.createdAt.toIso8601String()),
@@ -266,8 +288,10 @@ class TravelService {
     // Find most frequent route
     final routeFrequency = <String, int>{};
     for (final entry in travelEntries) {
-      if (entry.from != null && entry.to != null) {
-        final route = '${entry.from} â†’ ${entry.to}';
+      final origin = _getOrigin(entry);
+      final destination = _getDestination(entry);
+      if (origin != null && destination != null) {
+        final route = '$origin \u2192 $destination';
         routeFrequency[route] = (routeFrequency[route] ?? 0) + 1;
       }
     }
@@ -343,15 +367,17 @@ class TravelService {
     final dayOfWeekCounts = <int, int>{};
 
     for (final entry in recentEntries) {
-      if (entry.from != null) {
-        departures[entry.from!] = (departures[entry.from!] ?? 0) + 1;
+      final origin = _getOrigin(entry);
+      final destination = _getDestination(entry);
+      if (origin != null) {
+        departures[origin] = (departures[origin] ?? 0) + 1;
       }
-      if (entry.to != null) {
-        arrivals[entry.to!] = (arrivals[entry.to!] ?? 0) + 1;
+      if (destination != null) {
+        arrivals[destination] = (arrivals[destination] ?? 0) + 1;
       }
 
-      if (entry.from != null && entry.to != null) {
-        final route = '${entry.from} â†’ ${entry.to}';
+      if (origin != null && destination != null) {
+        final route = '$origin \u2192 $destination';
         routes[route] = (routes[route] ?? 0) + 1;
       }
 
@@ -435,9 +461,11 @@ class TravelService {
 
     for (final entry in travelEntries) {
       // Search in departure, arrival, and notes
+      final origin = _getOrigin(entry);
+      final destination = _getDestination(entry);
       final fromMatch =
-          entry.from?.toLowerCase().contains(lowercaseQuery) ?? false;
-      final toMatch = entry.to?.toLowerCase().contains(lowercaseQuery) ?? false;
+          origin?.toLowerCase().contains(lowercaseQuery) ?? false;
+      final toMatch = destination?.toLowerCase().contains(lowercaseQuery) ?? false;
       final notesMatch =
           entry.notes?.toLowerCase().contains(lowercaseQuery) ?? false;
 

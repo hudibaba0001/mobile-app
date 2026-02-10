@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 import '../models/balance_adjustment.dart';
 import '../repositories/balance_adjustment_repository.dart';
 import '../services/supabase_auth_service.dart';
@@ -12,6 +13,9 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
   // In-memory cache: year -> list of adjustments
   final Map<int, List<BalanceAdjustment>> _adjustmentsByYear = {};
 
+  // Hive local cache
+  Box<BalanceAdjustment>? _hiveBox;
+
   bool _isLoading = false;
   String? _error;
 
@@ -22,6 +26,54 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
 
   /// Get current user ID
   String? get _userId => _authService.currentUser?.id;
+
+  /// Initialize Hive box for local caching
+  Future<void> initHive(Box<BalanceAdjustment> box) async {
+    _hiveBox = box;
+    _loadFromHive();
+  }
+
+  /// Load cached adjustments from Hive into memory
+  void _loadFromHive() {
+    if (_hiveBox == null) return;
+
+    for (final adj in _hiveBox!.values) {
+      final year = adj.effectiveDate.year;
+      _adjustmentsByYear.putIfAbsent(year, () => []);
+      final existing = _adjustmentsByYear[year]!;
+      if (!existing.any((a) => a.id == adj.id)) {
+        existing.add(adj);
+      }
+    }
+  }
+
+  /// Save adjustments for a year to Hive
+  void _saveToHive(int year) {
+    if (_hiveBox == null) return;
+
+    try {
+      final adjustments = _adjustmentsByYear[year] ?? [];
+      // Remove old entries for this year
+      final keysToRemove = <dynamic>[];
+      for (final key in _hiveBox!.keys) {
+        final entry = _hiveBox!.get(key);
+        if (entry != null && entry.effectiveDate.year == year) {
+          keysToRemove.add(key);
+        }
+      }
+      for (final key in keysToRemove) {
+        _hiveBox!.delete(key);
+      }
+      // Add current entries
+      for (final adj in adjustments) {
+        if (adj.id != null) {
+          _hiveBox!.put(adj.id, adj);
+        }
+      }
+    } catch (e) {
+      debugPrint('BalanceAdjustmentProvider: Error saving to Hive: $e');
+    }
+  }
 
   /// Load adjustments for a specific year
   /// Set [forceRefresh] to true to reload even if already cached
@@ -48,6 +100,7 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
         year: year,
       );
       _adjustmentsByYear[year] = adjustments;
+      _saveToHive(year);
 
       debugPrint(
           'BalanceAdjustmentProvider: Loaded ${adjustments.length} adjustments for year $year');
@@ -55,6 +108,11 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
     } catch (e) {
       _error = 'Failed to load adjustments: $e';
       debugPrint('BalanceAdjustmentProvider: Error: $_error');
+      // Fall back to Hive cache
+      if (_adjustmentsByYear.containsKey(year)) {
+        debugPrint('BalanceAdjustmentProvider: Using cached data for year $year');
+        _error = null;
+      }
       notifyListeners();
     } finally {
       _setLoading(false);

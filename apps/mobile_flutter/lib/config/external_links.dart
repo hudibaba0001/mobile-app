@@ -2,7 +2,7 @@
 /// Replace these URLs with your actual production URLs
 class ExternalLinks {
   /// Base URL for the web app
-  static const String _baseUrl = 'https://kvik-time.vercel.app';
+  static const String _baseUrl = 'https://app.kviktime.se';
 
   /// URL for user signup/registration page
   static const String signupUrl = 'https://app.kviktime.se/signup';

@@ -1,9 +1,7 @@
-// ignore_for_file: avoid_print
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import '../models/entry.dart';
 import '../models/export_data.dart';
 import 'csv_exporter.dart';
@@ -340,7 +338,7 @@ class ExportService {
       }
     } catch (e) {
       // Silently handle cleanup errors
-      print('Cleanup error: $e');
+      debugPrint('Cleanup error: $e');
     }
   }
 

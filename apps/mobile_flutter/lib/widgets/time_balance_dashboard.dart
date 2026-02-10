@@ -111,6 +111,7 @@ class MonthlyStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     // Calculate effective hours including credits and adjustments
     final effectiveHours =
@@ -143,7 +144,7 @@ class MonthlyStatusCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
-                'This month: $monthName',
+                l10n.balance_thisMonthLabel(monthName),
                 style: AppTypography.cardTitle(theme.colorScheme.onSurface),
               ),
             ],
@@ -155,7 +156,7 @@ class MonthlyStatusCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Status (to date): ',
+                l10n.balance_statusToDate,
                 style: AppTypography.sectionTitle(theme.colorScheme.onSurfaceVariant),
               ),
               Text(
@@ -174,7 +175,7 @@ class MonthlyStatusCard extends StatelessWidget {
             text: TextSpan(
               style: AppTypography.body(theme.colorScheme.onSurface).copyWith(fontSize: 16),
               children: [
-                const TextSpan(text: 'Worked (to date): '),
+                TextSpan(text: '${l10n.balance_workedToDate} '),
                 TextSpan(
                   text: '${effectiveHours.toStringAsFixed(1)}h',
                   style: TextStyle(
@@ -195,7 +196,7 @@ class MonthlyStatusCard extends StatelessWidget {
 
           // Line 3 (small): Full month target: XXXh
           Text(
-            'Full month target: ${targetHours.toStringAsFixed(0)}h',
+            l10n.balance_fullMonthTarget(targetHours.toStringAsFixed(0)),
             style: AppTypography.caption(
               theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ).copyWith(fontWeight: FontWeight.w500),
@@ -205,7 +206,7 @@ class MonthlyStatusCard extends StatelessWidget {
           if (creditHours != null && creditHours! > 0) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              '+ ${creditHours!.toStringAsFixed(1)}h credited (paid leave)',
+              l10n.balance_creditedPaidLeave(creditHours!.toStringAsFixed(1)),
               style: AppTypography.caption(
                 theme.colorScheme.primary.withValues(alpha: 0.8),
               ).copyWith(fontStyle: FontStyle.italic),
@@ -214,7 +215,7 @@ class MonthlyStatusCard extends StatelessWidget {
           if (adjustmentHours != 0) ...[
             const SizedBox(height: 4),
             Text(
-              '${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}h manual adjustments',
+              l10n.balance_manualAdjustments('${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}'),
               style: AppTypography.caption(
                 theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               ).copyWith(fontStyle: FontStyle.italic),
@@ -250,7 +251,7 @@ class MonthlyStatusCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '${(progress * 100).toStringAsFixed(0)}% of full month target',
+            l10n.balance_percentFullMonthTarget((progress * 100).toStringAsFixed(0)),
             style: AppTypography.caption(theme.colorScheme.onSurfaceVariant),
           ),
         ],
@@ -366,9 +367,11 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
     final warningColor = isDark ? Colors.amber.shade300 : Colors.amber.shade700;
     final cardBgColor = isDark
         ? (isPositive
-            ? Colors.green.withValues(alpha: 0.15)
-            : Colors.red.withValues(alpha: 0.15))
-        : (isPositive ? Colors.green.shade50 : Colors.red.shade50);
+            ? Colors.green.withValues(alpha: 0.06)
+            : Colors.red.withValues(alpha: 0.06))
+        : (isPositive
+            ? Colors.green.withValues(alpha: 0.04)
+            : Colors.red.withValues(alpha: 0.04));
     
     // Show details if there's an opening balance OR adjustments to explain
     final hasDetails = widget.openingBalanceHours != 0 || widget.adjustmentHours != 0;
@@ -396,7 +399,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
             text: TextSpan(
               style: AppTypography.body(theme.colorScheme.onSurface).copyWith(fontSize: 16),
               children: [
-                const TextSpan(text: 'Worked (to date): '),
+                TextSpan(text: '${l10n.balance_workedToDate} '),
                 TextSpan(
                   text: '${(widget.hoursWorked + (widget.creditHours ?? 0.0) + widget.adjustmentHours).toStringAsFixed(1)}h',
                   style: TextStyle(
@@ -417,7 +420,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
 
           // Full year target
           Text(
-            'Full year target: ${widget.targetHours.toStringAsFixed(0)}h',
+            l10n.balance_fullYearTarget(widget.targetHours.toStringAsFixed(0)),
             style: AppTypography.caption(
               theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ).copyWith(fontWeight: FontWeight.w500),
@@ -486,8 +489,8 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           if (widget.adjustmentHours != 0) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Includes adjustments: '
-              '${widget.adjustmentHours >= 0 ? '+' : ''}${widget.adjustmentHours.toStringAsFixed(1)}h',
+              l10n.balance_includesAdjustments(
+                  '${widget.adjustmentHours >= 0 ? '+' : ''}${widget.adjustmentHours.toStringAsFixed(1)}'),
               style: AppTypography.caption(theme.colorScheme.onSurfaceVariant),
             ),
           ],
@@ -724,7 +727,6 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
             ],
           ],
         ),
-      ),
     );
   }
 }
