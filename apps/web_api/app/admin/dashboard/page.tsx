@@ -20,12 +20,7 @@ export default function AdminDashboard() {
 
   const fetchAnalytics = async () => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch('/api/admin/analytics', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch('/api/admin/analytics');
 
       if (!response.ok) {
         throw new Error('Failed to fetch analytics');

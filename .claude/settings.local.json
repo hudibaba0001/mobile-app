@@ -5,7 +5,9 @@
       "Bash(git commit:*)",
       "mcp__supabase__apply_migration",
       "mcp__supabase__get_advisors",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "Bash(del \"c:\\\\Users\\\\sanlo\\\\Documents\\\\GitHub\\\\mobile-app\\\\apps\\\\mobile_flutter\\\\android\\\\app\\\\google-services.json\")",
+      "Bash(del \"c:\\\\Users\\\\sanlo\\\\Documents\\\\GitHub\\\\mobile-app\\\\apps\\\\mobile_flutter\\\\ios\\\\Runner\\\\GoogleService-Info.plist\")"
     ]
   }
 }

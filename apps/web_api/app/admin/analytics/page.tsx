@@ -28,19 +28,13 @@ export default function AdminAnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('admin_access_token');
-
       let url = '/api/admin/analytics';
       const params = new URLSearchParams();
       if (startDate) params.append('start_date', startDate);
       if (endDate) params.append('end_date', endDate);
       if (params.toString()) url += `?${params.toString()}`;
 
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error('Failed to fetch analytics');

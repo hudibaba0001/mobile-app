@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS email_settings (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   manager_email TEXT NOT NULL DEFAULT '',
   sender_email TEXT NOT NULL DEFAULT '',
-  sender_password TEXT NOT NULL DEFAULT '',
   sender_name TEXT NOT NULL DEFAULT '',
   auto_send_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   auto_send_frequency TEXT NOT NULL DEFAULT 'weekly',

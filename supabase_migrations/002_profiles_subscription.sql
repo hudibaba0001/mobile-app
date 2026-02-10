@@ -18,6 +18,17 @@ CREATE TABLE IF NOT EXISTS profiles (
   stripe_subscription_id text,
   subscription_status text, -- 'pending', 'trialing', 'active', 'past_due', 'canceled'
   current_period_end timestamptz,
+  -- Contract / settings fields
+  contract_percent integer,
+  full_time_hours integer,
+  tracking_start_date date,
+  opening_flex_minutes integer,
+  employer_mode text,
+  -- Admin & feature flags
+  is_admin boolean DEFAULT false,
+  is_dark_mode boolean,
+  travel_logging_enabled boolean,
+  time_balance_enabled boolean,
   -- Timestamps
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
@@ -71,6 +82,44 @@ BEGIN
   
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'current_period_end') THEN
     ALTER TABLE profiles ADD COLUMN current_period_end timestamptz;
+  END IF;
+
+  -- Contract / settings fields
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'contract_percent') THEN
+    ALTER TABLE profiles ADD COLUMN contract_percent integer;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'full_time_hours') THEN
+    ALTER TABLE profiles ADD COLUMN full_time_hours integer;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'tracking_start_date') THEN
+    ALTER TABLE profiles ADD COLUMN tracking_start_date date;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'opening_flex_minutes') THEN
+    ALTER TABLE profiles ADD COLUMN opening_flex_minutes integer;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'employer_mode') THEN
+    ALTER TABLE profiles ADD COLUMN employer_mode text;
+  END IF;
+
+  -- Admin & feature flags
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'is_admin') THEN
+    ALTER TABLE profiles ADD COLUMN is_admin boolean DEFAULT false;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'is_dark_mode') THEN
+    ALTER TABLE profiles ADD COLUMN is_dark_mode boolean;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'travel_logging_enabled') THEN
+    ALTER TABLE profiles ADD COLUMN travel_logging_enabled boolean;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'time_balance_enabled') THEN
+    ALTER TABLE profiles ADD COLUMN time_balance_enabled boolean;
   END IF;
 END $$;
 

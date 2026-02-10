@@ -29,12 +29,7 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch('/api/admin/users', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch('/api/admin/users');
 
       if (!response.ok) {
         throw new Error('Failed to fetch users');
@@ -59,12 +54,7 @@ export default function AdminUsersPage() {
     try {
       setIsSearching(true);
       setError('');
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`/api/admin/users/search?q=${encodeURIComponent(query)}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(`/api/admin/users/search?q=${encodeURIComponent(query)}`);
 
       if (!response.ok) {
         throw new Error('Search failed');

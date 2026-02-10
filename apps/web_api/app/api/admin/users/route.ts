@@ -34,14 +34,14 @@ export async function POST(request: NextRequest) {
   return withAdminAuth(request, async () => {
     try {
       const body = await request.json();
-      const { email, fullName, isAdmin } = body;
+      const { email, firstName, lastName, isAdmin } = body;
 
       // Create new user via Supabase Auth
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email,
           email_confirm: true,
-          user_metadata: { full_name: fullName },
+          user_metadata: { first_name: firstName, last_name: lastName },
         });
 
       if (authError) {
@@ -58,7 +58,8 @@ export async function POST(request: NextRequest) {
         .insert({
           id: authData.user.id,
           email,
-          full_name: fullName,
+          first_name: firstName || null,
+          last_name: lastName || null,
           is_admin: isAdmin || false,
         })
         .select()

@@ -43,12 +43,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const fetchUserDetail = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`/api/admin/users/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(`/api/admin/users/${id}`);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -74,12 +69,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`/api/admin/users/${id}/export`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(`/api/admin/users/${id}/export`);
 
       if (!response.ok) {
         throw new Error('Export failed');

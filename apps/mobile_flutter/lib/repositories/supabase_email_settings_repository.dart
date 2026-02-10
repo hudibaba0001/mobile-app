@@ -24,7 +24,6 @@ class SupabaseEmailSettingsRepository {
       return EmailSettings(
         managerEmail: (response['manager_email'] as String?) ?? '',
         senderEmail: (response['sender_email'] as String?) ?? '',
-        senderPassword: (response['sender_password'] as String?) ?? '',
         senderName: (response['sender_name'] as String?) ?? '',
         autoSendEnabled: (response['auto_send_enabled'] as bool?) ?? false,
         autoSendFrequency: (response['auto_send_frequency'] as String?) ?? 'weekly',
@@ -56,7 +55,6 @@ class SupabaseEmailSettingsRepository {
         'user_id': userId,
         'manager_email': settings.managerEmail,
         'sender_email': settings.senderEmail,
-        'sender_password': settings.senderPassword,
         'sender_name': settings.senderName,
         'auto_send_enabled': settings.autoSendEnabled,
         'auto_send_frequency': settings.autoSendFrequency,
