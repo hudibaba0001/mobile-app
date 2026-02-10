@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function AccountPage() {
   const [email, setEmail] = useState('')
@@ -64,9 +65,9 @@ export default function AccountPage() {
           </button>
         </form>
 
-        <a href="/" className="link">
+        <Link href="/" className="link">
           Back to Home
-        </a>
+        </Link>
       </div>
     </div>
   )

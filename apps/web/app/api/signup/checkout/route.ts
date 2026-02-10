@@ -3,6 +3,27 @@ import { createServiceRoleClient } from '@/lib/supabase-server'
 import { stripe } from '@/lib/stripe'
 import { signupSchema, TERMS_VERSION, PRIVACY_VERSION } from '@/lib/validation'
 
+const TERMS_URL = 'https://www.kviktime.se/terms-and-conditions/'
+const PRIVACY_URL = 'https://www.kviktime.se/privacy-policy/'
+
+/** Fetch page text content from a WordPress URL */
+async function fetchPageContent(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, { next: { revalidate: 0 } })
+    if (!res.ok) return `[Failed to fetch: ${res.status}]`
+    const html = await res.text()
+    // Strip HTML tags to store plain text
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  } catch (e) {
+    return `[Fetch error: ${e}]`
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -17,6 +38,12 @@ export async function POST(request: NextRequest) {
 
     const { firstName, lastName, email, phone, password } = validationResult.data
     const supabase = createServiceRoleClient()
+
+    // Capture IP and user agent for terms acceptance proof
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || request.headers.get('x-real-ip')
+      || 'unknown'
+    const userAgent = request.headers.get('user-agent') || 'unknown'
 
     // Check if user already exists
     const { data: existingUsers } = await supabase
@@ -64,6 +91,24 @@ export async function POST(request: NextRequest) {
       subscription_status: 'pending',
       created_at: now,
       updated_at: now,
+    })
+
+    // Fetch T&C and Privacy Policy content from WordPress for legal proof
+    const [termsContent, privacyContent] = await Promise.all([
+      fetchPageContent(TERMS_URL),
+      fetchPageContent(PRIVACY_URL),
+    ])
+
+    // Log terms acceptance as immutable audit record with full content snapshot
+    await supabase.from('terms_acceptance').insert({
+      user_id: userId,
+      email,
+      terms_version: TERMS_VERSION,
+      privacy_version: PRIVACY_VERSION,
+      terms_content: termsContent,
+      privacy_content: privacyContent,
+      ip_address: ipAddress,
+      user_agent: userAgent,
     })
 
     if (profileError) {

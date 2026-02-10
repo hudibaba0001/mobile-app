@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import './signup.css'
 
 interface PasswordStrength {
@@ -337,9 +338,9 @@ export default function SignupPage() {
         {/* Footer */}
         <div className="signup-footer">
           Already have an account?{' '}
-          <a href="/" className="signin-link">
+          <Link href="/" className="signin-link">
             Sign in
-          </a>
+          </Link>
         </div>
       </div>
     </div>

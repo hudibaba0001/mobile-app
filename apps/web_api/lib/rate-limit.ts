@@ -84,7 +84,7 @@ function getClientIdentifier(request: NextRequest): string {
       const token = authHeader.substring(7);
       const payload = JSON.parse(atob(token.split('.')[1]));
       return `user:${payload.sub || payload.id}`;
-    } catch (e) {
+    } catch {
       // Fall back to IP
     }
   }

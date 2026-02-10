@@ -22,6 +22,7 @@ export default function AdminAnalyticsPage() {
 
   useEffect(() => {
     fetchAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAnalytics = async () => {
@@ -48,8 +49,8 @@ export default function AdminAnalyticsPage() {
       const data = await response.json();
       setAnalytics(data);
       setError('');
-    } catch (err: any) {
-      setError(err.message || 'Failed to load analytics');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load analytics');
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 
@@ -32,22 +32,19 @@ interface UserDetail {
   };
 }
 
-export default function UserDetailPage({ params }: { params: { id: string } }) {
+export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
 
-  useEffect(() => {
-    fetchUserDetail();
-  }, [params.id]);
-
-  const fetchUserDetail = async () => {
+  const fetchUserDetail = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`/api/admin/users/${params.id}`, {
+      const response = await fetch(`/api/admin/users/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -63,18 +60,22 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
       const data = await response.json();
       setUserDetail(data);
       setError('');
-    } catch (err: any) {
-      setError(err.message || 'Failed to load user details');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load user details');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchUserDetail();
+  }, [fetchUserDetail]);
 
   const handleExport = async () => {
     try {
       setIsExporting(true);
       const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`/api/admin/users/${params.id}/export`, {
+      const response = await fetch(`/api/admin/users/${id}/export`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -87,7 +88,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
       // Get filename from Content-Disposition header or use default
       const contentDisposition = response.headers.get('Content-Disposition');
       const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
-      const filename = filenameMatch ? filenameMatch[1] : `user-${params.id}-export.json`;
+      const filename = filenameMatch ? filenameMatch[1] : `user-${id}-export.json`;
 
       // Download the file
       const blob = await response.blob();
@@ -99,8 +100,8 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err: any) {
-      alert(`Export failed: ${err.message}`);
+    } catch (err: unknown) {
+      alert(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsExporting(false);
     }

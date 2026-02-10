@@ -5,7 +5,7 @@ export interface AuditLogEntry {
   action: string;
   resourceType?: string;
   resourceId?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export async function logAdminAction(

@@ -3,7 +3,7 @@ import { withAdminAuth } from '@/lib/middleware';
 import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
-  return withAdminAuth(request, async (req, adminUserId) => {
+  return withAdminAuth(request, async () => {
     try {
       // Get all users from profiles
       const { data: users, error } = await supabaseAdmin
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  return withAdminAuth(request, async (req, adminUserId) => {
+  return withAdminAuth(request, async () => {
     try {
       const body = await request.json();
       const { email, fullName, isAdmin } = body;

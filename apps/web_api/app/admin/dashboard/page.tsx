@@ -33,8 +33,8 @@ export default function AdminDashboard() {
 
       const data = await response.json();
       setAnalytics(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load analytics');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load analytics');
     } finally {
       setLoading(false);
     }

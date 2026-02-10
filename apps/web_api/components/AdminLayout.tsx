@@ -4,25 +4,27 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+function getEmailFromToken(): string {
+  if (typeof window === 'undefined') return '';
+  const token = localStorage.getItem('admin_access_token');
+  if (!token) return '';
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.email || 'Admin';
+  } catch {
+    return 'Admin';
+  }
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [userEmail, setUserEmail] = useState<string>('');
+  const [userEmail] = useState<string>(getEmailFromToken);
 
   useEffect(() => {
-    // Check if user is authenticated
     const token = localStorage.getItem('admin_access_token');
     if (!token) {
       router.push('/admin/login');
-      return;
-    }
-
-    // Get user info from token (basic JWT decode)
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      setUserEmail(payload.email || 'Admin');
-    } catch (e) {
-      setUserEmail('Admin');
     }
   }, [router]);
 
@@ -32,9 +34,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const navigation = [
-    { name: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
-    { name: 'Users', href: '/admin/users', icon: '👥' },
-    { name: 'Analytics', href: '/admin/analytics', icon: '📈' },
+    { name: 'Dashboard', href: '/admin/dashboard', icon: '\u{1F4CA}' },
+    { name: 'Users', href: '/admin/users', icon: '\u{1F465}' },
+    { name: 'Analytics', href: '/admin/analytics', icon: '\u{1F4C8}' },
   ];
 
   return (

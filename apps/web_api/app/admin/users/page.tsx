@@ -43,8 +43,8 @@ export default function AdminUsersPage() {
       const data = await response.json();
       setUsers(data.users || []);
       setError('');
-    } catch (err: any) {
-      setError(err.message || 'Failed to load users');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -72,8 +72,8 @@ export default function AdminUsersPage() {
 
       const data = await response.json();
       setUsers(data.users || []);
-    } catch (err: any) {
-      setError(err.message || 'Search failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Search failed');
     } finally {
       setIsSearching(false);
     }
@@ -90,6 +90,7 @@ export default function AdminUsersPage() {
     }, 500);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const handleRowClick = (userId: string) => {

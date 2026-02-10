@@ -10,13 +10,13 @@ export default function SignupSuccessPage() {
           Your 7-day free trial has begun. Open the app and log in with your
           email and password to get started.
         </p>
-        <a
+        <Link
           href="/"
           className="button"
           style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
         >
           Open App
-        </a>
+        </Link>
         <p style={{ marginTop: '24px', fontSize: '13px', color: '#888' }}>
           You can also download the app from the App Store or Google Play.
         </p>

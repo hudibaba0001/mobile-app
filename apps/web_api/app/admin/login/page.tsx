@@ -33,8 +33,8 @@ export default function AdminLoginPage() {
 
       // Redirect to dashboard
       router.push('/admin/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during login');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred during login');
     } finally {
       setLoading(false);
     }

@@ -45,25 +45,43 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Get active users (users with entries in the last 30 days)
+      // Get active users (distinct users with entries in the last 30 days)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
 
-      const { data: activeUsers, error: activeError } = await supabaseAdmin
-        .from('entries')
-        .select('user_id')
-        .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
-        .limit(1000);
+      // Use a raw RPC or paginate to avoid row cap issues
+      // Fetch all user_ids (no limit) to get accurate distinct count
+      let allUserIds: string[] = [];
+      let offset = 0;
+      const pageSize = 1000;
+      let hasMore = true;
 
-      if (activeError) {
-        console.error('Error fetching active users:', activeError);
-        return NextResponse.json(
-          { error: 'Failed to fetch analytics' },
-          { status: 500 }
-        );
+      while (hasMore) {
+        const { data: batch, error: activeError } = await supabaseAdmin
+          .from('entries')
+          .select('user_id')
+          .gte('date', thirtyDaysAgoStr)
+          .range(offset, offset + pageSize - 1);
+
+        if (activeError) {
+          console.error('Error fetching active users:', activeError);
+          return NextResponse.json(
+            { error: 'Failed to fetch analytics' },
+            { status: 500 }
+          );
+        }
+
+        if (batch && batch.length > 0) {
+          allUserIds = allUserIds.concat(batch.map((e) => e.user_id));
+          offset += pageSize;
+          hasMore = batch.length === pageSize;
+        } else {
+          hasMore = false;
+        }
       }
 
-      const activeUserCount = new Set(activeUsers?.map((e) => e.user_id)).size;
+      const activeUserCount = new Set(allUserIds).size;
 
       // Log admin action
       await logAdminAction(adminUserId, {
