@@ -1,0 +1,588 @@
+# Fix Status (2026-02-11)
+
+| Finding | Status | Fix |
+|---------|--------|-----|
+| C-01: Export dialog setState after pop | FIXED | Reset `_isExporting` before `Navigator.pop`; added `mounted` guard in catch |
+| C-02: Home screen timer not cancelled in dispose | FIXED | Added `_recentLoadDebounce?.cancel()` to dispose |
+| C-03: Home recent entries setState without mounted guard | FIXED | Added `if (mounted)` guards to both setState calls in `_loadRecentEntriesInternal` |
+| C-04: Edit Entry time picker format mismatch | FIXED (previous session) | Removed `en_US` locale override; output now `HH:mm` matching parser |
+| C-05: Absence delete force-unwrap nullable id | FIXED | Added null check with early return before `deleteAbsenceEntry` |
+| C-06: absence_entry_dialog picker → setState | FIXED | Added `mounted` guard |
+| C-06: add_adjustment_dialog picker → setState | FIXED | Added `mounted` guard |
+| C-06: contract_settings_screen picker → setState | FIXED | Added `mounted` guard |
+| C-06: history_screen date range picker → setState | FIXED | Added `mounted` guard |
+| C-07: AccountStatusGate setState after await | FIXED | Added `mounted` guards to both success and error setState |
+| C-08: Location selector delayed FocusNode access | FIXED | Added `mounted` guard before `_focusNode.hasFocus` check |
+| C-09: Location selector Mapbox → setState | FIXED | Added `mounted` guards to try/catch setState blocks |
+| C-10: Migration screen delayed animation forward | FIXED | Added `mounted` guard before `_progressController.forward()` |
+| C-11: Admin users screen microtask context use | FIXED | Added `mounted` guard inside microtask |
+| C-12: NavigationService context.go after dialog | FIXED | Added `context.mounted` guard before `context.go()` |
+| C-13: AnalyticsViewModel mock delay notify | FIXED | Added `hasListeners` guard before delayed notifyListeners |
+| P-01: History full reload on scroll | DEFERRED | Performance; non-crash |
+| P-02: MapService cache re-init per call | DEFERRED | Performance; non-crash |
+| P-03: Export synchronous on main thread | DEFERRED | Performance; non-crash |
+| P-04: Analytics recompute on getter | DEFERRED | Performance; non-crash |
+| P-05: DateRangeDialog post-frame callback per build | DEFERRED | Performance; non-crash |
+| P-06: Supabase loads everything | DEFERRED | Performance; scalability |
+| U-01: Hardcoded English strings | DEFERRED | Incremental localization |
+| U-02: Mixed theming (Colors.* vs theme) | DEFERRED | Cosmetic |
+| U-03: Duplicate/legacy screens | DEFERRED | Maintenance debt |
+| D-01: Absence cache not user-scoped | DEFERRED | Single-user device for launch |
+| D-02: Adjustment cache not user-scoped | DEFERRED | Single-user device for launch |
+| D-03: Sync queue global (not user-scoped) | DEFERRED | Single-user device for launch |
+| D-04: Email settings single record (not per-user) | DEFERRED | Single-user device for launch |
+| D-05: SettingsProvider userId set once | DEFERRED | Single-user device for launch |
+| D-06: EditEntryScreen depends on populated list | DEFERRED | Edge case |
+| Hive typeId collisions (3, 5, 9) | DEFERRED | Latent; models not co-registered |
+
+---
+
+**Step 1 — Comprehensive Planning Phase (Blueprint)**
+
+**Phase 0: Inventory & Entry-Points (100% coverage of “what exists”)**
+- Enumerate Flutter entrypoints and environment variants: `apps/mobile_flutter/lib/main.dart`, `apps/mobile_flutter/lib/main_prod.dart`.
+- Identify navigation system: GoRouter config + redirects + nested routes: `apps/mobile_flutter/lib/config/app_router.dart` (and `app_router_prod.dart` if used).
+- Identify state management wiring: all `Provider`/`ChangeNotifierProxyProvider` registrations in entrypoints.
+- Map persistence layers:
+  - Hive boxes + adapter registrations + `@HiveType(typeId: …)` uniqueness.
+  - SharedPreferences keys used as caches/queues.
+- Map network/service surfaces:
+  - Supabase usage (`supabase_flutter`) and data services (entries/absences/etc).
+  - Third-party APIs (Mapbox via `http`).
+- Platform glue/config review (crash + UX implications): Android Manifest, iOS plist, web configs.
+- Identify generated code scope (l10n) to avoid misclassifying generated artifacts as hand-written quality issues.
+
+**Phase 1: Crash-Prone & “Used-After-Dispose” Audit (static, lifecycle-focused)**
+- Async UI hazards: locate every `await …` followed by `setState`, `Navigator`, `context.read/watch`, snackbars, routing (`context.go/push/pop`) and assess for disposal gaps.
+- Lifecycle resources: scan for `Timer`, `StreamSubscription`, `AnimationController`, `OverlayEntry`, `FocusNode`, `TextEditingController` to ensure disposal/cleanup paths exist and are consistent.
+- Null-safety hazards: locate null assertions (`!`), forced casts, indexing, and “assumed-present” route parameters.
+- Persistence hazards: Hive adapter registration completeness + typeId collisions; box open patterns and runtime failure modes.
+
+**Phase 2: Slowdown Causes (hot-path + IO + network)**
+- UI hot paths: detect heavy work in `build()` or frequently-triggered callbacks (sorting, filtering, folds, DateFormat in loops).
+- Network amplifiers: full-table loads, lack of pagination, repeated requests on scroll, repeated “connection tests”.
+- IO amplifiers: repeated `SharedPreferences.getInstance()` due to non-singleton caches; large read/write payloads.
+- Widget rebuild triggers: broad `setState` patterns, post-frame callbacks executed per build.
+
+**Phase 3: UI/UX Consistency (visual + behavior + i18n)**
+- Localization completeness: find hard-coded English strings in screens/widgets/providers.
+- Theme consistency: direct `Colors.*` and fixed styling vs theme-driven colors (esp. dark mode).
+- Navigation UX: back behavior (PopScope), route guards, screen transitions, and “blank states” if data missing.
+- Accessibility basics: semantics labels, readable contrast, tap targets (static review only).
+
+**Phase 4: Data Sharing Between Screens (state integrity + caching boundaries)**
+- Provider scoping correctness: what is global vs per-user vs per-session; what resets on logout/login.
+- Cache scoping: confirm caches/queues are partitioned by `userId` where necessary (Hive, SharedPrefs).
+- Serialization/deserialization consistency: especially time/date formats across screens and services.
+- “Edit flows”: confirm edit screens can load required data even if the in-memory provider list isn’t populated.
+
+**Phase 5: Scenario Simulation (static “runbook-style” tracing)**
+- Core journeys:
+  - Login → load entries → home recent entries
+  - History scroll/pagination behavior
+  - Edit entry route → save → return to caller
+  - Export flows (dialog → file build → share/download)
+  - Offline enqueue → reconnect → sync queue processing
+  - Switch accounts (logout/login) → verify no cross-user bleed
+- Stress/edge cases:
+  - Rapid back navigation during dialogs/pickers
+  - Background/resume during async operations
+  - Large dataset export and analytics computation
+  - Poor/unstable network for Mapbox and Supabase
+
+**Phase 6: Reporting**
+- Executive summary: MVP blockers vs deferrables.
+- Heatmap by screen/module.
+- Findings grouped into:
+  - Crash-prone issues
+  - Slowdown causes
+  - UI/UX inconsistencies
+  - Data-sharing problems between screens
+- Each finding includes: severity, likelihood, consequence, evidence (path:line + unaltered snippet), and related findings.
+
+---
+
+**Step 2 — Rigorous Execution Phase (What I actually ran/re-checked)**
+
+- Static checks:
+  - `flutter analyze` → **1 warning**: unused `_syncAllToCloud` in `apps/mobile_flutter/lib/providers/location_provider.dart:80`.
+  - `flutter test` → **All tests passed**.
+- Repo-wide pattern scans (entire `apps/mobile_flutter/lib`):
+  - `setState(` occurrences: **150**
+  - `ignore_for_file` occurrences: **40**
+  - `ignore_for_file: use_build_context_synchronously`: **10 files**
+  - `addPostFrameCallback(` occurrences: **17**
+  - `Future.delayed(` occurrences: **6**
+  - `Timer(` occurrences: **4**
+  - Hive typeId collision scan found duplicates: **typeId 3, 4, 5, 9**
+- Re-check of your web/admin fix:
+  - No `localStorage.getItem/setItem/removeItem` usage found in `apps/web_api`.
+  - `admin_access_token` exists only in cookie-based flow (login/logout/me + middleware).
+
+---
+
+## Step 3 — Detailed Reporting Phase (Findings)
+
+### **Executive Summary (MVP decision)**
+**Yes — there are several pre-MVP issues to address if you want to minimize crashes, “can’t save/edit” scenarios, and confusing cross-screen data behavior.** The most important risks are:
+- Multiple **use-after-dispose crash patterns** (setState/context use after awaited UI, timers, delayed callbacks).
+- An **Edit Entry time parsing mismatch** that can block correct saving/editing in a common flow.
+- A **nullable ID forced with `!`** in absence deletion that can crash.
+- **Cross-user cache/queue scoping gaps** (if your MVP allows logout/login or multiple accounts on one device).
+
+If your MVP is strictly “single user per install, minimal navigation during async pickers, small datasets”, some data-scoping problems can be deferred — but the crashers and the EditEntry time mismatch are still high-risk for first users.
+
+---
+
+### **Heatmap (by area)**
+- **Highest crash risk:** dialogs/pickers/export + home recent-load debounce + account gate + location selector.
+- **Highest slowdown risk:** History scroll reload, MapService cache initialization, export generation, analytics recomputation.
+- **Highest data-sharing risk:** absence/adjustment caches (year-only), sync queue (global), email settings (single-record local).
+- **Highest UI/UX inconsistency risk:** admin/locations/analytics/profile screens with hard-coded strings and mixed theming.
+
+---
+
+## A) Crash‑Prone Issues (and severe correctness bugs)
+
+### **Critical**
+**C-01 — Export dialog can call `setState` after it already popped (use-after-dispose crash)**
+- **Where:** `apps/mobile_flutter/lib/widgets/export_dialog.dart:373`
+- **Evidence:**
+  ```text
+  396:       // Return the export configuration
+  397:       Navigator.of(context).pop({
+  398:         'entries': filteredEntries,
+  ...
+  408:     } finally {
+  409:       setState(() {
+  410:         _isExporting = false;
+  411:       });
+  412:     }
+  ```
+- **Why it matters:** After `Navigator.pop`, this widget can be disposed immediately; calling `setState` then can throw at runtime (commonly “setState() called after dispose”).
+- **User-visible impact:** Crash when exporting (high visibility feature).
+- **Related:** C-02, C-04 (same pattern: async → UI action → later setState).
+
+**C-02 — Home screen debounce timer can fire after disposal (timer not cancelled)**
+- **Where:** `apps/mobile_flutter/lib/screens/unified_home_screen.dart:46`
+- **Evidence (timer created + callback uses context/state):**
+  ```text
+   46:   Timer? _recentLoadDebounce;
+  ...
+   73:     _recentLoadDebounce?.cancel();
+   74:     _recentLoadDebounce = Timer(const Duration(milliseconds: 150), () {
+   75:       if (_isLoadingRecent) return;
+   76:       _isLoadingRecent = true;
+   77:       _loadRecentEntriesInternal();
+   78:     });
+  ```
+- **Evidence (dispose does not cancel `_recentLoadDebounce`):** `apps/mobile_flutter/lib/screens/unified_home_screen.dart:1494`
+  ```text
+  1494:   void dispose() {
+  1495:     _overlayEntry?.remove();
+  ...
+  1502:     super.dispose();
+  1503:   }
+  ```
+- **Why it matters:** Timer callback can run after the widget is disposed, and `_loadRecentEntriesInternal()` uses `context.read` + `setState` (see below).
+- **User-visible impact:** Random crash if user navigates away quickly during/after home sync.
+- **Related:** C-03, C-04.
+
+**C-03 — Home recent entries loader calls `setState` without a mounted guard**
+- **Where:** `apps/mobile_flutter/lib/screens/unified_home_screen.dart:203`
+- **Evidence:**
+  ```text
+  203:       setState(() {
+  204:         _recentEntries = allEntries.take(10).toList();
+  205:       });
+  ```
+- **Why it matters:** If triggered after dispose (see C-02), this is a direct crash vector.
+
+**C-04 — Edit Entry time picker writes “12h” text but parser expects “HH:mm”**
+- **Where:** `apps/mobile_flutter/lib/screens/edit_entry_screen.dart:1214` and `apps/mobile_flutter/lib/screens/edit_entry_screen.dart:403`
+- **Evidence (time picker writes formatted string):**
+  ```text
+  1216:     final TimeOfDay? picked = await showTimePicker(
+  ...
+  1231:     if (picked != null) {
+  1232:       controller.text = picked.format(context);
+  1233:       _validateForm();
+  1234:     }
+  ```
+- **Evidence (parser expects exactly `HH:mm`):**
+  ```text
+  403:   DateTime? _parseTimeOfDay(String text, {DateTime? baseDate}) {
+  404:     final parts = text.split(':');
+  405:     if (parts.length != 2) return null;
+  406:     final h = int.tryParse(parts[0]);
+  407:     final m = int.tryParse(parts[1]);
+  ```
+- **Why it matters:** With output like `3:30 PM`, `parts[1]` becomes `30 PM` → `int.tryParse` fails → parser returns null. This can prevent shifts from being saved/validated correctly.
+- **User-visible impact:** “I picked a time but saving doesn’t work / shifts don’t persist / validation fails” — extremely damaging in an MVP.
+
+**C-05 — Absence delete path force-unwraps nullable `id`**
+- **Where:** `apps/mobile_flutter/lib/screens/absence_management_screen.dart:296`
+- **Evidence:**
+  ```text
+  295:     try {
+  296:       await absenceProvider.deleteAbsenceEntry(absence.id!, absence.date.year);
+  ```
+- **Why it matters:** `AbsenceEntry.id` is nullable (`apps/mobile_flutter/lib/models/absence.dart:13`), so this can crash for entries without an ID (e.g., locally-created/unsynced/new).
+- **User-visible impact:** Crash when deleting an absence entry.
+
+### **High**
+**C-06 — Repeated “await picker → setState” patterns without disposal guards**
+Examples (each is an independent crash vector if user navigates away while the picker/dialog is open):
+- `apps/mobile_flutter/lib/widgets/absence_entry_dialog.dart:126`
+  ```text
+  126:   Future<void> _pickDate(BuildContext context) async {
+  127:     final picked = await showDatePicker(
+  ...
+  133:     if (picked != null) {
+  134:       setState(() {
+  135:         _selectedDate = picked;
+  136:       });
+  137:     }
+  ```
+- `apps/mobile_flutter/lib/widgets/add_adjustment_dialog.dart:60`
+  ```text
+   60:   Future<void> _selectDate() async {
+   61:     final picked = await showDatePicker(
+  ...
+   69:     if (picked != null && picked != _selectedDate) {
+   70:       setState(() {
+   71:         _selectedDate = picked;
+   72:       });
+   73:     }
+  ```
+- `apps/mobile_flutter/lib/screens/contract_settings_screen.dart:919`
+  ```text
+  919:   Future<void> _selectStartDate(BuildContext context) async {
+  922:     final picked = await showDatePicker(
+  ...
+  930:     if (picked != null && picked != _trackingStartDate) {
+  931:       setState(() {
+  932:         _trackingStartDate = picked;
+  933:       });
+  934:       _validateForm();
+  935:     }
+  ```
+- `apps/mobile_flutter/lib/screens/history_screen.dart:760`
+  ```text
+  760:   Future<void> _showDateRangePicker(BuildContext context) async {
+  761:     final DateTimeRange? picked = await showDateRangePicker(
+  ...
+  768:     if (picked != null) {
+  769:       setState(() {
+  770:         _customDateRange = picked;
+  771:       });
+  772:       // Apply custom date range filter
+  773:       context.read<EntryProvider>().filterEntries(
+  ```
+- **Why it matters:** These are classic “setState() called after dispose” sources and are especially likely on mobile where users back out quickly.
+
+**C-07 — AccountStatusGate sets state after awaited work without guarding**
+- **Where:** `apps/mobile_flutter/lib/screens/account_status_gate.dart:57`
+- **Evidence:**
+  ```text
+   73:       final profile = await _profileService.fetchProfile();
+  ...
+   81:       setState(() {
+   82:         _profile = profile;
+   83:         _isLoading = false;
+   84:       });
+  ```
+- **Why it matters:** If the gate is removed/replaced during auth/navigation changes while awaiting, `setState` can fire after dispose.
+- **Note:** There are some `mounted` checks earlier in this method, but not before the final `setState`.
+
+**C-08 — Location selector uses delayed callback on a FocusNode that may be disposed**
+- **Where:** `apps/mobile_flutter/lib/widgets/location_selector.dart:88`
+- **Evidence:**
+  ```text
+   87:       // Delay hiding to allow for tap on suggestions
+   88:       Future.delayed(const Duration(milliseconds: 150), () {
+   89:         if (!_focusNode.hasFocus) {
+   90:           _removeOverlay();
+   91:         }
+   92:       });
+  ```
+- **Why it matters:** If the widget is disposed before the delay fires, accessing `_focusNode.hasFocus` may hit disposed-state assertions.
+
+**C-09 — Location selector awaits Mapbox suggestions then calls `setState`**
+- **Where:** `apps/mobile_flutter/lib/widgets/location_selector.dart:125`
+- **Evidence:**
+  ```text
+  139:     try {
+  140:       final suggestions =
+  141:           await MapService.getAddressSuggestions(query, limit: 5);
+  142:       setState(() {
+  143:         _mapboxSuggestions = suggestions;
+  144:         _isLoadingMapboxSuggestions = false;
+  145:       });
+  ```
+- **Why it matters:** Same disposal crash pattern as C-06, plus overlay rebuild calls.
+
+**C-10 — Migration screen delays animation controller forward**
+- **Where:** `apps/mobile_flutter/lib/screens/migration_screen.dart:51`
+- **Evidence:**
+  ```text
+  51:     Future.delayed(const Duration(milliseconds: 400), () {
+  52:       _progressController.forward();
+  53:     });
+  ```
+- **Why it matters:** If screen disposes within 400ms, this can call `forward()` on a disposed controller.
+
+**C-11 — Admin users screen uses `Future.microtask` with context**
+- **Where:** `apps/mobile_flutter/lib/screens/admin_users_screen.dart:34`
+- **Evidence:**
+  ```text
+  34:     Future.microtask(() => context.read<AdminUsersViewModel>().fetchUsers());
+  ```
+- **Why it matters:** If disposed before the microtask runs, it may attempt provider access on a dead context.
+
+**C-12 — NavigationService navigates after awaiting a dialog without a mounted check**
+- **Where:** `apps/mobile_flutter/lib/services/navigation_service.dart:83`
+- **Evidence:**
+  ```text
+   89:     final shouldNavigate = await showDialog<bool>(
+  ...
+  107:     if (shouldNavigate == true) {
+  108:       context.go(route);
+  109:     }
+  ```
+- **Why it matters:** Context validity after async gap is not guaranteed (file explicitly suppresses the lint).
+
+**C-13 — AnalyticsViewModel mock loader can notify after disposal**
+- **Where:** `apps/mobile_flutter/lib/viewmodels/analytics_view_model.dart:66`
+- **Evidence:**
+  ```text
+   66:     Future.delayed(const Duration(seconds: 1), () {
+  ...
+  121:       _setLoading(false);
+  122:     });
+  ```
+- **Why it matters:** If the notifier is disposed before delay, `notifyListeners()` can throw.
+
+### **Medium / Low (still worth tracking)**
+- Hive typeId collisions (latent crash when/if adapters are registered together):
+  - typeId 3: `apps/mobile_flutter/lib/models/contract_settings.dart:5` and `apps/mobile_flutter/lib/models/email_settings.dart:5`
+  - typeId 5: `apps/mobile_flutter/lib/models/entry.dart:228` and `apps/mobile_flutter/lib/models/leave_entry.dart:20`
+  - typeId 9: `apps/mobile_flutter/lib/location.dart:5` and `apps/mobile_flutter/lib/models/location.dart:5`
+- Lint suppression footprint indicates higher “hidden async context bugs” risk:
+  - Files suppressing `use_build_context_synchronously`:  
+    `apps/mobile_flutter/lib/screens/account_status_gate.dart`, `admin_users_screen.dart`, `edit_entry_screen.dart`, `history_screen.dart`, `manage_locations_screen.dart`, `profile_screen.dart`, `reports_screen.dart`, `unified_home_screen.dart`, `unified_home_screen2.dart`, `services/navigation_service.dart`
+
+---
+
+## B) Slowdown Causes (performance degraders)
+
+### **High**
+**P-01 — History “pagination” triggers a full `loadEntries()` from Supabase**
+- **Where:** `apps/mobile_flutter/lib/screens/history_screen.dart:55`
+- **Evidence:**
+  ```text
+   55:   void _onScroll() {
+   56:     if (_scrollController.position.pixels ==
+   57:         _scrollController.position.maxScrollExtent) {
+   58:       _loadMoreEntries();
+   59:     }
+   60:   }
+  ...
+   70:       // EntryProvider already loads all entries, so pagination is handled client-side
+  ...
+   73:       await entryProvider.loadEntries();
+  ```
+- **Impact:** network + parsing + sorting repeats at scroll bottom; can feel like lag/freezes and burn battery/data.
+
+**P-02 — MapService cache check re-initializes SharedPreferences per call**
+- **Where:** `apps/mobile_flutter/lib/services/map_service.dart:41`
+- **Evidence:**
+  ```text
+   41:       final cacheService = TravelCacheService();
+   42:       await cacheService.init();
+  ```
+- **Related evidence:** TravelCacheService `_initialized` is per-instance (`apps/mobile_flutter/lib/services/travel_cache_service.dart:45`)
+  ```text
+   45:   bool _initialized = false;
+   48:   Future<void> init() async {
+   49:     if (_initialized) return;
+   51:     final prefs = await SharedPreferences.getInstance();
+  ```
+- **Impact:** repeated IO and JSON parsing during typing/autocomplete or repeated route calculations.
+
+**P-03 — Export preparation is synchronous and scales with entry count**
+- **Where:** `apps/mobile_flutter/lib/services/export_service.dart:22`
+- **Evidence:**
+  ```text
+   22:   static ExportData prepareExportData(List<Entry> entries) {
+  ...
+   65:     for (final entry in entries) {
+  ```
+- **Impact:** large exports can block the UI isolate (jank/freezes) while building headers/rows + formatting dates.
+
+### **Medium**
+**P-04 — CustomerAnalyticsViewModel recomputes expensive folds/filters on every getter read**
+- **Where:** `apps/mobile_flutter/lib/viewmodels/customer_analytics_viewmodel.dart:98`, `:128`
+- **Impact:** charts/tabs can stutter on large lists because `overviewData`/`trendsData` rebuilds repeat filtering/folding.
+
+**P-05 — DateRangeDialog schedules a post-frame callback on every build**
+- **Where:** `apps/mobile_flutter/lib/screens/reports/date_range_dialog.dart:148`
+- **Evidence:**
+  ```text
+  147:     // Check preset match on build
+  148:     WidgetsBinding.instance.addPostFrameCallback((_) {
+  149:       if (mounted) _checkPresetMatch(context);
+  150:     });
+  ```
+- **Impact:** extra work and potentially repeated state churn.
+
+**P-06 — Supabase entry loading defaults to “load everything”**
+- **Where:** `apps/mobile_flutter/lib/providers/entry_provider.dart:100`, `apps/mobile_flutter/lib/services/supabase_entry_service.dart:17`
+- **Impact:** scalability ceiling; as users accumulate entries, startup and refresh time grows non-linearly.
+
+---
+
+## C) UI/UX Inconsistencies
+
+### **High / Medium**
+**U-01 — Hard-coded English strings bypass localization**
+- Admin users screen: `apps/mobile_flutter/lib/screens/admin_users_screen.dart:45`
+  ```text
+   45:         title: const Text('User Management'),
+  ```
+- Manage locations: `apps/mobile_flutter/lib/screens/manage_locations_screen.dart:84`
+  ```text
+   84:                               'Add New Location',
+  ```
+- Analytics screen: `apps/mobile_flutter/lib/screens/analytics_screen.dart:72`
+  ```text
+   72:             const Text('Analytics Dashboard'),
+  ```
+- Profile screen: `apps/mobile_flutter/lib/screens/profile_screen.dart:144`
+  ```text
+  144:                         'Email',
+  ```
+- LocationProvider custom suggestion text: `apps/mobile_flutter/lib/providers/location_provider.dart:260`
+  ```text
+  260:         subtitle: 'Custom location',
+  ```
+- **Impact:** mixed-language experience and inconsistent UI copy across screens.
+
+**U-02 — Mixed theming (direct `Colors.*` vs theme colors)**
+- Example: `apps/mobile_flutter/lib/screens/unified_home_screen.dart:3299`
+  ```text
+  3299:               color: Colors.blue[50],
+  ...
+  3301:               border: Border.all(color: Colors.blue[200]!),
+  ```
+- **Impact:** dark mode and brand theming inconsistencies; risk of low contrast.
+
+**U-03 — Duplicate/legacy screens and models increase inconsistency risk**
+- Duplicate home screen: `apps/mobile_flutter/lib/screens/unified_home_screen2.dart` (large parallel implementation).
+- Duplicate `Location` model/typeId: `apps/mobile_flutter/lib/location.dart` vs `apps/mobile_flutter/lib/models/location.dart` (both `@HiveType(typeId: 9)`).
+
+---
+
+## D) Data Sharing Problems Between Screens (state integrity)
+
+### **High**
+**D-01 — Absence cache is year-scoped, not user-scoped**
+- **Where:** `apps/mobile_flutter/lib/providers/absence_provider.dart:37` and `:80`
+- **Evidence:**
+  ```text
+   37:     for (final absence in _hiveBox!.values) {
+   38:       final year = absence.date.year;
+   39:       _absencesByYear.putIfAbsent(year, () => []);
+  ...
+   80:     if (!forceRefresh && _absencesByYear.containsKey(year)) {
+   81:       return;
+   82:     }
+  ```
+- **Impact:** if a device ever signs into a second user, cached data can persist and prevent reload (wrong absences visible).
+
+**D-02 — Balance adjustments cache is year-scoped, not user-scoped (even though model has userId)**
+- **Where:** `apps/mobile_flutter/lib/providers/balance_adjustment_provider.dart:40` and `:83`
+- **Evidence:**
+  ```text
+   40:     for (final adj in _hiveBox!.values) {
+   41:       final year = adj.effectiveDate.year;
+   42:       _adjustmentsByYear.putIfAbsent(year, () => []);
+  ...
+   83:     if (!forceRefresh && _adjustmentsByYear.containsKey(year)) {
+   84:       return;
+   85:     }
+  ```
+- **Impact:** same cross-user bleed risk; also prevents correct refresh when switching accounts.
+
+**D-03 — Sync queue is global in SharedPreferences; processing does not filter by current user**
+- **Where:** `apps/mobile_flutter/lib/services/sync_queue_service.dart:68`, `apps/mobile_flutter/lib/providers/entry_provider.dart:846`
+- **Evidence (global queue key):**
+  ```text
+   68:   static const String _queueKey = 'sync_queue';
+  ```
+- **Evidence (process all operations; delete uses operation.userId; create/update do not validate user):**
+  ```text
+  846:       final result = await _syncQueue.processQueue((operation) async {
+  847:         switch (operation.type) {
+  848:           case SyncOperationType.create:
+  849:             if (operation.entryData != null) {
+  850:               final entry = Entry.fromJson(operation.entryData!);
+  851:               await _supabaseService.addEntry(entry);
+  ```
+- **Impact:** offline ops from User A can be attempted during User B’s session → failures, possible drops after retries, and confusing “sync failed” states.
+
+**D-04 — Email settings stored locally as a single record (index 0), not per user**
+- **Where:** `apps/mobile_flutter/lib/providers/email_settings_provider.dart:51`
+- **Evidence:**
+  ```text
+   51:       if (_settingsBox != null && _settingsBox!.isNotEmpty) {
+   52:         _settings = _settingsBox!.getAt(0) ?? EmailSettings();
+  ```
+- **Impact:** multi-user devices can see/share settings unexpectedly; cross-screen behavior depends on whichever user last wrote local settings.
+
+### **Medium**
+**D-05 — SettingsProvider uses `_userId` set once at app startup**
+- **Where:** `apps/mobile_flutter/lib/main.dart:95` and `apps/mobile_flutter/lib/providers/settings_provider.dart:8`
+- **Why it matters:** if user changes without app restart, cloud sync can target the wrong profile row; local values also persist globally.
+
+**D-06 — EditEntryScreen depends on `EntryProvider.entries` already being populated**
+- **Where:** `apps/mobile_flutter/lib/screens/edit_entry_screen.dart:79`, and route param defaulting: `apps/mobile_flutter/lib/config/app_router.dart:141`
+- **Evidence (route can pass empty id):**
+  ```text
+  144:                   final entryId = state.uri.queryParameters['id'] ?? '';
+  ```
+- **Impact:** navigating directly (or early) can show a “new entry” instead of editing, leading to inconsistent cross-screen behavior.
+
+---
+
+## Non‑Flutter re-checks (your “check again” items)
+
+**1) Admin token storage fix (localStorage → httpOnly cookie)**
+- **Confirmed:** No `localStorage.*Item` usage in `apps/web_api`.
+- Cookie is set as `httpOnly` in `apps/web_api/app/api/auth/login/route.ts:50`:
+  ```text
+   44:     // Set token in httpOnly cookie (not accessible to JS/XSS)
+  ...
+   50:     response.cookies.set('admin_access_token', data.session?.access_token || '', {
+   51:       httpOnly: true,
+  ```
+
+**2) “We are using Supabase not Firebase”**
+- **Confirmed for Flutter:** no `firebase` references found under `apps/mobile_flutter/lib`; app auth/data services are Supabase-based (`supabase_flutter` in `pubspec.yaml`).
+
+**3) Stripe secret in working tree vs git history**
+- **Working tree:** only placeholders in `apps/web/env.example`.
+- **Git history:** `git log -S "sk_test_"` still returns past commits (e.g. `b605a88`), so the “history contained a key at some point” statement still holds even if HEAD is clean.
+
+**4) SMTP plaintext password**
+- Your current `supabase_email_settings.sql` has **no** `sender_password` column, and `apps/mobile_flutter/lib/repositories/supabase_email_settings_repository.dart` also does **not** sync a password field (so cloud plaintext password looks addressed).
+- Note: the Flutter local model still contains `senderPassword` (`apps/mobile_flutter/lib/models/email_settings.dart:17`), meaning the password is still stored locally in Hive.
+
+---
+
+**MVP Prioritization (no implementation details)**
+- **Pre‑MVP blockers (highest risk):** C-01, C-02/C-03, C-04, C-05, plus the broader C-06 async-picker patterns in any screen used in your main user journeys.
+- **Strongly recommended pre‑MVP (stability/perf):** P-01, P-02, P-03, D-03 (if logout/login or multiple accounts can happen).
+- **Post‑MVP (polish/maintainability):** U-01/U-02/U-03, unused code paths, latent Hive typeId collisions for models not currently in use.
+
+If you want, tell me which exact flows/screens are in your MVP (home/history/reports/settings/absences/admin), and I’ll narrow the “pre‑MVP blockers” list to only what users can actually hit.

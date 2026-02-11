@@ -12,6 +12,7 @@ import 'providers/contract_provider.dart';
 import 'providers/email_settings_provider.dart';
 import 'providers/local_entry_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/network_status_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/travel_provider.dart';
@@ -22,6 +23,8 @@ import 'providers/absence_provider.dart';
 import 'providers/balance_adjustment_provider.dart';
 import 'services/supabase_auth_service.dart';
 import 'repositories/balance_adjustment_repository.dart';
+import 'repositories/supabase_location_repository.dart';
+import 'repositories/supabase_email_settings_repository.dart';
 import 'services/supabase_absence_service.dart';
 import 'repositories/user_red_day_repository.dart';
 import 'services/holiday_service.dart';
@@ -32,6 +35,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/entry.dart';
 import 'models/location.dart';
+import 'models/absence.dart';
+import 'models/balance_adjustment.dart';
+import 'models/user_red_day.dart';
+import 'models/absence_entry_adapter.dart';
+import 'models/balance_adjustment_adapter.dart';
+import 'models/user_red_day_adapter.dart';
 import 'utils/constants.dart';
 
 void main() async {
@@ -46,6 +55,9 @@ void main() async {
   Hive.registerAdapter(EntryAdapter());
   Hive.registerAdapter(EntryTypeAdapter());
   Hive.registerAdapter(LocationAdapter());
+  Hive.registerAdapter(AbsenceEntryAdapter());
+  Hive.registerAdapter(BalanceAdjustmentAdapter());
+  Hive.registerAdapter(UserRedDayAdapter());
 
   const locationBoxResetKey = 'locations_box_typeid_reset_v1';
   final prefs = await SharedPreferences.getInstance();
@@ -61,6 +73,12 @@ void main() async {
 
   final locationBox = await Hive.openBox<Location>(AppConstants.locationsBox);
   final locationRepository = LocationRepository(locationBox);
+
+  // Open Hive boxes for cached data
+  final absenceBox = await Hive.openBox<AbsenceEntry>('absences_cache');
+  final adjustmentBox =
+      await Hive.openBox<BalanceAdjustment>('balance_adjustments_cache');
+  final redDayBox = await Hive.openBox<UserRedDay>('user_red_days_cache');
 
   // Initialize Supabase
   await SupabaseConfig.initialize();
@@ -91,6 +109,17 @@ void main() async {
   final settingsProvider = SettingsProvider();
   await settingsProvider.init();
 
+  // Set up Supabase dependencies for settings (pull-before-push)
+  final supabase = SupabaseConfig.client;
+  settingsProvider.setSupabaseDeps(supabase, userId);
+  if (userId != null) {
+    await settingsProvider.loadFromCloud();
+  }
+
+  // Create Supabase repositories for location and email settings
+  final supabaseLocationRepo = SupabaseLocationRepository(supabase);
+  final supabaseEmailSettingsRepo = SupabaseEmailSettingsRepository(supabase);
+
   runApp(
     MyApp(
       authService: authService,
@@ -98,6 +127,11 @@ void main() async {
       contractProvider: contractProvider,
       settingsProvider: settingsProvider,
       locationRepository: locationRepository,
+      supabaseLocationRepo: supabaseLocationRepo,
+      supabaseEmailSettingsRepo: supabaseEmailSettingsRepo,
+      absenceBox: absenceBox,
+      adjustmentBox: adjustmentBox,
+      redDayBox: redDayBox,
     ),
   );
 }
@@ -108,6 +142,11 @@ class MyApp extends StatelessWidget {
   final ContractProvider contractProvider;
   final SettingsProvider settingsProvider;
   final LocationRepository locationRepository;
+  final SupabaseLocationRepository supabaseLocationRepo;
+  final SupabaseEmailSettingsRepository supabaseEmailSettingsRepo;
+  final Box<AbsenceEntry> absenceBox;
+  final Box<BalanceAdjustment> adjustmentBox;
+  final Box<UserRedDay> redDayBox;
 
   const MyApp({
     super.key,
@@ -116,6 +155,11 @@ class MyApp extends StatelessWidget {
     required this.contractProvider,
     required this.settingsProvider,
     required this.locationRepository,
+    required this.supabaseLocationRepo,
+    required this.supabaseEmailSettingsRepo,
+    required this.absenceBox,
+    required this.adjustmentBox,
+    required this.redDayBox,
   });
 
   @override
@@ -127,16 +171,31 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<SettingsProvider>.value(
           value: settingsProvider,
         ),
+        // Network status provider (for offline/online detection)
+        ChangeNotifierProvider(create: (_) => NetworkStatusProvider()),
         // Existing providers
         ChangeNotifierProvider(create: (_) => AppStateProvider()),
         ChangeNotifierProvider<ContractProvider>.value(
           value: contractProvider,
         ),
-        ChangeNotifierProvider(create: (_) => EmailSettingsProvider()),
+        ChangeNotifierProvider(create: (_) {
+          final provider = EmailSettingsProvider();
+          provider.initialize();
+          // Set up Supabase sync (pull-before-push)
+          provider.setSupabaseDeps(supabaseEmailSettingsRepo, authService);
+          if (authService.currentUser != null) {
+            provider.loadFromCloud();
+          }
+          return provider;
+        }),
         ChangeNotifierProvider(create: (_) => LocalEntryProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProxyProvider<SupabaseAuthService, HolidayService>(
-          create: (_) => HolidayService(),
+          create: (_) {
+            final service = HolidayService();
+            service.initHive(redDayBox);
+            return service;
+          },
           update: (context, authService, previous) {
             final holidayService = previous ?? HolidayService();
             final userId = authService.currentUser?.id;
@@ -152,8 +211,16 @@ class MyApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProvider(create: (_) => TravelProvider()),
-        ChangeNotifierProvider(
-            create: (_) => LocationProvider(locationRepository)),
+        ChangeNotifierProvider(create: (_) {
+          final provider = LocationProvider(locationRepository);
+          // Set up Supabase sync (pull-before-push)
+          provider.setSupabaseDeps(supabaseLocationRepo, authService);
+          provider.refreshLocations();
+          if (authService.currentUser != null) {
+            provider.loadFromCloud();
+          }
+          return provider;
+        }),
         ChangeNotifierProxyProvider<SupabaseAuthService, EntryProvider>(
           create: (context) =>
               EntryProvider(context.read<SupabaseAuthService>()),
@@ -165,7 +232,9 @@ class MyApp extends StatelessWidget {
           create: (context) {
             final authService = context.read<SupabaseAuthService>();
             final absenceService = SupabaseAbsenceService();
-            return AbsenceProvider(authService, absenceService);
+            final provider = AbsenceProvider(authService, absenceService);
+            provider.initHive(absenceBox);
+            return provider;
           },
           update: (context, authService, previous) =>
               previous ??
@@ -178,7 +247,10 @@ class MyApp extends StatelessWidget {
             final authService = context.read<SupabaseAuthService>();
             final supabase = SupabaseConfig.client;
             final repository = BalanceAdjustmentRepository(supabase);
-            return BalanceAdjustmentProvider(authService, repository);
+            final provider =
+                BalanceAdjustmentProvider(authService, repository);
+            provider.initHive(adjustmentBox);
+            return provider;
           },
           update: (context, authService, previous) {
             if (previous != null) return previous;
@@ -187,8 +259,6 @@ class MyApp extends StatelessWidget {
             return BalanceAdjustmentProvider(authService, repository);
           },
         ),
-        // TimeProvider depends on EntryProvider, ContractProvider, AbsenceProvider, BalanceAdjustmentProvider, and HolidayService
-        // Use ChangeNotifierProxyProvider5 since TimeProvider is a ChangeNotifier
         ChangeNotifierProxyProvider5<
             EntryProvider,
             ContractProvider,
@@ -212,38 +282,80 @@ class MyApp extends StatelessWidget {
         // Services
         Provider(create: (_) => TravelCacheService()..init()),
       ],
-      child: Consumer2<ThemeProvider, LocaleProvider>(
-        builder: (context, themeProvider, localeProvider, child) {
-          return MaterialApp.router(
-            title: 'KvikTime',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeProvider.themeMode,
-            routerConfig: AppRouter.router,
-            debugShowCheckedModeBanner: false,
-            builder: (context, child) {
-              final mediaQuery = MediaQuery.of(context);
-              return MediaQuery(
-                data: mediaQuery.copyWith(
-                  textScaler: TextScaler.linear(
-                    themeProvider.textScaleFactor,
+      child: _NetworkSyncSetup(
+        child: Consumer2<ThemeProvider, LocaleProvider>(
+          builder: (context, themeProvider, localeProvider, child) {
+            return MaterialApp.router(
+              title: 'KvikTime',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeProvider.themeMode,
+              routerConfig: AppRouter.router,
+              debugShowCheckedModeBanner: false,
+              builder: (context, child) {
+                final mediaQuery = MediaQuery.of(context);
+                return MediaQuery(
+                  data: mediaQuery.copyWith(
+                    textScaler: TextScaler.linear(
+                      themeProvider.textScaleFactor,
+                    ),
                   ),
-                ),
-                child: child ?? const SizedBox.shrink(),
-              );
-            },
-            // Localization configuration
-            locale: localeProvider.locale,
-            supportedLocales: AppLocalizations.supportedLocales,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-          );
-        },
+                  child: child ?? const SizedBox.shrink(),
+                );
+              },
+              // Localization configuration
+              locale: localeProvider.locale,
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+            );
+          },
+        ),
       ),
     );
+  }
+}
+
+/// Widget that sets up network connectivity callbacks for auto-sync
+class _NetworkSyncSetup extends StatefulWidget {
+  final Widget child;
+
+  const _NetworkSyncSetup({required this.child});
+
+  @override
+  State<_NetworkSyncSetup> createState() => _NetworkSyncSetupState();
+}
+
+class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
+  @override
+  void initState() {
+    super.initState();
+    // Set up connectivity restored callback after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupConnectivityCallback();
+    });
+  }
+
+  void _setupConnectivityCallback() {
+    final networkProvider = context.read<NetworkStatusProvider>();
+    final entryProvider = context.read<EntryProvider>();
+
+    // Register callback to sync pending operations when connectivity is restored
+    networkProvider.addOnConnectivityRestoredCallback(() async {
+      debugPrint('main_prod: Connectivity restored, processing pending sync...');
+      final result = await entryProvider.processPendingSync();
+      if (result.succeeded > 0) {
+        debugPrint('main_prod: Auto-synced ${result.succeeded} pending operations');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

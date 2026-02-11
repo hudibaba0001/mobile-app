@@ -130,7 +130,7 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
       firstDate: DateTime(widget.year, 1, 1),
       lastDate: DateTime(widget.year, 12, 31),
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _selectedDate = picked;
       });

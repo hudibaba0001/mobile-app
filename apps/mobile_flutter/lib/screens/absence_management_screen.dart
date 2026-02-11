@@ -292,8 +292,19 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     final t = AppLocalizations.of(context);
     final absenceProvider = context.read<AbsenceProvider>();
 
+    final absenceId = absence.id;
+    if (absenceId == null) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t.absence_deleteFailed)),
+        );
+      }
+      return;
+    }
+
     try {
-      await absenceProvider.deleteAbsenceEntry(absence.id!, absence.date.year);
+      await absenceProvider.deleteAbsenceEntry(absenceId, absence.date.year);
       if (context.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(

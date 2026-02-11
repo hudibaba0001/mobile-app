@@ -46,6 +46,12 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   Timer? _recentLoadDebounce;
 
   @override
+  void dispose() {
+    _recentLoadDebounce?.cancel();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     // Always sync with Supabase on startup, then load recent entries
@@ -89,9 +95,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       final travelEnabled = settingsProvider.isTravelLoggingEnabled;
 
       if (userId == null) {
-        setState(() {
-          _recentEntries = [];
-        });
+        if (mounted) {
+          setState(() {
+            _recentEntries = [];
+          });
+        }
         return;
       }
 
@@ -200,9 +208,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       // Sort by real date (most recent first)
       allEntries.sort((a, b) => b.date.compareTo(a.date));
 
-      setState(() {
-        _recentEntries = allEntries.take(10).toList();
-      });
+      if (mounted) {
+        setState(() {
+          _recentEntries = allEntries.take(10).toList();
+        });
+      }
     } catch (e) {
       // If there's an error, keep the mock data
       debugPrint('Error loading recent entries: $e');
@@ -277,23 +287,27 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      userName,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: colorScheme.onSurface,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Text(
-                      t.home_subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      Text(
+                        t.home_subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             );
@@ -571,52 +585,80 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     return AppCard(
       padding: AppSpacing.cardPadding,
       color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today_rounded,
-                size: AppIconSize.sm,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                t.common_thisWeek,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
+          // Week label + total
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_rounded,
+                  size: AppIconSize.sm,
+                  color: theme.colorScheme.primary,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          if (travelEnabled)
-            MetricRow(
-              icon: Icons.directions_car_rounded,
-              label: t.entry_travel,
-              value: formatHours(travelDuration),
-              iconColor: theme.colorScheme.onSurfaceVariant,
-              valueColor: theme.colorScheme.onSurface,
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  t.common_thisWeek,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Text(
+                  formatHours(travelDuration + workDuration),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
             ),
-          MetricRow(
-            icon: Icons.work_rounded,
-            label: t.entry_work,
-            value: formatHours(workDuration),
-            iconColor: theme.colorScheme.onSurfaceVariant,
-            valueColor: theme.colorScheme.onSurface,
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
-            child: Divider(),
-          ),
-          MetricRow(
-            icon: Icons.functions_rounded,
-            label: t.edit_total,
-            value: formatHours(travelDuration + workDuration),
-            iconColor: theme.colorScheme.primary,
-            valueColor: theme.colorScheme.primary,
+          // Breakdown chip
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: AppRadius.buttonRadius,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (travelEnabled) ...[
+                  Icon(
+                    Icons.directions_car_rounded,
+                    color: theme.colorScheme.onSurfaceVariant,
+                    size: AppIconSize.sm,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    formatHours(travelDuration),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
+                Icon(
+                  Icons.work_rounded,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  size: AppIconSize.sm,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  formatHours(workDuration),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -3330,19 +3372,12 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
       context: context,
       initialTime: TimeOfDay.now(),
       builder: (context, child) {
-        return Localizations.override(
-          context: context,
-          locale: const Locale('en', 'US'),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-            child: child!,
-          ),
-        );
+        return child!;
       },
     );
 
     if (picked != null) {
-      controller.text = picked.format(context);
+      controller.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       _updateTotalDuration();
       setState(() {});
     }
@@ -3412,25 +3447,16 @@ class _ShiftData {
 
   TimeOfDay? _parseTimeOfDay(String timeString) {
     try {
-      final parts = timeString.split(' ');
-      if (parts.length != 2) return null;
-
-      final timePart = parts[0];
-      final period = parts[1];
-
-      final timeParts = timePart.split(':');
-      if (timeParts.length != 2) return null;
-
-      int hour = int.parse(timeParts[0]);
-      int minute = int.parse(timeParts[1]);
-
-      if (period == 'PM' && hour != 12) {
-        hour += 12;
-      } else if (period == 'AM' && hour == 12) {
-        hour = 0;
+      // Handle 24h format "HH:mm" (written by time picker)
+      final timeParts = timeString.trim().split(':');
+      if (timeParts.length == 2) {
+        final hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+        if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+          return TimeOfDay(hour: hour, minute: minute);
+        }
       }
-
-      return TimeOfDay(hour: hour, minute: minute);
+      return null;
     } catch (e) {
       return null;
     }

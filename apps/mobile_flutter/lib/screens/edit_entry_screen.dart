@@ -1217,19 +1217,12 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       context: context,
       initialTime: TimeOfDay.now(),
       builder: (context, child) {
-        return Localizations.override(
-          context: context,
-          locale: const Locale('en', 'US'),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-            child: child!,
-          ),
-        );
+        return child!;
       },
     );
 
     if (picked != null) {
-      controller.text = picked.format(context);
+      controller.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       _validateForm();
     }
   }

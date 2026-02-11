@@ -626,9 +626,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get export_allTime => 'All time';
 
   @override
-  String get export_fileName => 'File Name';
-
-  @override
   String export_generating(String format) {
     return 'Generating $format export...';
   }

@@ -16,12 +16,12 @@ class LocationProvider extends ChangeNotifier {
 
   LocationProvider(this._repository);
 
-  /// Set Supabase dependencies for cloud sync
+  /// Set Supabase dependencies for cloud sync.
+  /// Does NOT push to cloud immediately — call loadFromCloud() first
+  /// to avoid overwriting server data with local defaults.
   void setSupabaseDeps(SupabaseLocationRepository repo, SupabaseAuthService auth) {
     _supabaseRepo = repo;
     _authService = auth;
-    // Sync existing local locations to cloud on first setup
-    _syncAllToCloud();
   }
 
   String? get _userId => _authService?.currentUser?.id;
@@ -53,7 +53,7 @@ class LocationProvider extends ChangeNotifier {
     }
   }
 
-  /// Load locations from Supabase and merge with local
+  /// Load locations from Supabase and merge with local, then push local-only to cloud
   Future<void> loadFromCloud() async {
     final userId = _userId;
     if (userId == null || _supabaseRepo == null) return;
@@ -71,6 +71,8 @@ class LocationProvider extends ChangeNotifier {
           _locations = localMap.values.toList();
         });
       }
+      // After pulling cloud data, push any local-only locations to cloud
+      _syncAllToCloud();
     } catch (e) {
       debugPrint('LocationProvider: Error loading from cloud: $e');
     }

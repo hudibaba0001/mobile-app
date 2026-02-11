@@ -19,12 +19,12 @@ class EmailSettingsProvider extends ChangeNotifier {
   AppError? get lastError => _lastError;
   bool get isConfigured => _settings.isConfigured;
 
-  /// Set Supabase dependencies for cloud sync
+  /// Set Supabase dependencies for cloud sync.
+  /// Does NOT push to cloud immediately — call loadFromCloud() first
+  /// to avoid overwriting server settings with local defaults.
   void setSupabaseDeps(SupabaseEmailSettingsRepository repo, SupabaseAuthService auth) {
     _supabaseRepo = repo;
     _authService = auth;
-    // Sync current settings to cloud
-    _syncToCloud();
   }
 
   String? get _userId => _authService?.currentUser?.id;

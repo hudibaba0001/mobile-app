@@ -336,6 +336,10 @@ class Entry extends HiveObject {
         final totalMinutes =
             travelLegs!.fold<int>(0, (sum, leg) => sum + leg.minutes);
         data['travel_minutes'] = totalMinutes;
+        // Always include from_location/to_location for sync queue compatibility
+        // (first leg origin, last leg destination)
+        data['from_location'] = from ?? travelLegs!.first.fromText;
+        data['to_location'] = to ?? travelLegs!.last.toText;
       } else {
         // Legacy single travel fields
         if (from != null) data['from_location'] = from;

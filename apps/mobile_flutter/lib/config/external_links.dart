@@ -15,4 +15,7 @@ class ExternalLinks {
 
   /// URL for Privacy Policy
   static const String privacyUrl = '$_baseUrl/privacy';
+
+  /// URL for password reset (web-based)
+  static const String resetPasswordUrl = '$_baseUrl/reset-password';
 }

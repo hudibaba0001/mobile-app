@@ -67,8 +67,9 @@ void main() {
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
 
-    // Find and tap the Disable button for the first (enabled) user
-    final disableButton = find.widgetWithText(OutlinedButton, 'Disable').first;
+    // The UI uses IconButton with tooltip 'Disable' for enabled users (Icons.block)
+    final disableButton = find.byTooltip('Disable');
+    expect(disableButton, findsOneWidget);
     await tester.tap(disableButton);
     await tester.pumpAndSettle();
 
@@ -95,8 +96,9 @@ void main() {
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
 
-    // Find and tap the Enable button for the second (disabled) user
-    final enableButton = find.widgetWithText(OutlinedButton, 'Enable').first;
+    // The UI uses IconButton with tooltip 'Enable' for disabled users (Icons.check_circle_outline)
+    final enableButton = find.byTooltip('Enable');
+    expect(enableButton, findsOneWidget);
     await tester.tap(enableButton);
     await tester.pumpAndSettle();
 

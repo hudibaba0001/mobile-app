@@ -89,7 +89,7 @@ class MapService {
       debugPrint(
           'MapService: Calculating travel time from "$origin" to "$destination"');
 
-      final response = await http.get(uri);
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -160,7 +160,7 @@ class MapService {
       'limit': '1',
     });
 
-    final response = await http.get(uri);
+    final response = await http.get(uri).timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to geocode address: ${response.statusCode}');
@@ -232,7 +232,7 @@ class MapService {
         'types': 'address,poi,place', // Focus on addresses and places
       });
 
-      final response = await http.get(uri);
+      final response = await http.get(uri).timeout(const Duration(seconds: 15));
 
       if (response.statusCode != 200) {
         debugPrint(

@@ -49,7 +49,9 @@ class _MigrationScreenState extends State<MigrationScreen>
     // Start animations
     _logoController.forward();
     Future.delayed(const Duration(milliseconds: 400), () {
-      _progressController.forward();
+      if (mounted) {
+        _progressController.forward();
+      }
     });
   }
 

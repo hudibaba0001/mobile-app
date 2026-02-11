@@ -31,7 +31,11 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
   void initState() {
     super.initState();
     // Fetch users when the screen is mounted
-    Future.microtask(() => context.read<AdminUsersViewModel>().fetchUsers());
+    Future.microtask(() {
+      if (mounted) {
+        context.read<AdminUsersViewModel>().fetchUsers();
+      }
+    });
   }
 
   @override
@@ -160,21 +164,21 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          OutlinedButton(
+                          IconButton(
                             onPressed: () => user.disabled
                                 ? _enableUser(context, user, viewModel)
                                 : _disableUser(context, user, viewModel),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: user.disabled
+                            icon: Icon(
+                              user.disabled ? Icons.check_circle_outline : Icons.block,
+                              color: user.disabled
                                   ? Theme.of(context).colorScheme.primary
                                   : Theme.of(context).colorScheme.error,
                             ),
-                            child: Text(user.disabled ? 'Enable' : 'Disable'),
+                            tooltip: user.disabled ? 'Enable' : 'Disable',
                           ),
-                          const SizedBox(width: AppSpacing.sm),
-                          TextButton.icon(
+                          IconButton(
                             icon: const Icon(Icons.visibility_outlined),
-                            label: const Text('Details'),
+                            tooltip: 'Details',
                             onPressed: () => _showUserDetails(context, user),
                           ),
                           PopupMenuButton<String>(

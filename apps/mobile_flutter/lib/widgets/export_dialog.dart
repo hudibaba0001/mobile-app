@@ -387,11 +387,21 @@ class _ExportDialogState extends State<ExportDialog> {
       final filteredEntries = _getFilteredEntries();
 
       if (filteredEntries.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(t.export_noEntriesInRange)),
-        );
+        if (mounted) {
+          setState(() {
+            _isExporting = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.export_noEntriesInRange)),
+          );
+        }
         return;
       }
+
+      // Reset state before popping (widget may dispose after pop)
+      setState(() {
+        _isExporting = false;
+      });
 
       // Return the export configuration
       Navigator.of(context).pop({
@@ -402,13 +412,14 @@ class _ExportDialogState extends State<ExportDialog> {
         'format': _exportFormat,
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t.export_errorPreparing(e.toString()))),
-      );
-    } finally {
-      setState(() {
-        _isExporting = false;
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t.export_errorPreparing(e.toString()))),
+        );
+        setState(() {
+          _isExporting = false;
+        });
+      }
     }
   }
 }

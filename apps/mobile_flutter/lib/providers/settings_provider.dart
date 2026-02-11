@@ -23,12 +23,12 @@ class SettingsProvider extends ChangeNotifier {
   bool get isTimeBalanceEnabled => _isTimeBalanceEnabled;
   bool get isInitialized => _isInitialized;
 
-  /// Set Supabase dependencies for cloud sync
+  /// Set Supabase dependencies for cloud sync.
+  /// Does NOT push to cloud immediately — call loadFromCloud() first
+  /// to avoid overwriting server settings with local defaults.
   void setSupabaseDeps(SupabaseClient supabase, String? userId) {
     _supabase = supabase;
     _userId = userId;
-    // Sync current settings to cloud
-    _syncToCloud();
   }
 
   Future<void> init() async {

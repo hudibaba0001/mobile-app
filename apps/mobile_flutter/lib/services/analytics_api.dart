@@ -24,15 +24,18 @@ class AnalyticsApi {
       if (endDate != null) 'endDate': endDate.toIso8601String(),
       if (userId != null && userId.isNotEmpty) 'userId': userId,
     });
-    final user = Supabase.instance.client.auth.currentUser;
-    final token = user?.aud;
+    final session = Supabase.instance.client.auth.currentSession;
+    final token = session?.accessToken;
+    if (token == null) {
+      throw AuthException('No active session');
+    }
     final resp = await _client.get(
       u,
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-    );
+    ).timeout(const Duration(seconds: 15));
     if (resp.statusCode == 401 || resp.statusCode == 403) {
       throw AuthException('Not authorized (admin only or invalid token)');
     }

@@ -156,14 +156,19 @@ class SyncQueueService extends ChangeNotifier {
 
   /// Queue a delete operation
   Future<void> queueDelete(String entryId, String userId) async {
-    // If there's a pending create for this entry, just remove it
+    // If there's a pending create for this entry, just remove both create and any updates
+    // (entry never reached server, so no server-side delete needed)
     final createIndex = _queue.indexWhere(
       (op) => op.entryId == entryId && op.type == SyncOperationType.create,
     );
     if (createIndex != -1) {
       _queue.removeAt(createIndex);
+      // Also remove any pending updates for this entry
+      _queue.removeWhere(
+        (op) => op.entryId == entryId && op.type == SyncOperationType.update,
+      );
       debugPrint(
-          'SyncQueueService: Removed pending create for deleted entry $entryId');
+          'SyncQueueService: Removed pending create+updates for deleted entry $entryId');
       await _persist();
       notifyListeners();
       return;

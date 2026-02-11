@@ -121,7 +121,7 @@ class AdminApiService {
       final response = await _client.get(
         Uri.parse('$baseUrl/users'),
         headers: await _getAuthHeaders(),
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
@@ -133,6 +133,8 @@ class AdminApiService {
         code: response.statusCode,
         message: _parseErrorMessage(response.body),
       );
+    } on ApiException {
+      rethrow;
     } catch (e) {
       throw ApiException(
         code: 500,
@@ -166,7 +168,7 @@ class AdminApiService {
       final response = await _client.get(
         uri,
         headers: await _getAuthHeaders(),
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
@@ -177,6 +179,8 @@ class AdminApiService {
         code: response.statusCode,
         message: _parseErrorMessage(response.body),
       );
+    } on ApiException {
+      rethrow;
     } catch (e) {
       throw ApiException(
         code: 500,
@@ -207,7 +211,7 @@ class AdminApiService {
       final response = await _client.post(
         Uri.parse('$baseUrl/users/$uid/disable'),
         headers: await _getAuthHeaders(),
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode != 200) {
         throw ApiException(
@@ -215,6 +219,8 @@ class AdminApiService {
           message: _parseErrorMessage(response.body),
         );
       }
+    } on ApiException {
+      rethrow;
     } catch (e) {
       throw ApiException(
         code: 500,
@@ -230,7 +236,7 @@ class AdminApiService {
       final response = await _client.post(
         Uri.parse('$baseUrl/users/$uid/enable'),
         headers: await _getAuthHeaders(),
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode != 200) {
         throw ApiException(
@@ -238,6 +244,8 @@ class AdminApiService {
           message: _parseErrorMessage(response.body),
         );
       }
+    } on ApiException {
+      rethrow;
     } catch (e) {
       throw ApiException(
         code: 500,
@@ -253,7 +261,7 @@ class AdminApiService {
       final response = await _client.delete(
         Uri.parse('$baseUrl/users/$uid'),
         headers: await _getAuthHeaders(),
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode != 200) {
         throw ApiException(
@@ -261,6 +269,8 @@ class AdminApiService {
           message: _parseErrorMessage(response.body),
         );
       }
+    } on ApiException {
+      rethrow;
     } catch (e) {
       throw ApiException(
         code: 500,

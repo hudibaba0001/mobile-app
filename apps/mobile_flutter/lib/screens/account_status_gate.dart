@@ -78,15 +78,19 @@ class _AccountStatusGateState extends State<AccountStatusGate>
         await contractProvider.loadFromSupabase();
       }
 
-      setState(() {
-        _profile = profile;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = 'Failed to load profile: $e';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load profile: $e';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -148,17 +152,19 @@ class _AccountStatusGateState extends State<AccountStatusGate>
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Checking account status...',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ],
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'Checking account status...',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -166,11 +172,12 @@ class _AccountStatusGateState extends State<AccountStatusGate>
 
     if (_error != null) {
       return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.error_outline,
@@ -196,6 +203,7 @@ class _AccountStatusGateState extends State<AccountStatusGate>
               ],
             ),
           ),
+        ),
         ),
       );
     }

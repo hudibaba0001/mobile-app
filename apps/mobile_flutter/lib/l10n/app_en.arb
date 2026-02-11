@@ -330,7 +330,6 @@
   "export_csv": "CSV",
   "export_dateRange": "Date Range",
   "export_allTime": "All time",
-  "export_fileName": "File Name",
   "export_generating": "Generating {format} export...",
   "@export_generating": {
     "placeholders": {

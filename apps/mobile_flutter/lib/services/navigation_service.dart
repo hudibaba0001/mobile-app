@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../config/app_router.dart';
-import '../services/auth_service.dart'; // Added import for AuthService
+import '../services/supabase_auth_service.dart';
 
 class NavigationService {
   static final NavigationService _instance = NavigationService._internal();
@@ -104,7 +104,7 @@ class NavigationService {
       ),
     );
 
-    if (shouldNavigate == true) {
+    if (shouldNavigate == true && context.mounted) {
       context.go(route);
     }
   }
@@ -117,7 +117,7 @@ class NavigationService {
 
   /// Show bottom sheet with navigation options
   static void showNavigationSheet(BuildContext context) {
-    final authService = context.read<AuthService>();
+    final authService = context.read<SupabaseAuthService>();
 
     showModalBottomSheet(
       context: context,

@@ -64,6 +64,7 @@ class AnalyticsViewModel extends ChangeNotifier {
 
     // Simulate API delay
     Future.delayed(const Duration(seconds: 1), () {
+      if (!hasListeners) return;
       _dashboardData = DashboardData(
         totalHoursLoggedThisWeek: 45.5,
         activeUsers: 12,

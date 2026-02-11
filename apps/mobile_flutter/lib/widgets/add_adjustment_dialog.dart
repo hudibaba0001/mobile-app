@@ -66,7 +66,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
       helpText: 'Adjustment effective date',
     );
 
-    if (picked != null && picked != _selectedDate) {
+    if (picked != null && picked != _selectedDate && mounted) {
       setState(() {
         _selectedDate = picked;
       });

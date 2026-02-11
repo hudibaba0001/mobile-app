@@ -1160,12 +1160,6 @@ abstract class AppLocalizations {
   /// **'All time'**
   String get export_allTime;
 
-  /// No description provided for @export_fileName.
-  ///
-  /// In en, this message translates to:
-  /// **'File Name'**
-  String get export_fileName;
-
   /// No description provided for @export_generating.
   ///
   /// In en, this message translates to:

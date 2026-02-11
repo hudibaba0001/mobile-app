@@ -349,14 +349,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
       context: context,
       initialTime: _startTime,
       builder: (context, child) {
-        return Localizations.override(
-          context: context,
-          locale: const Locale('en', 'US'),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-            child: child!,
-          ),
-        );
+        return child!;
       },
     );
     if (time != null) {

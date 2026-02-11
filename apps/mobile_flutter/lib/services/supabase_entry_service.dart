@@ -325,33 +325,61 @@ class SupabaseEntryService {
       debugPrint('SupabaseEntryService: ✅ Entry inserted into entries table');
 
       // Insert type-specific data
-      if (entry.type == EntryType.travel &&
-          entry.from != null &&
-          entry.to != null) {
-        final segmentData = {
-          'id': _uuid.v4(), // Generate new ID for segment
-          'entry_id': entryId,
-          'from_location': entry.from,
-          'to_location': entry.to,
-          'travel_minutes': entry.travelMinutes ?? 0,
-          'segment_order': entry.segmentOrder ?? 1,
-          'total_segments': entry.totalSegments ?? 1,
-          'created_at': entry.createdAt.toIso8601String(),
-          'updated_at': entry.updatedAt?.toIso8601String() ??
-              DateTime.now().toIso8601String(),
-        };
+      if (entry.type == EntryType.travel) {
+        if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
+          // New multi-leg travel format
+          final totalLegs = entry.travelLegs!.length;
+          for (var i = 0; i < totalLegs; i++) {
+            final leg = entry.travelLegs![i];
+            final segmentData = {
+              'id': _uuid.v4(),
+              'entry_id': entryId,
+              'from_location': leg.fromText,
+              'to_location': leg.toText,
+              'travel_minutes': leg.minutes,
+              'segment_order': i + 1,
+              'total_segments': totalLegs,
+              'created_at': entry.createdAt.toIso8601String(),
+              'updated_at': entry.updatedAt?.toIso8601String() ??
+                  DateTime.now().toIso8601String(),
+            };
+            await _supabase.from(_travelSegmentsTable).insert(segmentData);
+          }
+          debugPrint(
+              'SupabaseEntryService: ✅ $totalLegs travel segment(s) inserted from travelLegs');
 
-        await _supabase.from(_travelSegmentsTable).insert(segmentData);
+          // Add travel data to response for Entry.fromJson
+          entryResponse['from_location'] = entry.travelLegs!.first.fromText;
+          entryResponse['to_location'] = entry.travelLegs!.last.toText;
+          entryResponse['travel_minutes'] = entry.travelLegs!
+              .fold<int>(0, (sum, leg) => sum + leg.minutes);
+        } else if (entry.from != null && entry.to != null) {
+          // Legacy single-segment travel
+          final segmentData = {
+            'id': _uuid.v4(),
+            'entry_id': entryId,
+            'from_location': entry.from,
+            'to_location': entry.to,
+            'travel_minutes': entry.travelMinutes ?? 0,
+            'segment_order': entry.segmentOrder ?? 1,
+            'total_segments': entry.totalSegments ?? 1,
+            'created_at': entry.createdAt.toIso8601String(),
+            'updated_at': entry.updatedAt?.toIso8601String() ??
+                DateTime.now().toIso8601String(),
+          };
 
-        debugPrint('SupabaseEntryService: ✅ Travel segment inserted');
+          await _supabase.from(_travelSegmentsTable).insert(segmentData);
 
-        // Add travel data to response for Entry.fromJson
-        entryResponse['from_location'] = entry.from;
-        entryResponse['to_location'] = entry.to;
-        entryResponse['travel_minutes'] = entry.travelMinutes;
-        entryResponse['journey_id'] = segmentData['id'];
-        entryResponse['segment_order'] = entry.segmentOrder;
-        entryResponse['total_segments'] = entry.totalSegments;
+          debugPrint('SupabaseEntryService: ✅ Travel segment inserted');
+
+          // Add travel data to response for Entry.fromJson
+          entryResponse['from_location'] = entry.from;
+          entryResponse['to_location'] = entry.to;
+          entryResponse['travel_minutes'] = entry.travelMinutes;
+          entryResponse['journey_id'] = segmentData['id'];
+          entryResponse['segment_order'] = entry.segmentOrder;
+          entryResponse['total_segments'] = entry.totalSegments;
+        }
       } else if (entry.type == EntryType.work &&
           entry.shifts != null &&
           entry.shifts!.isNotEmpty) {
@@ -488,7 +516,26 @@ class SupabaseEntryService {
             .delete()
             .eq('entry_id', entry.id);
 
-        if (entry.from != null && entry.to != null) {
+        if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
+          // New multi-leg travel format
+          final totalLegs = entry.travelLegs!.length;
+          for (var i = 0; i < totalLegs; i++) {
+            final leg = entry.travelLegs![i];
+            final segmentData = {
+              'id': _uuid.v4(),
+              'entry_id': entry.id,
+              'from_location': leg.fromText,
+              'to_location': leg.toText,
+              'travel_minutes': leg.minutes,
+              'segment_order': i + 1,
+              'total_segments': totalLegs,
+              'created_at': entry.createdAt.toIso8601String(),
+              'updated_at': DateTime.now().toIso8601String(),
+            };
+            await _supabase.from(_travelSegmentsTable).insert(segmentData);
+          }
+        } else if (entry.from != null && entry.to != null) {
+          // Legacy single-segment travel
           final segmentData = {
             'id': _uuid.v4(),
             'entry_id': entry.id,

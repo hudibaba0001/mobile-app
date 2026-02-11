@@ -86,7 +86,7 @@ class _LocationSelectorState extends State<LocationSelector> {
     } else {
       // Delay hiding to allow for tap on suggestions
       Future.delayed(const Duration(milliseconds: 150), () {
-        if (!_focusNode.hasFocus) {
+        if (mounted && !_focusNode.hasFocus) {
           _removeOverlay();
         }
       });
@@ -139,17 +139,21 @@ class _LocationSelectorState extends State<LocationSelector> {
     try {
       final suggestions =
           await MapService.getAddressSuggestions(query, limit: 5);
-      setState(() {
-        _mapboxSuggestions = suggestions;
-        _isLoadingMapboxSuggestions = false;
-      });
-      _overlayEntry?.markNeedsBuild();
+      if (mounted) {
+        setState(() {
+          _mapboxSuggestions = suggestions;
+          _isLoadingMapboxSuggestions = false;
+        });
+        _overlayEntry?.markNeedsBuild();
+      }
     } catch (e) {
-      setState(() {
-        _mapboxSuggestions = [];
-        _isLoadingMapboxSuggestions = false;
-      });
-      _overlayEntry?.markNeedsBuild();
+      if (mounted) {
+        setState(() {
+          _mapboxSuggestions = [];
+          _isLoadingMapboxSuggestions = false;
+        });
+        _overlayEntry?.markNeedsBuild();
+      }
     }
   }
 

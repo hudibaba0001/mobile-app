@@ -37,12 +37,15 @@ class EntryProvider extends ChangeNotifier {
   static const String _entriesBoxName = 'entries_cache';
   Box<Entry>? _entriesBox;
 
+  late final Future<void> _syncQueueReady;
+
   EntryProvider(this._authService) {
-    _initSyncQueue();
+    _syncQueueReady = _syncQueue.init();
   }
 
-  Future<void> _initSyncQueue() async {
-    await _syncQueue.init();
+  /// Ensure sync queue is initialized before use
+  Future<void> _ensureSyncQueueReady() async {
+    await _syncQueueReady;
   }
 
   /// Initialize the Hive box for local cache
@@ -237,7 +240,8 @@ class EntryProvider extends ChangeNotifier {
         savedEntry = entryWithTimestamp;
         _pendingOfflineOperations++;
 
-        // Queue for later sync
+        // Queue for later sync (ensure queue is ready first)
+        await _ensureSyncQueueReady();
         await _syncQueue.queueCreate(entryWithTimestamp, userId);
 
         debugPrint(
@@ -293,11 +297,21 @@ class EntryProvider extends ChangeNotifier {
           } catch (e) {
             debugPrint('EntryProvider: ❌ ERROR saving entry to Supabase: $e');
 
-            // If Supabase fails, still save locally for offline support
-            await _saveToLocalCache(entry, userId);
-            savedEntry = entry;
+            // If Supabase fails, save locally and queue for sync
+            final entryWithTimestamp = entry.updatedAt == null
+                ? entry.copyWith(updatedAt: DateTime.now())
+                : entry;
+            await _saveToLocalCache(entryWithTimestamp, userId);
+            savedEntry = entryWithTimestamp;
+            _pendingOfflineOperations++;
+
+            // Queue for later sync (ensure queue is ready first)
+            await _ensureSyncQueueReady();
+            await _syncQueue.queueCreate(entryWithTimestamp, userId);
+
             debugPrint(
                 'EntryProvider: ⚠️ Saved to local cache only (offline mode)');
+            debugPrint('EntryProvider: Entry queued for sync when online');
           }
 
           savedEntries.add(savedEntry);
@@ -383,7 +397,8 @@ class EntryProvider extends ChangeNotifier {
         updatedEntry = entryWithTimestamp;
         _pendingOfflineOperations++;
 
-        // Queue for later sync
+        // Queue for later sync (ensure queue is ready first)
+        await _ensureSyncQueueReady();
         await _syncQueue.queueUpdate(entryWithTimestamp, userId);
 
         debugPrint('EntryProvider: Updated in local cache only (offline mode)');
@@ -449,7 +464,8 @@ class EntryProvider extends ChangeNotifier {
         await _deleteFromLocalCache(entry, userId);
         _pendingOfflineOperations++;
 
-        // Queue for later sync
+        // Queue for later sync (ensure queue is ready first)
+        await _ensureSyncQueueReady();
         await _syncQueue.queueDelete(id, userId);
 
         debugPrint(
@@ -821,6 +837,9 @@ class EntryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Ensure sync queue is initialized before processing
+      await _ensureSyncQueueReady();
+
       debugPrint(
           'EntryProvider: Processing ${_syncQueue.pendingCount} pending sync operations...');
 

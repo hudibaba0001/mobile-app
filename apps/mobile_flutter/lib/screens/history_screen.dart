@@ -765,7 +765,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       initialDateRange: _customDateRange,
     );
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _customDateRange = picked;
       });

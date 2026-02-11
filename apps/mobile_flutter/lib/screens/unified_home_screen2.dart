@@ -45,6 +45,12 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   Timer? _recentLoadDebounce;
 
   @override
+  void dispose() {
+    _recentLoadDebounce?.cancel();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     // Always sync with Supabase on startup, then load recent entries
@@ -270,23 +276,27 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  t.home_title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurface,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    t.home_title,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                Text(
-                  t.home_subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  Text(
+                    t.home_subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -3293,19 +3303,12 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
       context: context,
       initialTime: TimeOfDay.now(),
       builder: (context, child) {
-        return Localizations.override(
-          context: context,
-          locale: const Locale('en', 'US'),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-            child: child!,
-          ),
-        );
+        return child!;
       },
     );
 
     if (picked != null) {
-      controller.text = picked.format(context);
+      controller.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       _updateTotalDuration();
       setState(() {});
     }
@@ -3375,25 +3378,16 @@ class _ShiftData {
 
   TimeOfDay? _parseTimeOfDay(String timeString) {
     try {
-      final parts = timeString.split(' ');
-      if (parts.length != 2) return null;
-
-      final timePart = parts[0];
-      final period = parts[1];
-
-      final timeParts = timePart.split(':');
-      if (timeParts.length != 2) return null;
-
-      int hour = int.parse(timeParts[0]);
-      int minute = int.parse(timeParts[1]);
-
-      if (period == 'PM' && hour != 12) {
-        hour += 12;
-      } else if (period == 'AM' && hour == 12) {
-        hour = 0;
+      // Handle 24h format "HH:mm" (written by time picker)
+      final timeParts = timeString.trim().split(':');
+      if (timeParts.length == 2) {
+        final hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+        if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+          return TimeOfDay(hour: hour, minute: minute);
+        }
       }
-
-      return TimeOfDay(hour: hour, minute: minute);
+      return null;
     } catch (e) {
       return null;
     }

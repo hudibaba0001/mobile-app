@@ -204,7 +204,6 @@
   "export_csv": "CSV",
   "export_dateRange": "Datumintervall",
   "export_allTime": "All tid",
-  "export_fileName": "Filnamn",
   "export_generating": "Genererar {format}-export...",
   "export_complete": "Export klar",
   "export_savedSuccess": "{format}-fil har sparats.",

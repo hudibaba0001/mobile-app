@@ -927,7 +927,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       helpText: t.contract_startTrackingFrom,
     );
 
-    if (picked != null && picked != _trackingStartDate) {
+    if (picked != null && picked != _trackingStartDate && mounted) {
       setState(() {
         _trackingStartDate = picked;
       });
