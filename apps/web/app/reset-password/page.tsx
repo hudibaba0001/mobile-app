@@ -19,35 +19,66 @@ export default function ResetPasswordPage() {
   const [expired, setExpired] = useState(false)
 
   useEffect(() => {
-    // Supabase automatically picks up the token from the URL fragment
-    // when the page loads. We listen for the PASSWORD_RECOVERY event.
+    let cancelled = false
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event) => {
-        if (event === 'PASSWORD_RECOVERY') {
+        if (event === 'PASSWORD_RECOVERY' && !cancelled) {
           setReady(true)
         }
       }
     )
 
-    // Also check if we already have a session (page reload after token exchange)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setReady(true)
-      } else {
-        // Give Supabase a moment to process the URL fragment
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: { session: s } }) => {
-            if (s) {
-              setReady(true)
-            } else {
-              setExpired(true)
-            }
-          })
-        }, 2000)
-      }
-    })
+    async function handleToken() {
+      // Check for PKCE flow: ?code=... in the URL query string
+      const params = new URLSearchParams(window.location.search)
+      const code = params.get('code')
 
-    return () => subscription.unsubscribe()
+      if (code) {
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(code)
+          if (!error && !cancelled) {
+            setReady(true)
+            return
+          }
+        } catch {
+          // fall through to other checks
+        }
+      }
+
+      // Check for hash fragment flow: #access_token=...&type=recovery
+      const hash = window.location.hash
+      if (hash && hash.includes('access_token')) {
+        // Supabase client auto-detects hash tokens, give it time to process
+        for (let i = 0; i < 10; i++) {
+          await new Promise(r => setTimeout(r, 500))
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session && !cancelled) {
+            setReady(true)
+            return
+          }
+        }
+      }
+
+      // Final check: session may already exist
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session && !cancelled) {
+        setReady(true)
+        return
+      }
+
+      // No token found or exchange failed
+      if (!cancelled) {
+        setExpired(true)
+      }
+    }
+
+    handleToken()
+
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
+    }
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
