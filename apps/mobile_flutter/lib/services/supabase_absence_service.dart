@@ -32,7 +32,7 @@ class SupabaseAbsenceService {
           absences.add(AbsenceEntry.fromMap(row));
         } catch (e) {
           debugPrint('SupabaseAbsenceService: Error parsing absence: $e');
-          debugPrint('SupabaseAbsenceService: Row data: $row');
+          debugPrint('SupabaseAbsenceService: Row data skipped (PII)');
         }
       }
 

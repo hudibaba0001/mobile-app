@@ -45,8 +45,9 @@ class UserProfile {
     this.updatedAt,
   });
 
-  /// Legal acceptance is always true (legacy behavior)
-  bool get hasAcceptedLegal => true;
+  /// Check if user has accepted both terms and privacy policy
+  bool get hasAcceptedLegal =>
+      termsAcceptedAt != null && privacyAcceptedAt != null;
 
   /// Check if subscription is active (including trialing)
   bool get hasActiveSubscription =>

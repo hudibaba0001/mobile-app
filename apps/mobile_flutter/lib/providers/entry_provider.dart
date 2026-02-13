@@ -128,7 +128,6 @@ class EntryProvider extends ChangeNotifier {
                 failedCount++;
                 debugPrint(
                     'EntryProvider: ❌ Failed to sync entry ${entry.id}: $e');
-                debugPrint('EntryProvider: Entry data: ${entry.toJson()}');
                 // Continue with other entries even if one fails
               }
             }

@@ -4,13 +4,16 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import '../services/supabase_auth_service.dart';
+import '../services/entitlement_service.dart';
 import '../services/profile_service.dart';
 import '../models/user_profile.dart';
+import '../models/user_entitlement.dart';
 import '../providers/contract_provider.dart';
 import '../config/external_links.dart';
 import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../design/app_theme.dart';
+import 'paywall_screen.dart';
 
 /// Gate screen that checks legal acceptance and subscription status
 /// Blocks access to app if requirements are not met
@@ -29,7 +32,9 @@ class AccountStatusGate extends StatefulWidget {
 class _AccountStatusGateState extends State<AccountStatusGate>
     with WidgetsBindingObserver {
   final _profileService = ProfileService();
+  final _entitlementService = EntitlementService();
   UserProfile? _profile;
+  UserEntitlement? _entitlement;
   bool _isLoading = true;
   String? _error;
 
@@ -70,7 +75,13 @@ class _AccountStatusGateState extends State<AccountStatusGate>
         return;
       }
 
-      final profile = await _profileService.fetchProfile();
+      var profile = await _profileService.fetchProfile();
+
+      // In-app signup path: profile row may not exist yet. Bootstrap it server-side.
+      if (profile == null) {
+        await _entitlementService.bootstrapProfileAndPendingEntitlement();
+        profile = await _profileService.fetchProfile();
+      }
 
       // Sync contract settings from Supabase profile
       if (profile != null && mounted) {
@@ -78,9 +89,12 @@ class _AccountStatusGateState extends State<AccountStatusGate>
         await contractProvider.loadFromSupabase();
       }
 
+      final entitlement = await _entitlementService.fetchCurrentEntitlement();
+
       if (mounted) {
         setState(() {
           _profile = profile;
+          _entitlement = entitlement;
           _isLoading = false;
         });
       }
@@ -94,18 +108,25 @@ class _AccountStatusGateState extends State<AccountStatusGate>
     }
   }
 
-  Future<void> _openSignupPage() async {
+  bool _isAcceptingLegal = false;
+
+  Future<void> _acceptLegal() async {
+    setState(() => _isAcceptingLegal = true);
     try {
-      final url = Uri.parse(ExternalLinks.signupUrl);
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
+      final updatedProfile = await _profileService.acceptLegal();
+      if (mounted && updatedProfile != null) {
+        setState(() {
+          _profile = updatedProfile;
+          _isAcceptingLegal = false;
+        });
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isAcceptingLegal = false);
         final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(t.auth_signupFailed(e.toString())),
+            content: Text('${t.common_error}: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -113,39 +134,96 @@ class _AccountStatusGateState extends State<AccountStatusGate>
     }
   }
 
-  Future<void> _openManageSubscription() async {
-    try {
-      final url = Uri.parse(ExternalLinks.manageSubscriptionUrl);
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      if (mounted) {
-        final t = AppLocalizations.of(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(t.auth_subscriptionFailed(e.toString())),
-            backgroundColor: AppColors.error,
+  Widget _buildLegalAcceptanceScreen(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Icon(
+                Icons.gavel_outlined,
+                size: 80,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(height: AppSpacing.xxl),
+              Text(
+                t.legal_acceptTitle,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                t.legal_acceptBody,
+                style: theme.textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              // Links to terms and privacy
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () => launchUrl(
+                      Uri.parse(ExternalLinks.termsUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                    child: Text(t.settings_terms),
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  TextButton(
+                    onPressed: () => launchUrl(
+                      Uri.parse(ExternalLinks.privacyUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                    child: Text(t.settings_privacy),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xxxl),
+              ElevatedButton(
+                onPressed: _isAcceptingLegal ? null : _acceptLegal,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                ),
+                child: _isAcceptingLegal
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(t.legal_acceptButton),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              TextButton(
+                onPressed: () async {
+                  final authService = context.read<SupabaseAuthService>();
+                  await authService.signOut();
+                  if (mounted) {
+                    context.goNamed(AppRouter.loginName);
+                  }
+                },
+                child: Text(t.auth_signOut),
+              ),
+            ],
           ),
-        );
-      }
-    }
+        ),
+      ),
+    );
   }
 
-  String _getSubscriptionMessage() {
-    if (_profile == null) {
-      return 'Your subscription is not active.';
-    }
-
-    final status = _profile!.subscriptionStatus;
-    if (status == 'pending') {
-      return 'Your payment was not completed. Please complete the signup process to start your free trial.';
-    } else if (status == 'past_due') {
-      return 'Your payment failed. Please update your payment method to continue using the app.';
-    } else if (status == 'canceled') {
-      return 'Your subscription has been canceled. Please resubscribe to continue using the app.';
-    }
-    return 'Your subscription is not active. Please manage your subscription to continue using the app.';
+  bool _hasActiveEntitlement() {
+    if (_entitlement?.hasAccess == true) return true;
+    // Backward compatibility with legacy Stripe profile status.
+    if (_profile?.hasActiveSubscription == true) return true;
+    return false;
   }
 
   @override
@@ -208,7 +286,7 @@ class _AccountStatusGateState extends State<AccountStatusGate>
       );
     }
 
-    // If profile doesn't exist, show message to complete registration
+    // If profile still doesn't exist after bootstrap attempt
     if (_profile == null) {
       return Scaffold(
         body: SafeArea(
@@ -225,7 +303,7 @@ class _AccountStatusGateState extends State<AccountStatusGate>
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 Text(
-                  'Complete Registration',
+                  'Account setup incomplete',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -233,16 +311,15 @@ class _AccountStatusGateState extends State<AccountStatusGate>
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  'Your account needs to be completed. Please visit our signup page to accept terms and privacy policy, and set up your subscription.',
+                  'We could not finish setting up your account profile. Please retry.',
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppSpacing.xxxl),
                 ElevatedButton.icon(
-                  onPressed: _openSignupPage,
-                  icon: const Icon(Icons.open_in_new),
-                  label: Text(
-                      AppLocalizations.of(context).auth_completeRegistration),
+                  onPressed: _loadProfile,
+                  icon: const Icon(Icons.refresh),
+                  label: Text(AppLocalizations.of(context).common_retry),
                   style: ElevatedButton.styleFrom(
                     padding:
                         const EdgeInsets.symmetric(vertical: AppSpacing.lg),
@@ -266,61 +343,16 @@ class _AccountStatusGateState extends State<AccountStatusGate>
       );
     }
 
-    // Check if subscription is inactive
-    if (!_profile!.hasActiveSubscription) {
-      return Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Icon(
-                  Icons.payment_outlined,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: AppSpacing.xxl),
-                Text(
-                  'Subscription Required',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  _getSubscriptionMessage(),
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppSpacing.xxxl),
-                ElevatedButton.icon(
-                  onPressed: _openManageSubscription,
-                  icon: const Icon(Icons.open_in_new),
-                  label: Text(
-                      AppLocalizations.of(context).settings_manageSubscription),
-                  style: ElevatedButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                TextButton(
-                  onPressed: () async {
-                    final authService = context.read<SupabaseAuthService>();
-                    await authService.signOut();
-                    if (mounted) {
-                      context.goNamed(AppRouter.loginName);
-                    }
-                  },
-                  child: Text(AppLocalizations.of(context).auth_signOut),
-                ),
-              ],
-            ),
-          ),
-        ),
+    // Check if user has accepted legal terms
+    if (!_profile!.hasAcceptedLegal) {
+      return _buildLegalAcceptanceScreen(context);
+    }
+
+    // Check if subscription entitlement is inactive
+    if (!_hasActiveEntitlement()) {
+      return PaywallScreen(
+        onUnlocked: _loadProfile,
+        showSignOut: true,
       );
     }
 

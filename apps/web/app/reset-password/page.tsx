@@ -30,23 +30,30 @@ export default function ResetPasswordPage() {
     )
 
     async function handleToken() {
-      // Check for PKCE flow: ?code=... in the URL query string
       const params = new URLSearchParams(window.location.search)
-      const code = params.get('code')
+      const errorParam = params.get('error')
+      const tokenHash = params.get('token_hash')
+      const type = params.get('type')
 
-      if (code) {
-        try {
-          const { error } = await supabase.auth.exchangeCodeForSession(code)
-          if (!error && !cancelled) {
-            setReady(true)
-            return
-          }
-        } catch {
-          // fall through to other checks
+      if (errorParam && !cancelled) {
+        setExpired(true)
+        return
+      }
+
+      // Fallback for links that land directly on this page with token_hash.
+      if (tokenHash && type === 'recovery') {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: 'recovery',
+        })
+
+        if (!error && !cancelled) {
+          setReady(true)
+          return
         }
       }
 
-      // Check for hash fragment flow: #access_token=...&type=recovery
+      // Check for implicit hash fragment flow: #access_token=...&type=recovery
       const hash = window.location.hash
       if (hash && hash.includes('access_token')) {
         // Supabase client auto-detects hash tokens, give it time to process

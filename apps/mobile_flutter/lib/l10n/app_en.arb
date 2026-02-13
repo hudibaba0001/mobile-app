@@ -431,7 +431,25 @@
   "settings_region": "Region",
   "settings_travelLogging": "Travel time logging",
   "settings_travelLoggingDesc": "Enable travel time entry and related stats",
-  
+  "settings_changePassword": "Change Password",
+  "settings_changePasswordDesc": "Update your account password",
+  "settings_changePasswordSent": "Password reset link sent to your email",
+  "settings_contactSupport": "Contact Support",
+  "settings_contactSupportDesc": "Get help or report an issue",
+  "settings_about": "About",
+  "settings_deleteAccount": "Delete Account",
+  "settings_deleteAccountDesc": "Permanently delete your account and all data",
+  "settings_deleteAccountConfirmTitle": "Delete Account?",
+  "settings_deleteAccountConfirmBody": "This will permanently delete your account and all associated data. This action cannot be undone.",
+  "settings_deleteAccountConfirmHint": "Type DELETE to confirm",
+  "settings_deleteAccountSuccess": "Account deleted successfully",
+  "settings_deleteAccountError": "Failed to delete account: {error}",
+  "@settings_deleteAccountError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
   "common_unknown": "Unknown",
   "common_noRemarks": "No remarks",
   "common_workSession": "Work Session",
@@ -1298,5 +1316,13 @@
   "auth_createAccount": "Create Account",
   "auth_redirectNote": "New users will be redirected to our account creation page",
   "auth_invalidEmail": "Invalid email",
-  "auth_passwordRequired": "Password is required"
+  "auth_passwordRequired": "Password is required",
+
+  "legal_acceptTitle": "Terms & Privacy",
+  "legal_acceptBody": "To continue using KvikTime, please review and accept our Terms of Service and Privacy Policy.",
+  "legal_acceptButton": "I Accept",
+
+  "session_expiredTitle": "Session Expired",
+  "session_expiredBody": "Your session has expired. Please sign in again to continue.",
+  "session_signInAgain": "Sign In Again"
 }

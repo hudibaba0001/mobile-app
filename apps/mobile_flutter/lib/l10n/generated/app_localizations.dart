@@ -1556,6 +1556,78 @@ abstract class AppLocalizations {
   /// **'Enable travel time entry and related stats'**
   String get settings_travelLoggingDesc;
 
+  /// No description provided for @settings_changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get settings_changePassword;
+
+  /// No description provided for @settings_changePasswordDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your account password'**
+  String get settings_changePasswordDesc;
+
+  /// No description provided for @settings_changePasswordSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset link sent to your email'**
+  String get settings_changePasswordSent;
+
+  /// No description provided for @settings_contactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Support'**
+  String get settings_contactSupport;
+
+  /// No description provided for @settings_contactSupportDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get help or report an issue'**
+  String get settings_contactSupportDesc;
+
+  /// No description provided for @settings_deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get settings_deleteAccount;
+
+  /// No description provided for @settings_deleteAccountDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account and all data'**
+  String get settings_deleteAccountDesc;
+
+  /// No description provided for @settings_deleteAccountConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account?'**
+  String get settings_deleteAccountConfirmTitle;
+
+  /// No description provided for @settings_deleteAccountConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete your account and all associated data. This action cannot be undone.'**
+  String get settings_deleteAccountConfirmBody;
+
+  /// No description provided for @settings_deleteAccountConfirmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE to confirm'**
+  String get settings_deleteAccountConfirmHint;
+
+  /// No description provided for @settings_deleteAccountSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted successfully'**
+  String get settings_deleteAccountSuccess;
+
+  /// No description provided for @settings_deleteAccountError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete account: {error}'**
+  String settings_deleteAccountError(String error);
+
   /// No description provided for @common_unknown.
   ///
   /// In en, this message translates to:
@@ -4124,6 +4196,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Password is required'**
   String get auth_passwordRequired;
+
+  /// No description provided for @legal_acceptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Privacy'**
+  String get legal_acceptTitle;
+
+  /// No description provided for @legal_acceptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To continue using KvikTime, please review and accept our Terms of Service and Privacy Policy.'**
+  String get legal_acceptBody;
+
+  /// No description provided for @legal_acceptButton.
+  ///
+  /// In en, this message translates to:
+  /// **'I Accept'**
+  String get legal_acceptButton;
+
+  /// No description provided for @session_expiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Expired'**
+  String get session_expiredTitle;
+
+  /// No description provided for @session_expiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again to continue.'**
+  String get session_expiredBody;
+
+  /// No description provided for @session_signInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In Again'**
+  String get session_signInAgain;
 }
 
 class _AppLocalizationsDelegate

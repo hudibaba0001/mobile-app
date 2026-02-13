@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/email_settings.dart';
 import '../repositories/supabase_email_settings_repository.dart';
 import '../services/supabase_auth_service.dart';
@@ -12,22 +14,88 @@ class EmailSettingsProvider extends ChangeNotifier {
   AppError? _lastError;
   SupabaseEmailSettingsRepository? _supabaseRepo;
   SupabaseAuthService? _authService;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  bool _hasSenderPassword = false;
 
   // Getters
   EmailSettings get settings => _settings;
   bool get isLoading => _isLoading;
   AppError? get lastError => _lastError;
-  bool get isConfigured => _settings.isConfigured;
+  bool get isConfigured => _settings.isConfigured && _hasSenderPassword;
 
   /// Set Supabase dependencies for cloud sync.
   /// Does NOT push to cloud immediately — call loadFromCloud() first
   /// to avoid overwriting server settings with local defaults.
   void setSupabaseDeps(SupabaseEmailSettingsRepository repo, SupabaseAuthService auth) {
     _supabaseRepo = repo;
-    _authService = auth;
+    if (!identical(_authService, auth)) {
+      _authService?.removeListener(_handleAuthChange);
+      _authService = auth;
+      _authService?.addListener(_handleAuthChange);
+    }
+    unawaited(_refreshSenderPasswordConfigured());
   }
 
   String? get _userId => _authService?.currentUser?.id;
+
+  void _handleAuthChange() {
+    if (_authService?.currentUser == null) {
+      _hasSenderPassword = false;
+      _settings = EmailSettings();
+      unawaited(_saveSettings());
+      notifyListeners();
+      return;
+    }
+    unawaited(_refreshSenderPasswordConfigured());
+  }
+
+  String? get _senderPasswordKey {
+    final userId = _userId;
+    if (userId == null) return null;
+    return 'email_settings_sender_password:$userId';
+  }
+
+  Future<void> _refreshSenderPasswordConfigured() async {
+    final before = _hasSenderPassword;
+    if (kIsWeb) {
+      _hasSenderPassword = false;
+      if (_hasSenderPassword != before) notifyListeners();
+      return;
+    }
+    final key = _senderPasswordKey;
+    if (key == null) {
+      _hasSenderPassword = false;
+      if (_hasSenderPassword != before) notifyListeners();
+      return;
+    }
+    final value = await _secureStorage.read(key: key);
+    _hasSenderPassword = (value ?? '').isNotEmpty;
+    if (_hasSenderPassword != before) notifyListeners();
+  }
+
+  Future<void> _writeSenderPassword(String password) async {
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'Secure password storage is not supported on web. Use server-side email sending instead.',
+      );
+    }
+    final key = _senderPasswordKey;
+    if (key == null) {
+      throw StateError('User not authenticated');
+    }
+    await _secureStorage.write(key: key, value: password);
+    _hasSenderPassword = password.isNotEmpty;
+    notifyListeners();
+  }
+
+  Future<void> _deleteSenderPassword() async {
+    if (kIsWeb) return;
+    final key = _senderPasswordKey;
+    if (key == null) return;
+    await _secureStorage.delete(key: key);
+    _hasSenderPassword = false;
+    notifyListeners();
+  }
 
   /// Initialize the provider
   Future<void> initialize() async {
@@ -37,6 +105,7 @@ class EmailSettingsProvider extends ChangeNotifier {
 
       _settingsBox = await Hive.openBox<EmailSettings>('email_settings');
       await _loadSettings();
+      await _refreshSenderPasswordConfigured();
     } catch (error) {
       _handleError(error);
     } finally {
@@ -50,6 +119,8 @@ class EmailSettingsProvider extends ChangeNotifier {
     try {
       if (_settingsBox != null && _settingsBox!.isNotEmpty) {
         _settings = _settingsBox!.getAt(0) ?? EmailSettings();
+        // Rewrite settings to strip any legacy persisted secrets (e.g. old SMTP password field).
+        await _saveSettings();
       } else {
         _settings = EmailSettings();
         await _saveSettings();
@@ -141,9 +212,26 @@ class EmailSettingsProvider extends ChangeNotifier {
     required String password,
     String? name,
   }) async {
+    if (password.isEmpty) {
+      _handleError(ErrorHandler.handleValidationError(
+          'Email password is required'));
+      return false;
+    }
+    if (password.length < 6) {
+      _handleError(ErrorHandler.handleValidationError(
+          'Email password must be at least 6 characters'));
+      return false;
+    }
+
+    try {
+      await _writeSenderPassword(password);
+    } catch (e) {
+      _handleError(e);
+      return false;
+    }
+
     final updatedSettings = _settings.copyWith(
       senderEmail: email,
-      senderPassword: password,
       senderName: name ?? _settings.senderName,
     );
     return await updateSettings(updatedSettings);
@@ -210,7 +298,8 @@ class EmailSettingsProvider extends ChangeNotifier {
   /// Test email configuration
   Future<bool> testEmailConfiguration() async {
     try {
-      if (!_settings.isConfigured) {
+      await _refreshSenderPasswordConfigured();
+      if (!_settings.isConfigured || !_hasSenderPassword) {
         _handleError(ErrorHandler.handleValidationError(
             'Email settings are not configured'));
         return false;
@@ -323,6 +412,7 @@ class EmailSettingsProvider extends ChangeNotifier {
   /// Reset settings to default
   Future<bool> resetToDefaults() async {
     _settings = EmailSettings();
+    await _deleteSenderPassword();
     final success = await _saveSettings();
 
     if (success) {
@@ -339,6 +429,7 @@ class EmailSettingsProvider extends ChangeNotifier {
       if (_settingsBox != null) {
         await _settingsBox!.clear();
         _settings = EmailSettings();
+        await _deleteSenderPassword();
         _syncToCloud();
         notifyListeners();
         return true;
@@ -374,6 +465,7 @@ class EmailSettingsProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _authService?.removeListener(_handleAuthChange);
     _settingsBox?.close();
     super.dispose();
   }

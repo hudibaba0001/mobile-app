@@ -38,6 +38,42 @@ class ProfileService {
     }
   }
 
+  /// Record that the user has accepted terms and privacy policy
+  Future<UserProfile?> acceptLegal({
+    String termsVersion = '1.0',
+    String privacyVersion = '1.0',
+  }) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return null;
+
+    try {
+      final now = DateTime.now().toUtc().toIso8601String();
+      final response = await _supabase
+          .from('profiles')
+          .update({
+            'terms_accepted_at': now,
+            'privacy_accepted_at': now,
+            'terms_version': termsVersion,
+            'privacy_version': privacyVersion,
+            'updated_at': now,
+          })
+          .eq('id', user.id)
+          .select()
+          .maybeSingle();
+
+      if (response == null) return null;
+
+      final profileData = Map<String, dynamic>.from(response);
+      if (profileData['email'] == null) {
+        profileData['email'] = user.email;
+      }
+      return UserProfile.fromMap(profileData);
+    } catch (e) {
+      debugPrint('ProfileService: Error accepting legal: $e');
+      rethrow;
+    }
+  }
+
   /// Check if profile exists for current user
   Future<bool> profileExists() async {
     final profile = await fetchProfile();

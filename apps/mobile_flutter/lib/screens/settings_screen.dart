@@ -3,13 +3,11 @@ import '../design/design.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../providers/locale_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/holiday_service.dart';
 import '../config/app_router.dart';
-import '../config/external_links.dart';
 import '../widgets/standard_app_bar.dart';
 import '../services/supabase_auth_service.dart';
 import '../widgets/add_red_day_dialog.dart';
@@ -483,39 +481,7 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => context.go(AppRouter.absenceManagementPath),
           ),
 
-          // Manage Subscription
-          ListTile(
-            leading: const Icon(Icons.payment_outlined),
-            title: Text(t.settings_manageSubscription),
-            subtitle: Text(t.settings_subscriptionDesc),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () async {
-              try {
-                final url = Uri.parse(ExternalLinks.manageSubscriptionUrl);
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url, mode: LaunchMode.externalApplication);
-                } else if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(t.common_error),
-                      backgroundColor: theme.colorScheme.error,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${t.common_error}: $e'),
-                      backgroundColor: theme.colorScheme.error,
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-
-          // Developer Options (only in debug mode)
+          const SizedBox(height: 32),
         ],
       ),
     );

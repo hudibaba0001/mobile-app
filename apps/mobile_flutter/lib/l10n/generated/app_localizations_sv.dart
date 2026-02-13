@@ -844,6 +844,49 @@ class AppLocalizationsSv extends AppLocalizations {
       'Aktivera restidsinmatning och relaterad statistik';
 
   @override
+  String get settings_changePassword => 'Byt lösenord';
+
+  @override
+  String get settings_changePasswordDesc => 'Uppdatera ditt kontolösenord';
+
+  @override
+  String get settings_changePasswordSent =>
+      'Länk för lösenordsåterställning har skickats till din e-post';
+
+  @override
+  String get settings_contactSupport => 'Kontakta support';
+
+  @override
+  String get settings_contactSupportDesc =>
+      'Få hjälp eller rapportera ett problem';
+
+  @override
+  String get settings_deleteAccount => 'Radera konto';
+
+  @override
+  String get settings_deleteAccountDesc =>
+      'Ta bort ditt konto och all data permanent';
+
+  @override
+  String get settings_deleteAccountConfirmTitle => 'Radera konto?';
+
+  @override
+  String get settings_deleteAccountConfirmBody =>
+      'Detta kommer permanent att radera ditt konto och all tillhörande data. Denna åtgärd kan inte ångras.';
+
+  @override
+  String get settings_deleteAccountConfirmHint =>
+      'Skriv DELETE för att bekräfta';
+
+  @override
+  String get settings_deleteAccountSuccess => 'Kontot har raderats';
+
+  @override
+  String settings_deleteAccountError(String error) {
+    return 'Kunde inte radera konto: $error';
+  }
+
+  @override
   String get common_unknown => 'Okänd';
 
   @override
@@ -2262,4 +2305,24 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get auth_passwordRequired => 'Lösenord krävs';
+
+  @override
+  String get legal_acceptTitle => 'Villkor & Integritet';
+
+  @override
+  String get legal_acceptBody =>
+      'För att fortsätta använda KvikTime, vänligen granska och godkänn våra användarvillkor och integritetspolicy.';
+
+  @override
+  String get legal_acceptButton => 'Jag accepterar';
+
+  @override
+  String get session_expiredTitle => 'Sessionen har gått ut';
+
+  @override
+  String get session_expiredBody =>
+      'Din session har gått ut. Vänligen logga in igen för att fortsätta.';
+
+  @override
+  String get session_signInAgain => 'Logga in igen';
 }

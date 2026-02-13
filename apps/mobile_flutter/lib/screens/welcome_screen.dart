@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../config/app_router.dart';
-import '../config/external_links.dart';
 import '../l10n/generated/app_localizations.dart';
 
 /// Welcome screen that serves as the entry point for new users
@@ -82,7 +80,7 @@ class WelcomeScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 48,
                   child: OutlinedButton(
-                    onPressed: () => _launchSignUpUrl(context),
+                    onPressed: () => _navigateToSignUp(context),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: theme.colorScheme.primary,
                       side: BorderSide(
@@ -149,36 +147,8 @@ class WelcomeScreen extends StatelessWidget {
     AppRouter.goToLogin(context);
   }
 
-  /// Launch the sign up URL in external browser
-  Future<void> _launchSignUpUrl(BuildContext context) async {
-    final uri = Uri.parse(ExternalLinks.signupUrl);
-
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
-          _showUrlError(context);
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        _showUrlError(context);
-      }
-    }
-  }
-
-  /// Show error message when URL cannot be launched
-  void _showUrlError(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(t.welcome_urlError),
-        backgroundColor: Theme.of(context).colorScheme.error,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+  /// Navigate to the in-app signup screen
+  void _navigateToSignUp(BuildContext context) {
+    AppRouter.goToSignup(context);
   }
 }

@@ -281,6 +281,23 @@
   "settings_region": "Region",
   "settings_travelLogging": "Restidsloggning",
   "settings_travelLoggingDesc": "Aktivera restidsinmatning och relaterad statistik",
+  "settings_changePassword": "Byt lösenord",
+  "settings_changePasswordDesc": "Uppdatera ditt kontolösenord",
+  "settings_changePasswordSent": "Länk för lösenordsåterställning har skickats till din e-post",
+  "settings_contactSupport": "Kontakta support",
+  "settings_contactSupportDesc": "Få hjälp eller rapportera ett problem",
+  "settings_deleteAccount": "Radera konto",
+  "settings_deleteAccountDesc": "Ta bort ditt konto och all data permanent",
+  "settings_deleteAccountConfirmTitle": "Radera konto?",
+  "settings_deleteAccountConfirmBody": "Detta kommer permanent att radera ditt konto och all tillhörande data. Denna åtgärd kan inte ångras.",
+  "settings_deleteAccountConfirmHint": "Skriv DELETE för att bekräfta",
+  "settings_deleteAccountSuccess": "Kontot har raderats",
+  "settings_deleteAccountError": "Kunde inte radera konto: {error}",
+  "@settings_deleteAccountError": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
 
   "common_unknown": "Okänd",
   "common_noRemarks": "Inga anteckningar",
@@ -867,5 +884,13 @@
   "auth_createAccount": "Skapa konto",
   "auth_redirectNote": "Nya användare omdirigeras till vår kontoregistreringssida",
   "auth_invalidEmail": "Ogiltig e-postadress",
-  "auth_passwordRequired": "Lösenord krävs"
+  "auth_passwordRequired": "Lösenord krävs",
+
+  "legal_acceptTitle": "Villkor & Integritet",
+  "legal_acceptBody": "För att fortsätta använda KvikTime, vänligen granska och godkänn våra användarvillkor och integritetspolicy.",
+  "legal_acceptButton": "Jag accepterar",
+
+  "session_expiredTitle": "Sessionen har gått ut",
+  "session_expiredBody": "Din session har gått ut. Vänligen logga in igen för att fortsätta.",
+  "session_signInAgain": "Logga in igen"
 }

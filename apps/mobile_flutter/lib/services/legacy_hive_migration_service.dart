@@ -154,7 +154,7 @@ class LegacyHiveMigrationService {
     final prefs = await SharedPreferences.getInstance();
     final prefsKey = '$_prefsKeyPrefix$userId';
     if (prefs.getBool(prefsKey) == true) {
-      debugPrint('LegacyHiveMigration: already migrated for user $userId');
+      debugPrint('LegacyHiveMigration: already migrated for current user');
       return;
     }
 
@@ -167,7 +167,7 @@ class LegacyHiveMigrationService {
     final hasTravelBox = await Hive.boxExists(travelBoxName);
 
     if (!hasWorkBox && !hasTravelBox) {
-      debugPrint('LegacyHiveMigration: no legacy boxes found for $userId');
+      debugPrint('LegacyHiveMigration: no legacy boxes found');
       await prefs.setBool(prefsKey, true);
       return;
     }

@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -45,11 +46,17 @@ import 'models/balance_adjustment_adapter.dart';
 import 'models/user_red_day_adapter.dart';
 import 'utils/constants.dart';
 
+void _configureReleaseLogging() {
+  if (!kReleaseMode) return;
+  debugPrint = (String? message, {int? wrapWidth}) {};
+}
+
 void main() async {
   // Add this line to use "clean" URLs
   usePathUrlStrategy();
 
   WidgetsFlutterBinding.ensureInitialized();
+  _configureReleaseLogging();
 
   // Initialize Hive for local storage
   await Hive.initFlutter();
@@ -364,6 +371,45 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
       if (result.succeeded > 0) {
         debugPrint('main: Auto-synced ${result.succeeded} pending operations');
       }
+    });
+
+    // Wire session expiry callback to redirect to login
+    final authService = context.read<SupabaseAuthService>();
+    authService.onSessionExpired = () {
+      debugPrint('main: Session expired, redirecting to login');
+      final navContext = AppRouter.navigatorKey.currentContext;
+      if (navContext != null) {
+        _showSessionExpiredDialog(navContext);
+      }
+    };
+  }
+
+  void _showSessionExpiredDialog(BuildContext ctx) {
+    // Use a post-frame callback to avoid showing dialog during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navContext = AppRouter.navigatorKey.currentContext;
+      if (navContext == null) return;
+
+      showDialog(
+        context: navContext,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          final t = AppLocalizations.of(dialogContext);
+          return AlertDialog(
+            title: Text(t.session_expiredTitle),
+            content: Text(t.session_expiredBody),
+            actions: [
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  AppRouter.goToLogin(navContext);
+                },
+                child: Text(t.session_signInAgain),
+              ),
+            ],
+          );
+        },
+      );
     });
   }
 

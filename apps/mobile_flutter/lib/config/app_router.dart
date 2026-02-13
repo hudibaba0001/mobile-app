@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../widgets/app_scaffold.dart';
 import '../screens/login_screen.dart';
+import '../screens/signup_screen.dart';
 import '../screens/forgot_password_screen.dart';
 import '../screens/unified_home_screen.dart';
 import '../screens/settings_screen.dart';
@@ -23,6 +24,7 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
   static const String loginPath = '/login';
+  static const String signupPath = '/signup';
   static const String forgotPasswordPath = '/forgot-password';
 
   static const String homePath = '/';
@@ -39,6 +41,7 @@ class AppRouter {
   static const String absenceManagementPath = '/absences';
 
   static const String loginName = 'login';
+  static const String signupName = 'signup';
   static const String forgotPasswordName = 'forgot-password';
 
   static const String homeName = 'home';
@@ -62,6 +65,7 @@ class AppRouter {
       final isAuthenticated = authService.isAuthenticated;
       final isInitialized = authService.isInitialized;
       final isLoggingIn = state.matchedLocation == loginPath;
+      final isSigningUp = state.matchedLocation == signupPath;
       final isForgotPassword = state.matchedLocation == forgotPasswordPath;
       final isAnalyticsRoute = state.matchedLocation == analyticsPath;
 
@@ -71,7 +75,7 @@ class AppRouter {
       }
 
       // Allow access to auth-related screens without authentication
-      if (isForgotPassword) {
+      if (isForgotPassword || isSigningUp) {
         return null;
       }
 
@@ -92,7 +96,7 @@ class AppRouter {
         return loginPath;
       }
 
-      if (isAuthenticated && isLoggingIn) {
+      if (isAuthenticated && (isLoggingIn || isSigningUp)) {
         return homePath;
       }
       return null;
@@ -106,6 +110,12 @@ class AppRouter {
           final email = state.uri.queryParameters['email'];
           return LoginScreen(initialEmail: email);
         },
+      ),
+
+      GoRoute(
+        path: signupPath,
+        name: signupName,
+        builder: (context, state) => const SignupScreen(),
       ),
 
       GoRoute(
@@ -221,6 +231,7 @@ class AppRouter {
 
   static void goToForgotPassword(BuildContext context) =>
       context.goNamed(forgotPasswordName);
+  static void goToSignup(BuildContext context) => context.goNamed(signupName);
 
   static void goToHome(BuildContext context) => context.goNamed(homeName);
   static void goToSettings(BuildContext context) =>

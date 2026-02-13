@@ -10,9 +10,6 @@ class EmailSettings extends HiveObject {
   @HiveField(1)
   String senderEmail;
 
-  @HiveField(2)
-  String senderPassword;
-
   @HiveField(3)
   String senderName;
 
@@ -61,7 +58,6 @@ class EmailSettings extends HiveObject {
   EmailSettings({
     this.managerEmail = '',
     this.senderEmail = '',
-    this.senderPassword = '',
     this.senderName = '',
     this.autoSendEnabled = false,
     this.autoSendFrequency = 'weekly',
@@ -81,9 +77,7 @@ class EmailSettings extends HiveObject {
 
   // Convenience getters
   bool get isConfigured =>
-      managerEmail.isNotEmpty &&
-      senderEmail.isNotEmpty &&
-      senderPassword.isNotEmpty;
+      managerEmail.isNotEmpty && senderEmail.isNotEmpty;
 
   String get displayName => senderName.isNotEmpty ? senderName : senderEmail;
 
@@ -91,7 +85,6 @@ class EmailSettings extends HiveObject {
   EmailSettings copyWith({
     String? managerEmail,
     String? senderEmail,
-    String? senderPassword,
     String? senderName,
     bool? autoSendEnabled,
     String? autoSendFrequency,
@@ -111,7 +104,6 @@ class EmailSettings extends HiveObject {
     return EmailSettings(
       managerEmail: managerEmail ?? this.managerEmail,
       senderEmail: senderEmail ?? this.senderEmail,
-      senderPassword: senderPassword ?? this.senderPassword,
       senderName: senderName ?? this.senderName,
       autoSendEnabled: autoSendEnabled ?? this.autoSendEnabled,
       autoSendFrequency: autoSendFrequency ?? this.autoSendFrequency,
@@ -147,12 +139,6 @@ class EmailSettings extends HiveObject {
       errors.add('Sender email is required');
     } else if (!_isValidEmail(senderEmail)) {
       errors.add('Sender email is not valid');
-    }
-
-    if (senderPassword.isEmpty) {
-      errors.add('Email password is required');
-    } else if (senderPassword.length < 6) {
-      errors.add('Email password must be at least 6 characters');
     }
 
     if (smtpServer.isEmpty) {

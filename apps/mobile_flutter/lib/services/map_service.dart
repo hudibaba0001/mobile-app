@@ -86,8 +86,7 @@ class MapService {
         'steps': 'false',
       });
 
-      debugPrint(
-          'MapService: Calculating travel time from "$origin" to "$destination"');
+      debugPrint('MapService: Calculating travel time (addresses redacted)');
 
       final response = await http.get(uri).timeout(const Duration(seconds: 15));
 
@@ -170,7 +169,7 @@ class MapService {
     final features = data['features'] as List;
 
     if (features.isEmpty) {
-      throw Exception('Address not found: $address');
+      throw Exception('Address not found');
     }
 
     final coordinates = features[0]['center'] as List;
@@ -255,8 +254,7 @@ class MapService {
           .where((address) => address.isNotEmpty)
           .toList();
 
-      debugPrint(
-          'MapService: Found ${suggestions.length} address suggestions for "$query"');
+      debugPrint('MapService: Found ${suggestions.length} address suggestions');
       return suggestions;
     } catch (e) {
       debugPrint('MapService: Error getting address suggestions: $e');

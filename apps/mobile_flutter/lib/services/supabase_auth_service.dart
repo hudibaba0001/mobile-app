@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
 import 'auth_service.dart';
@@ -64,7 +65,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
 
       if (data.session != null) {
         debugPrint(
-            'SupabaseAuthService: User authenticated: ${data.session!.user.email}');
+            'SupabaseAuthService: User authenticated');
         _sessionExpiredNotified = false; // Reset on successful auth
       } else {
         debugPrint('SupabaseAuthService: User signed out or session expired');
@@ -133,7 +134,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
 
   // Sign in with email and password
   Future<AuthResponse> signIn(String email, String password) async {
-    debugPrint('SupabaseAuthService: Attempting sign in for email: $email');
+    debugPrint('SupabaseAuthService: Attempting sign in');
     try {
       final response = await _supabase.auth.signInWithPassword(
         email: email,
@@ -149,12 +150,26 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
 
   // Sign up with email and password
   Future<AuthResponse> signUp(String email, String password) async {
-    debugPrint('SupabaseAuthService: Attempting sign up for email: $email');
+    debugPrint('SupabaseAuthService: Attempting sign up');
     try {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
       );
+
+      // If signup flow did not create a session (email confirmation flows),
+      // attempt a password sign-in so in-app signup can continue.
+      if (response.session == null) {
+        debugPrint(
+            'SupabaseAuthService: Sign up created no session, attempting sign in');
+        final signInResponse = await _supabase.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+        debugPrint('SupabaseAuthService: Sign in after sign up successful');
+        return signInResponse;
+      }
+
       debugPrint('SupabaseAuthService: Sign up successful');
       return response;
     } catch (e) {
@@ -179,7 +194,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
   // Reset password (AuthService interface)
   @override
   Future<void> sendPasswordResetEmail(String email) async {
-    debugPrint('SupabaseAuthService: Sending password reset email to: $email');
+    debugPrint('SupabaseAuthService: Sending password reset email');
     try {
       // Redirect to web-based password reset page
       final redirectTo = 'https://app.kviktime.se/reset-password';
@@ -266,6 +281,22 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     required String password,
   }) async {
     await signIn(email, password);
+  }
+
+  // Delete own account and all associated data
+  Future<void> deleteAccount() async {
+    final session = currentSession;
+    if (session == null) throw Exception('Not authenticated');
+
+    final uri = Uri.https('app.kviktime.se', '/api/delete-account');
+    final response = await http.delete(uri, headers: {
+      'Authorization': 'Bearer ${session.accessToken}',
+      'Content-Type': 'application/json',
+    });
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete account');
+    }
   }
 
   // Create account for development

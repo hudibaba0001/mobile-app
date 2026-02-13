@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../widgets/app_scaffold.dart';
 import '../screens/login_screen.dart';
+import '../screens/signup_screen.dart';
 import '../screens/unified_home_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/reports_screen.dart';
@@ -20,6 +21,7 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
   static const String loginPath = '/login';
+  static const String signupPath = '/signup';
   static const String homePath = '/';
   static const String settingsPath = '/settings';
   static const String reportsPath = '/reports';
@@ -32,6 +34,7 @@ class AppRouter {
   static const String absenceManagementPath = '/absences';
 
   static const String loginName = 'login';
+  static const String signupName = 'signup';
   static const String homeName = 'home';
   static const String settingsName = 'settings';
   static const String reportsName = 'reports';
@@ -51,17 +54,18 @@ class AppRouter {
       final isAuthenticated = authService.isAuthenticated;
       final isInitialized = authService.isInitialized;
       final isLoggingIn = state.matchedLocation == loginPath;
+      final isSigningUp = state.matchedLocation == signupPath;
 
       // Wait for AuthService to be initialized
       if (!isInitialized) {
         return null; // Don't redirect yet
       }
 
-      if (!isAuthenticated && !isLoggingIn) {
+      if (!isAuthenticated && !isLoggingIn && !isSigningUp) {
         return loginPath;
       }
 
-      if (isAuthenticated && isLoggingIn) {
+      if (isAuthenticated && (isLoggingIn || isSigningUp)) {
         return homePath;
       }
       return null;
@@ -75,6 +79,12 @@ class AppRouter {
           final email = state.uri.queryParameters['email'];
           return LoginScreen(initialEmail: email);
         },
+      ),
+
+      GoRoute(
+        path: signupPath,
+        name: signupName,
+        builder: (context, state) => const SignupScreen(),
       ),
 
       // Shell with bottom navigation for main tabs
@@ -169,6 +179,7 @@ class AppRouter {
       context.goNamed(loginName);
     }
   }
+  static void goToSignup(BuildContext context) => context.goNamed(signupName);
 
   static void goToHome(BuildContext context) => context.goNamed(homeName);
   static void goToSettings(BuildContext context) =>

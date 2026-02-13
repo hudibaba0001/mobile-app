@@ -17,37 +17,34 @@ class EmailSettingsAdapter extends TypeAdapter<EmailSettings> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return EmailSettings(
-      managerEmail: fields[0] as String,
-      senderEmail: fields[1] as String,
-      senderPassword: fields[2] as String,
-      senderName: fields[3] as String,
-      autoSendEnabled: fields[4] as bool,
-      autoSendFrequency: fields[5] as String,
-      autoSendDay: fields[6] as int,
-      defaultReportFormat: fields[7] as String,
-      defaultReportPeriod: fields[8] as String,
-      customSubjectTemplate: fields[9] as String,
-      customMessageTemplate: fields[10] as String,
-      includeCharts: fields[11] as bool,
-      includeSummary: fields[12] as bool,
-      includeDetailedEntries: fields[13] as bool,
+      managerEmail: (fields[0] as String?) ?? '',
+      senderEmail: (fields[1] as String?) ?? '',
+      senderName: (fields[3] as String?) ?? '',
+      autoSendEnabled: (fields[4] as bool?) ?? false,
+      autoSendFrequency: (fields[5] as String?) ?? 'weekly',
+      autoSendDay: (fields[6] as int?) ?? 1,
+      defaultReportFormat: (fields[7] as String?) ?? 'excel',
+      defaultReportPeriod: (fields[8] as String?) ?? 'lastWeek',
+      customSubjectTemplate: (fields[9] as String?) ?? '',
+      customMessageTemplate: (fields[10] as String?) ?? '',
+      includeCharts: (fields[11] as bool?) ?? true,
+      includeSummary: (fields[12] as bool?) ?? true,
+      includeDetailedEntries: (fields[13] as bool?) ?? true,
       lastSentDate: fields[14] as DateTime?,
-      smtpServer: fields[15] as String,
-      smtpPort: fields[16] as int,
-      useSSL: fields[17] as bool,
+      smtpServer: (fields[15] as String?) ?? 'smtp.gmail.com',
+      smtpPort: (fields[16] as int?) ?? 587,
+      useSSL: (fields[17] as bool?) ?? true,
     );
   }
 
   @override
   void write(BinaryWriter writer, EmailSettings obj) {
     writer
-      ..writeByte(18)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.managerEmail)
       ..writeByte(1)
       ..write(obj.senderEmail)
-      ..writeByte(2)
-      ..write(obj.senderPassword)
       ..writeByte(3)
       ..write(obj.senderName)
       ..writeByte(4)

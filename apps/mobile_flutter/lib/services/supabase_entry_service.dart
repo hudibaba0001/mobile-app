@@ -125,7 +125,8 @@ class SupabaseEntryService {
         } catch (e) {
           debugPrint(
               'SupabaseEntryService: Error parsing entry from Supabase: $e');
-          debugPrint('SupabaseEntryService: Entry data: $entryRow');
+          debugPrint(
+              'SupabaseEntryService: Entry parse failed');
         }
       }
 
@@ -316,7 +317,6 @@ class SupabaseEntryService {
       };
 
       debugPrint('SupabaseEntryService: Inserting entry with ID: $entryId');
-      debugPrint('SupabaseEntryService: Entry data: $entryData');
 
       // Insert into entries table
       final entryResponse =
@@ -452,8 +452,7 @@ class SupabaseEntryService {
       return updatedEntry;
     } catch (e) {
       debugPrint('SupabaseEntryService: ❌ Error adding entry to Supabase: $e');
-      debugPrint(
-          'SupabaseEntryService: Entry data that failed: ${entry.toJson()}');
+      debugPrint('SupabaseEntryService: Entry add failed (id=${entry.id})');
       debugPrint('SupabaseEntryService: Error type: ${e.runtimeType}');
       debugPrint('SupabaseEntryService: Error details: ${e.toString()}');
 
@@ -594,8 +593,7 @@ class SupabaseEntryService {
       // Reload the entry with all related data
       return await getEntryById(entry.id, entry.userId) ?? entry;
     } catch (e) {
-      debugPrint('Error updating entry in Supabase: $e');
-      debugPrint('Entry data: ${entry.toJson()}');
+      debugPrint('Error updating entry in Supabase (id=${entry.id}): $e');
       rethrow;
     }
   }

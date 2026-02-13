@@ -1,9 +1,14 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../design/design.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
+import '../config/external_links.dart';
 import '../l10n/generated/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -37,7 +42,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final user = context.read<SupabaseAuthService>().currentUser;
+    final authService = context.watch<SupabaseAuthService>();
+    final user = authService.currentUser;
 
     if (user == null) {
       return Scaffold(body: Center(child: Text(t.profile_notSignedIn)));
@@ -54,17 +60,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => AppRouter.goBackOrHome(context),
         ),
-        actions: [
-          TextButton(
-            onPressed: _handleSignOut,
-            child: Text(
-              t.profile_signOut,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(24.0),
@@ -88,11 +83,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
 
-          const SizedBox(height: 32),
-
-          // User Info Section
+          // User Info Card
           Card(
             elevation: 0,
             color: theme.colorScheme.surfaceContainerHighest
@@ -109,22 +102,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Name',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Name',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
-                          ),
-                          Text(
-                            user.userMetadata?['full_name'] ??
-                                user.email ??
-                                '—',
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                        ],
+                            Text(
+                              user.userMetadata?['full_name'] ??
+                                  user.email ??
+                                  '—',
+                              style: theme.textTheme.bodyLarge,
+                            ),
+                          ],
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.edit_outlined),
@@ -153,6 +148,120 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+
+          const SizedBox(height: 16),
+
+          // Change Password
+          ListTile(
+            leading: const Icon(Icons.lock_outline),
+            title: Text(t.settings_changePassword),
+            subtitle: Text(t.settings_changePasswordDesc),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final email = authService.currentUserEmail;
+              if (email == null) return;
+              try {
+                await authService.sendPasswordResetEmail(email);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(t.settings_changePasswordSent)),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${t.common_error}: $e'),
+                      backgroundColor: theme.colorScheme.error,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+
+          // Manage Subscription
+          ListTile(
+            leading: const Icon(Icons.payment_outlined),
+            title: Text(t.settings_manageSubscription),
+            subtitle: Text(t.settings_subscriptionDesc),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () => launchUrl(
+              Uri.parse(ExternalLinks.manageSubscriptionUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+          ),
+
+          const Divider(),
+
+          // Privacy Policy
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text(t.settings_privacy),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () => launchUrl(
+              Uri.parse(ExternalLinks.privacyUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+          ),
+
+          // Terms of Service
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(t.settings_terms),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () => launchUrl(
+              Uri.parse(ExternalLinks.termsUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+          ),
+
+          // Contact Support
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: Text(t.settings_contactSupport),
+            subtitle: Text(t.settings_contactSupportDesc),
+            trailing: const Icon(Icons.open_in_new, size: 18),
+            onTap: () => launchUrl(
+              Uri.parse('mailto:${ExternalLinks.supportEmail}'),
+            ),
+          ),
+
+          // About / Version
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              final version = snapshot.hasData
+                  ? '${snapshot.data!.version} (${snapshot.data!.buildNumber})'
+                  : '...';
+              return ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(t.settings_about),
+                subtitle: Text(t.settings_version(version)),
+              );
+            },
+          ),
+
+          const Divider(),
+
+          // Sign Out
+          ListTile(
+            leading: Icon(Icons.logout, color: theme.colorScheme.onSurfaceVariant),
+            title: Text(t.profile_signOut),
+            onTap: _handleSignOut,
+          ),
+
+          // Delete Account
+          ListTile(
+            leading: Icon(Icons.delete_forever, color: theme.colorScheme.error),
+            title: Text(
+              t.settings_deleteAccount,
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
+            subtitle: Text(t.settings_deleteAccountDesc),
+            onTap: () => _showDeleteAccountDialog(context, authService, t),
+          ),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -229,5 +338,99 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showDeleteAccountDialog(
+    BuildContext context,
+    SupabaseAuthService authService,
+    AppLocalizations t,
+  ) async {
+    String confirmationText = '';
+    bool isDeleting = false;
+    final theme = Theme.of(context);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(t.settings_deleteAccountConfirmTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                t.settings_deleteAccountConfirmBody,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                t.settings_deleteAccountConfirmHint,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                onChanged: (value) {
+                  setState(() => confirmationText = value);
+                },
+                decoration: InputDecoration(
+                  hintText: 'DELETE',
+                  border: const OutlineInputBorder(),
+                  enabled: !isDeleting,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isDeleting ? null : () => Navigator.of(context).pop(false),
+              child: Text(t.common_cancel),
+            ),
+            FilledButton(
+              onPressed: isDeleting || confirmationText != 'DELETE'
+                  ? null
+                  : () async {
+                      setState(() => isDeleting = true);
+                      try {
+                        await authService.deleteAccount();
+                        if (!context.mounted) return;
+                        Navigator.of(context).pop(true);
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        setState(() => isDeleting = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(t.settings_deleteAccountError(e.toString())),
+                            backgroundColor: theme.colorScheme.error,
+                          ),
+                        );
+                      }
+                    },
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+              ),
+              child: isDeleting
+                  ? SizedBox(
+                      width: AppIconSize.sm,
+                      height: AppIconSize.sm,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            theme.colorScheme.onError),
+                      ),
+                    )
+                  : Text(t.settings_deleteAccount),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await authService.signOut();
+      if (context.mounted) {
+        context.go(AppRouter.loginPath);
+      }
+    }
   }
 }

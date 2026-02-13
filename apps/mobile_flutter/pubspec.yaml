@@ -60,6 +60,9 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
   connectivity_plus: ^7.0.0
+  package_info_plus: ^9.0.0
+  flutter_secure_storage: ^10.0.0
+  in_app_purchase: ^3.2.2
 
 dev_dependencies:
   flutter_test:

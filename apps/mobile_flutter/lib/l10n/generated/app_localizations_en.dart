@@ -844,6 +844,47 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enable travel time entry and related stats';
 
   @override
+  String get settings_changePassword => 'Change Password';
+
+  @override
+  String get settings_changePasswordDesc => 'Update your account password';
+
+  @override
+  String get settings_changePasswordSent =>
+      'Password reset link sent to your email';
+
+  @override
+  String get settings_contactSupport => 'Contact Support';
+
+  @override
+  String get settings_contactSupportDesc => 'Get help or report an issue';
+
+  @override
+  String get settings_deleteAccount => 'Delete Account';
+
+  @override
+  String get settings_deleteAccountDesc =>
+      'Permanently delete your account and all data';
+
+  @override
+  String get settings_deleteAccountConfirmTitle => 'Delete Account?';
+
+  @override
+  String get settings_deleteAccountConfirmBody =>
+      'This will permanently delete your account and all associated data. This action cannot be undone.';
+
+  @override
+  String get settings_deleteAccountConfirmHint => 'Type DELETE to confirm';
+
+  @override
+  String get settings_deleteAccountSuccess => 'Account deleted successfully';
+
+  @override
+  String settings_deleteAccountError(String error) {
+    return 'Failed to delete account: $error';
+  }
+
+  @override
   String get common_unknown => 'Unknown';
 
   @override
@@ -2266,4 +2307,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get auth_passwordRequired => 'Password is required';
+
+  @override
+  String get legal_acceptTitle => 'Terms & Privacy';
+
+  @override
+  String get legal_acceptBody =>
+      'To continue using KvikTime, please review and accept our Terms of Service and Privacy Policy.';
+
+  @override
+  String get legal_acceptButton => 'I Accept';
+
+  @override
+  String get session_expiredTitle => 'Session Expired';
+
+  @override
+  String get session_expiredBody =>
+      'Your session has expired. Please sign in again to continue.';
+
+  @override
+  String get session_signInAgain => 'Sign In Again';
 }

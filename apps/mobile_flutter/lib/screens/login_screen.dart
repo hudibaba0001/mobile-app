@@ -4,10 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
-import '../config/external_links.dart';
 import '../design/app_theme.dart';
 import '../l10n/generated/app_localizations.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
@@ -76,11 +74,8 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  Future<void> _launchSignup() async {
-    final url = Uri.parse(ExternalLinks.signupUrl);
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+  void _launchSignup() {
+    AppRouter.goToSignup(context);
   }
 
   Future<void> _signIn() async {

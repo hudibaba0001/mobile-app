@@ -8,6 +8,7 @@ Next.js web application for user signup and Stripe billing management.
 - Stripe Checkout integration with 7-day free trial
 - Stripe webhook handling for subscription status
 - Customer billing portal access
+- Cross-client password reset flow for mobile users
 
 ## Setup
 
@@ -31,6 +32,9 @@ Required environment variables:
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anon key
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (server-only)
+- `GOOGLE_PLAY_PACKAGE_NAME` - Android package name (for Play verify)
+- `GOOGLE_PLAY_ALLOWED_PRODUCT_IDS` - Comma separated subscription product IDs
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` - Google service account JSON (escaped in env)
 - `STRIPE_SECRET_KEY` - Stripe secret key
 - `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
 - `STRIPE_PRICE_ID_MONTHLY` - Stripe price ID for 59 SEK/month subscription
@@ -65,6 +69,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+### 6. Configure password reset template (Supabase)
+
+For mobile-initiated reset links, configure the Supabase **Reset Password** email template to use `token_hash` and this route:
+
+```html
+<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next={{ .RedirectTo }}">Reset Password</a>
+```
+
+Keep your Flutter `resetPasswordForEmail(..., redirectTo: 'https://app.kviktime.se/reset-password')` value in Supabase Redirect URLs.
+
 ## Pages
 
 - `/` - Home/landing page
@@ -72,6 +86,7 @@ Open [http://localhost:3000](http://localhost:3000)
 - `/signup/success` - Payment success confirmation
 - `/signup/cancel` - Payment canceled
 - `/account` - Manage subscription (access billing portal)
+- `/auth/confirm` - Verifies reset `token_hash` and redirects with recovery session
 - `/terms` - Terms of Service (placeholder)
 - `/privacy` - Privacy Policy (placeholder)
 
@@ -80,6 +95,8 @@ Open [http://localhost:3000](http://localhost:3000)
 - `POST /api/signup/checkout` - Create user and Stripe Checkout session
 - `POST /api/stripe/webhook` - Handle Stripe webhook events
 - `POST /api/billing/portal` - Create Stripe Customer Portal session
+- `POST /api/mobile/profile/bootstrap` - Ensure profile + pending entitlement row
+- `POST /api/billing/google/verify` - Verify Google Play purchase token and persist entitlement
 
 ## Deployment
 

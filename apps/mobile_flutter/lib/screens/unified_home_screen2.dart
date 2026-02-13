@@ -3377,19 +3377,44 @@ class _ShiftData {
   }
 
   TimeOfDay? _parseTimeOfDay(String timeString) {
-    try {
-      // Handle 24h format "HH:mm" (written by time picker)
-      final timeParts = timeString.trim().split(':');
-      if (timeParts.length == 2) {
-        final hour = int.parse(timeParts[0]);
-        final minute = int.parse(timeParts[1]);
-        if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-          return TimeOfDay(hour: hour, minute: minute);
-        }
+    final input = timeString.trim();
+    if (input.isEmpty) return null;
+
+    // 24h format: "H:mm" / "HH:mm"
+    final match24 = RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(input);
+    if (match24 != null) {
+      final hour = int.tryParse(match24.group(1) ?? '');
+      final minute = int.tryParse(match24.group(2) ?? '');
+      if (hour != null &&
+          minute != null &&
+          hour >= 0 &&
+          hour <= 23 &&
+          minute >= 0 &&
+          minute <= 59) {
+        return TimeOfDay(hour: hour, minute: minute);
       }
-      return null;
-    } catch (e) {
-      return null;
     }
+
+    // 12h format: "h:mm AM/PM" (with optional space)
+    final match12 =
+        RegExp(r'^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$').firstMatch(input);
+    if (match12 != null) {
+      var hour = int.tryParse(match12.group(1) ?? '');
+      final minute = int.tryParse(match12.group(2) ?? '');
+      final amPm = (match12.group(3) ?? '').toLowerCase();
+      if (hour == null || minute == null) return null;
+      if (hour < 1 || hour > 12 || minute < 0 || minute > 59) return null;
+
+      if (amPm == 'am') {
+        if (hour == 12) hour = 0;
+      } else if (amPm == 'pm') {
+        if (hour != 12) hour += 12;
+      } else {
+        return null;
+      }
+      return TimeOfDay(hour: hour, minute: minute);
+    }
+
+    return null;
   }
 }

@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -43,11 +44,17 @@ import 'models/balance_adjustment_adapter.dart';
 import 'models/user_red_day_adapter.dart';
 import 'utils/constants.dart';
 
+void _configureReleaseLogging() {
+  if (!kReleaseMode) return;
+  debugPrint = (String? message, {int? wrapWidth}) {};
+}
+
 void main() async {
   // Add this line to use "clean" URLs
   usePathUrlStrategy();
 
   WidgetsFlutterBinding.ensureInitialized();
+  _configureReleaseLogging();
 
   await Hive.initFlutter();
   Hive.registerAdapter(TravelLegAdapter());
