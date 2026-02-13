@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 import '../design/components/app_card.dart';
@@ -16,6 +17,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isLoading = false;
+
+  String _buildResetErrorMessage(Object error) {
+    if (error is AuthException) {
+      if (error.code == 'over_email_send_rate_limit') {
+        return 'Too many reset requests. Wait a few minutes and try again.';
+      }
+      return error.message;
+    }
+    return 'Could not send reset link. Please try again.';
+  }
 
   @override
   void dispose() {
@@ -187,7 +198,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(_buildResetErrorMessage(e)),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

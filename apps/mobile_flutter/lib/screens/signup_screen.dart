@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_router.dart';
 import '../services/entitlement_service.dart';
@@ -24,6 +25,22 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool _isLoading = false;
   String? _error;
+
+  String _buildSignupErrorMessage(Object error) {
+    if (error is AuthException) {
+      switch (error.code) {
+        case 'over_email_send_rate_limit':
+          return 'Too many email requests. Wait a few minutes and try again.';
+        case 'email_not_confirmed':
+          return 'Email confirmation is required. Check your inbox and confirm, then sign in.';
+        case 'user_already_exists':
+          return 'An account with this email already exists. Please sign in.';
+        default:
+          return error.message;
+      }
+    }
+    return 'Could not create account. Please try again.';
+  }
 
   @override
   void dispose() {
@@ -60,7 +77,7 @@ class _SignupScreenState extends State<SignupScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = _buildSignupErrorMessage(e);
       });
     } finally {
       if (mounted) {

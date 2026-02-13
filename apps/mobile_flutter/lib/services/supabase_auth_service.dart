@@ -151,6 +151,42 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
   // Sign up with email and password
   Future<AuthResponse> signUp(String email, String password) async {
     debugPrint('SupabaseAuthService: Attempting sign up');
+
+    // Avoid repeatedly triggering signup emails for an already-created account.
+    // Try password sign-in first; if user exists but is unconfirmed, surface that.
+    try {
+      final existingSignIn = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      debugPrint(
+          'SupabaseAuthService: Existing account signed in instead of new sign up');
+      return existingSignIn;
+    } on AuthApiException catch (signInError) {
+      final code = signInError.code ?? '';
+      if (code == 'email_not_confirmed') {
+        debugPrint(
+            'SupabaseAuthService: Account exists but email is not confirmed');
+        throw AuthApiException(
+          'Email confirmation is required. Check your inbox and confirm, then sign in.',
+          statusCode: signInError.statusCode,
+          code: signInError.code,
+        );
+      }
+
+      const signInNotFoundCodes = {
+        'invalid_credentials',
+        'invalid_login_credentials',
+        'invalid_grant',
+        'user_not_found',
+      };
+
+      // If sign-in failed for reasons other than "no usable account", abort.
+      if (!signInNotFoundCodes.contains(code)) {
+        rethrow;
+      }
+    }
+
     try {
       final response = await _supabase.auth.signUp(
         email: email,
