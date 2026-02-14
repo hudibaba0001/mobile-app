@@ -2298,6 +2298,449 @@ class AppLocalizationsSv extends AppLocalizations {
   String get travel_notesHint => 'Lägg till detaljer om din resa...';
 
   @override
+  String get common_user => 'Användare';
+
+  @override
+  String get settings_timeBalanceTracking => 'Flexsaldospårning';
+
+  @override
+  String get settings_timeBalanceTrackingDesc =>
+      'Stäng av om du bara vill logga timmar utan att jämföra mot ett mål.';
+
+  @override
+  String leave_daysDecimal(String days) {
+    return '$days dagar';
+  }
+
+  @override
+  String get trends_errorLoadingData => 'Fel vid laddning av trenddata';
+
+  @override
+  String get trends_tryRefreshingPage => 'Försök uppdatera sidan';
+
+  @override
+  String get trends_target => 'Mål';
+
+  @override
+  String get trends_noHoursDataAvailable => 'Ingen timdata tillgänglig';
+
+  @override
+  String network_offlinePending(int count) {
+    return 'Offline - $count ändringar väntar';
+  }
+
+  @override
+  String get network_youAreOffline => 'Du är offline';
+
+  @override
+  String get network_syncingChanges => 'Synkroniserar ändringar...';
+
+  @override
+  String network_readyToSync(int count) {
+    return '$count ändringar redo att synkroniseras';
+  }
+
+  @override
+  String get network_syncNow => 'Synka nu';
+
+  @override
+  String get network_offlineTooltip => 'Offline';
+
+  @override
+  String network_pendingTooltip(int count) {
+    return '$count väntar';
+  }
+
+  @override
+  String get network_offlineSnackbar =>
+      'Du är offline. Ändringar synkas när du är ansluten.';
+
+  @override
+  String get network_backOnline => 'Tillbaka online';
+
+  @override
+  String network_syncedChanges(int count) {
+    return 'Synkade $count ändringar';
+  }
+
+  @override
+  String network_syncFailed(String error) {
+    return 'Synk misslyckades: $error';
+  }
+
+  @override
+  String get network_networkErrorTryAgain => 'Nätverksfel. Försök igen.';
+
+  @override
+  String get paywall_notAuthenticated => 'Inte inloggad';
+
+  @override
+  String get paywall_title => 'KvikTime Premium';
+
+  @override
+  String get paywall_unlockAllFeatures => 'Lås upp alla KvikTime-funktioner';
+
+  @override
+  String get paywall_subscribeWithGooglePlay =>
+      'Prenumerera med Google Play Billing för att fortsätta.';
+
+  @override
+  String get paywall_featureFullHistoryReports => 'Full historik och rapporter';
+
+  @override
+  String get paywall_featureCloudSync => 'Molnsynk mellan enheter';
+
+  @override
+  String get paywall_featureSecureSubscription => 'Säker prenumerationsstatus';
+
+  @override
+  String paywall_currentEntitlement(String status) {
+    return 'Aktuell behörighet: $status';
+  }
+
+  @override
+  String get paywall_subscriptionUnavailable => 'Prenumeration ej tillgänglig';
+
+  @override
+  String paywall_subscribe(String price) {
+    return 'Prenumerera $price';
+  }
+
+  @override
+  String get paywall_restorePurchase => 'Återställ köp';
+
+  @override
+  String get paywall_manageSubscriptionGooglePlay =>
+      'Hantera prenumeration i Google Play';
+
+  @override
+  String get paywall_signOut => 'Logga ut';
+
+  @override
+  String get location_addNewLocation => 'Lägg till ny plats';
+
+  @override
+  String get location_saveFrequentPlace => 'Spara en plats du besöker ofta';
+
+  @override
+  String get location_details => 'Platsdetaljer';
+
+  @override
+  String get location_name => 'Platsnamn';
+
+  @override
+  String get location_nameHint => 't.ex. Kontor, Hem, Kundplats';
+
+  @override
+  String get location_nameShortHint => 't.ex. Hem, Kontor, Gym';
+
+  @override
+  String get location_enterName => 'Ange ett platsnamn';
+
+  @override
+  String get location_enterAddress => 'Ange en adress';
+
+  @override
+  String get location_addedSuccessfully => 'Plats tillagd';
+
+  @override
+  String get location_kpiTotal => 'Totalt';
+
+  @override
+  String get location_kpiFavorites => 'Favoriter';
+
+  @override
+  String get location_kpiTotalUses => 'Totalt antal användningar';
+
+  @override
+  String get location_searchLocations => 'Sök platser...';
+
+  @override
+  String get location_noLocationsYet => 'Inga platser ännu';
+
+  @override
+  String get location_trySearchOrAdd =>
+      'Prova att söka eller lägga till en ny plats';
+
+  @override
+  String get location_noMatchesFound => 'Inga träffar';
+
+  @override
+  String get location_tryDifferentSearch => 'Prova ett annat sökord';
+
+  @override
+  String get location_noSavedYet => 'Inga sparade platser ännu';
+
+  @override
+  String get location_addFirstToGetStarted =>
+      'Lägg till din första plats för att komma igång';
+
+  @override
+  String get location_removeFromFavorites => 'Ta bort från favoriter';
+
+  @override
+  String get location_addToFavorites => 'Lägg till i favoriter';
+
+  @override
+  String get location_savedLocations => 'Sparade platser';
+
+  @override
+  String get location_addressSuggestions => 'Adressförslag';
+
+  @override
+  String get location_searchingAddresses => 'Söker adresser...';
+
+  @override
+  String get location_recentAddresses => 'Senaste adresser';
+
+  @override
+  String get location_startTypingToAdd =>
+      'Börja skriva för att lägga till en ny plats';
+
+  @override
+  String get location_recentLocations => 'Senaste platser';
+
+  @override
+  String location_saveAsNew(String address) {
+    return 'Spara \"$address\" som ny plats';
+  }
+
+  @override
+  String get location_favorites => 'Favoriter';
+
+  @override
+  String get location_recent => 'Senaste';
+
+  @override
+  String edit_durationAutofilledFromHistory(int minutes) {
+    return 'Varaktighet autofylld från historik ($minutes min)';
+  }
+
+  @override
+  String get edit_quickDuration => 'Snabb varaktighet';
+
+  @override
+  String get edit_copyYesterday => 'Kopiera igår';
+
+  @override
+  String get edit_noWorkEntryYesterday => 'Ingen arbetspost hittades för igår';
+
+  @override
+  String get edit_copiedYesterdayShiftTimes => 'Kopierade gårdagens skifttider';
+
+  @override
+  String get edit_swapFromTo => 'Byt Från/Till';
+
+  @override
+  String get home_trackJourneyDetails => 'Spåra dina resedetaljer';
+
+  @override
+  String home_entryWillBeLoggedFor(String date) {
+    return 'Posten loggas för $date';
+  }
+
+  @override
+  String get home_travelEntryLoggedSuccess => 'Resepost loggad!';
+
+  @override
+  String get home_workEntriesLoggedSuccess => 'Arbetsposter loggade!';
+
+  @override
+  String get home_workEntryLoggedSuccess => 'Arbetspost loggad!';
+
+  @override
+  String get nav_navigateAwayTitle => 'Lämna sidan?';
+
+  @override
+  String get nav_leavePageConfirm => 'Vill du verkligen lämna den här sidan?';
+
+  @override
+  String get nav_continue => 'Fortsätt';
+
+  @override
+  String get nav_travelEntries => 'Reseposter';
+
+  @override
+  String get nav_locations => 'Platser';
+
+  @override
+  String get nav_analyticsDashboard => 'Analysdashboard';
+
+  @override
+  String get nav_adminOnly => 'Endast admin';
+
+  @override
+  String get location_enterNameAndAddress => 'Ange både namn och adress.';
+
+  @override
+  String get location_deletedSuccessfully => 'Plats borttagen!';
+
+  @override
+  String get analytics_accessDeniedAdminRequired =>
+      'Åtkomst nekad. Admin-behörighet krävs.';
+
+  @override
+  String get analytics_accessDeniedRedirecting =>
+      'Åtkomst nekad. Omdirigerar...';
+
+  @override
+  String get analytics_dashboardTitle => 'Analysdashboard';
+
+  @override
+  String get analytics_adminBadge => 'ADMIN';
+
+  @override
+  String get analytics_errorLoadingDashboard => 'Fel vid laddning av dashboard';
+
+  @override
+  String get analytics_noDataAvailable => 'Ingen data tillgänglig';
+
+  @override
+  String get analytics_kpiSectionTitle => 'Nyckeltal';
+
+  @override
+  String get analytics_kpiTotalHoursWeek => 'Totalt antal timmar (denna vecka)';
+
+  @override
+  String get analytics_kpiActiveUsers => 'Aktiva användare';
+
+  @override
+  String get analytics_kpiOvertimeBalance => 'Övertidssaldo';
+
+  @override
+  String get analytics_kpiAvgDailyHours => 'Genomsnittliga dagliga timmar';
+
+  @override
+  String get analytics_chartsSectionTitle => 'Diagram och trender';
+
+  @override
+  String get analytics_dailyTrends7d => 'Dagliga trender (7 dagar)';
+
+  @override
+  String get analytics_userDistribution => 'Användarfördelning';
+
+  @override
+  String get adminUsers_title => 'Användarhantering';
+
+  @override
+  String get adminUsers_searchHint => 'Sök användare...';
+
+  @override
+  String get adminUsers_filterByRole => 'Filtrera efter roll';
+
+  @override
+  String get adminUsers_roleAll => 'Alla';
+
+  @override
+  String get adminUsers_roleAdmin => 'Admin';
+
+  @override
+  String get adminUsers_roleUser => 'Användare';
+
+  @override
+  String get adminUsers_failedLoadUsers => 'Kunde inte ladda användare';
+
+  @override
+  String adminUsers_noUsersFoundQuery(String query) {
+    return 'Inga användare hittades som matchar \"$query\"';
+  }
+
+  @override
+  String get adminUsers_noUsersFound => 'Inga användare hittades';
+
+  @override
+  String get adminUsers_noName => 'Inget namn';
+
+  @override
+  String get adminUsers_noEmail => 'Ingen e-post';
+
+  @override
+  String get adminUsers_disable => 'Inaktivera';
+
+  @override
+  String get adminUsers_enable => 'Aktivera';
+
+  @override
+  String get adminUsers_tooltipDetails => 'Detaljer';
+
+  @override
+  String get adminUsers_userDetails => 'Användardetaljer';
+
+  @override
+  String get adminUsers_labelUid => 'UID';
+
+  @override
+  String get adminUsers_labelEmail => 'E-post';
+
+  @override
+  String get adminUsers_labelName => 'Namn';
+
+  @override
+  String get adminUsers_labelStatus => 'Status';
+
+  @override
+  String get adminUsers_labelCreated => 'Skapad';
+
+  @override
+  String get adminUsers_labelUpdated => 'Uppdaterad';
+
+  @override
+  String get adminUsers_none => 'Ingen';
+
+  @override
+  String get adminUsers_statusDisabled => 'Inaktiverad';
+
+  @override
+  String get adminUsers_statusActive => 'Aktiv';
+
+  @override
+  String get adminUsers_disableUserTitle => 'Inaktivera användare';
+
+  @override
+  String adminUsers_disableUserConfirm(String name) {
+    return 'Är du säker på att du vill inaktivera $name?';
+  }
+
+  @override
+  String get adminUsers_thisUser => 'den här användaren';
+
+  @override
+  String get adminUsers_userDisabledSuccess => 'Användaren inaktiverades';
+
+  @override
+  String get adminUsers_enableUserTitle => 'Aktivera användare';
+
+  @override
+  String adminUsers_enableUserConfirm(String name) {
+    return 'Är du säker på att du vill aktivera $name?';
+  }
+
+  @override
+  String get adminUsers_userEnabledSuccess => 'Användaren aktiverades';
+
+  @override
+  String get adminUsers_confirmPermanentDeletion =>
+      'Bekräfta permanent borttagning';
+
+  @override
+  String get adminUsers_deleteWarning =>
+      'Varning: Denna åtgärd kan inte ångras. All användardata raderas permanent.';
+
+  @override
+  String get adminUsers_typeDeleteToConfirm => 'Skriv DELETE för att bekräfta:';
+
+  @override
+  String get adminUsers_typeDeleteHere => 'Skriv DELETE här';
+
+  @override
+  String get adminUsers_userDeletedSuccess => 'Användaren togs bort';
+
+  @override
+  String adminUsers_failedDeleteUser(String error) {
+    return 'Kunde inte ta bort användaren: $error';
+  }
+
+  @override
   String get auth_newToKvikTime => 'Ny på KvikTime?';
 
   @override

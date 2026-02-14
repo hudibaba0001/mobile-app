@@ -258,12 +258,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final t = AppLocalizations.of(context);
-    final localeTag = Localizations.localeOf(context).toLanguageTag();
-    final todayLabel = DateFormat.yMMMd(localeTag).format(DateTime.now());
-    final t = AppLocalizations.of(context);
-    final localeTag = Localizations.localeOf(context).toLanguageTag();
-    final todayLabel = DateFormat.yMMMd(localeTag).format(DateTime.now());
     final colorScheme = theme.colorScheme;
     final t = AppLocalizations.of(context);
     final travelEnabled =
@@ -1612,6 +1606,9 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final todayLabel = DateFormat.yMMMd(localeTag).format(DateTime.now());
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -2625,6 +2622,9 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final todayLabel = DateFormat.yMMMd(localeTag).format(DateTime.now());
 
     return Dialog(
       shape: RoundedRectangleBorder(

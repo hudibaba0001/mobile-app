@@ -880,9 +880,227 @@
   "travel_notesHint": "Lägg till detaljer om din resa...",
   "form_span": "Spann",
   "form_break": "Rast",
-  "form_worked": "Arbetat",
+    "common_user": "Anv\u00e4ndare",
 
-  "auth_newToKvikTime": "Ny på KvikTime?",
+  "settings_timeBalanceTracking": "Flexsaldosp\u00e5rning",
+  "settings_timeBalanceTrackingDesc": "St\u00e4ng av om du bara vill logga timmar utan att j\u00e4mf\u00f6ra mot ett m\u00e5l.",
+
+  "leave_daysDecimal": "{days} dagar",
+  "@leave_daysDecimal": {
+    "placeholders": {
+      "days": {"type": "String"}
+    }
+  },
+
+  "trends_errorLoadingData": "Fel vid laddning av trenddata",
+  "trends_tryRefreshingPage": "F\u00f6rs\u00f6k uppdatera sidan",
+  "trends_target": "M\u00e5l",
+  "trends_noHoursDataAvailable": "Ingen timdata tillg\u00e4nglig",
+
+  "network_offlinePending": "Offline - {count} \u00e4ndringar v\u00e4ntar",
+  "@network_offlinePending": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "network_youAreOffline": "Du \u00e4r offline",
+  "network_syncingChanges": "Synkroniserar \u00e4ndringar...",
+  "network_readyToSync": "{count} \u00e4ndringar redo att synkroniseras",
+  "@network_readyToSync": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "network_syncNow": "Synka nu",
+  "network_offlineTooltip": "Offline",
+  "network_pendingTooltip": "{count} v\u00e4ntar",
+  "@network_pendingTooltip": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "network_offlineSnackbar": "Du \u00e4r offline. \u00c4ndringar synkas n\u00e4r du \u00e4r ansluten.",
+  "network_backOnline": "Tillbaka online",
+  "network_syncedChanges": "Synkade {count} \u00e4ndringar",
+  "@network_syncedChanges": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "network_syncFailed": "Synk misslyckades: {error}",
+  "@network_syncFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "network_networkErrorTryAgain": "N\u00e4tverksfel. F\u00f6rs\u00f6k igen.",
+
+  "paywall_notAuthenticated": "Inte inloggad",
+  "paywall_title": "KvikTime Premium",
+  "paywall_unlockAllFeatures": "L\u00e5s upp alla KvikTime-funktioner",
+  "paywall_subscribeWithGooglePlay": "Prenumerera med Google Play Billing f\u00f6r att forts\u00e4tta.",
+  "paywall_featureFullHistoryReports": "Full historik och rapporter",
+  "paywall_featureCloudSync": "Molnsynk mellan enheter",
+  "paywall_featureSecureSubscription": "S\u00e4ker prenumerationsstatus",
+  "paywall_currentEntitlement": "Aktuell beh\u00f6righet: {status}",
+  "@paywall_currentEntitlement": {
+    "placeholders": {
+      "status": {"type": "String"}
+    }
+  },
+  "paywall_subscriptionUnavailable": "Prenumeration ej tillg\u00e4nglig",
+  "paywall_subscribe": "Prenumerera {price}",
+  "@paywall_subscribe": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "paywall_restorePurchase": "\u00c5terst\u00e4ll k\u00f6p",
+  "paywall_manageSubscriptionGooglePlay": "Hantera prenumeration i Google Play",
+  "paywall_signOut": "Logga ut",
+
+  "location_addNewLocation": "L\u00e4gg till ny plats",
+  "location_saveFrequentPlace": "Spara en plats du bes\u00f6ker ofta",
+  "location_details": "Platsdetaljer",
+  "location_name": "Platsnamn",
+  "location_nameHint": "t.ex. Kontor, Hem, Kundplats",
+  "location_nameShortHint": "t.ex. Hem, Kontor, Gym",
+  "location_enterName": "Ange ett platsnamn",
+  "location_enterAddress": "Ange en adress",
+  "location_addedSuccessfully": "Plats tillagd",
+  "location_kpiTotal": "Totalt",
+  "location_kpiFavorites": "Favoriter",
+  "location_kpiTotalUses": "Totalt antal anv\u00e4ndningar",
+  "location_searchLocations": "S\u00f6k platser...",
+  "location_noLocationsYet": "Inga platser \u00e4nnu",
+  "location_trySearchOrAdd": "Prova att s\u00f6ka eller l\u00e4gga till en ny plats",
+  "location_noMatchesFound": "Inga tr\u00e4ffar",
+  "location_tryDifferentSearch": "Prova ett annat s\u00f6kord",
+  "location_noSavedYet": "Inga sparade platser \u00e4nnu",
+  "location_addFirstToGetStarted": "L\u00e4gg till din f\u00f6rsta plats f\u00f6r att komma ig\u00e5ng",
+  "location_removeFromFavorites": "Ta bort fr\u00e5n favoriter",
+  "location_addToFavorites": "L\u00e4gg till i favoriter",
+  "location_savedLocations": "Sparade platser",
+  "location_addressSuggestions": "Adressf\u00f6rslag",
+  "location_searchingAddresses": "S\u00f6ker adresser...",
+  "location_recentAddresses": "Senaste adresser",
+  "location_startTypingToAdd": "B\u00f6rja skriva f\u00f6r att l\u00e4gga till en ny plats",
+  "location_recentLocations": "Senaste platser",
+  "location_saveAsNew": "Spara \"{address}\" som ny plats",
+  "@location_saveAsNew": {
+    "placeholders": {
+      "address": {"type": "String"}
+    }
+  },
+  "location_favorites": "Favoriter",
+  "location_recent": "Senaste",
+
+  "edit_durationAutofilledFromHistory": "Varaktighet autofylld fr\u00e5n historik ({minutes} min)",
+  "@edit_durationAutofilledFromHistory": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "edit_quickDuration": "Snabb varaktighet",
+  "edit_copyYesterday": "Kopiera ig\u00e5r",
+  "edit_noWorkEntryYesterday": "Ingen arbetspost hittades f\u00f6r ig\u00e5r",
+  "edit_copiedYesterdayShiftTimes": "Kopierade g\u00e5rdagens skifttider",
+  "edit_swapFromTo": "Byt Fr\u00e5n/Till",
+
+  "home_trackJourneyDetails": "Sp\u00e5ra dina resedetaljer",
+  "home_entryWillBeLoggedFor": "Posten loggas f\u00f6r {date}",
+  "@home_entryWillBeLoggedFor": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "home_travelEntryLoggedSuccess": "Resepost loggad!",
+  "home_workEntriesLoggedSuccess": "Arbetsposter loggade!",
+  "home_workEntryLoggedSuccess": "Arbetspost loggad!",
+    "nav_navigateAwayTitle": "L\u00e4mna sidan?",
+  "nav_leavePageConfirm": "Vill du verkligen l\u00e4mna den h\u00e4r sidan?",
+  "nav_continue": "Forts\u00e4tt",
+  "nav_travelEntries": "Reseposter",
+  "nav_locations": "Platser",
+  "nav_analyticsDashboard": "Analysdashboard",
+  "nav_adminOnly": "Endast admin",
+
+  "location_enterNameAndAddress": "Ange b\u00e5de namn och adress.",
+  "location_deletedSuccessfully": "Plats borttagen!",
+
+  "analytics_accessDeniedAdminRequired": "\u00c5tkomst nekad. Admin-beh\u00f6righet kr\u00e4vs.",
+  "analytics_accessDeniedRedirecting": "\u00c5tkomst nekad. Omdirigerar...",
+  "analytics_dashboardTitle": "Analysdashboard",
+  "analytics_adminBadge": "ADMIN",
+  "analytics_errorLoadingDashboard": "Fel vid laddning av dashboard",
+  "analytics_noDataAvailable": "Ingen data tillg\u00e4nglig",
+  "analytics_kpiSectionTitle": "Nyckeltal",
+  "analytics_kpiTotalHoursWeek": "Totalt antal timmar (denna vecka)",
+  "analytics_kpiActiveUsers": "Aktiva anv\u00e4ndare",
+  "analytics_kpiOvertimeBalance": "\u00d6vertidssaldo",
+  "analytics_kpiAvgDailyHours": "Genomsnittliga dagliga timmar",
+  "analytics_chartsSectionTitle": "Diagram och trender",
+  "analytics_dailyTrends7d": "Dagliga trender (7 dagar)",
+  "analytics_userDistribution": "Anv\u00e4ndarf\u00f6rdelning",
+
+  "adminUsers_title": "Anv\u00e4ndarhantering",
+  "adminUsers_searchHint": "S\u00f6k anv\u00e4ndare...",
+  "adminUsers_filterByRole": "Filtrera efter roll",
+  "adminUsers_roleAll": "Alla",
+  "adminUsers_roleAdmin": "Admin",
+  "adminUsers_roleUser": "Anv\u00e4ndare",
+  "adminUsers_failedLoadUsers": "Kunde inte ladda anv\u00e4ndare",
+  "adminUsers_noUsersFoundQuery": "Inga anv\u00e4ndare hittades som matchar \"{query}\"",
+  "@adminUsers_noUsersFoundQuery": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "adminUsers_noUsersFound": "Inga anv\u00e4ndare hittades",
+  "adminUsers_noName": "Inget namn",
+  "adminUsers_noEmail": "Ingen e-post",
+  "adminUsers_disable": "Inaktivera",
+  "adminUsers_enable": "Aktivera",
+  "adminUsers_tooltipDetails": "Detaljer",
+  "adminUsers_userDetails": "Anv\u00e4ndardetaljer",
+  "adminUsers_labelUid": "UID",
+  "adminUsers_labelEmail": "E-post",
+  "adminUsers_labelName": "Namn",
+  "adminUsers_labelStatus": "Status",
+  "adminUsers_labelCreated": "Skapad",
+  "adminUsers_labelUpdated": "Uppdaterad",
+  "adminUsers_none": "Ingen",
+  "adminUsers_statusDisabled": "Inaktiverad",
+  "adminUsers_statusActive": "Aktiv",
+  "adminUsers_disableUserTitle": "Inaktivera anv\u00e4ndare",
+  "adminUsers_disableUserConfirm": "\u00c4r du s\u00e4ker p\u00e5 att du vill inaktivera {name}?",
+  "@adminUsers_disableUserConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "adminUsers_thisUser": "den h\u00e4r anv\u00e4ndaren",
+  "adminUsers_userDisabledSuccess": "Anv\u00e4ndaren inaktiverades",
+  "adminUsers_enableUserTitle": "Aktivera anv\u00e4ndare",
+  "adminUsers_enableUserConfirm": "\u00c4r du s\u00e4ker p\u00e5 att du vill aktivera {name}?",
+  "@adminUsers_enableUserConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "adminUsers_userEnabledSuccess": "Anv\u00e4ndaren aktiverades",
+  "adminUsers_confirmPermanentDeletion": "Bekr\u00e4fta permanent borttagning",
+  "adminUsers_deleteWarning": "Varning: Denna \u00e5tg\u00e4rd kan inte \u00e5ngras. All anv\u00e4ndardata raderas permanent.",
+  "adminUsers_typeDeleteToConfirm": "Skriv DELETE f\u00f6r att bekr\u00e4fta:",
+  "adminUsers_typeDeleteHere": "Skriv DELETE h\u00e4r",
+  "adminUsers_userDeletedSuccess": "Anv\u00e4ndaren togs bort",
+  "adminUsers_failedDeleteUser": "Kunde inte ta bort anv\u00e4ndaren: {error}",
+  "@adminUsers_failedDeleteUser": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "auth_newToKvikTime": "Ny p\u00e5 KvikTime?",
   "auth_createAccount": "Skapa konto",
   "auth_redirectNote": "Nya användare omdirigeras till vår kontoregistreringssida",
   "auth_invalidEmail": "Ogiltig e-postadress",
@@ -913,3 +1131,9 @@
   "session_expiredBody": "Din session har gått ut. Vänligen logga in igen för att fortsätta.",
   "session_signInAgain": "Logga in igen"
 }
+
+
+
+
+
+

@@ -2299,6 +2299,453 @@ class AppLocalizationsEn extends AppLocalizations {
   String get travel_notesHint => 'Add details about your travel...';
 
   @override
+  String get common_user => 'User';
+
+  @override
+  String get settings_timeBalanceTracking => 'Time balance tracking';
+
+  @override
+  String get settings_timeBalanceTrackingDesc =>
+      'Turn off if you only want to log hours without comparing against a target.';
+
+  @override
+  String leave_daysDecimal(String days) {
+    return '$days days';
+  }
+
+  @override
+  String get trends_errorLoadingData => 'Error loading trends data';
+
+  @override
+  String get trends_tryRefreshingPage => 'Please try refreshing the page';
+
+  @override
+  String get trends_target => 'Target';
+
+  @override
+  String get trends_noHoursDataAvailable => 'No hours data available';
+
+  @override
+  String network_offlinePending(int count) {
+    return 'Offline - $count changes pending';
+  }
+
+  @override
+  String get network_youAreOffline => 'You are offline';
+
+  @override
+  String get network_syncingChanges => 'Syncing changes...';
+
+  @override
+  String network_readyToSync(int count) {
+    return '$count changes ready to sync';
+  }
+
+  @override
+  String get network_syncNow => 'Sync Now';
+
+  @override
+  String get network_offlineTooltip => 'Offline';
+
+  @override
+  String network_pendingTooltip(int count) {
+    return '$count pending';
+  }
+
+  @override
+  String get network_offlineSnackbar =>
+      'You are offline. Changes will sync when connected.';
+
+  @override
+  String get network_backOnline => 'Back online';
+
+  @override
+  String network_syncedChanges(int count) {
+    return 'Synced $count changes';
+  }
+
+  @override
+  String network_syncFailed(String error) {
+    return 'Sync failed: $error';
+  }
+
+  @override
+  String get network_networkErrorTryAgain => 'Network error. Please try again.';
+
+  @override
+  String get paywall_notAuthenticated => 'Not authenticated';
+
+  @override
+  String get paywall_title => 'KvikTime Premium';
+
+  @override
+  String get paywall_unlockAllFeatures => 'Unlock all KvikTime features';
+
+  @override
+  String get paywall_subscribeWithGooglePlay =>
+      'Subscribe with Google Play Billing to continue.';
+
+  @override
+  String get paywall_featureFullHistoryReports => 'Full history & reports';
+
+  @override
+  String get paywall_featureCloudSync => 'Cloud sync across devices';
+
+  @override
+  String get paywall_featureSecureSubscription => 'Secure subscription state';
+
+  @override
+  String paywall_currentEntitlement(String status) {
+    return 'Current entitlement: $status';
+  }
+
+  @override
+  String get paywall_subscriptionUnavailable => 'Subscription unavailable';
+
+  @override
+  String paywall_subscribe(String price) {
+    return 'Subscribe $price';
+  }
+
+  @override
+  String get paywall_restorePurchase => 'Restore purchase';
+
+  @override
+  String get paywall_manageSubscriptionGooglePlay =>
+      'Manage subscription in Google Play';
+
+  @override
+  String get paywall_signOut => 'Sign out';
+
+  @override
+  String get location_addNewLocation => 'Add New Location';
+
+  @override
+  String get location_saveFrequentPlace => 'Save a place you visit frequently';
+
+  @override
+  String get location_details => 'Location Details';
+
+  @override
+  String get location_name => 'Location Name';
+
+  @override
+  String get location_nameHint => 'e.g., Office, Home, Client Site';
+
+  @override
+  String get location_nameShortHint => 'e.g., Home, Office, Gym';
+
+  @override
+  String get location_enterName => 'Please enter a location name';
+
+  @override
+  String get location_enterAddress => 'Please enter an address';
+
+  @override
+  String get location_addedSuccessfully => 'Location added successfully';
+
+  @override
+  String get location_kpiTotal => 'Total';
+
+  @override
+  String get location_kpiFavorites => 'Favorites';
+
+  @override
+  String get location_kpiTotalUses => 'Total Uses';
+
+  @override
+  String get location_searchLocations => 'Search locations...';
+
+  @override
+  String get location_noLocationsYet => 'No locations yet';
+
+  @override
+  String get location_trySearchOrAdd =>
+      'Try searching or adding a new location';
+
+  @override
+  String get location_noMatchesFound => 'No matches found';
+
+  @override
+  String get location_tryDifferentSearch => 'Try a different search term';
+
+  @override
+  String get location_noSavedYet => 'No saved locations yet';
+
+  @override
+  String get location_addFirstToGetStarted =>
+      'Add your first location to get started';
+
+  @override
+  String get location_removeFromFavorites => 'Remove from favorites';
+
+  @override
+  String get location_addToFavorites => 'Add to favorites';
+
+  @override
+  String get location_savedLocations => 'Saved Locations';
+
+  @override
+  String get location_addressSuggestions => 'Address Suggestions';
+
+  @override
+  String get location_searchingAddresses => 'Searching addresses...';
+
+  @override
+  String get location_recentAddresses => 'Recent Addresses';
+
+  @override
+  String get location_startTypingToAdd => 'Start typing to add a new location';
+
+  @override
+  String get location_recentLocations => 'Recent Locations';
+
+  @override
+  String location_saveAsNew(String address) {
+    return 'Save \"$address\" as new location';
+  }
+
+  @override
+  String get location_favorites => 'Favorites';
+
+  @override
+  String get location_recent => 'Recent';
+
+  @override
+  String edit_durationAutofilledFromHistory(int minutes) {
+    return 'Duration auto-filled from history ($minutes min)';
+  }
+
+  @override
+  String get edit_quickDuration => 'Quick Duration';
+
+  @override
+  String get edit_copyYesterday => 'Copy Yesterday';
+
+  @override
+  String get edit_noWorkEntryYesterday => 'No work entry found for yesterday';
+
+  @override
+  String get edit_copiedYesterdayShiftTimes =>
+      'Copied yesterday\'s shift times';
+
+  @override
+  String get edit_swapFromTo => 'Swap From/To';
+
+  @override
+  String get home_trackJourneyDetails => 'Track your journey details';
+
+  @override
+  String home_entryWillBeLoggedFor(String date) {
+    return 'Entry will be logged for $date';
+  }
+
+  @override
+  String get home_travelEntryLoggedSuccess =>
+      'Travel entry logged successfully!';
+
+  @override
+  String get home_workEntriesLoggedSuccess =>
+      'Work entries logged successfully!';
+
+  @override
+  String get home_workEntryLoggedSuccess => 'Work entry logged successfully!';
+
+  @override
+  String get nav_navigateAwayTitle => 'Navigate Away?';
+
+  @override
+  String get nav_leavePageConfirm =>
+      'Are you sure you want to leave this page?';
+
+  @override
+  String get nav_continue => 'Continue';
+
+  @override
+  String get nav_travelEntries => 'Travel Entries';
+
+  @override
+  String get nav_locations => 'Locations';
+
+  @override
+  String get nav_analyticsDashboard => 'Analytics Dashboard';
+
+  @override
+  String get nav_adminOnly => 'Admin Only';
+
+  @override
+  String get location_enterNameAndAddress =>
+      'Please enter both name and address.';
+
+  @override
+  String get location_deletedSuccessfully => 'Location deleted!';
+
+  @override
+  String get analytics_accessDeniedAdminRequired =>
+      'Access denied. Admin privileges required.';
+
+  @override
+  String get analytics_accessDeniedRedirecting =>
+      'Access denied. Redirecting...';
+
+  @override
+  String get analytics_dashboardTitle => 'Analytics Dashboard';
+
+  @override
+  String get analytics_adminBadge => 'ADMIN';
+
+  @override
+  String get analytics_errorLoadingDashboard => 'Error loading dashboard';
+
+  @override
+  String get analytics_noDataAvailable => 'No data available';
+
+  @override
+  String get analytics_kpiSectionTitle => 'Key Performance Indicators';
+
+  @override
+  String get analytics_kpiTotalHoursWeek => 'Total Hours (This Week)';
+
+  @override
+  String get analytics_kpiActiveUsers => 'Active Users';
+
+  @override
+  String get analytics_kpiOvertimeBalance => 'Overtime Balance';
+
+  @override
+  String get analytics_kpiAvgDailyHours => 'Avg Daily Hours';
+
+  @override
+  String get analytics_chartsSectionTitle => 'Charts & Trends';
+
+  @override
+  String get analytics_dailyTrends7d => '7-Day Daily Trends';
+
+  @override
+  String get analytics_userDistribution => 'User Distribution';
+
+  @override
+  String get adminUsers_title => 'User Management';
+
+  @override
+  String get adminUsers_searchHint => 'Search users...';
+
+  @override
+  String get adminUsers_filterByRole => 'Filter by Role';
+
+  @override
+  String get adminUsers_roleAll => 'All';
+
+  @override
+  String get adminUsers_roleAdmin => 'Admin';
+
+  @override
+  String get adminUsers_roleUser => 'User';
+
+  @override
+  String get adminUsers_failedLoadUsers => 'Failed to load users';
+
+  @override
+  String adminUsers_noUsersFoundQuery(String query) {
+    return 'No users found matching \"$query\"';
+  }
+
+  @override
+  String get adminUsers_noUsersFound => 'No users found';
+
+  @override
+  String get adminUsers_noName => 'No name';
+
+  @override
+  String get adminUsers_noEmail => 'No email';
+
+  @override
+  String get adminUsers_disable => 'Disable';
+
+  @override
+  String get adminUsers_enable => 'Enable';
+
+  @override
+  String get adminUsers_tooltipDetails => 'Details';
+
+  @override
+  String get adminUsers_userDetails => 'User Details';
+
+  @override
+  String get adminUsers_labelUid => 'UID';
+
+  @override
+  String get adminUsers_labelEmail => 'Email';
+
+  @override
+  String get adminUsers_labelName => 'Name';
+
+  @override
+  String get adminUsers_labelStatus => 'Status';
+
+  @override
+  String get adminUsers_labelCreated => 'Created';
+
+  @override
+  String get adminUsers_labelUpdated => 'Updated';
+
+  @override
+  String get adminUsers_none => 'None';
+
+  @override
+  String get adminUsers_statusDisabled => 'Disabled';
+
+  @override
+  String get adminUsers_statusActive => 'Active';
+
+  @override
+  String get adminUsers_disableUserTitle => 'Disable User';
+
+  @override
+  String adminUsers_disableUserConfirm(String name) {
+    return 'Are you sure you want to disable $name?';
+  }
+
+  @override
+  String get adminUsers_thisUser => 'this user';
+
+  @override
+  String get adminUsers_userDisabledSuccess => 'User disabled successfully';
+
+  @override
+  String get adminUsers_enableUserTitle => 'Enable User';
+
+  @override
+  String adminUsers_enableUserConfirm(String name) {
+    return 'Are you sure you want to enable $name?';
+  }
+
+  @override
+  String get adminUsers_userEnabledSuccess => 'User enabled successfully';
+
+  @override
+  String get adminUsers_confirmPermanentDeletion =>
+      'Confirm Permanent Deletion';
+
+  @override
+  String get adminUsers_deleteWarning =>
+      'Warning: This action cannot be undone. All user data will be permanently deleted.';
+
+  @override
+  String get adminUsers_typeDeleteToConfirm => 'Type DELETE to confirm:';
+
+  @override
+  String get adminUsers_typeDeleteHere => 'Type DELETE here';
+
+  @override
+  String get adminUsers_userDeletedSuccess => 'User deleted successfully';
+
+  @override
+  String adminUsers_failedDeleteUser(String error) {
+    return 'Failed to delete user: $error';
+  }
+
+  @override
   String get auth_newToKvikTime => 'New to KvikTime?';
 
   @override

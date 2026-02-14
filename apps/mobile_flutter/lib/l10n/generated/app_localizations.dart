@@ -4179,6 +4179,810 @@ abstract class AppLocalizations {
   /// **'Add details about your travel...'**
   String get travel_notesHint;
 
+  /// No description provided for @common_user.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get common_user;
+
+  /// No description provided for @settings_timeBalanceTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Time balance tracking'**
+  String get settings_timeBalanceTracking;
+
+  /// No description provided for @settings_timeBalanceTrackingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off if you only want to log hours without comparing against a target.'**
+  String get settings_timeBalanceTrackingDesc;
+
+  /// No description provided for @leave_daysDecimal.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String leave_daysDecimal(String days);
+
+  /// No description provided for @trends_errorLoadingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading trends data'**
+  String get trends_errorLoadingData;
+
+  /// No description provided for @trends_tryRefreshingPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please try refreshing the page'**
+  String get trends_tryRefreshingPage;
+
+  /// No description provided for @trends_target.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get trends_target;
+
+  /// No description provided for @trends_noHoursDataAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No hours data available'**
+  String get trends_noHoursDataAvailable;
+
+  /// No description provided for @network_offlinePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline - {count} changes pending'**
+  String network_offlinePending(int count);
+
+  /// No description provided for @network_youAreOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline'**
+  String get network_youAreOffline;
+
+  /// No description provided for @network_syncingChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing changes...'**
+  String get network_syncingChanges;
+
+  /// No description provided for @network_readyToSync.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes ready to sync'**
+  String network_readyToSync(int count);
+
+  /// No description provided for @network_syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Now'**
+  String get network_syncNow;
+
+  /// No description provided for @network_offlineTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get network_offlineTooltip;
+
+  /// No description provided for @network_pendingTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} pending'**
+  String network_pendingTooltip(int count);
+
+  /// No description provided for @network_offlineSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. Changes will sync when connected.'**
+  String get network_offlineSnackbar;
+
+  /// No description provided for @network_backOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Back online'**
+  String get network_backOnline;
+
+  /// No description provided for @network_syncedChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced {count} changes'**
+  String network_syncedChanges(int count);
+
+  /// No description provided for @network_syncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String network_syncFailed(String error);
+
+  /// No description provided for @network_networkErrorTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Please try again.'**
+  String get network_networkErrorTryAgain;
+
+  /// No description provided for @paywall_notAuthenticated.
+  ///
+  /// In en, this message translates to:
+  /// **'Not authenticated'**
+  String get paywall_notAuthenticated;
+
+  /// No description provided for @paywall_title.
+  ///
+  /// In en, this message translates to:
+  /// **'KvikTime Premium'**
+  String get paywall_title;
+
+  /// No description provided for @paywall_unlockAllFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock all KvikTime features'**
+  String get paywall_unlockAllFeatures;
+
+  /// No description provided for @paywall_subscribeWithGooglePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe with Google Play Billing to continue.'**
+  String get paywall_subscribeWithGooglePlay;
+
+  /// No description provided for @paywall_featureFullHistoryReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Full history & reports'**
+  String get paywall_featureFullHistoryReports;
+
+  /// No description provided for @paywall_featureCloudSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync across devices'**
+  String get paywall_featureCloudSync;
+
+  /// No description provided for @paywall_featureSecureSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure subscription state'**
+  String get paywall_featureSecureSubscription;
+
+  /// No description provided for @paywall_currentEntitlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Current entitlement: {status}'**
+  String paywall_currentEntitlement(String status);
+
+  /// No description provided for @paywall_subscriptionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription unavailable'**
+  String get paywall_subscriptionUnavailable;
+
+  /// No description provided for @paywall_subscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe {price}'**
+  String paywall_subscribe(String price);
+
+  /// No description provided for @paywall_restorePurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchase'**
+  String get paywall_restorePurchase;
+
+  /// No description provided for @paywall_manageSubscriptionGooglePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription in Google Play'**
+  String get paywall_manageSubscriptionGooglePlay;
+
+  /// No description provided for @paywall_signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get paywall_signOut;
+
+  /// No description provided for @location_addNewLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Location'**
+  String get location_addNewLocation;
+
+  /// No description provided for @location_saveFrequentPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a place you visit frequently'**
+  String get location_saveFrequentPlace;
+
+  /// No description provided for @location_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Details'**
+  String get location_details;
+
+  /// No description provided for @location_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Name'**
+  String get location_name;
+
+  /// No description provided for @location_nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Office, Home, Client Site'**
+  String get location_nameHint;
+
+  /// No description provided for @location_nameShortHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Home, Office, Gym'**
+  String get location_nameShortHint;
+
+  /// No description provided for @location_enterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a location name'**
+  String get location_enterName;
+
+  /// No description provided for @location_enterAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an address'**
+  String get location_enterAddress;
+
+  /// No description provided for @location_addedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Location added successfully'**
+  String get location_addedSuccessfully;
+
+  /// No description provided for @location_kpiTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get location_kpiTotal;
+
+  /// No description provided for @location_kpiFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get location_kpiFavorites;
+
+  /// No description provided for @location_kpiTotalUses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Uses'**
+  String get location_kpiTotalUses;
+
+  /// No description provided for @location_searchLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Search locations...'**
+  String get location_searchLocations;
+
+  /// No description provided for @location_noLocationsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No locations yet'**
+  String get location_noLocationsYet;
+
+  /// No description provided for @location_trySearchOrAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Try searching or adding a new location'**
+  String get location_trySearchOrAdd;
+
+  /// No description provided for @location_noMatchesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches found'**
+  String get location_noMatchesFound;
+
+  /// No description provided for @location_tryDifferentSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search term'**
+  String get location_tryDifferentSearch;
+
+  /// No description provided for @location_noSavedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved locations yet'**
+  String get location_noSavedYet;
+
+  /// No description provided for @location_addFirstToGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first location to get started'**
+  String get location_addFirstToGetStarted;
+
+  /// No description provided for @location_removeFromFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from favorites'**
+  String get location_removeFromFavorites;
+
+  /// No description provided for @location_addToFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get location_addToFavorites;
+
+  /// No description provided for @location_savedLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Locations'**
+  String get location_savedLocations;
+
+  /// No description provided for @location_addressSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Suggestions'**
+  String get location_addressSuggestions;
+
+  /// No description provided for @location_searchingAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching addresses...'**
+  String get location_searchingAddresses;
+
+  /// No description provided for @location_recentAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Addresses'**
+  String get location_recentAddresses;
+
+  /// No description provided for @location_startTypingToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Start typing to add a new location'**
+  String get location_startTypingToAdd;
+
+  /// No description provided for @location_recentLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Locations'**
+  String get location_recentLocations;
+
+  /// No description provided for @location_saveAsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Save \"{address}\" as new location'**
+  String location_saveAsNew(String address);
+
+  /// No description provided for @location_favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get location_favorites;
+
+  /// No description provided for @location_recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get location_recent;
+
+  /// No description provided for @edit_durationAutofilledFromHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration auto-filled from history ({minutes} min)'**
+  String edit_durationAutofilledFromHistory(int minutes);
+
+  /// No description provided for @edit_quickDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Duration'**
+  String get edit_quickDuration;
+
+  /// No description provided for @edit_copyYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Yesterday'**
+  String get edit_copyYesterday;
+
+  /// No description provided for @edit_noWorkEntryYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'No work entry found for yesterday'**
+  String get edit_noWorkEntryYesterday;
+
+  /// No description provided for @edit_copiedYesterdayShiftTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied yesterday\'s shift times'**
+  String get edit_copiedYesterdayShiftTimes;
+
+  /// No description provided for @edit_swapFromTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap From/To'**
+  String get edit_swapFromTo;
+
+  /// No description provided for @home_trackJourneyDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Track your journey details'**
+  String get home_trackJourneyDetails;
+
+  /// No description provided for @home_entryWillBeLoggedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry will be logged for {date}'**
+  String home_entryWillBeLoggedFor(String date);
+
+  /// No description provided for @home_travelEntryLoggedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel entry logged successfully!'**
+  String get home_travelEntryLoggedSuccess;
+
+  /// No description provided for @home_workEntriesLoggedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Work entries logged successfully!'**
+  String get home_workEntriesLoggedSuccess;
+
+  /// No description provided for @home_workEntryLoggedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Work entry logged successfully!'**
+  String get home_workEntryLoggedSuccess;
+
+  /// No description provided for @nav_navigateAwayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate Away?'**
+  String get nav_navigateAwayTitle;
+
+  /// No description provided for @nav_leavePageConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to leave this page?'**
+  String get nav_leavePageConfirm;
+
+  /// No description provided for @nav_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get nav_continue;
+
+  /// No description provided for @nav_travelEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Entries'**
+  String get nav_travelEntries;
+
+  /// No description provided for @nav_locations.
+  ///
+  /// In en, this message translates to:
+  /// **'Locations'**
+  String get nav_locations;
+
+  /// No description provided for @nav_analyticsDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics Dashboard'**
+  String get nav_analyticsDashboard;
+
+  /// No description provided for @nav_adminOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Only'**
+  String get nav_adminOnly;
+
+  /// No description provided for @location_enterNameAndAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter both name and address.'**
+  String get location_enterNameAndAddress;
+
+  /// No description provided for @location_deletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Location deleted!'**
+  String get location_deletedSuccessfully;
+
+  /// No description provided for @analytics_accessDeniedAdminRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Access denied. Admin privileges required.'**
+  String get analytics_accessDeniedAdminRequired;
+
+  /// No description provided for @analytics_accessDeniedRedirecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Access denied. Redirecting...'**
+  String get analytics_accessDeniedRedirecting;
+
+  /// No description provided for @analytics_dashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics Dashboard'**
+  String get analytics_dashboardTitle;
+
+  /// No description provided for @analytics_adminBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'ADMIN'**
+  String get analytics_adminBadge;
+
+  /// No description provided for @analytics_errorLoadingDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading dashboard'**
+  String get analytics_errorLoadingDashboard;
+
+  /// No description provided for @analytics_noDataAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get analytics_noDataAvailable;
+
+  /// No description provided for @analytics_kpiSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Performance Indicators'**
+  String get analytics_kpiSectionTitle;
+
+  /// No description provided for @analytics_kpiTotalHoursWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Hours (This Week)'**
+  String get analytics_kpiTotalHoursWeek;
+
+  /// No description provided for @analytics_kpiActiveUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Users'**
+  String get analytics_kpiActiveUsers;
+
+  /// No description provided for @analytics_kpiOvertimeBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Overtime Balance'**
+  String get analytics_kpiOvertimeBalance;
+
+  /// No description provided for @analytics_kpiAvgDailyHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Daily Hours'**
+  String get analytics_kpiAvgDailyHours;
+
+  /// No description provided for @analytics_chartsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Charts & Trends'**
+  String get analytics_chartsSectionTitle;
+
+  /// No description provided for @analytics_dailyTrends7d.
+  ///
+  /// In en, this message translates to:
+  /// **'7-Day Daily Trends'**
+  String get analytics_dailyTrends7d;
+
+  /// No description provided for @analytics_userDistribution.
+  ///
+  /// In en, this message translates to:
+  /// **'User Distribution'**
+  String get analytics_userDistribution;
+
+  /// No description provided for @adminUsers_title.
+  ///
+  /// In en, this message translates to:
+  /// **'User Management'**
+  String get adminUsers_title;
+
+  /// No description provided for @adminUsers_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search users...'**
+  String get adminUsers_searchHint;
+
+  /// No description provided for @adminUsers_filterByRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Role'**
+  String get adminUsers_filterByRole;
+
+  /// No description provided for @adminUsers_roleAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get adminUsers_roleAll;
+
+  /// No description provided for @adminUsers_roleAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get adminUsers_roleAdmin;
+
+  /// No description provided for @adminUsers_roleUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get adminUsers_roleUser;
+
+  /// No description provided for @adminUsers_failedLoadUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load users'**
+  String get adminUsers_failedLoadUsers;
+
+  /// No description provided for @adminUsers_noUsersFoundQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found matching \"{query}\"'**
+  String adminUsers_noUsersFoundQuery(String query);
+
+  /// No description provided for @adminUsers_noUsersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get adminUsers_noUsersFound;
+
+  /// No description provided for @adminUsers_noName.
+  ///
+  /// In en, this message translates to:
+  /// **'No name'**
+  String get adminUsers_noName;
+
+  /// No description provided for @adminUsers_noEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'No email'**
+  String get adminUsers_noEmail;
+
+  /// No description provided for @adminUsers_disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get adminUsers_disable;
+
+  /// No description provided for @adminUsers_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get adminUsers_enable;
+
+  /// No description provided for @adminUsers_tooltipDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get adminUsers_tooltipDetails;
+
+  /// No description provided for @adminUsers_userDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'User Details'**
+  String get adminUsers_userDetails;
+
+  /// No description provided for @adminUsers_labelUid.
+  ///
+  /// In en, this message translates to:
+  /// **'UID'**
+  String get adminUsers_labelUid;
+
+  /// No description provided for @adminUsers_labelEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get adminUsers_labelEmail;
+
+  /// No description provided for @adminUsers_labelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get adminUsers_labelName;
+
+  /// No description provided for @adminUsers_labelStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get adminUsers_labelStatus;
+
+  /// No description provided for @adminUsers_labelCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get adminUsers_labelCreated;
+
+  /// No description provided for @adminUsers_labelUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get adminUsers_labelUpdated;
+
+  /// No description provided for @adminUsers_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get adminUsers_none;
+
+  /// No description provided for @adminUsers_statusDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get adminUsers_statusDisabled;
+
+  /// No description provided for @adminUsers_statusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get adminUsers_statusActive;
+
+  /// No description provided for @adminUsers_disableUserTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable User'**
+  String get adminUsers_disableUserTitle;
+
+  /// No description provided for @adminUsers_disableUserConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to disable {name}?'**
+  String adminUsers_disableUserConfirm(String name);
+
+  /// No description provided for @adminUsers_thisUser.
+  ///
+  /// In en, this message translates to:
+  /// **'this user'**
+  String get adminUsers_thisUser;
+
+  /// No description provided for @adminUsers_userDisabledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'User disabled successfully'**
+  String get adminUsers_userDisabledSuccess;
+
+  /// No description provided for @adminUsers_enableUserTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable User'**
+  String get adminUsers_enableUserTitle;
+
+  /// No description provided for @adminUsers_enableUserConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to enable {name}?'**
+  String adminUsers_enableUserConfirm(String name);
+
+  /// No description provided for @adminUsers_userEnabledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'User enabled successfully'**
+  String get adminUsers_userEnabledSuccess;
+
+  /// No description provided for @adminUsers_confirmPermanentDeletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Permanent Deletion'**
+  String get adminUsers_confirmPermanentDeletion;
+
+  /// No description provided for @adminUsers_deleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: This action cannot be undone. All user data will be permanently deleted.'**
+  String get adminUsers_deleteWarning;
+
+  /// No description provided for @adminUsers_typeDeleteToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE to confirm:'**
+  String get adminUsers_typeDeleteToConfirm;
+
+  /// No description provided for @adminUsers_typeDeleteHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE here'**
+  String get adminUsers_typeDeleteHere;
+
+  /// No description provided for @adminUsers_userDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'User deleted successfully'**
+  String get adminUsers_userDeletedSuccess;
+
+  /// No description provided for @adminUsers_failedDeleteUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete user: {error}'**
+  String adminUsers_failedDeleteUser(String error);
+
   /// No description provided for @auth_newToKvikTime.
   ///
   /// In en, this message translates to:

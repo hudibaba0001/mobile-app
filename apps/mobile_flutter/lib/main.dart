@@ -10,7 +10,6 @@ import 'config/app_router.dart';
 import 'config/app_theme.dart';
 import 'providers/app_state_provider.dart';
 import 'providers/contract_provider.dart';
-import 'providers/email_settings_provider.dart';
 import 'providers/local_entry_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/network_status_provider.dart';
@@ -25,7 +24,6 @@ import 'providers/balance_adjustment_provider.dart';
 import 'services/supabase_auth_service.dart';
 import 'repositories/balance_adjustment_repository.dart';
 import 'repositories/supabase_location_repository.dart';
-import 'repositories/supabase_email_settings_repository.dart';
 import 'services/supabase_absence_service.dart';
 import 'repositories/user_red_day_repository.dart';
 import 'services/admin_api_service.dart';
@@ -126,9 +124,8 @@ void main() async {
     await settingsProvider.loadFromCloud();
   }
 
-  // Create Supabase repositories for location and email settings
+  // Create Supabase repository for locations
   final supabaseLocationRepo = SupabaseLocationRepository(supabase);
-  final supabaseEmailSettingsRepo = SupabaseEmailSettingsRepository(supabase);
 
   runApp(
     MyApp(
@@ -138,7 +135,6 @@ void main() async {
       settingsProvider: settingsProvider,
       locationRepository: locationRepository,
       supabaseLocationRepo: supabaseLocationRepo,
-      supabaseEmailSettingsRepo: supabaseEmailSettingsRepo,
       absenceBox: absenceBox,
       adjustmentBox: adjustmentBox,
       redDayBox: redDayBox,
@@ -153,7 +149,6 @@ class MyApp extends StatelessWidget {
   final SettingsProvider settingsProvider;
   final LocationRepository locationRepository;
   final SupabaseLocationRepository supabaseLocationRepo;
-  final SupabaseEmailSettingsRepository supabaseEmailSettingsRepo;
   final Box<AbsenceEntry> absenceBox;
   final Box<BalanceAdjustment> adjustmentBox;
   final Box<UserRedDay> redDayBox;
@@ -166,7 +161,6 @@ class MyApp extends StatelessWidget {
     required this.settingsProvider,
     required this.locationRepository,
     required this.supabaseLocationRepo,
-    required this.supabaseEmailSettingsRepo,
     required this.absenceBox,
     required this.adjustmentBox,
     required this.redDayBox,
@@ -188,16 +182,6 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<ContractProvider>.value(
           value: contractProvider,
         ),
-        ChangeNotifierProvider(create: (_) {
-          final provider = EmailSettingsProvider();
-          provider.initialize();
-          // Set up Supabase sync
-          provider.setSupabaseDeps(supabaseEmailSettingsRepo, authService);
-          if (authService.currentUser != null) {
-            provider.loadFromCloud();
-          }
-          return provider;
-        }),
         ChangeNotifierProvider(create: (_) => LocalEntryProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProxyProvider<SupabaseAuthService, HolidayService>(
@@ -257,8 +241,7 @@ class MyApp extends StatelessWidget {
             final authService = context.read<SupabaseAuthService>();
             final supabase = SupabaseConfig.client;
             final repository = BalanceAdjustmentRepository(supabase);
-            final provider =
-                BalanceAdjustmentProvider(authService, repository);
+            final provider = BalanceAdjustmentProvider(authService, repository);
             provider.initHive(adjustmentBox);
             return provider;
           },

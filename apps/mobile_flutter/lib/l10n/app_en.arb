@@ -1451,6 +1451,90 @@
   "home_workEntriesLoggedSuccess": "Work entries logged successfully!",
   "home_workEntryLoggedSuccess": "Work entry logged successfully!",
 
+  "nav_navigateAwayTitle": "Navigate Away?",
+  "nav_leavePageConfirm": "Are you sure you want to leave this page?",
+  "nav_continue": "Continue",
+  "nav_travelEntries": "Travel Entries",
+  "nav_locations": "Locations",
+  "nav_analyticsDashboard": "Analytics Dashboard",
+  "nav_adminOnly": "Admin Only",
+
+  "location_enterNameAndAddress": "Please enter both name and address.",
+  "location_deletedSuccessfully": "Location deleted!",
+
+  "analytics_accessDeniedAdminRequired": "Access denied. Admin privileges required.",
+  "analytics_accessDeniedRedirecting": "Access denied. Redirecting...",
+  "analytics_dashboardTitle": "Analytics Dashboard",
+  "analytics_adminBadge": "ADMIN",
+  "analytics_errorLoadingDashboard": "Error loading dashboard",
+  "analytics_noDataAvailable": "No data available",
+  "analytics_kpiSectionTitle": "Key Performance Indicators",
+  "analytics_kpiTotalHoursWeek": "Total Hours (This Week)",
+  "analytics_kpiActiveUsers": "Active Users",
+  "analytics_kpiOvertimeBalance": "Overtime Balance",
+  "analytics_kpiAvgDailyHours": "Avg Daily Hours",
+  "analytics_chartsSectionTitle": "Charts & Trends",
+  "analytics_dailyTrends7d": "7-Day Daily Trends",
+  "analytics_userDistribution": "User Distribution",
+
+  "adminUsers_title": "User Management",
+  "adminUsers_searchHint": "Search users...",
+  "adminUsers_filterByRole": "Filter by Role",
+  "adminUsers_roleAll": "All",
+  "adminUsers_roleAdmin": "Admin",
+  "adminUsers_roleUser": "User",
+  "adminUsers_failedLoadUsers": "Failed to load users",
+  "adminUsers_noUsersFoundQuery": "No users found matching \"{query}\"",
+  "@adminUsers_noUsersFoundQuery": {
+    "placeholders": {
+      "query": {"type": "String"}
+    }
+  },
+  "adminUsers_noUsersFound": "No users found",
+  "adminUsers_noName": "No name",
+  "adminUsers_noEmail": "No email",
+  "adminUsers_disable": "Disable",
+  "adminUsers_enable": "Enable",
+  "adminUsers_tooltipDetails": "Details",
+  "adminUsers_userDetails": "User Details",
+  "adminUsers_labelUid": "UID",
+  "adminUsers_labelEmail": "Email",
+  "adminUsers_labelName": "Name",
+  "adminUsers_labelStatus": "Status",
+  "adminUsers_labelCreated": "Created",
+  "adminUsers_labelUpdated": "Updated",
+  "adminUsers_none": "None",
+  "adminUsers_statusDisabled": "Disabled",
+  "adminUsers_statusActive": "Active",
+  "adminUsers_disableUserTitle": "Disable User",
+  "adminUsers_disableUserConfirm": "Are you sure you want to disable {name}?",
+  "@adminUsers_disableUserConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "adminUsers_thisUser": "this user",
+  "adminUsers_userDisabledSuccess": "User disabled successfully",
+  "adminUsers_enableUserTitle": "Enable User",
+  "adminUsers_enableUserConfirm": "Are you sure you want to enable {name}?",
+  "@adminUsers_enableUserConfirm": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "adminUsers_userEnabledSuccess": "User enabled successfully",
+  "adminUsers_confirmPermanentDeletion": "Confirm Permanent Deletion",
+  "adminUsers_deleteWarning": "Warning: This action cannot be undone. All user data will be permanently deleted.",
+  "adminUsers_typeDeleteToConfirm": "Type DELETE to confirm:",
+  "adminUsers_typeDeleteHere": "Type DELETE here",
+  "adminUsers_userDeletedSuccess": "User deleted successfully",
+  "adminUsers_failedDeleteUser": "Failed to delete user: {error}",
+  "@adminUsers_failedDeleteUser": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
   "auth_newToKvikTime": "New to KvikTime?",
   "auth_createAccount": "Create Account",
   "auth_redirectNote": "New users will be redirected to our account creation page",

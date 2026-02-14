@@ -5,6 +5,7 @@ import '../models/admin_user.dart';
 import '../services/admin_api_service.dart';
 import '../viewmodels/admin_users_view_model.dart';
 import '../design/app_theme.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class AdminUsersScreen extends StatelessWidget {
   const AdminUsersScreen({super.key});
@@ -42,11 +43,12 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context);
     final viewModel = context.watch<AdminUsersViewModel>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Management'),
+        title: Text(t.adminUsers_title),
         elevation: 0,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
@@ -63,7 +65,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                   flex: 2,
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: 'Search users...',
+                      hintText: t.adminUsers_searchHint,
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -78,15 +80,15 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                   child: DropdownButtonFormField<String>(
                     value: viewModel.filterRole,
                     decoration: InputDecoration(
-                      labelText: 'Filter by Role',
+                      labelText: t.adminUsers_filterByRole,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'All', child: Text('All')),
-                      DropdownMenuItem(value: 'Admin', child: Text('Admin')),
-                      DropdownMenuItem(value: 'User', child: Text('User')),
+                    items: [
+                      DropdownMenuItem(value: 'All', child: Text(t.adminUsers_roleAll)),
+                      DropdownMenuItem(value: 'Admin', child: Text(t.adminUsers_roleAdmin)),
+                      DropdownMenuItem(value: 'User', child: Text(t.adminUsers_roleUser)),
                     ],
                     onChanged: (value) =>
                         viewModel.setFilterRole(value ?? 'All'),
@@ -116,7 +118,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         Text(
-                          'Failed to load users',
+                          t.adminUsers_failedLoadUsers,
                           style: theme.textTheme.titleMedium,
                         ),
                         const SizedBox(height: AppSpacing.sm),
@@ -131,7 +133,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                         ElevatedButton.icon(
                           onPressed: viewModel.fetchUsers,
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
+                          label: Text(t.common_retry),
                         ),
                       ],
                     ),
@@ -144,8 +146,8 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                   return Center(
                     child: Text(
                       viewModel.searchQuery != null
-                          ? 'No users found matching "${viewModel.searchQuery}"'
-                          : 'No users found',
+                          ? t.adminUsers_noUsersFoundQuery(viewModel.searchQuery!)
+                          : t.adminUsers_noUsersFound,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -159,8 +161,8 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                     final user = filteredUsers[index];
                     return ListTile(
                       leading: const Icon(Icons.account_circle_outlined),
-                      title: Text(user.displayName ?? 'No name'),
-                      subtitle: Text(user.email ?? 'No email'),
+                      title: Text(user.displayName ?? t.adminUsers_noName),
+                      subtitle: Text(user.email ?? t.adminUsers_noEmail),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -174,11 +176,13 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                                   ? Theme.of(context).colorScheme.primary
                                   : Theme.of(context).colorScheme.error,
                             ),
-                            tooltip: user.disabled ? 'Enable' : 'Disable',
+                            tooltip: user.disabled
+                                ? t.adminUsers_enable
+                                : t.adminUsers_disable,
                           ),
                           IconButton(
                             icon: const Icon(Icons.visibility_outlined),
-                            tooltip: 'Details',
+                            tooltip: t.adminUsers_tooltipDetails,
                             onPressed: () => _showUserDetails(context, user),
                           ),
                           PopupMenuButton<String>(
@@ -195,7 +199,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                                     ),
                                     const SizedBox(width: AppSpacing.sm),
                                     Text(
-                                      'Delete',
+                                      t.common_delete,
                                       style: TextStyle(
                                           color: Theme.of(context)
                                               .colorScheme
@@ -226,26 +230,28 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
   }
 
   void _showUserDetails(BuildContext context, AdminUser user) {
+    final t = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('User Details'),
+        title: Text(t.adminUsers_userDetails),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('UID: ${user.uid}'),
-            Text('Email: ${user.email ?? 'None'}'),
-            Text('Name: ${user.displayName ?? 'None'}'),
-            Text('Status: ${user.disabled ? 'Disabled' : 'Active'}'),
-            Text('Created: ${user.createdAt}'),
-            Text('Updated: ${user.updatedAt}'),
+            Text('${t.adminUsers_labelUid}: ${user.uid}'),
+            Text('${t.adminUsers_labelEmail}: ${user.email ?? t.adminUsers_none}'),
+            Text('${t.adminUsers_labelName}: ${user.displayName ?? t.adminUsers_none}'),
+            Text(
+                '${t.adminUsers_labelStatus}: ${user.disabled ? t.adminUsers_statusDisabled : t.adminUsers_statusActive}'),
+            Text('${t.adminUsers_labelCreated}: ${user.createdAt}'),
+            Text('${t.adminUsers_labelUpdated}: ${user.updatedAt}'),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: Text(t.common_close),
           ),
         ],
       ),
@@ -254,24 +260,26 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
 
   Future<void> _disableUser(BuildContext context, AdminUser user,
       AdminUsersViewModel viewModel) async {
+    final t = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Disable User'),
+            title: Text(t.adminUsers_disableUserTitle),
             content: Text(
-              'Are you sure you want to disable ${user.displayName ?? 'this user'}?',
+              t.adminUsers_disableUserConfirm(
+                  user.displayName ?? t.adminUsers_thisUser),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(t.common_cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
                 ),
-                child: const Text('Disable'),
+                child: Text(t.adminUsers_disable),
               ),
             ],
           ),
@@ -286,7 +294,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success ? 'User disabled successfully' : viewModel.error!,
+          success ? t.adminUsers_userDisabledSuccess : viewModel.error!,
         ),
         backgroundColor: success ? null : Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
@@ -296,21 +304,23 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
 
   Future<void> _enableUser(BuildContext context, AdminUser user,
       AdminUsersViewModel viewModel) async {
+    final t = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Enable User'),
+            title: Text(t.adminUsers_enableUserTitle),
             content: Text(
-              'Are you sure you want to enable ${user.displayName ?? 'this user'}?',
+              t.adminUsers_enableUserConfirm(
+                  user.displayName ?? t.adminUsers_thisUser),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(t.common_cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Enable'),
+                child: Text(t.adminUsers_enable),
               ),
             ],
           ),
@@ -325,7 +335,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success ? 'User enabled successfully' : viewModel.error!,
+          success ? t.adminUsers_userEnabledSuccess : viewModel.error!,
         ),
         backgroundColor: success ? null : Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
@@ -335,6 +345,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
 
   Future<void> _showDeleteConfirmation(BuildContext context, AdminUser user,
       AdminUsersViewModel viewModel) async {
+    final t = AppLocalizations.of(context);
     String confirmationText = '';
     bool isLoading = false;
 
@@ -342,28 +353,28 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Confirm Permanent Deletion'),
+          title: Text(t.adminUsers_confirmPermanentDeletion),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Warning: This action cannot be undone. All user data will be permanently deleted.',
+                t.adminUsers_deleteWarning,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
               const SizedBox(height: AppSpacing.xl),
-              const Text(
-                'Type DELETE to confirm:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                t.adminUsers_typeDeleteToConfirm,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: AppSpacing.sm),
               TextField(
                 onChanged: (value) {
                   setState(() => confirmationText = value);
                 },
-                decoration: const InputDecoration(
-                  hintText: 'Type DELETE here',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: t.adminUsers_typeDeleteHere,
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
@@ -372,7 +383,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
             TextButton(
               onPressed:
                   isLoading ? null : () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(t.common_cancel),
             ),
             FilledButton(
               onPressed: isLoading || confirmationText != 'DELETE'
@@ -396,7 +407,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                             Theme.of(context).colorScheme.onError),
                       ),
                     )
-                  : const Text('Confirm Delete'),
+                  : Text(t.common_confirmDelete),
             ),
           ],
         ),
@@ -407,15 +418,15 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
 
     if (confirmed == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User deleted successfully'),
+        SnackBar(
+          content: Text(t.adminUsers_userDeletedSuccess),
           behavior: SnackBarBehavior.floating,
         ),
       );
     } else if (viewModel.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to delete user: ${viewModel.error}'),
+          content: Text(t.adminUsers_failedDeleteUser(viewModel.error!)),
           backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating,
         ),

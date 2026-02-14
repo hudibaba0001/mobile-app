@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'models/location.dart';
 import 'utils/constants.dart';
+import 'l10n/generated/app_localizations.dart';
 
 class LocationsScreen extends StatefulWidget {
   const LocationsScreen({super.key});
@@ -37,6 +38,7 @@ class LocationsScreenState extends State<LocationsScreen> {
   }
 
   void _addLocation() {
+    final t = AppLocalizations.of(context);
     if (_nameController.text.isNotEmpty && _addressController.text.isNotEmpty) {
       final newLocation = Location(
         id: DateTime.now().toIso8601String(),
@@ -47,22 +49,24 @@ class LocationsScreenState extends State<LocationsScreen> {
       _locationsBox.add(newLocation);
       _nameController.clear();
       _addressController.clear();
-      _showSnackBar('Location added!');
+      _showSnackBar(t.location_addedSuccessfully);
     } else {
-      _showSnackBar('Please enter both name and address.');
+      _showSnackBar(t.location_enterNameAndAddress);
     }
   }
 
   void _deleteLocation(int index) {
+    final t = AppLocalizations.of(context);
     _locationsBox.deleteAt(index);
-    _showSnackBar('Location deleted!');
+    _showSnackBar(t.location_deletedSuccessfully);
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage Locations'),
+        title: Text(t.location_manageLocations),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -70,16 +74,16 @@ class LocationsScreenState extends State<LocationsScreen> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Location Name'),
+              decoration: InputDecoration(labelText: t.location_name),
             ),
             TextField(
               controller: _addressController,
-              decoration: const InputDecoration(labelText: 'Address'),
+              decoration: InputDecoration(labelText: t.location_fullAddress),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: _addLocation,
-              child: const Text('Add Location'),
+              child: Text(t.location_addLocation),
             ),
             const SizedBox(height: 20),
             Expanded(
@@ -87,7 +91,7 @@ class LocationsScreenState extends State<LocationsScreen> {
                 valueListenable: _locationsBox.listenable(),
                 builder: (context, Box<Location> box, _) {
                   if (box.values.isEmpty) {
-                    return const Center(child: Text('No locations added yet.'));
+                    return Center(child: Text(t.location_noSavedYet));
                   }
                   return ListView.builder(
                     itemCount: box.values.length,

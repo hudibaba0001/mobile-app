@@ -87,6 +87,8 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
           );
         }
 
+        final t = AppLocalizations.of(context);
+
         // Get current month summary
         final currentMonth = DateTime.now();
         final monthSummary = timeProvider.getCurrentMonthSummary();

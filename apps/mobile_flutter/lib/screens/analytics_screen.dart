@@ -7,6 +7,7 @@ import '../services/admin_api_service.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 import '../design/app_theme.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -42,6 +43,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     // Show loading while checking admin status
     if (_isCheckingAdmin) {
       return const Scaffold(
@@ -54,14 +56,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Access denied. Admin privileges required.'),
+            content: Text(t.analytics_accessDeniedAdminRequired),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         context.go(AppRouter.homePath);
       });
-      return const Scaffold(
-        body: Center(child: Text('Access denied. Redirecting...')),
+      return Scaffold(
+        body: Center(child: Text(t.analytics_accessDeniedRedirecting)),
       );
     }
 
@@ -69,7 +71,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text('Analytics Dashboard'),
+            Text(t.analytics_dashboardTitle),
             const SizedBox(width: AppSpacing.sm),
             Container(
               padding: const EdgeInsets.symmetric(
@@ -79,7 +81,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Text(
-                'ADMIN',
+                t.analytics_adminBadge,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -110,7 +112,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   Text(
-                    'Error loading dashboard',
+                    t.analytics_errorLoadingDashboard,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -122,7 +124,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   const SizedBox(height: AppSpacing.lg),
                   ElevatedButton(
                     onPressed: () => viewModel.refresh(),
-                    child: const Text('Retry'),
+                    child: Text(t.common_retry),
                   ),
                 ],
               ),
@@ -131,7 +133,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
           final data = viewModel.dashboardData;
           if (data == null) {
-            return const Center(child: Text('No data available'));
+            return Center(child: Text(t.analytics_noDataAvailable));
           }
 
           return RefreshIndicator(
@@ -161,7 +163,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Key Performance Indicators',
+          AppLocalizations.of(context).analytics_kpiSectionTitle,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -176,25 +178,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           childAspectRatio: 1.5,
           children: [
             _buildKPICard(
-              'Total Hours (This Week)',
+              AppLocalizations.of(context).analytics_kpiTotalHoursWeek,
               '${data.totalHoursLoggedThisWeek.toStringAsFixed(1)}h',
               Icons.access_time,
               AppColors.primary,
             ),
             _buildKPICard(
-              'Active Users',
+              AppLocalizations.of(context).analytics_kpiActiveUsers,
               data.activeUsers.toString(),
               Icons.people,
               AppColors.success,
             ),
             _buildKPICard(
-              'Overtime Balance',
+              AppLocalizations.of(context).analytics_kpiOvertimeBalance,
               '${data.overtimeBalance.toStringAsFixed(1)}h',
               Icons.trending_up,
               data.overtimeBalance >= 0 ? AppColors.accent : AppColors.error,
             ),
             _buildKPICard(
-              'Avg Daily Hours',
+              AppLocalizations.of(context).analytics_kpiAvgDailyHours,
               '${data.averageDailyHours.toStringAsFixed(1)}h',
               Icons.analytics,
               AppColors.secondary,
@@ -247,7 +249,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Charts & Trends',
+          AppLocalizations.of(context).analytics_chartsSectionTitle,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -262,7 +264,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '7-Day Daily Trends',
+                  AppLocalizations.of(context).analytics_dailyTrends7d,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -287,7 +289,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'User Distribution',
+                  AppLocalizations.of(context).analytics_userDistribution,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -307,7 +309,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildDailyTrendsChart(List<DailyTrend> trends) {
     if (trends.isEmpty) {
-      return const Center(child: Text('No data available'));
+      return Center(child: Text(AppLocalizations.of(context).analytics_noDataAvailable));
     }
 
     return BarChart(
@@ -376,7 +378,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildUserDistributionChart(List<UserDistribution> distribution) {
     if (distribution.isEmpty) {
-      return const Center(child: Text('No data available'));
+      return Center(child: Text(AppLocalizations.of(context).analytics_noDataAvailable));
     }
 
     return PieChart(
