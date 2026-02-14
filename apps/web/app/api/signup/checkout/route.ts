@@ -2,27 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 import { stripe } from '@/lib/stripe'
 import { signupSchema, TERMS_VERSION, PRIVACY_VERSION } from '@/lib/validation'
-
-const TERMS_URL = 'https://www.kviktime.se/terms-and-conditions/'
-const PRIVACY_URL = 'https://www.kviktime.se/privacy-policy/'
-
-/** Fetch page text content from a WordPress URL */
-async function fetchPageContent(url: string): Promise<string> {
-  try {
-    const res = await fetch(url, { next: { revalidate: 0 } })
-    if (!res.ok) return `[Failed to fetch: ${res.status}]`
-    const html = await res.text()
-    // Strip HTML tags to store plain text
-    return html
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-  } catch (e) {
-    return `[Fetch error: ${e}]`
-  }
-}
+import { fetchCurrentLegalSnapshots } from '@/lib/legal-proof'
 
 export async function POST(request: NextRequest) {
   try {
@@ -77,6 +57,11 @@ export async function POST(request: NextRequest) {
     const userId = authData.user.id
     const now = new Date().toISOString()
 
+    const legalSnapshots = await fetchCurrentLegalSnapshots({
+      termsFallbackVersion: TERMS_VERSION,
+      privacyFallbackVersion: PRIVACY_VERSION,
+    })
+
     // Create profile with consent timestamps
     const { error: profileError } = await supabase.from('profiles').upsert({
       id: userId,
@@ -86,29 +71,11 @@ export async function POST(request: NextRequest) {
       phone: phone || null,
       terms_accepted_at: now,
       privacy_accepted_at: now,
-      terms_version: TERMS_VERSION,
-      privacy_version: PRIVACY_VERSION,
+      terms_version: legalSnapshots.terms.version,
+      privacy_version: legalSnapshots.privacy.version,
       subscription_status: 'pending',
       created_at: now,
       updated_at: now,
-    })
-
-    // Fetch T&C and Privacy Policy content from WordPress for legal proof
-    const [termsContent, privacyContent] = await Promise.all([
-      fetchPageContent(TERMS_URL),
-      fetchPageContent(PRIVACY_URL),
-    ])
-
-    // Log terms acceptance as immutable audit record with full content snapshot
-    await supabase.from('terms_acceptance').insert({
-      user_id: userId,
-      email,
-      terms_version: TERMS_VERSION,
-      privacy_version: PRIVACY_VERSION,
-      terms_content: termsContent,
-      privacy_content: privacyContent,
-      ip_address: ipAddress,
-      user_agent: userAgent,
     })
 
     if (profileError) {
@@ -117,6 +84,28 @@ export async function POST(request: NextRequest) {
       await supabase.auth.admin.deleteUser(userId)
       return NextResponse.json(
         { error: 'Failed to create profile' },
+        { status: 500 }
+      )
+    }
+
+    // Log terms acceptance as immutable audit record with full content snapshot
+    const { error: legalAuditError } = await supabase.from('terms_acceptance').insert({
+      user_id: userId,
+      email,
+      terms_version: legalSnapshots.terms.version,
+      privacy_version: legalSnapshots.privacy.version,
+      terms_content: legalSnapshots.terms.content,
+      privacy_content: legalSnapshots.privacy.content,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    })
+
+    if (legalAuditError) {
+      console.error('Legal audit error:', legalAuditError)
+      // Clean up: delete auth user if legal proof cannot be persisted
+      await supabase.auth.admin.deleteUser(userId)
+      return NextResponse.json(
+        { error: 'Failed to store legal acceptance proof' },
         { status: 500 }
       )
     }
@@ -175,8 +164,8 @@ export async function POST(request: NextRequest) {
       client_reference_id: userId,
       metadata: {
         supabase_user_id: userId,
-        terms_version: TERMS_VERSION,
-        privacy_version: PRIVACY_VERSION,
+        terms_version: legalSnapshots.terms.version,
+        privacy_version: legalSnapshots.privacy.version,
       },
     })
 

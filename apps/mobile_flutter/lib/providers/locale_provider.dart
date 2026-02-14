@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Supports System default, English, and Swedish.
 class LocaleProvider extends ChangeNotifier {
   static const String _localeKey = 'locale_code';
+  static const String _systemLocaleValue = 'system';
+  static const Locale _defaultLocale = Locale('sv');
 
   Locale? _locale; // null = system default
   bool _isInitialized = false;
@@ -34,25 +36,27 @@ class LocaleProvider extends ChangeNotifier {
     }
   }
 
-  /// Initialize from SharedPreferences
+  /// Initialize from SharedPreferences.
+  /// Defaults to Swedish unless user has explicitly selected another locale.
   Future<void> init() async {
     if (_isInitialized) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final localeCode = prefs.getString(_localeKey);
+    final storedValue = prefs.getString(_localeKey);
 
-    if (localeCode != null && localeCode.isNotEmpty) {
-      // Validate stored locale is supported
-      final storedLocale = Locale(localeCode);
+    if (storedValue == _systemLocaleValue) {
+      _locale = null;
+    } else if (storedValue != null && storedValue.isNotEmpty) {
+      final storedLocale = Locale(storedValue);
       if (_isSupported(storedLocale)) {
         _locale = storedLocale;
       } else {
-        // Invalid/unsupported locale stored → fall back to system default
-        _locale = null;
-        await prefs.remove(_localeKey); // Clean up invalid value
+        _locale = _defaultLocale;
+        await prefs.setString(_localeKey, _defaultLocale.languageCode);
       }
     } else {
-      _locale = null; // System default
+      _locale = _defaultLocale;
+      await prefs.setString(_localeKey, _defaultLocale.languageCode);
     }
 
     _isInitialized = true;
@@ -73,7 +77,7 @@ class LocaleProvider extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     if (locale == null) {
-      await prefs.remove(_localeKey);
+      await prefs.setString(_localeKey, _systemLocaleValue);
     } else {
       await prefs.setString(_localeKey, locale.languageCode);
     }

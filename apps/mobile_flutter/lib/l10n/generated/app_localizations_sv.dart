@@ -2307,6 +2307,63 @@ class AppLocalizationsSv extends AppLocalizations {
   String get auth_passwordRequired => 'Lösenord krävs';
 
   @override
+  String get signup_subtitle =>
+      'Skapa konto i appen och fortsätt till prenumeration.';
+
+  @override
+  String get signup_firstNameLabel => 'Förnamn';
+
+  @override
+  String get signup_lastNameLabel => 'Efternamn';
+
+  @override
+  String get signup_firstNameRequired => 'Förnamn krävs';
+
+  @override
+  String get signup_lastNameRequired => 'Efternamn krävs';
+
+  @override
+  String get signup_confirmPasswordLabel => 'Bekräfta lösenord';
+
+  @override
+  String get signup_confirmPasswordRequired => 'Bekräfta ditt lösenord';
+
+  @override
+  String get signup_passwordTooShort => 'Lösenordet måste vara minst 8 tecken';
+
+  @override
+  String get signup_passwordStrongRequired =>
+      'Lösenordet måste innehålla stor bokstav, liten bokstav, siffra och specialtecken.';
+
+  @override
+  String get signup_passwordsDoNotMatch => 'Lösenorden matchar inte';
+
+  @override
+  String get signup_acceptLegalPrefix => 'Jag accepterar';
+
+  @override
+  String get signup_acceptLegalAnd => 'och';
+
+  @override
+  String get signup_acceptLegalRequired =>
+      'Du måste godkänna användarvillkor och integritetspolicy för att fortsätta.';
+
+  @override
+  String get signup_errorRateLimit =>
+      'För många e-postförfrågningar. Vänta några minuter och försök igen.';
+
+  @override
+  String get signup_errorEmailNotConfirmed =>
+      'E-postbekräftelse krävs. Kontrollera inkorgen och bekräfta, logga sedan in.';
+
+  @override
+  String get signup_errorUserExists =>
+      'Ett konto med den här e-posten finns redan. Logga in.';
+
+  @override
+  String get signup_errorGeneric => 'Kunde inte skapa konto. Försök igen.';
+
+  @override
   String get legal_acceptTitle => 'Villkor & Integritet';
 
   @override

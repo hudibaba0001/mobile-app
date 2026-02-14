@@ -2309,6 +2309,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get auth_passwordRequired => 'Password is required';
 
   @override
+  String get signup_subtitle =>
+      'Sign up in the app and continue to subscription.';
+
+  @override
+  String get signup_firstNameLabel => 'First name';
+
+  @override
+  String get signup_lastNameLabel => 'Last name';
+
+  @override
+  String get signup_firstNameRequired => 'First name is required';
+
+  @override
+  String get signup_lastNameRequired => 'Last name is required';
+
+  @override
+  String get signup_confirmPasswordLabel => 'Confirm password';
+
+  @override
+  String get signup_confirmPasswordRequired => 'Confirm your password';
+
+  @override
+  String get signup_passwordTooShort =>
+      'Password must be at least 8 characters';
+
+  @override
+  String get signup_passwordStrongRequired =>
+      'Password must include uppercase, lowercase, number, and special character.';
+
+  @override
+  String get signup_passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get signup_acceptLegalPrefix => 'I accept the';
+
+  @override
+  String get signup_acceptLegalAnd => 'and';
+
+  @override
+  String get signup_acceptLegalRequired =>
+      'You must accept Terms and Privacy Policy to continue.';
+
+  @override
+  String get signup_errorRateLimit =>
+      'Too many email requests. Wait a few minutes and try again.';
+
+  @override
+  String get signup_errorEmailNotConfirmed =>
+      'Email confirmation is required. Check your inbox and confirm, then sign in.';
+
+  @override
+  String get signup_errorUserExists =>
+      'An account with this email already exists. Please sign in.';
+
+  @override
+  String get signup_errorGeneric =>
+      'Could not create account. Please try again.';
+
+  @override
   String get legal_acceptTitle => 'Terms & Privacy';
 
   @override

@@ -3148,6 +3148,9 @@ SUCH DAMAGE.
 --------------------------------------------------------------------------------
 cross_file
 flutter_lints
+in_app_purchase
+in_app_purchase_platform_interface
+in_app_purchase_storekit
 path_provider
 path_provider_android
 path_provider_foundation
@@ -11084,6 +11087,7 @@ IN THE MATERIALS.
 --------------------------------------------------------------------------------
 go_router
 google_fonts
+in_app_purchase_android
 
 Copyright 2013 The Flutter Authors
 

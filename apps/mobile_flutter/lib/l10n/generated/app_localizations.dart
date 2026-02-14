@@ -4197,6 +4197,108 @@ abstract class AppLocalizations {
   /// **'Password is required'**
   String get auth_passwordRequired;
 
+  /// No description provided for @signup_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up in the app and continue to subscription.'**
+  String get signup_subtitle;
+
+  /// No description provided for @signup_firstNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get signup_firstNameLabel;
+
+  /// No description provided for @signup_lastNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get signup_lastNameLabel;
+
+  /// No description provided for @signup_firstNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'First name is required'**
+  String get signup_firstNameRequired;
+
+  /// No description provided for @signup_lastNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name is required'**
+  String get signup_lastNameRequired;
+
+  /// No description provided for @signup_confirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get signup_confirmPasswordLabel;
+
+  /// No description provided for @signup_confirmPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your password'**
+  String get signup_confirmPasswordRequired;
+
+  /// No description provided for @signup_passwordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get signup_passwordTooShort;
+
+  /// No description provided for @signup_passwordStrongRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must include uppercase, lowercase, number, and special character.'**
+  String get signup_passwordStrongRequired;
+
+  /// No description provided for @signup_passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get signup_passwordsDoNotMatch;
+
+  /// No description provided for @signup_acceptLegalPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'I accept the'**
+  String get signup_acceptLegalPrefix;
+
+  /// No description provided for @signup_acceptLegalAnd.
+  ///
+  /// In en, this message translates to:
+  /// **'and'**
+  String get signup_acceptLegalAnd;
+
+  /// No description provided for @signup_acceptLegalRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must accept Terms and Privacy Policy to continue.'**
+  String get signup_acceptLegalRequired;
+
+  /// No description provided for @signup_errorRateLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many email requests. Wait a few minutes and try again.'**
+  String get signup_errorRateLimit;
+
+  /// No description provided for @signup_errorEmailNotConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Email confirmation is required. Check your inbox and confirm, then sign in.'**
+  String get signup_errorEmailNotConfirmed;
+
+  /// No description provided for @signup_errorUserExists.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this email already exists. Please sign in.'**
+  String get signup_errorUserExists;
+
+  /// No description provided for @signup_errorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create account. Please try again.'**
+  String get signup_errorGeneric;
+
   /// No description provided for @legal_acceptTitle.
   ///
   /// In en, this message translates to:

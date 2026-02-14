@@ -1,10 +1,17 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../config/app_router.dart';
+import '../design/app_theme.dart';
+import '../l10n/generated/app_localizations.dart';
+import '../config/external_links.dart';
 import '../services/entitlement_service.dart';
+import '../services/profile_service.dart';
 import '../services/supabase_auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -22,24 +29,39 @@ class _SignupScreenState extends State<SignupScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _entitlementService = EntitlementService();
+  final _profileService = ProfileService();
 
   bool _isLoading = false;
+  bool _acceptedLegal = false;
   String? _error;
 
+  static const _gradientStart = AppColors.gradientStart;
+  static const _gradientEnd = AppColors.gradientEnd;
+
   String _buildSignupErrorMessage(Object error) {
+    final t = AppLocalizations.of(context);
     if (error is AuthException) {
       switch (error.code) {
         case 'over_email_send_rate_limit':
-          return 'Too many email requests. Wait a few minutes and try again.';
+          return t.signup_errorRateLimit;
         case 'email_not_confirmed':
-          return 'Email confirmation is required. Check your inbox and confirm, then sign in.';
+          return t.signup_errorEmailNotConfirmed;
         case 'user_already_exists':
-          return 'An account with this email already exists. Please sign in.';
+          return t.signup_errorUserExists;
         default:
           return error.message;
       }
     }
-    return 'Could not create account. Please try again.';
+    return t.signup_errorGeneric;
+  }
+
+  bool _isStrongPassword(String value) {
+    if (value.length < 8) return false;
+    final hasUpper = RegExp(r'[A-Z]').hasMatch(value);
+    final hasLower = RegExp(r'[a-z]').hasMatch(value);
+    final hasDigit = RegExp(r'\d').hasMatch(value);
+    final hasSpecial = RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=/\\[\]~`]').hasMatch(value);
+    return hasUpper && hasLower && hasDigit && hasSpecial;
   }
 
   @override
@@ -54,6 +76,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _handleSignup() async {
     if (!_formKey.currentState!.validate()) return;
+    final t = AppLocalizations.of(context);
+
+    if (!_acceptedLegal) {
+      setState(() {
+        _error = t.signup_acceptLegalRequired;
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -71,6 +101,7 @@ class _SignupScreenState extends State<SignupScreen> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
       );
+      await _profileService.acceptLegal();
 
       if (!mounted) return;
       context.go(AppRouter.homePath);
@@ -90,105 +121,406 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
-              child: Form(
-                key: _formKey,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_gradientStart, _gradientEnd],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xl,
+                vertical: AppSpacing.xxxl,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Sign up in the app and continue to subscription.',
+                    Text(
+                      t.auth_createAccount,
                       textAlign: TextAlign.center,
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        color: Colors.white,
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _firstNameController,
-                      decoration: const InputDecoration(labelText: 'First name'),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      t.signup_subtitle,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _lastNameController,
-                      decoration: const InputDecoration(labelText: 'Last name'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Email is required';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      validator: (value) {
-                        if (value == null || value.length < 8) {
-                          return 'Password must be at least 8 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      obscureText: true,
-                      decoration:
-                          const InputDecoration(labelText: 'Confirm password'),
-                      validator: (value) {
-                        if (value != _passwordController.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
-                    ),
-                    if (_error != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        _error!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
+                    const SizedBox(height: AppSpacing.xxl),
+                    _SignupGlassCard(
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildGlassTextField(
+                              controller: _firstNameController,
+                              hintText: t.signup_firstNameLabel,
+                              prefixIcon: Icons.person_outline,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return t.signup_firstNameRequired;
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            _buildGlassTextField(
+                              controller: _lastNameController,
+                              hintText: t.signup_lastNameLabel,
+                              prefixIcon: Icons.person_outline,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return t.signup_lastNameRequired;
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            _buildGlassTextField(
+                              controller: _emailController,
+                              hintText: t.password_emailLabel,
+                              prefixIcon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return t.password_emailRequired;
+                                }
+                                if (!value.contains('@')) {
+                                  return t.password_emailInvalid;
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            _buildGlassTextField(
+                              controller: _passwordController,
+                              hintText: t.auth_passwordLabel,
+                              prefixIcon: Icons.lock_outline,
+                              obscureText: true,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return t.auth_passwordRequired;
+                                }
+                                if (!_isStrongPassword(value)) {
+                                  return t.signup_passwordStrongRequired;
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            _buildGlassTextField(
+                              controller: _confirmPasswordController,
+                              hintText: t.signup_confirmPasswordLabel,
+                              prefixIcon: Icons.lock_outline,
+                              obscureText: true,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return t.signup_confirmPasswordRequired;
+                                }
+                                if (value != _passwordController.text) {
+                                  return t.signup_passwordsDoNotMatch;
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Checkbox(
+                                  value: _acceptedLegal,
+                                  onChanged: _isLoading
+                                      ? null
+                                      : (value) => setState(
+                                            () => _acceptedLegal = value ?? false,
+                                          ),
+                                  checkColor: _gradientStart,
+                                  fillColor:
+                                      WidgetStateProperty.all(Colors.white),
+                                  side: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: Wrap(
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        Text(
+                                          t.signup_acceptLegalPrefix,
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.9),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: _isLoading
+                                              ? null
+                                              : () => launchUrl(
+                                                    Uri.parse(
+                                                        ExternalLinks.termsUrl),
+                                                    mode: LaunchMode
+                                                        .externalApplication,
+                                                  ),
+                                          style: TextButton.styleFrom(
+                                            minimumSize: Size.zero,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                              vertical: 0,
+                                            ),
+                                            tapTargetSize:
+                                                MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: Text(
+                                            t.settings_terms,
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              color: Colors.white,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          t.signup_acceptLegalAnd,
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.9),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: _isLoading
+                                              ? null
+                                              : () => launchUrl(
+                                                    Uri.parse(ExternalLinks
+                                                        .privacyUrl),
+                                                    mode: LaunchMode
+                                                        .externalApplication,
+                                                  ),
+                                          style: TextButton.styleFrom(
+                                            minimumSize: Size.zero,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                              vertical: 0,
+                                            ),
+                                            tapTargetSize:
+                                                MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: Text(
+                                            t.settings_privacy,
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              color: Colors.white,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_error != null) ...[
+                              const SizedBox(height: AppSpacing.lg),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                  vertical: AppSpacing.sm,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.error.withValues(alpha: 0.2),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.sm),
+                                  border: Border.all(
+                                    color: AppColors.error.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  _error!,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: AppSpacing.xl),
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _handleSignup,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: _gradientStart,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: AppSpacing.lg,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.md),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: _isLoading
+                                  ? SizedBox(
+                                      height: AppIconSize.sm,
+                                      width: AppIconSize.sm,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: _gradientStart,
+                                      ),
+                                    )
+                                  : Text(
+                                      t.auth_createAccount,
+                                      style:
+                                          theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                        color: _gradientStart,
+                                      ),
+                                    ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            TextButton(
+                              onPressed: _isLoading
+                                  ? null
+                                  : () => AppRouter.goToLogin(context),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                              ),
+                              child: Text(
+                                t.password_backToSignIn,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                    const SizedBox(height: 18),
-                    FilledButton(
-                      onPressed: _isLoading ? null : _handleSignup,
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Create account'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () => AppRouter.goToLogin(context),
-                      child: const Text('Already have an account? Sign in'),
                     ),
                   ],
                 ),
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData prefixIcon,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    String? Function(String?)? validator,
+  }) {
+    final theme = Theme.of(context);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.2),
+            ),
+          ),
+          child: TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            obscureText: obscureText,
+            validator: validator,
+            style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: hintText,
+              hintStyle: theme.textTheme.bodyLarge?.copyWith(
+                color: Colors.white.withValues(alpha: 0.7),
+              ),
+              prefixIcon: Icon(
+                prefixIcon,
+                color: Colors.white.withValues(alpha: 0.75),
+                size: AppIconSize.sm,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.lg,
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
+              errorStyle: const TextStyle(height: 0, fontSize: 0),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SignupGlassCard extends StatelessWidget {
+  final Widget child;
+
+  const _SignupGlassCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.xl),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: 0.25),
+                Colors.white.withValues(alpha: 0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: child,
         ),
       ),
     );

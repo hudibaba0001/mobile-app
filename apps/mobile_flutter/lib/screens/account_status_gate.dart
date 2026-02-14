@@ -35,6 +35,7 @@ class _AccountStatusGateState extends State<AccountStatusGate>
   final _entitlementService = EntitlementService();
   UserProfile? _profile;
   UserEntitlement? _entitlement;
+  LegalVersions? _requiredLegalVersions;
   bool _isLoading = true;
   String? _error;
 
@@ -89,12 +90,21 @@ class _AccountStatusGateState extends State<AccountStatusGate>
         await contractProvider.loadFromSupabase();
       }
 
+      LegalVersions? requiredLegalVersions;
+      try {
+        requiredLegalVersions =
+            await _profileService.fetchCurrentLegalVersions();
+      } catch (_) {
+        // If legal version lookup fails, fall back to current stored profile state.
+      }
+
       final entitlement = await _entitlementService.fetchCurrentEntitlement();
 
       if (mounted) {
         setState(() {
           _profile = profile;
           _entitlement = entitlement;
+          _requiredLegalVersions = requiredLegalVersions;
           _isLoading = false;
         });
       }
@@ -114,9 +124,20 @@ class _AccountStatusGateState extends State<AccountStatusGate>
     setState(() => _isAcceptingLegal = true);
     try {
       final updatedProfile = await _profileService.acceptLegal();
-      if (mounted && updatedProfile != null) {
+      LegalVersions? requiredLegalVersions = _requiredLegalVersions;
+      try {
+        requiredLegalVersions =
+            await _profileService.fetchCurrentLegalVersions();
+      } catch (_) {
+        // Keep prior required versions if this lookup fails.
+      }
+
+      if (mounted) {
         setState(() {
-          _profile = updatedProfile;
+          if (updatedProfile != null) {
+            _profile = updatedProfile;
+          }
+          _requiredLegalVersions = requiredLegalVersions;
           _isAcceptingLegal = false;
         });
       }
@@ -226,6 +247,14 @@ class _AccountStatusGateState extends State<AccountStatusGate>
     return false;
   }
 
+  bool _isLegalVersionCurrent() {
+    if (_profile == null) return false;
+    final required = _requiredLegalVersions;
+    if (required == null) return true;
+    return _profile!.termsVersion == required.termsVersion &&
+        _profile!.privacyVersion == required.privacyVersion;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -256,32 +285,32 @@ class _AccountStatusGateState extends State<AccountStatusGate>
               padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: AppIconSize.xl,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  AppLocalizations.of(context).common_error,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  _error!,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                ElevatedButton(
-                  onPressed: _loadProfile,
-                  child: Text(AppLocalizations.of(context).common_retry),
-                ),
-              ],
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: AppIconSize.xl,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    AppLocalizations.of(context).common_error,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    _error!,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  ElevatedButton(
+                    onPressed: _loadProfile,
+                    child: Text(AppLocalizations.of(context).common_retry),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
         ),
       );
     }
@@ -343,8 +372,8 @@ class _AccountStatusGateState extends State<AccountStatusGate>
       );
     }
 
-    // Check if user has accepted legal terms
-    if (!_profile!.hasAcceptedLegal) {
+    // Check if user has accepted current legal terms
+    if (!_profile!.hasAcceptedLegal || !_isLegalVersionCurrent()) {
       return _buildLegalAcceptanceScreen(context);
     }
 

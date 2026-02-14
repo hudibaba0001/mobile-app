@@ -168,9 +168,9 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
         debugPrint(
             'SupabaseAuthService: Account exists but email is not confirmed');
         throw AuthApiException(
-          'Email confirmation is required. Check your inbox and confirm, then sign in.',
+          'An account with this email already exists. Please sign in.',
           statusCode: signInError.statusCode,
-          code: signInError.code,
+          code: 'user_already_exists',
         );
       }
 
@@ -198,12 +198,24 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
       if (response.session == null) {
         debugPrint(
             'SupabaseAuthService: Sign up created no session, attempting sign in');
-        final signInResponse = await _supabase.auth.signInWithPassword(
-          email: email,
-          password: password,
-        );
-        debugPrint('SupabaseAuthService: Sign in after sign up successful');
-        return signInResponse;
+        try {
+          final signInResponse = await _supabase.auth.signInWithPassword(
+            email: email,
+            password: password,
+          );
+          debugPrint('SupabaseAuthService: Sign in after sign up successful');
+          return signInResponse;
+        } on AuthApiException catch (signInError) {
+          final code = signInError.code ?? '';
+          if (code == 'email_not_confirmed') {
+            throw AuthApiException(
+              'An account with this email already exists. Please sign in.',
+              statusCode: signInError.statusCode,
+              code: 'user_already_exists',
+            );
+          }
+          rethrow;
+        }
       }
 
       debugPrint('SupabaseAuthService: Sign up successful');
