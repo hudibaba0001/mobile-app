@@ -6,6 +6,7 @@ import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../design/app_theme.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../providers/locale_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
@@ -122,6 +123,9 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = context.watch<LocaleProvider>();
+    final t = AppLocalizations.of(context);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -143,6 +147,9 @@ class _LoginScreenState extends State<LoginScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      _buildLanguageSwitcher(t, localeProvider),
+                      const SizedBox(height: AppSpacing.lg),
+
                       // Logo Card with glassmorphism
                       _buildLogoCard(),
                       const SizedBox(height: AppSpacing.xxl),
@@ -152,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen>
                       const SizedBox(height: AppSpacing.xxl),
 
                       // Divider with text
-                      _buildDividerWithText(AppLocalizations.of(context).auth_newToKvikTime),
+                      _buildDividerWithText(t.auth_newToKvikTime),
                       const SizedBox(height: AppSpacing.xl),
 
                       // Create Account Button
@@ -161,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                       // Disclaimer text
                       Text(
-                        AppLocalizations.of(context).auth_redirectNote,
+                        t.auth_redirectNote,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Colors.white.withValues(alpha: 0.7),
                             ),
@@ -172,6 +179,96 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageSwitcher(
+    AppLocalizations t,
+    LocaleProvider localeProvider,
+  ) {
+    String selectedLanguageLabel;
+    switch (localeProvider.locale?.languageCode) {
+      case 'sv':
+        selectedLanguageLabel = t.settings_languageSwedish;
+        break;
+      case 'en':
+        selectedLanguageLabel = t.settings_languageEnglish;
+        break;
+      default:
+        selectedLanguageLabel = t.settings_languageSystem;
+        break;
+    }
+
+    return Align(
+      alignment: Alignment.centerRight,
+      child: PopupMenuButton<String>(
+        tooltip: t.settings_language,
+        initialValue: localeProvider.localeCode ?? 'system',
+        onSelected: (value) {
+          switch (value) {
+            case 'en':
+              localeProvider.setLocale(const Locale('en'));
+              break;
+            case 'sv':
+              localeProvider.setLocale(const Locale('sv'));
+              break;
+            default:
+              localeProvider.setLocale(null);
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem<String>(
+            value: 'system',
+            child: Text(t.settings_languageSystem),
+          ),
+          PopupMenuItem<String>(
+            value: 'en',
+            child: Text(t.settings_languageEnglish),
+          ),
+          PopupMenuItem<String>(
+            value: 'sv',
+            child: Text(t.settings_languageSwedish),
+          ),
+        ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.language,
+                color: Colors.white.withValues(alpha: 0.9),
+                size: AppIconSize.sm,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                selectedLanguageLabel,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(
+                Icons.arrow_drop_down,
+                color: Colors.white.withValues(alpha: 0.9),
+                size: AppIconSize.sm,
+              ),
+            ],
           ),
         ),
       ),
@@ -241,8 +338,9 @@ class _LoginScreenState extends State<LoginScreen>
               hintText: AppLocalizations.of(context).auth_emailLabel,
               prefixIcon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
-              validator: (v) =>
-                  v == null || !v.contains('@') ? AppLocalizations.of(context).auth_invalidEmail : null,
+              validator: (v) => v == null || !v.contains('@')
+                  ? AppLocalizations.of(context).auth_invalidEmail
+                  : null,
             ),
             const SizedBox(height: AppSpacing.lg),
 
@@ -260,7 +358,9 @@ class _LoginScreenState extends State<LoginScreen>
                 onPressed: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
               ),
-              validator: (v) => (v?.length ?? 0) < 6 ? AppLocalizations.of(context).auth_passwordRequired : null,
+              validator: (v) => (v?.length ?? 0) < 6
+                  ? AppLocalizations.of(context).auth_passwordRequired
+                  : null,
             ),
             const SizedBox(height: AppSpacing.xl),
 

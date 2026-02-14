@@ -238,6 +238,7 @@ class _LocationSelectorState extends State<LocationSelector> {
   }
 
   Widget _buildSuggestionsList() {
+    final t = AppLocalizations.of(context);
     final hasLocationSuggestions = _suggestions.isNotEmpty;
     final hasAddressSuggestions = _addressSuggestions.isNotEmpty;
     final hasMapboxSuggestions = _mapboxSuggestions.isNotEmpty;
@@ -260,7 +261,7 @@ class _LocationSelectorState extends State<LocationSelector> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Text(
-              'Saved Locations',
+              t.location_savedLocations,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w600,
@@ -280,7 +281,7 @@ class _LocationSelectorState extends State<LocationSelector> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Text(
-                'Address Suggestions',
+                t.location_addressSuggestions,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -311,7 +312,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Searching addresses...',
+                  t.location_searchingAddresses,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -326,7 +327,7 @@ class _LocationSelectorState extends State<LocationSelector> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Text(
-                'Recent Addresses',
+                t.location_recentAddresses,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w600,
@@ -370,6 +371,7 @@ class _LocationSelectorState extends State<LocationSelector> {
   }
 
   Widget _buildEmptyState() {
+    final t = AppLocalizations.of(context);
     final locationProvider = context.watch<LocationProvider>();
     final recentLocations =
         locationProvider.getRecentlyAddedLocations(limit: 5);
@@ -387,12 +389,12 @@ class _LocationSelectorState extends State<LocationSelector> {
             ),
             const SizedBox(height: 8),
             Text(
-              'No saved locations yet',
+              t.location_noSavedYet,
               style: TextStyle(color: Colors.grey[600]),
             ),
             const SizedBox(height: 4),
             Text(
-              'Start typing to add a new location',
+              t.location_startTypingToAdd,
               style: TextStyle(color: Colors.grey[500], fontSize: 12),
             ),
           ],
@@ -407,7 +409,7 @@ class _LocationSelectorState extends State<LocationSelector> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Text(
-            'Recent Locations',
+            t.location_recentLocations,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -494,6 +496,7 @@ class _LocationSelectorState extends State<LocationSelector> {
   }
 
   Widget _buildSaveLocationTile(String address) {
+    final t = AppLocalizations.of(context);
     return ListTile(
       dense: true,
       leading: CircleAvatar(
@@ -506,7 +509,7 @@ class _LocationSelectorState extends State<LocationSelector> {
         ),
       ),
       title: Text(
-        'Save "$address" as new location',
+        t.location_saveAsNew(address),
         style: const TextStyle(
           fontWeight: FontWeight.w500,
           color: Colors.green,
@@ -586,10 +589,10 @@ class _LocationSelectorState extends State<LocationSelector> {
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Location Name',
-                hintText: 'e.g., Home, Office, Gym',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: t.location_name,
+                hintText: t.location_nameShortHint,
+                border: const OutlineInputBorder(),
               ),
               autofocus: true,
             ),

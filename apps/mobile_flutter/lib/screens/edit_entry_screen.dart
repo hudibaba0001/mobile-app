@@ -151,6 +151,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   void _checkForCachedRoute(_TravelLegDraft entry) {
     if (!mounted) return;
+    final t = AppLocalizations.of(context);
 
     final from = entry.fromController.text.trim();
     final to = entry.toController.text.trim();
@@ -177,8 +178,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('Duration auto-filled from history ($cachedMinutes min)'),
+          content: Text(t.edit_durationAutofilledFromHistory(cachedMinutes)),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -555,6 +555,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   }
 
   Widget _buildTravelForm(ThemeData theme) {
+    final t = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -579,7 +580,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         const SizedBox(height: AppSpacing.md),
         if (_travelEntries.length > 1)
           Text(
-            'First leg updates this entry; extra legs become new entries.',
+            t.editMode_singleEntryInfo_travel,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -587,9 +588,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
         _buildTextField(
           theme,
-          AppLocalizations.of(context).edit_notes,
+          t.edit_notes,
           _travelNotesController,
-          AppLocalizations.of(context).edit_travelNotesHint,
+          t.edit_travelNotesHint,
           maxLines: 4,
         ),
       ],
@@ -597,12 +598,13 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   }
 
   Widget _buildWorkForm(ThemeData theme) {
+    final t = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Quick Duration Chips
         Text(
-          'Quick Duration',
+          t.edit_quickDuration,
           style: theme.textTheme.labelMedium?.copyWith(
             fontWeight: FontWeight.w500,
           ),
@@ -629,7 +631,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           child: OutlinedButton.icon(
             onPressed: _addShift,
             icon: const Icon(Icons.add),
-            label: const Text('Add another shift'),
+            label: Text(t.edit_addShift),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(0, AppSpacing.xxxl),
               shape: RoundedRectangleBorder(
@@ -641,7 +643,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         const SizedBox(height: AppSpacing.md),
         if (_shifts.length > 1)
           Text(
-            'First shift updates this entry; extra shifts become new entries.',
+            t.editMode_singleEntryInfo_work,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -649,9 +651,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
         _buildTextField(
           theme,
-          AppLocalizations.of(context).edit_notes,
+          t.edit_notes,
           _workNotesController,
-          AppLocalizations.of(context).edit_notesHint,
+          t.edit_notesHint,
           maxLines: 4,
         ),
       ],
@@ -698,6 +700,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   /// Build a Copy Yesterday chip
   Widget _buildCopyYesterdayChip(ThemeData theme) {
+    final t = AppLocalizations.of(context);
     return Material(
       color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
       borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -717,7 +720,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               ),
               const SizedBox(width: AppSpacing.xs + 2),
               Text(
-                'Copy Yesterday',
+                t.edit_copyYesterday,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: theme.colorScheme.onSecondaryContainer,
                   fontWeight: FontWeight.w600,
@@ -732,6 +735,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   /// Copy yesterday's work shift times to current entry
   void _copyYesterday() {
+    final t = AppLocalizations.of(context);
     final entryProvider = context.read<EntryProvider>();
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
 
@@ -748,7 +752,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         yesterdayEntry.shifts == null ||
         yesterdayEntry.shifts!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No work entry found for yesterday')),
+        SnackBar(content: Text(t.edit_noWorkEntryYesterday)),
       );
       return;
     }
@@ -767,7 +771,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     _validateForm();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied yesterday\'s shift times')),
+      SnackBar(content: Text(t.edit_copiedYesterdayShiftTimes)),
     );
   }
 
@@ -821,6 +825,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   }
 
   Widget _buildTravelEntryRow(ThemeData theme, _TravelLegDraft travelEntry) {
+    final t = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -896,7 +901,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   onPressed: () => _swapRoute(travelEntry),
                   icon: const Icon(Icons.swap_horiz_rounded),
                   color: theme.colorScheme.primary,
-                  tooltip: 'Swap From/To',
+                  tooltip: t.edit_swapFromTo,
                   style: IconButton.styleFrom(
                     backgroundColor: theme.colorScheme.primaryContainer
                         .withValues(alpha: 0.5),

@@ -166,7 +166,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                     monthlyTargetToDate, // To-date target for variance
                 targetYearlyHoursToDate:
                     yearlyTargetToDate, // To-date target for variance
-                currentMonthName: monthSummary?.monthName ?? 'Unknown',
+                currentMonthName: monthSummary?.monthName ?? t.common_unknown,
                 currentYear: currentMonth.year,
                 creditHours: monthlyCredit > 0 ? monthlyCredit : null,
                 yearCreditHours: yearlyCredit > 0 ? yearlyCredit : null,

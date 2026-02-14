@@ -86,6 +86,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   void _loadRecentEntriesInternal() {
     debugPrint('=== LOADING RECENT ENTRIES ===');
     try {
+      final t = AppLocalizations.of(context);
       final entryProvider = context.read<EntryProvider>();
       final absenceProvider = context.read<AbsenceProvider>();
       final settingsProvider = context.read<SettingsProvider>();
@@ -132,9 +133,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           allEntries.add(_EntryData(
             id: entry.id,
             type: 'travel',
-            title: 'Travel: $fromText → $toText',
+            title: t.home_travelRoute(fromText, toText),
             subtitle:
-                '${entry.date.toString().split(' ')[0]} • ${entry.notes?.isNotEmpty == true ? entry.notes : AppLocalizations.of(context).home_noRemarks}',
+                '${entry.date.toString().split(' ')[0]} • ${entry.notes?.isNotEmpty == true ? entry.notes : t.home_noRemarks}',
             duration: '${minutes ~/ 60}h ${minutes % 60}m',
             icon: Icons.directions_car,
             date: entry.date,
@@ -149,7 +150,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         // Show shift time range + location (and worked minutes)
         final shift = entry.atomicShift ?? entry.shifts?.first;
         final workedMinutes = entry.totalWorkDuration?.inMinutes ?? 0;
-        String title = AppLocalizations.of(context).home_workSession;
+        String title = t.home_workSession;
         String subtitle = entry.date.toString().split(' ')[0];
 
         if (shift != null) {
@@ -165,7 +166,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         if (entry.notes?.isNotEmpty == true) {
           subtitle += ' • ${entry.notes}';
         } else {
-          subtitle += ' • ${AppLocalizations.of(context).home_noRemarks}';
+          subtitle += ' • ${t.home_noRemarks}';
         }
 
         allEntries.add(_EntryData(
@@ -188,7 +189,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       for (final absence in absences.take(5)) {
         final typeLabel = _getAbsenceTypeLabel(absence.type);
         final durationText = absence.minutes == 0
-            ? 'Full day'
+            ? t.absence_fullDay
             : '${absence.minutes ~/ 60}h ${absence.minutes % 60}m';
 
         allEntries.add(_EntryData(
@@ -252,6 +253,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
+    final todayLabel = DateTime.now().toIso8601String().split('T').first;
+    final t = AppLocalizations.of(context);
+    final todayLabel = DateTime.now().toIso8601String().split('T').first;
     final colorScheme = theme.colorScheme;
     final t = AppLocalizations.of(context);
     final travelEnabled =
@@ -1564,7 +1569,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocalizations.of(context).home_logTravelEntry,
+                          t.home_logTravelEntry,
                           style: theme.textTheme.headlineSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -1572,7 +1577,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Track your journey details',
+                          t.home_trackJourneyDetails,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: Colors.white.withValues(alpha: 0.9),
                           ),
@@ -1609,7 +1614,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          AppLocalizations.of(context).home_tripDetails,
+                          t.home_tripDetails,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.primary,
@@ -1652,7 +1657,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           color: theme.colorScheme.primary,
                         ),
                         label: Text(
-                          AppLocalizations.of(context).home_addAnotherTrip,
+                          t.home_addAnotherTrip,
                           style: TextStyle(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w500,
@@ -1683,7 +1688,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Total Duration',
+                          t.home_totalDuration,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.onSurface,
@@ -1778,8 +1783,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     TextField(
                       controller: _notesController,
                       decoration: InputDecoration(
-                        labelText: 'Notes (optional)',
-                        hintText: 'Add details about your travel...',
+                        labelText: t.form_notesOptional,
+                        hintText: t.travel_notesHint,
                         prefixIcon: Icon(
                           Icons.note,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -1821,7 +1826,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Entry will be logged for ${DateTime.now().toString().split(' ')[0]}',
+                              t.home_entryWillBeLoggedFor(todayLabel),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: theme.colorScheme.primary,
@@ -1859,7 +1864,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         ),
                       ),
                       child: Text(
-                        'Cancel',
+                        t.common_cancel,
                         style: TextStyle(
                           color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
@@ -1931,8 +1936,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
-                                        const Text(
-                                            'Travel entry logged successfully!'),
+                                        Text(t.home_travelEntryLoggedSuccess),
                                       ],
                                     ),
                                     backgroundColor: AppColors.success,
@@ -1953,8 +1957,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
-                                        Text(
-                                            'Error saving entry: ${e.toString()}'),
+                                        Text(t.edit_errorSaving(e.toString())),
                                       ],
                                     ),
                                     backgroundColor: AppColors.error,
@@ -1985,7 +1988,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            AppLocalizations.of(context).home_logEntry,
+                            t.home_logEntry,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                             ),
@@ -2004,6 +2007,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
   }
 
   Widget _buildTripRow(ThemeData theme, int index, _TripData trip) {
+    final t = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -2032,7 +2036,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
               ),
               const SizedBox(width: 10),
               Text(
-                'Trip ${index + 1}',
+                t.edit_trip(index + 1),
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.primary,
@@ -2067,8 +2071,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
           _buildLocationField(
             theme,
             controller: trip.fromController,
-            label: 'From',
-            hint: 'Enter starting location',
+            label: t.edit_from,
+            hint: t.edit_departureHint,
             icon: Icons.location_on_outlined,
             iconColor: theme.colorScheme.primary,
             fieldKey: Key('travel_from_$index'),
@@ -2079,8 +2083,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
           _buildLocationField(
             theme,
             controller: trip.toController,
-            label: 'To',
-            hint: 'Enter destination',
+            label: t.edit_to,
+            hint: t.edit_destinationHint,
             icon: Icons.location_on,
             iconColor: theme.colorScheme.secondary,
             fieldKey: Key('travel_to_$index'),
@@ -2095,7 +2099,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hours',
+                      t.form_hours,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -2143,7 +2147,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Minutes',
+                      t.form_minutes,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -2580,7 +2584,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocalizations.of(context).home_logWorkEntry,
+                          t.home_logWorkEntry,
                           style: theme.textTheme.headlineSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -2588,7 +2592,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Track your work shifts',
+                          t.home_trackWorkShifts,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: Colors.white.withValues(alpha: 0.9),
                           ),
@@ -2625,7 +2629,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          AppLocalizations.of(context).home_workShifts,
+                          t.home_workShifts,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.secondary,
@@ -2668,7 +2672,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           color: theme.colorScheme.secondary,
                         ),
                         label: Text(
-                          AppLocalizations.of(context).home_addAnotherShift,
+                          t.home_addAnotherShift,
                           style: TextStyle(
                             color: theme.colorScheme.secondary,
                             fontWeight: FontWeight.w500,
@@ -2699,7 +2703,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Total Duration',
+                          t.home_totalDuration,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.onSurface,
@@ -2794,8 +2798,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     TextField(
                       controller: _notesController,
                       decoration: InputDecoration(
-                        labelText: 'Notes (optional)',
-                        hintText: 'Add details about your work...',
+                        labelText: t.form_notesOptional,
+                        hintText: t.edit_notesHint,
                         prefixIcon: Icon(
                           Icons.note,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -2837,7 +2841,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Entry will be logged for ${DateTime.now().toString().split(' ')[0]}',
+                              t.home_entryWillBeLoggedFor(todayLabel),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: theme.colorScheme.primary,
@@ -2875,7 +2879,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         ),
                       ),
                       child: Text(
-                        'Cancel',
+                        t.common_cancel,
                         style: TextStyle(
                           color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
@@ -2957,7 +2961,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                 }
 
                                 if (entries.isEmpty) {
-                                  throw StateError('No valid shifts to save');
+                                  throw StateError(t.error_addAtLeastOneShift);
                                 }
 
                                 debugPrint(
@@ -2976,8 +2980,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   parent?._loadRecentEntries();
                                 }
                                 final successText = entries.length > 1
-                                    ? 'Work entries logged successfully!'
-                                    : 'Work entry logged successfully!';
+                                    ? t.home_workEntriesLoggedSuccess
+                                    : t.home_workEntryLoggedSuccess;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Row(
@@ -3009,8 +3013,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
-                                        Text(
-                                            'Error saving entry: ${e.toString()}'),
+                                        Text(t.edit_errorSaving(e.toString())),
                                       ],
                                     ),
                                     backgroundColor: AppColors.error,
@@ -3041,7 +3044,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            AppLocalizations.of(context).home_logEntry,
+                            t.home_logEntry,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                             ),
@@ -3060,6 +3063,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
   }
 
   Widget _buildShiftRow(ThemeData theme, int index, _ShiftData shift) {
+    final t = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -3089,7 +3093,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
               ),
               const SizedBox(width: 10),
               Text(
-                'Shift ${index + 1}',
+                t.edit_shift(index + 1),
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.secondary,
@@ -3210,9 +3214,9 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       TextField(
                         key: Key('work_end_$index'),
                         controller: shift.endTimeController,
-                        decoration: const InputDecoration(
-                          hintText: 'e.g. 5:30 PM',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          hintText: t.home_timeExample,
+                          border: const OutlineInputBorder(),
                         ),
                         onChanged: (_) {
                           _updateTotalDuration();
@@ -3282,7 +3286,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Duration: ${shift.formattedDuration}',
+                  '${t.entry_duration}: ${shift.formattedDuration}',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,

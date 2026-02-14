@@ -38,6 +38,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
   void _showAddLocationDialog() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context);
 
     showDialog(
       context: context,
@@ -81,7 +82,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Add New Location',
+                              t.location_addNewLocation,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: colorScheme.onSurface,
@@ -89,7 +90,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Save a place you visit frequently',
+                              t.location_saveFrequentPlace,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -117,7 +118,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Location Details',
+                          t.location_details,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: colorScheme.onSurface,
@@ -127,8 +128,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                         TextFormField(
                           controller: _nameController,
                           decoration: InputDecoration(
-                            labelText: 'Location Name',
-                            hintText: 'e.g., Office, Home, Client Site',
+                            labelText: t.location_name,
+                            hintText: t.location_nameHint,
                             prefixIcon: Icon(
                               Icons.place_outlined,
                               color: colorScheme.onSurfaceVariant,
@@ -139,7 +140,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter a location name';
+                              return t.location_enterName;
                             }
                             return null;
                           },
@@ -148,9 +149,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                         TextFormField(
                           controller: _addressController,
                           decoration: InputDecoration(
-                            labelText: 'Address',
-                            hintText: AppLocalizations.of(context)
-                                .location_fullAddress,
+                            labelText: t.location_fullAddress,
+                            hintText: t.location_fullAddress,
                             prefixIcon: Icon(
                               Icons.location_on_outlined,
                               color: colorScheme.onSurfaceVariant,
@@ -161,7 +161,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter an address';
+                              return t.location_enterAddress;
                             }
                             return null;
                           },
@@ -181,7 +181,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  'Cancel',
+                                  t.common_cancel,
                                   style: TextStyle(
                                     color: colorScheme.onSurfaceVariant,
                                   ),
@@ -219,8 +219,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                                 color: colorScheme.onPrimary,
                                               ),
                                               const SizedBox(width: 12),
-                                              const Text(
-                                                  'Location added successfully'),
+                                              Text(t.location_addedSuccessfully),
                                             ],
                                           ),
                                           behavior: SnackBarBehavior.floating,
@@ -297,14 +296,14 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                       final cards = [
                         _buildKPICard(
                           context,
-                          'Total',
+                          t.location_kpiTotal,
                           provider.locations.length.toString(),
                           Icons.location_on_rounded,
                           colorScheme.primary,
                         ),
                         _buildKPICard(
                           context,
-                          'Favorites',
+                          t.location_kpiFavorites,
                           provider.locations
                               .where((l) => l.isFavorite)
                               .length
@@ -314,7 +313,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                         ),
                         _buildKPICard(
                           context,
-                          'Total Uses',
+                          t.location_kpiTotalUses,
                           '0', // TODO: Implement usage tracking
                           Icons.history_rounded,
                           colorScheme.tertiary,
@@ -336,7 +335,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: 'Search locations...',
+                      hintText: t.location_searchLocations,
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -384,7 +383,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 ),
                                 const SizedBox(height: 24),
                                 Text(
-                                  'No locations saved yet',
+                                  t.location_noSavedYet,
                                   style:
                                       theme.textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -393,7 +392,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'Add your first location to get started',
+                                  t.location_addFirstToGetStarted,
                                   style: theme.textTheme.bodyLarge?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
                                   ),
@@ -506,6 +505,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
 
   Widget _buildLocationListItem(Location location, ThemeData theme) {
     final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -569,8 +569,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                     .updateLocation(updatedLocation);
               },
               tooltip: location.isFavorite
-                  ? 'Remove from favorites'
-                  : 'Add to favorites',
+                  ? t.location_removeFromFavorites
+                  : t.location_addToFavorites,
             ),
             PopupMenuButton<String>(
               icon: Icon(
@@ -623,7 +623,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Delete',
+                        t.common_delete,
                         style: TextStyle(color: colorScheme.error),
                       ),
                     ],

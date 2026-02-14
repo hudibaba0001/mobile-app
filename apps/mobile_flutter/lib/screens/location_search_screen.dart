@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/location.dart';
 import '../providers/location_provider.dart';
 import '../utils/constants.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class LocationSearchScreen extends StatefulWidget {
   final String? initialQuery;
@@ -11,7 +12,7 @@ class LocationSearchScreen extends StatefulWidget {
   const LocationSearchScreen({
     super.key,
     this.initialQuery,
-    this.title = 'Select Location',
+    this.title = '',
   });
 
   @override
@@ -42,16 +43,17 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title.isEmpty ? t.form_selectLocation : widget.title),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(72),
           child: Padding(
             padding: const EdgeInsets.all(AppConstants.defaultPadding),
             child: SearchBar(
               controller: _searchController,
-              hintText: 'Search locations...',
+              hintText: t.location_searchLocations,
               leading: const Icon(Icons.search),
               trailing: [
                 if (_searchQuery.isNotEmpty)
@@ -78,6 +80,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   }
 
   Widget _buildDefaultView(LocationProvider locationProvider) {
+    final t = AppLocalizations.of(context);
     final favorites = locationProvider.getFavoriteLocations();
     final recents = locationProvider.getRecentLocations();
 
@@ -85,12 +88,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       padding: const EdgeInsets.all(AppConstants.defaultPadding),
       children: [
         if (favorites.isNotEmpty) ...[
-          _buildSectionHeader('Favorites'),
+          _buildSectionHeader(t.location_favorites),
           _buildLocationList(favorites),
           const SizedBox(height: AppConstants.defaultPadding),
         ],
         if (recents.isNotEmpty) ...[
-          _buildSectionHeader('Recent'),
+          _buildSectionHeader(t.location_recent),
           _buildLocationList(recents),
         ],
         if (favorites.isEmpty && recents.isEmpty)
@@ -108,12 +111,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No locations yet',
+                  t.location_noLocationsYet,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Try searching or adding a new location',
+                  t.location_trySearchOrAdd,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -126,6 +129,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   }
 
   Widget _buildSearchResults(LocationProvider locationProvider) {
+    final t = AppLocalizations.of(context);
     final results = locationProvider.searchLocations(_searchQuery);
 
     if (results.isEmpty) {
@@ -143,12 +147,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No matches found',
+              t.location_noMatchesFound,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'Try a different search term',
+              t.location_tryDifferentSearch,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),

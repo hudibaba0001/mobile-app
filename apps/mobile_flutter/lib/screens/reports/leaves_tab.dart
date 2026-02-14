@@ -119,6 +119,8 @@ class _LeavesTabState extends State<LeavesTab> {
     Map<AbsenceType, _LeaveSummary> summary,
     int year,
   ) {
+    final t = AppLocalizations.of(context);
+
     return Card(
       elevation: 0,
       color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -139,7 +141,7 @@ class _LeavesTabState extends State<LeavesTab> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context).leave_summary(year),
+                  t.leave_summary(year),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.primary,
@@ -155,7 +157,7 @@ class _LeavesTabState extends State<LeavesTab> {
               colorScheme,
               icon: Icons.beach_access,
               iconColor: Colors.blue,
-              label: 'Paid Vacation',
+              label: t.leave_paidVacation,
               value: summary[AbsenceType.vacationPaid]!,
             ),
             const SizedBox(height: 12),
@@ -164,7 +166,7 @@ class _LeavesTabState extends State<LeavesTab> {
               colorScheme,
               icon: Icons.local_hospital,
               iconColor: Colors.red,
-              label: 'Sick Leave',
+              label: t.leave_sickLeave,
               value: summary[AbsenceType.sickPaid]!,
             ),
             const SizedBox(height: 12),
@@ -173,7 +175,7 @@ class _LeavesTabState extends State<LeavesTab> {
               colorScheme,
               icon: Icons.child_care,
               iconColor: Colors.orange,
-              label: 'VAB (Child Care)',
+              label: t.leave_vab,
               value: summary[AbsenceType.vabPaid]!,
             ),
             const SizedBox(height: 12),
@@ -182,7 +184,7 @@ class _LeavesTabState extends State<LeavesTab> {
               colorScheme,
               icon: Icons.event_busy,
               iconColor: Colors.grey,
-              label: 'Unpaid Leave',
+              label: t.leave_unpaid,
               value: summary[AbsenceType.unpaid]!,
             ),
 
@@ -193,13 +195,13 @@ class _LeavesTabState extends State<LeavesTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  AppLocalizations.of(context).leave_totalLeaveDays,
+                  t.leave_totalLeaveDays,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
-                  _formatDays(_getTotalDays(summary)),
+                  _formatDays(context, _getTotalDays(summary)),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.primary,
@@ -247,7 +249,7 @@ class _LeavesTabState extends State<LeavesTab> {
           ),
         ),
         Text(
-          _formatDays(value.days),
+          _formatDays(context, value.days),
           style: theme.textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -256,13 +258,14 @@ class _LeavesTabState extends State<LeavesTab> {
     );
   }
 
-  String _formatDays(double days) {
-    if (days == 0) return '0 days';
-    if (days == 1) return '1 day';
+  String _formatDays(BuildContext context, double days) {
+    final t = AppLocalizations.of(context);
+    if (days == 0) return t.leave_daysCount(0);
+    if (days == 1) return t.leave_daysCount(1);
     if (days == days.truncate()) {
-      return '${days.truncate()} days';
+      return t.leave_daysCount(days.truncate());
     }
-    return '${days.toStringAsFixed(1)} days';
+    return t.leave_daysDecimal(days.toStringAsFixed(1));
   }
 
   Widget _buildRecentLeavesSection(ThemeData theme, ColorScheme colorScheme) {
@@ -335,7 +338,7 @@ class _LeavesTabState extends State<LeavesTab> {
 
   Widget _buildAbsenceCard(
       ThemeData theme, ColorScheme colorScheme, AbsenceEntry absence) {
-    final typeInfo = _getTypeInfo(absence.type);
+    final typeInfo = _getTypeInfo(context, absence.type);
     final dateFormat = DateFormat('MMM d, yyyy');
 
     return Card(
@@ -403,31 +406,32 @@ class _LeavesTabState extends State<LeavesTab> {
     );
   }
 
-  _TypeInfo _getTypeInfo(AbsenceType type) {
+  _TypeInfo _getTypeInfo(BuildContext context, AbsenceType type) {
+    final t = AppLocalizations.of(context);
     switch (type) {
       case AbsenceType.vacationPaid:
         return _TypeInfo(
           icon: Icons.beach_access,
           color: Colors.blue,
-          label: 'Paid Vacation',
+          label: t.leave_paidVacation,
         );
       case AbsenceType.sickPaid:
         return _TypeInfo(
           icon: Icons.local_hospital,
           color: Colors.red,
-          label: 'Sick Leave',
+          label: t.leave_sickLeave,
         );
       case AbsenceType.vabPaid:
         return _TypeInfo(
           icon: Icons.child_care,
           color: Colors.orange,
-          label: 'VAB (Child Care)',
+          label: t.leave_vab,
         );
       case AbsenceType.unpaid:
         return _TypeInfo(
           icon: Icons.event_busy,
           color: Colors.grey,
-          label: 'Unpaid Leave',
+          label: t.leave_unpaid,
         );
     }
   }

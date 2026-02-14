@@ -73,6 +73,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isTravel = widget.entryType == EntryType.travel;
 
@@ -102,8 +103,8 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   const SizedBox(width: 12),
                   Text(
                     isTravel
-                        ? AppLocalizations.of(context).entry_logTravelEntry
-                        : AppLocalizations.of(context).entry_logWorkEntry,
+                        ? t.entry_logTravelEntry
+                        : t.entry_logWorkEntry,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -127,14 +128,13 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   controller: _fromController,
                   decoration: InputDecoration(
                     labelText:
-                        AppLocalizations.of(context).simpleEntry_fromLocation,
+                        t.simpleEntry_fromLocation,
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.my_location),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context)
-                          .simpleEntry_pleaseEnterDeparture;
+                      return t.simpleEntry_pleaseEnterDeparture;
                     }
                     return null;
                   },
@@ -144,14 +144,13 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   controller: _toController,
                   decoration: InputDecoration(
                     labelText:
-                        AppLocalizations.of(context).simpleEntry_toLocation,
+                        t.simpleEntry_toLocation,
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.location_on),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context)
-                          .simpleEntry_pleaseEnterArrival;
+                      return t.simpleEntry_pleaseEnterArrival;
                     }
                     return null;
                   },
@@ -161,7 +160,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
 
               // Duration Section
               Text(
-                'Duration',
+                t.form_duration,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -172,16 +171,16 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   Expanded(
                     child: TextFormField(
                       controller: _hoursController,
-                      decoration: const InputDecoration(
-                        labelText: 'Hours',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: t.form_hours,
+                        border: const OutlineInputBorder(),
                         suffixText: 'h',
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         final hours = int.tryParse(value ?? '');
                         if (hours == null || hours < 0) {
-                          return 'Enter valid hours';
+                          return t.error_invalidHours;
                         }
                         return null;
                       },
@@ -191,16 +190,16 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   Expanded(
                     child: TextFormField(
                       controller: _minutesController,
-                      decoration: const InputDecoration(
-                        labelText: 'Minutes',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: t.form_minutes,
+                        border: const OutlineInputBorder(),
                         suffixText: 'm',
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         final minutes = int.tryParse(value ?? '');
                         if (minutes == null || minutes < 0 || minutes >= 60) {
-                          return 'Enter 0-59 minutes';
+                          return t.error_invalidMinutes;
                         }
                         return null;
                       },
@@ -213,11 +212,11 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
               // Notes Section
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (Optional)',
-                  hintText: 'Add any additional details...',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.note),
+                decoration: InputDecoration(
+                  labelText: t.form_notesOptional,
+                  hintText: t.edit_notesHint,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.note),
                 ),
                 maxLines: 3,
                 textCapitalization: TextCapitalization.sentences,
@@ -230,7 +229,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text(AppLocalizations.of(context).common_cancel),
+                      child: Text(t.common_cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -243,7 +242,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(AppLocalizations.of(context).entry_saveEntry),
+                          : Text(t.entry_saveEntry),
                     ),
                   ),
                 ],
@@ -259,11 +258,12 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
   }
 
   Widget _buildDateTimeSection(ThemeData theme) {
+    final t = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Date & Time',
+          t.form_dateTime,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),

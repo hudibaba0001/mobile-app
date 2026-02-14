@@ -213,6 +213,7 @@ class _TrendsTabState extends State<TrendsTab> {
         ],
       );
     } catch (e) {
+      final t = AppLocalizations.of(context);
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -224,12 +225,12 @@ class _TrendsTabState extends State<TrendsTab> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error loading trends data',
+              t.trends_errorLoadingData,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Please try refreshing the page',
+              t.trends_tryRefreshingPage,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -404,7 +405,7 @@ class _TrendsTabState extends State<TrendsTab> {
                       ),
                     ),
                     Text(
-                      'Target',
+                      t.trends_target,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -470,12 +471,14 @@ class _TrendsTabState extends State<TrendsTab> {
   }
 
   Widget _buildWeeklyHoursChart(ThemeData theme, List<double> weeklyHours) {
+    final t = AppLocalizations.of(context);
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
     final colorScheme = theme.colorScheme;
 
     if (weeklyHours.isEmpty) {
       return Center(
         child: Text(
-          'No hours data available',
+          t.trends_noHoursDataAvailable,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -488,7 +491,7 @@ class _TrendsTabState extends State<TrendsTab> {
     if (maxHours == 0) {
       return Center(
         child: Text(
-          'No hours data available',
+          t.trends_noHoursDataAvailable,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
@@ -509,10 +512,13 @@ class _TrendsTabState extends State<TrendsTab> {
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
-                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                if (value >= 0 && value < days.length) {
+                if (value >= 0 && value < 7) {
+                  final weekdayDate =
+                      DateTime(2024, 1, 1).add(Duration(days: value.toInt()));
+                  final dayLabel =
+                      DateFormat.E(localeTag).format(weekdayDate);
                   return Text(
-                    days[value.toInt()],
+                    dayLabel,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -616,7 +622,7 @@ class _TrendsTabState extends State<TrendsTab> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              _getDayAbbreviation(date.weekday),
+              _getDayAbbreviation(context, date.weekday),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.primary,
@@ -669,25 +675,12 @@ class _TrendsTabState extends State<TrendsTab> {
     );
   }
 
-  String _getDayAbbreviation(int weekday) {
-    switch (weekday) {
-      case 1:
-        return 'M';
-      case 2:
-        return 'T';
-      case 3:
-        return 'W';
-      case 4:
-        return 'T';
-      case 5:
-        return 'F';
-      case 6:
-        return 'S';
-      case 7:
-        return 'S';
-      default:
-        return '?';
-    }
+  String _getDayAbbreviation(BuildContext context, int weekday) {
+    if (weekday < 1 || weekday > 7) return '?';
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final date = DateTime(2024, 1, weekday);
+    final shortName = DateFormat.E(localeTag).format(date);
+    return shortName.isNotEmpty ? shortName[0].toUpperCase() : '?';
   }
 }
 

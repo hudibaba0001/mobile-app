@@ -7,6 +7,7 @@ import '../models/user_entitlement.dart';
 import '../services/billing_service.dart';
 import '../services/entitlement_service.dart';
 import '../services/supabase_auth_service.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class PaywallScreen extends StatefulWidget {
   final VoidCallback? onUnlocked;
@@ -93,8 +94,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _buyNow() async {
     final userId = context.read<SupabaseAuthService>().currentUser?.id;
     if (userId == null) {
+      final t = AppLocalizations.of(context);
       setState(() {
-        _screenError = 'Not authenticated';
+        _screenError = t.paywall_notAuthenticated;
       });
       return;
     }
@@ -112,6 +114,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
     final product = _billingService.productDetails;
     final isBusy = _billingService.isProcessingPurchase ||
         _billingService.isLoadingProducts ||
@@ -120,7 +123,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('KvikTime Premium'),
+        title: Text(t.paywall_title),
         actions: [
           IconButton(
             onPressed: isBusy ? null : _refreshEntitlement,
@@ -141,7 +144,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Unlock all KvikTime features',
+                t.paywall_unlockAllFeatures,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -149,18 +152,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Subscribe with Google Play Billing to continue.',
+                t.paywall_subscribeWithGooglePlay,
                 style: theme.textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              _buildFeatureTile(Icons.history, 'Full history & reports'),
-              _buildFeatureTile(Icons.cloud_sync, 'Cloud sync across devices'),
-              _buildFeatureTile(Icons.shield_outlined, 'Secure subscription state'),
+              _buildFeatureTile(Icons.history, t.paywall_featureFullHistoryReports),
+              _buildFeatureTile(Icons.cloud_sync, t.paywall_featureCloudSync),
+              _buildFeatureTile(Icons.shield_outlined, t.paywall_featureSecureSubscription),
               const SizedBox(height: 24),
               if (_entitlement != null)
                 Text(
-                  'Current entitlement: ${_entitlement!.status}',
+                  t.paywall_currentEntitlement(_entitlement!.status),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium,
                 ),
@@ -175,28 +178,28 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       )
                     : Text(
                         product == null
-                            ? 'Subscription unavailable'
-                            : 'Subscribe ${product.price}',
+                            ? t.paywall_subscriptionUnavailable
+                            : t.paywall_subscribe(product.price),
                       ),
               ),
               const SizedBox(height: 8),
               TextButton(
                 onPressed: isBusy ? null : _billingService.restorePurchases,
-                child: const Text('Restore purchase'),
+                child: Text(t.paywall_restorePurchase),
               ),
               TextButton(
                 onPressed: () => launchUrl(
                   Uri.parse(ExternalLinks.manageSubscriptionUrl),
                   mode: LaunchMode.externalApplication,
                 ),
-                child: const Text('Manage subscription in Google Play'),
+                child: Text(t.paywall_manageSubscriptionGooglePlay),
               ),
               if (widget.showSignOut)
                 TextButton(
                   onPressed: () async {
                     await context.read<SupabaseAuthService>().signOut();
                   },
-                  child: const Text('Sign out'),
+                  child: Text(t.paywall_signOut),
                 ),
               if (_screenError != null) ...[
                 const SizedBox(height: 8),

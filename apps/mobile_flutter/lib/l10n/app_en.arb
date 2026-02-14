@@ -1313,6 +1313,143 @@
   "form_span": "Span",
   "form_break": "Break",
   "form_worked": "Worked",
+  "common_user": "User",
+
+  "settings_timeBalanceTracking": "Time balance tracking",
+  "settings_timeBalanceTrackingDesc": "Turn off if you only want to log hours without comparing against a target.",
+
+  "leave_daysDecimal": "{days} days",
+  "@leave_daysDecimal": {
+    "placeholders": {
+      "days": {"type": "String"}
+    }
+  },
+
+  "trends_errorLoadingData": "Error loading trends data",
+  "trends_tryRefreshingPage": "Please try refreshing the page",
+  "trends_target": "Target",
+  "trends_noHoursDataAvailable": "No hours data available",
+
+  "network_offlinePending": "Offline - {count} changes pending",
+  "@network_offlinePending": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "network_youAreOffline": "You are offline",
+  "network_syncingChanges": "Syncing changes...",
+  "network_readyToSync": "{count} changes ready to sync",
+  "@network_readyToSync": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "network_syncNow": "Sync Now",
+  "network_offlineTooltip": "Offline",
+  "network_pendingTooltip": "{count} pending",
+  "@network_pendingTooltip": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "network_offlineSnackbar": "You are offline. Changes will sync when connected.",
+  "network_backOnline": "Back online",
+  "network_syncedChanges": "Synced {count} changes",
+  "@network_syncedChanges": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "network_syncFailed": "Sync failed: {error}",
+  "@network_syncFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "network_networkErrorTryAgain": "Network error. Please try again.",
+
+  "paywall_notAuthenticated": "Not authenticated",
+  "paywall_title": "KvikTime Premium",
+  "paywall_unlockAllFeatures": "Unlock all KvikTime features",
+  "paywall_subscribeWithGooglePlay": "Subscribe with Google Play Billing to continue.",
+  "paywall_featureFullHistoryReports": "Full history & reports",
+  "paywall_featureCloudSync": "Cloud sync across devices",
+  "paywall_featureSecureSubscription": "Secure subscription state",
+  "paywall_currentEntitlement": "Current entitlement: {status}",
+  "@paywall_currentEntitlement": {
+    "placeholders": {
+      "status": {"type": "String"}
+    }
+  },
+  "paywall_subscriptionUnavailable": "Subscription unavailable",
+  "paywall_subscribe": "Subscribe {price}",
+  "@paywall_subscribe": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "paywall_restorePurchase": "Restore purchase",
+  "paywall_manageSubscriptionGooglePlay": "Manage subscription in Google Play",
+  "paywall_signOut": "Sign out",
+
+  "location_addNewLocation": "Add New Location",
+  "location_saveFrequentPlace": "Save a place you visit frequently",
+  "location_details": "Location Details",
+  "location_name": "Location Name",
+  "location_nameHint": "e.g., Office, Home, Client Site",
+  "location_nameShortHint": "e.g., Home, Office, Gym",
+  "location_enterName": "Please enter a location name",
+  "location_enterAddress": "Please enter an address",
+  "location_addedSuccessfully": "Location added successfully",
+  "location_kpiTotal": "Total",
+  "location_kpiFavorites": "Favorites",
+  "location_kpiTotalUses": "Total Uses",
+  "location_searchLocations": "Search locations...",
+  "location_noLocationsYet": "No locations yet",
+  "location_trySearchOrAdd": "Try searching or adding a new location",
+  "location_noMatchesFound": "No matches found",
+  "location_tryDifferentSearch": "Try a different search term",
+  "location_noSavedYet": "No saved locations yet",
+  "location_addFirstToGetStarted": "Add your first location to get started",
+  "location_removeFromFavorites": "Remove from favorites",
+  "location_addToFavorites": "Add to favorites",
+  "location_savedLocations": "Saved Locations",
+  "location_addressSuggestions": "Address Suggestions",
+  "location_searchingAddresses": "Searching addresses...",
+  "location_recentAddresses": "Recent Addresses",
+  "location_startTypingToAdd": "Start typing to add a new location",
+  "location_recentLocations": "Recent Locations",
+  "location_saveAsNew": "Save \"{address}\" as new location",
+  "@location_saveAsNew": {
+    "placeholders": {
+      "address": {"type": "String"}
+    }
+  },
+  "location_favorites": "Favorites",
+  "location_recent": "Recent",
+
+  "edit_durationAutofilledFromHistory": "Duration auto-filled from history ({minutes} min)",
+  "@edit_durationAutofilledFromHistory": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "edit_quickDuration": "Quick Duration",
+  "edit_copyYesterday": "Copy Yesterday",
+  "edit_noWorkEntryYesterday": "No work entry found for yesterday",
+  "edit_copiedYesterdayShiftTimes": "Copied yesterday's shift times",
+  "edit_swapFromTo": "Swap From/To",
+
+  "home_trackJourneyDetails": "Track your journey details",
+  "home_entryWillBeLoggedFor": "Entry will be logged for {date}",
+  "@home_entryWillBeLoggedFor": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "home_travelEntryLoggedSuccess": "Travel entry logged successfully!",
+  "home_workEntriesLoggedSuccess": "Work entries logged successfully!",
+  "home_workEntryLoggedSuccess": "Work entry logged successfully!",
 
   "auth_newToKvikTime": "New to KvikTime?",
   "auth_createAccount": "Create Account",

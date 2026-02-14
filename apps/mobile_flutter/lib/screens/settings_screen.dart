@@ -770,9 +770,9 @@ class SettingsScreen extends StatelessWidget {
           // Time Balance Tracking Setting
           ListTile(
             leading: const Icon(Icons.timer_outlined),
-            title: const Text('Time balance tracking'),
-            subtitle: const Text(
-              'Turn off if you only want to log hours without comparing against a target.',
+            title: Text(t.settings_timeBalanceTracking),
+            subtitle: Text(
+              t.settings_timeBalanceTrackingDesc,
             ),
             trailing: Switch(
               value: settingsProvider.isTimeBalanceEnabled,
