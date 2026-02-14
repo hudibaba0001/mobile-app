@@ -338,7 +338,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             tooltip: t.common_profile,
           ),
           const SizedBox(width: 8),
-
           const SizedBox(width: 16),
         ],
       ),
@@ -597,19 +596,29 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   color: theme.colorScheme.primary,
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Text(
-                  t.common_thisWeek,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
+                Expanded(
+                  child: Text(
+                    t.common_thisWeek,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Text(
-                  formatHours(travelDuration + workDuration),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.primary,
+                const SizedBox(width: AppSpacing.xs),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      formatHours(travelDuration + workDuration),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -1983,7 +1992,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
 
                                 // Save all entries via EntryProvider (the ONLY write path)
                                 // Use batch save for efficiency
-                                debugPrint('Saving via EntryProvider (batch)...');
+                                debugPrint(
+                                    'Saving via EntryProvider (batch)...');
                                 await entryProvider.addEntries(travelEntries);
                                 debugPrint(
                                     'Successfully saved ${travelEntries.length} entry/entries via EntryProvider!');
@@ -3377,7 +3387,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
     );
 
     if (picked != null) {
-      controller.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      controller.text =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       _updateTotalDuration();
       setState(() {});
     }

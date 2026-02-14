@@ -175,6 +175,8 @@
   "redDay_personalNotice": "Röd dag (Personlig). Timmar kan räknas som helgarbete.",
   "redDay_addPersonal": "Lägg till personlig röd dag",
   "redDay_editPersonal": "Redigera personlig röd dag",
+  "redDay_currentPersonalDays": "Aktuella personliga röda dagar",
+  "redDay_noPersonalDaysYet": "Inga personliga röda dagar tillagda ännu.",
   "redDay_reason": "Anledning (valfri)",
   "redDay_halfDayReducesScheduled": "Halvdag minskar schemalagd tid med 50%.",
 

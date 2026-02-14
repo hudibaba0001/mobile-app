@@ -122,7 +122,8 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
     setState(() => _isLoading = true);
 
     try {
-      await widget.holidayService.deletePersonalRedDay(widget.date);
+      await widget.holidayService
+          .deletePersonalRedDay(widget.existingRedDay?.date ?? widget.date);
 
       if (mounted) {
         Navigator.of(context).pop(true);

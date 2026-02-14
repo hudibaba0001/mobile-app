@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../design/design.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +12,7 @@ import '../config/app_router.dart';
 import '../widgets/standard_app_bar.dart';
 import '../services/supabase_auth_service.dart';
 import '../widgets/add_red_day_dialog.dart';
+import '../models/user_red_day.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -215,7 +217,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _openPersonalRedDayDialog(BuildContext context) async {
+  Future<void> _openPersonalRedDayDateDialog(
+    BuildContext context, {
+    DateTime? initialDate,
+  }) async {
     final t = AppLocalizations.of(context);
     final authService = context.read<SupabaseAuthService>();
     final holidayService = context.read<HolidayService>();
@@ -229,14 +234,18 @@ class SettingsScreen extends StatelessWidget {
     }
 
     final today = DateTime.now();
+    final targetInitialDate = initialDate ?? today;
     final picked = await showDatePicker(
       context: context,
-      initialDate: today,
+      initialDate: targetInitialDate,
       firstDate: DateTime(today.year - 1),
       lastDate: DateTime(today.year + 2),
     );
 
     if (picked == null) return;
+    if (!context.mounted) return;
+
+    await holidayService.loadPersonalRedDays(picked.year);
     if (!context.mounted) return;
 
     final existing = holidayService.getPersonalRedDay(picked);
@@ -248,6 +257,325 @@ class SettingsScreen extends StatelessWidget {
         userId: userId,
         existingRedDay: existing,
       ),
+    );
+  }
+
+  Future<void> _openPersonalRedDayManagerDialog(BuildContext context) async {
+    final t = AppLocalizations.of(context);
+    final authService = context.read<SupabaseAuthService>();
+    final holidayService = context.read<HolidayService>();
+    final userId = authService.currentUser?.id;
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t.error_signInRequired)),
+      );
+      return;
+    }
+
+    final currentYear = DateTime.now().year;
+    await holidayService.loadPersonalRedDays(currentYear);
+    if (!context.mounted) return;
+
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final dateFormat = DateFormat.yMMMd(localeTag);
+    List<UserRedDay> redDays = List<UserRedDay>.from(
+      holidayService.getPersonalRedDays(currentYear),
+    )..sort((a, b) => a.date.compareTo(b.date));
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        bool isBusy = false;
+
+        Future<void> refreshRedDays(StateSetter setDialogState) async {
+          await holidayService.loadPersonalRedDays(currentYear);
+          redDays = List<UserRedDay>.from(
+            holidayService.getPersonalRedDays(currentYear),
+          )..sort((a, b) => a.date.compareTo(b.date));
+          setDialogState(() {});
+        }
+
+        Future<void> handleEdit(
+          UserRedDay redDay,
+          StateSetter setDialogState,
+        ) async {
+          final result = await showDialog<bool>(
+            context: dialogContext,
+            builder: (editContext) => AddRedDayDialog(
+              date: redDay.date,
+              holidayService: holidayService,
+              userId: userId,
+              existingRedDay: redDay,
+            ),
+          );
+
+          if (result == true && dialogContext.mounted) {
+            setDialogState(() => isBusy = true);
+            await refreshRedDays(setDialogState);
+            if (dialogContext.mounted) {
+              setDialogState(() => isBusy = false);
+            }
+          }
+        }
+
+        Future<void> handleDelete(
+          UserRedDay redDay,
+          StateSetter setDialogState,
+        ) async {
+          final confirmed = await showDialog<bool>(
+            context: dialogContext,
+            builder: (confirmContext) => AlertDialog(
+              title: Text(t.redDay_removeTitle),
+              content: Text(t.redDay_removeMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(confirmContext).pop(false),
+                  child: Text(t.common_cancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(confirmContext).pop(true),
+                  style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                  child: Text(t.redDay_remove),
+                ),
+              ],
+            ),
+          );
+
+          if (confirmed != true || !dialogContext.mounted) return;
+
+          setDialogState(() => isBusy = true);
+          try {
+            await holidayService.deletePersonalRedDay(redDay.date);
+            await refreshRedDays(setDialogState);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(t.redDay_removed),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(t.redDay_errorRemoving(e.toString())),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          } finally {
+            if (dialogContext.mounted) {
+              setDialogState(() => isBusy = false);
+            }
+          }
+        }
+
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            final theme = Theme.of(dialogContext);
+            final maxListHeight =
+                MediaQuery.sizeOf(dialogContext).height * 0.42;
+            final calculatedListHeight =
+                (redDays.length * 116.0).clamp(120.0, maxListHeight);
+            final listHeight =
+                redDays.isEmpty ? 120.0 : calculatedListHeight.toDouble();
+
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.event_note_outlined,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Flexible(child: Text(t.redDay_editPersonal)),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.redDay_currentPersonalDays,
+                      style: theme.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    SizedBox(
+                      height: listHeight,
+                      child: redDays.isEmpty
+                          ? Container(
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surfaceContainerHighest
+                                    .withValues(alpha: 0.35),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.md),
+                                border: Border.all(
+                                  color: theme.colorScheme.outlineVariant
+                                      .withValues(alpha: 0.5),
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              alignment: Alignment.center,
+                              child: Text(
+                                t.redDay_noPersonalDaysYet,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            )
+                          : ListView.separated(
+                              itemCount: redDays.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: AppSpacing.sm),
+                              itemBuilder: (itemContext, index) {
+                                final redDay = redDays[index];
+                                final kindLabel = redDay.kind == RedDayKind.full
+                                    ? t.redDay_fullDay
+                                    : (redDay.half == HalfDay.am
+                                        ? t.redDay_morningAM
+                                        : t.redDay_afternoonPM);
+                                final reason = redDay.reason?.trim();
+
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: theme
+                                        .colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.35),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
+                                    border: Border.all(
+                                      color: theme.colorScheme.outlineVariant
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.all(AppSpacing.md),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.event_busy_outlined,
+                                            size: AppIconSize.sm,
+                                            color: theme
+                                                .colorScheme.onSurfaceVariant,
+                                          ),
+                                          const SizedBox(width: AppSpacing.sm),
+                                          Expanded(
+                                            child: Text(
+                                              dateFormat.format(redDay.date),
+                                              style:
+                                                  theme.textTheme.titleMedium,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: AppSpacing.sm,
+                                              vertical: AppSpacing.xs,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.primary
+                                                  .withValues(alpha: 0.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                AppRadius.sm,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              kindLabel,
+                                              style: theme.textTheme.labelSmall
+                                                  ?.copyWith(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (reason != null &&
+                                          reason.isNotEmpty) ...[
+                                        const SizedBox(height: AppSpacing.sm),
+                                        Text(
+                                          reason,
+                                          style: theme.textTheme.bodyMedium,
+                                        ),
+                                      ],
+                                      const SizedBox(height: AppSpacing.sm),
+                                      Wrap(
+                                        spacing: AppSpacing.sm,
+                                        runSpacing: AppSpacing.xs,
+                                        children: [
+                                          OutlinedButton.icon(
+                                            onPressed: isBusy
+                                                ? null
+                                                : () => handleEdit(
+                                                      redDay,
+                                                      setDialogState,
+                                                    ),
+                                            icon: const Icon(
+                                              Icons.edit_outlined,
+                                              size: 16,
+                                            ),
+                                            label: Text(t.common_edit),
+                                          ),
+                                          TextButton.icon(
+                                            onPressed: isBusy
+                                                ? null
+                                                : () => handleDelete(
+                                                      redDay,
+                                                      setDialogState,
+                                                    ),
+                                            icon: const Icon(
+                                              Icons.delete_outline,
+                                              size: 16,
+                                            ),
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: Colors.red,
+                                            ),
+                                            label: Text(t.common_delete),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isBusy ? null : () => Navigator.of(dialogContext).pop(),
+                  child: Text(t.common_close),
+                ),
+                FilledButton.icon(
+                  onPressed: isBusy
+                      ? null
+                      : () async {
+                          setDialogState(() => isBusy = true);
+                          await _openPersonalRedDayDateDialog(dialogContext);
+                          if (dialogContext.mounted) {
+                            await refreshRedDays(setDialogState);
+                            setDialogState(() => isBusy = false);
+                          }
+                        },
+                  icon: const Icon(Icons.add),
+                  label: Text(t.common_add),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -412,7 +740,7 @@ class SettingsScreen extends StatelessWidget {
             title: Text(t.redDay_addPersonal),
             subtitle: Text(t.redDay_personalNotice),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _openPersonalRedDayDialog(context),
+            onTap: () => _openPersonalRedDayManagerDialog(context),
           ),
 
           const Divider(),

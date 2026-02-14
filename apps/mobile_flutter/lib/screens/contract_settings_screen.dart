@@ -815,54 +815,56 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(width: AppSpacing.lg),
-
-                // Hours input
-                SizedBox(
-                  width: 72,
-                  child: TextFormField(
-                    controller: _openingHoursController,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(3),
-                    ],
-                    decoration: InputDecoration(
-                      hintText: '0',
-                      suffixText: 'h',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
+                Expanded(
+                  child: Row(
+                    children: [
+                      // Hours input
+                      Expanded(
+                        child: TextFormField(
+                          controller: _openingHoursController,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(3),
+                          ],
+                          decoration: InputDecoration(
+                            hintText: '0',
+                            suffixText: 'h',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.lg),
+                          ),
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md, vertical: AppSpacing.lg),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: AppSpacing.md),
-
-                // Minutes input
-                SizedBox(
-                  width: 72,
-                  child: TextFormField(
-                    controller: _openingMinutesController,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(2),
-                    ],
-                    decoration: InputDecoration(
-                      hintText: '00',
-                      suffixText: 'm',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      const SizedBox(width: AppSpacing.md),
+                      // Minutes input
+                      Expanded(
+                        child: TextFormField(
+                          controller: _openingMinutesController,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(2),
+                          ],
+                          decoration: InputDecoration(
+                            hintText: '00',
+                            suffixText: 'm',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.lg),
+                          ),
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md, vertical: AppSpacing.lg),
-                    ),
+                    ],
                   ),
                 ),
               ],

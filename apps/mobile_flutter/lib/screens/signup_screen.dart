@@ -38,6 +38,26 @@ class _SignupScreenState extends State<SignupScreen> {
   static const _gradientStart = AppColors.gradientStart;
   static const _gradientEnd = AppColors.gradientEnd;
 
+  String? _validateBeforeSubmit(AppLocalizations t) {
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (firstName.isEmpty) return t.signup_firstNameRequired;
+    if (lastName.isEmpty) return t.signup_lastNameRequired;
+    if (email.isEmpty) return t.password_emailRequired;
+    if (!email.contains('@')) return t.password_emailInvalid;
+    if (password.isEmpty) return t.auth_passwordRequired;
+    if (!_isStrongPassword(password)) return t.signup_passwordStrongRequired;
+    if (confirmPassword.isEmpty) return t.signup_confirmPasswordRequired;
+    if (confirmPassword != password) return t.signup_passwordsDoNotMatch;
+    if (!_acceptedLegal) return t.signup_acceptLegalRequired;
+
+    return null;
+  }
+
   String _buildSignupErrorMessage(Object error) {
     final t = AppLocalizations.of(context);
     if (error is AuthException) {
@@ -60,7 +80,8 @@ class _SignupScreenState extends State<SignupScreen> {
     final hasUpper = RegExp(r'[A-Z]').hasMatch(value);
     final hasLower = RegExp(r'[a-z]').hasMatch(value);
     final hasDigit = RegExp(r'\d').hasMatch(value);
-    final hasSpecial = RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=/\\[\]~`]').hasMatch(value);
+    final hasSpecial =
+        RegExp(r'[!@#$%^&*(),.?":{}|<>_\-+=/\\[\]~`]').hasMatch(value);
     return hasUpper && hasLower && hasDigit && hasSpecial;
   }
 
@@ -75,15 +96,17 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _handleSignup() async {
-    if (!_formKey.currentState!.validate()) return;
     final t = AppLocalizations.of(context);
-
-    if (!_acceptedLegal) {
+    final validationError = _validateBeforeSubmit(t);
+    if (validationError != null) {
+      _formKey.currentState?.validate();
       setState(() {
-        _error = t.signup_acceptLegalRequired;
+        _error = validationError;
       });
       return;
     }
+
+    _formKey.currentState?.validate();
 
     setState(() {
       _isLoading = true;
@@ -247,7 +270,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                   onChanged: _isLoading
                                       ? null
                                       : (value) => setState(
-                                            () => _acceptedLegal = value ?? false,
+                                            () {
+                                              _acceptedLegal = value ?? false;
+                                              _error = null;
+                                            },
                                           ),
                                   checkColor: _gradientStart,
                                   fillColor:
@@ -286,8 +312,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                               horizontal: 4,
                                               vertical: 0,
                                             ),
-                                            tapTargetSize:
-                                                MaterialTapTargetSize.shrinkWrap,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
                                           ),
                                           child: Text(
                                             t.settings_terms,
@@ -322,8 +348,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                               horizontal: 4,
                                               vertical: 0,
                                             ),
-                                            tapTargetSize:
-                                                MaterialTapTargetSize.shrinkWrap,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
                                           ),
                                           child: Text(
                                             t.settings_privacy,
@@ -456,6 +482,13 @@ class _SignupScreenState extends State<SignupScreen> {
             keyboardType: keyboardType,
             obscureText: obscureText,
             validator: validator,
+            onChanged: (_) {
+              if (_error != null) {
+                setState(() {
+                  _error = null;
+                });
+              }
+            },
             style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
             decoration: InputDecoration(
               hintText: hintText,

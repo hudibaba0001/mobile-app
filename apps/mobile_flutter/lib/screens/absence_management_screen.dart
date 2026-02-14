@@ -5,6 +5,7 @@ import '../design/design.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/absence.dart';
 import '../providers/absence_provider.dart';
+import '../services/supabase_auth_service.dart';
 import '../widgets/absence_entry_dialog.dart';
 
 /// Screen for managing absence entries (vacation, sick leave, VAB, etc.)
@@ -19,6 +20,21 @@ class AbsenceManagementScreen extends StatefulWidget {
 class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
   int _selectedYear = DateTime.now().year;
 
+  List<int> _availableYears() {
+    final currentYear = DateTime.now().year;
+    final createdAtRaw =
+        context.read<SupabaseAuthService>().currentUser?.createdAt;
+    final signupYear = DateTime.tryParse(createdAtRaw ?? '')?.year;
+    final firstYear = (signupYear != null && signupYear <= currentYear)
+        ? signupYear
+        : currentYear;
+
+    return List<int>.generate(
+      currentYear - firstYear + 1,
+      (index) => firstYear + index,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -28,13 +44,25 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
   }
 
   Future<void> _loadAbsences() async {
+    final years = _availableYears();
+    final fallbackYear = years.isNotEmpty ? years.last : DateTime.now().year;
+    final targetYear =
+        years.contains(_selectedYear) ? _selectedYear : fallbackYear;
+
+    if (targetYear != _selectedYear && mounted) {
+      setState(() {
+        _selectedYear = targetYear;
+      });
+    }
+
     final absenceProvider = context.read<AbsenceProvider>();
-    await absenceProvider.loadAbsences(year: _selectedYear);
+    await absenceProvider.loadAbsences(year: targetYear);
   }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final years = _availableYears();
 
     return Scaffold(
       appBar: AppBar(
@@ -49,21 +77,14 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
               });
               _loadAbsences();
             },
-            itemBuilder: (context) {
-              final currentYear = DateTime.now().year;
-              return List.generate(3, (index) {
-                final year = currentYear - 1 + index;
-                return PopupMenuItem(
-                  value: year,
-                  child: Text('$year'),
-                );
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddAbsenceDialog(context),
-            tooltip: t.absence_addAbsence,
+            itemBuilder: (context) => years
+                .map(
+                  (year) => PopupMenuItem(
+                    value: year,
+                    child: Text('$year'),
+                  ),
+                )
+                .toList(),
           ),
         ],
       ),
@@ -127,6 +148,12 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
+                  const SizedBox(height: AppSpacing.xl),
+                  FilledButton.icon(
+                    onPressed: () => _showAddAbsenceDialog(context),
+                    icon: const Icon(Icons.add),
+                    label: Text(t.absence_addAbsence),
+                  ),
                 ],
               ),
             );
@@ -172,6 +199,11 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddAbsenceDialog(context),
+        tooltip: t.absence_addAbsence,
+        child: const Icon(Icons.add),
       ),
     );
   }

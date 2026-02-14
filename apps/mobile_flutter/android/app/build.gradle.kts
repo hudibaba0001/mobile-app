@@ -14,6 +14,10 @@ val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+val isReleaseTaskRequested =
+    gradle.startParameter.taskNames.any { task ->
+        task.contains("Release", ignoreCase = true)
+    }
 
 android {
     namespace = "se.kviktime.app"
@@ -53,6 +57,12 @@ android {
             signingConfig = if (keystorePropertiesFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
+                if (isReleaseTaskRequested) {
+                    throw GradleException(
+                        "Missing android/key.properties for release signing. " +
+                            "Create a release keystore and key.properties before building release."
+                    )
+                }
                 signingConfigs.getByName("debug")
             }
         }

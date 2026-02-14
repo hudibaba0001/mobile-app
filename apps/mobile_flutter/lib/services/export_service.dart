@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import '../models/entry.dart';
 import '../models/export_data.dart';
 import 'csv_exporter.dart';
@@ -18,6 +19,8 @@ class ExportService {
   static const String _fileNamePrefix = 'time_tracker_export';
   static const String _csvFileExtension = '.csv';
   static const String _excelFileExtension = '.xlsx';
+  static const MethodChannel _downloadsChannel =
+      MethodChannel('se.kviktime.app/file_export');
 
   static ExportData prepareExportData(List<Entry> entries) {
     final hasTravel = entries.any((entry) => entry.type == EntryType.travel);
@@ -240,11 +243,19 @@ class ExportService {
         _downloadFileWeb(csvData, fullFileName, 'text/csv;charset=utf-8');
         return ''; // Web doesn't return a file path
       } else {
-        // Mobile/Desktop: Save to file system
+        // Mobile/Desktop: Save to app storage (used for share flow)
         final directory = await getApplicationDocumentsDirectory();
         final filePath = '${directory.path}/$fullFileName';
         final file = File(filePath);
         await file.writeAsString(csvData);
+
+        // Android: also save a copy in public Downloads for easy transfer.
+        await _saveCopyToDownloads(
+          fileName: fullFileName,
+          mimeType: 'text/csv;charset=utf-8',
+          bytes: Uint8List.fromList(utf8.encode(csvData)),
+        );
+
         return filePath;
       }
     } catch (e) {
@@ -280,11 +291,20 @@ class ExportService {
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         return ''; // Web doesn't return a file path
       } else {
-        // Mobile/Desktop: Save to file system
+        // Mobile/Desktop: Save to app storage (used for share flow)
         final directory = await getApplicationDocumentsDirectory();
         final filePath = '${directory.path}/$fullFileName';
         final file = File(filePath);
         await file.writeAsBytes(excelData);
+
+        // Android: also save a copy in public Downloads for easy transfer.
+        await _saveCopyToDownloads(
+          fileName: fullFileName,
+          mimeType:
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          bytes: Uint8List.fromList(excelData),
+        );
+
         return filePath;
       }
     } catch (e) {
@@ -358,5 +378,24 @@ class ExportService {
     // Use conditional import - web_download will be the web implementation on web,
     // or stub on other platforms
     web_download.downloadFileWeb(bytes, fileName, mimeType);
+  }
+
+  static Future<void> _saveCopyToDownloads({
+    required String fileName,
+    required String mimeType,
+    required Uint8List bytes,
+  }) async {
+    if (kIsWeb || !Platform.isAndroid) return;
+
+    try {
+      await _downloadsChannel.invokeMethod('saveToDownloads', {
+        'fileName': fileName,
+        'mimeType': mimeType,
+        'bytes': bytes,
+      });
+    } catch (e) {
+      // Non-blocking: export should still succeed even if Downloads copy fails.
+      debugPrint('ExportService: Failed to save copy to Downloads: $e');
+    }
   }
 }

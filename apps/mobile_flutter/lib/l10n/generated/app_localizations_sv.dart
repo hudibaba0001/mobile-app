@@ -537,6 +537,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get redDay_editPersonal => 'Redigera personlig röd dag';
 
   @override
+  String get redDay_currentPersonalDays => 'Aktuella personliga röda dagar';
+
+  @override
+  String get redDay_noPersonalDaysYet =>
+      'Inga personliga röda dagar tillagda ännu.';
+
+  @override
   String get redDay_reason => 'Anledning (valfri)';
 
   @override

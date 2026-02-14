@@ -7,6 +7,9 @@ class ExternalLinks {
   /// URL for user signup/registration page
   static const String signupUrl = 'https://app.kviktime.se/signup';
 
+  /// URL where users land after confirming signup email
+  static const String emailVerifiedUrl = '$_baseUrl/email-verified';
+
   /// URL for managing subscription in Google Play
   static const String manageSubscriptionUrl =
       'https://play.google.com/store/account/subscriptions';

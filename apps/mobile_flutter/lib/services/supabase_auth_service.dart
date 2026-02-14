@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../config/external_links.dart';
 import '../config/supabase_config.dart';
 import 'auth_service.dart';
 
@@ -191,6 +192,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
+        emailRedirectTo: ExternalLinks.emailVerifiedUrl,
       );
 
       // If signup flow did not create a session (email confirmation flows),
@@ -245,7 +247,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     debugPrint('SupabaseAuthService: Sending password reset email');
     try {
       // Redirect to web-based password reset page
-      final redirectTo = 'https://app.kviktime.se/reset-password';
+      final redirectTo = ExternalLinks.resetPasswordUrl;
 
       await _supabase.auth.resetPasswordForEmail(
         email,

@@ -142,54 +142,60 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
 
     showModalBottomSheet(
       context: context,
-      builder: (ctx) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(
-              Icons.beach_access,
-              color: AbsenceColors.paidVacation,
-            ),
-            title: Text(t.leave_paidVacation),
-            onTap: () {
-              setState(() => _selectedType = AbsenceType.vacationPaid);
-              Navigator.pop(ctx);
-            },
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.beach_access,
+                  color: AbsenceColors.paidVacation,
+                ),
+                title: Text(t.leave_paidVacation),
+                onTap: () {
+                  setState(() => _selectedType = AbsenceType.vacationPaid);
+                  Navigator.pop(ctx);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.medical_services,
+                  color: AbsenceColors.sickLeave,
+                ),
+                title: Text(t.leave_sickLeave),
+                onTap: () {
+                  setState(() => _selectedType = AbsenceType.sickPaid);
+                  Navigator.pop(ctx);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.child_care,
+                  color: AbsenceColors.vab,
+                ),
+                title: Text(t.leave_vab),
+                onTap: () {
+                  setState(() => _selectedType = AbsenceType.vabPaid);
+                  Navigator.pop(ctx);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.event_busy,
+                  color: AbsenceColors.unpaid,
+                ),
+                title: Text(t.leave_unpaid),
+                onTap: () {
+                  setState(() => _selectedType = AbsenceType.unpaid);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(
-              Icons.medical_services,
-              color: AbsenceColors.sickLeave,
-            ),
-            title: Text(t.leave_sickLeave),
-            onTap: () {
-              setState(() => _selectedType = AbsenceType.sickPaid);
-              Navigator.pop(ctx);
-            },
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.child_care,
-              color: AbsenceColors.vab,
-            ),
-            title: Text(t.leave_vab),
-            onTap: () {
-              setState(() => _selectedType = AbsenceType.vabPaid);
-              Navigator.pop(ctx);
-            },
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.event_busy,
-              color: AbsenceColors.unpaid,
-            ),
-            title: Text(t.leave_unpaid),
-            onTap: () {
-              setState(() => _selectedType = AbsenceType.unpaid);
-              Navigator.pop(ctx);
-            },
-          ),
-        ],
+        ),
       ),
     );
   }

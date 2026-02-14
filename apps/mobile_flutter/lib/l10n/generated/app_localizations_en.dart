@@ -536,6 +536,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get redDay_editPersonal => 'Edit Personal Red Day';
 
   @override
+  String get redDay_currentPersonalDays => 'Current personal red days';
+
+  @override
+  String get redDay_noPersonalDaysYet => 'No personal red days added yet.';
+
+  @override
   String get redDay_reason => 'Reason (optional)';
 
   @override

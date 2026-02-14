@@ -259,24 +259,11 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: StandardAppBar(
-        title: 'Manage Locations',
-        actions: [
-          IconButton(
-            onPressed: _showAddLocationDialog,
-            icon: const Icon(Icons.add),
-            tooltip: 'Add Location',
-          ),
-          IconButton(
-            onPressed: () {
-              // TODO: Implement more options menu
-            },
-            icon: const Icon(Icons.more_vert),
-            tooltip: 'More Options',
-          ),
-        ],
+        title: t.location_manageLocations,
       ),
       body: Consumer<LocationProvider>(
         builder: (context, provider, child) {
@@ -300,20 +287,22 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildKPICard(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      const spacing = 12.0;
+                      final columns = constraints.maxWidth < 420 ? 2 : 3;
+                      final cardWidth =
+                          (constraints.maxWidth - (spacing * (columns - 1))) /
+                              columns;
+                      final cards = [
+                        _buildKPICard(
                           context,
                           'Total',
                           provider.locations.length.toString(),
                           Icons.location_on_rounded,
                           colorScheme.primary,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildKPICard(
+                        _buildKPICard(
                           context,
                           'Favorites',
                           provider.locations
@@ -323,18 +312,24 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                           Icons.star_rounded,
                           colorScheme.secondary,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildKPICard(
+                        _buildKPICard(
                           context,
                           'Total Uses',
                           '0', // TODO: Implement usage tracking
                           Icons.history_rounded,
                           colorScheme.tertiary,
                         ),
-                      ),
-                    ],
+                      ];
+
+                      return Wrap(
+                        spacing: spacing,
+                        runSpacing: spacing,
+                        children: cards
+                            .map((card) =>
+                                SizedBox(width: cardWidth, child: card))
+                            .toList(),
+                      );
+                    },
                   ),
                 ),
                 Padding(
@@ -465,9 +460,10 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(8),
@@ -482,17 +478,23 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Text(
-              value,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
               ),
             ),
             const SizedBox(height: 4),
             Text(
               title,
-              style: theme.textTheme.bodyMedium?.copyWith(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),

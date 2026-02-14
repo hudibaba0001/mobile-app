@@ -96,37 +96,94 @@ class HolidayService extends ChangeNotifier {
   final String _countryCode = 'SE';
   String get countryCode => _countryCode;
 
+  DateTime _normalizeDate(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  String _dateKey(DateTime date) {
+    final normalized = _normalizeDate(date);
+    return '${normalized.year}-${normalized.month.toString().padLeft(2, '0')}-${normalized.day.toString().padLeft(2, '0')}';
+  }
+
+  bool _isSameDate(DateTime a, DateTime b) {
+    final left = _normalizeDate(a);
+    final right = _normalizeDate(b);
+    return left.year == right.year &&
+        left.month == right.month &&
+        left.day == right.day;
+  }
+
+  bool _isSameTimestamp(DateTime? a, DateTime? b) {
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    return a.toUtc() == b.toUtc();
+  }
+
+  bool _isSameRedDayPayload(List<UserRedDay> a, List<UserRedDay> b) {
+    if (a.length != b.length) return false;
+
+    for (int i = 0; i < a.length; i++) {
+      final left = a[i];
+      final right = b[i];
+
+      if (left.id != right.id) return false;
+      if (left.userId != right.userId) return false;
+      if (!_isSameDate(left.date, right.date)) return false;
+      if (left.kind != right.kind) return false;
+      if (left.half != right.half) return false;
+      if ((left.reason ?? '') != (right.reason ?? '')) return false;
+      if (left.source != right.source) return false;
+      if (!_isSameTimestamp(left.createdAt, right.createdAt)) return false;
+      if (!_isSameTimestamp(left.updatedAt, right.updatedAt)) return false;
+    }
+
+    return true;
+  }
+
+  List<UserRedDay> _dedupeRedDaysByDate(Iterable<UserRedDay> redDays) {
+    final byDate = <String, UserRedDay>{};
+    for (final redDay in redDays) {
+      if (_userId != null && redDay.userId != _userId) continue;
+      final normalizedDate = _normalizeDate(redDay.date);
+      byDate[_dateKey(normalizedDate)] = redDay.copyWith(date: normalizedDate);
+    }
+    final deduped = byDate.values.toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    return deduped;
+  }
+
   /// Initialize Hive box for local caching
   Future<void> initHive(Box<UserRedDay> box) async {
     _hiveBox = box;
-    _loadFromHive();
   }
 
   /// Load cached red days from Hive into memory
   void _loadFromHive() {
-    if (_hiveBox == null) return;
+    if (_hiveBox == null || _userId == null) return;
 
-    for (final redDay in _hiveBox!.values) {
+    final allUserRedDays =
+        _hiveBox!.values.where((redDay) => redDay.userId == _userId).toList();
+    final deduped = _dedupeRedDaysByDate(allUserRedDays);
+    for (final redDay in deduped) {
       final year = redDay.date.year;
-      _personalRedDaysCache.putIfAbsent(year, () => []);
-      final existing = _personalRedDaysCache[year]!;
-      if (!existing.any((rd) => rd.id == redDay.id)) {
-        existing.add(redDay);
-      }
+      _personalRedDaysCache.putIfAbsent(year, () => <UserRedDay>[]);
+      _personalRedDaysCache[year]!.add(redDay);
     }
   }
 
   /// Save red days for a year to Hive
   void _saveToHive(int year) {
-    if (_hiveBox == null) return;
+    if (_hiveBox == null || _userId == null) return;
 
     try {
-      final redDays = _personalRedDaysCache[year] ?? [];
+      final redDays = _dedupeRedDaysByDate(_personalRedDaysCache[year] ?? []);
+      _personalRedDaysCache[year] = redDays;
       // Remove old entries for this year
       final keysToRemove = <dynamic>[];
       for (final key in _hiveBox!.keys) {
         final entry = _hiveBox!.get(key);
-        if (entry != null && entry.date.year == year) {
+        if (entry != null &&
+            entry.userId == _userId &&
+            entry.date.year == year) {
           keysToRemove.add(key);
         }
       }
@@ -150,8 +207,12 @@ class HolidayService extends ChangeNotifier {
     required String? userId,
   }) {
     _repository = repository;
+    final didUserChange = _userId != userId;
     _userId = userId;
-    _personalRedDaysCache.clear();
+    if (didUserChange) {
+      _personalRedDaysCache.clear();
+      _loadFromHive();
+    }
   }
 
   /// Set auto-mark holidays preference
@@ -171,9 +232,15 @@ class HolidayService extends ChangeNotifier {
         userId: _userId!,
         year: year,
       );
-      _personalRedDaysCache[year] = redDays;
+      final next = _dedupeRedDaysByDate(redDays);
+      final current = _personalRedDaysCache[year] ?? const <UserRedDay>[];
+      final changed = !_isSameRedDayPayload(current, next);
+
+      _personalRedDaysCache[year] = next;
       _saveToHive(year);
-      notifyListeners();
+      if (changed) {
+        notifyListeners();
+      }
     } catch (e) {
       debugPrint('HolidayService: Error loading personal red days: $e');
       // Fall back to Hive cache
@@ -190,14 +257,10 @@ class HolidayService extends ChangeNotifier {
 
   /// Get personal red day for a specific date
   UserRedDay? getPersonalRedDay(DateTime date) {
-    final normalized = DateTime(date.year, date.month, date.day);
+    final normalized = _normalizeDate(date);
     final yearDays = _personalRedDaysCache[normalized.year] ?? [];
     return yearDays.cast<UserRedDay?>().firstWhere(
-          (rd) =>
-              rd != null &&
-              rd.date.year == normalized.year &&
-              rd.date.month == normalized.month &&
-              rd.date.day == normalized.day,
+          (rd) => rd != null && _isSameDate(rd.date, normalized),
           orElse: () => null,
         );
   }
@@ -207,23 +270,19 @@ class HolidayService extends ChangeNotifier {
     if (_repository == null) {
       throw Exception('Repository not initialized');
     }
+    if (_userId == null) {
+      throw Exception('User not authenticated');
+    }
 
     final saved = await _repository!.upsert(redDay);
 
     // Update cache
-    final year = saved.date.year;
-    final existing = _personalRedDaysCache[year] ?? [];
-    final index = existing.indexWhere((rd) =>
-        rd.date.year == saved.date.year &&
-        rd.date.month == saved.date.month &&
-        rd.date.day == saved.date.day);
-
-    if (index >= 0) {
-      existing[index] = saved;
-    } else {
-      existing.add(saved);
-    }
-    _personalRedDaysCache[year] = existing;
+    final normalizedDate = _normalizeDate(saved.date);
+    final year = normalizedDate.year;
+    final existing = List<UserRedDay>.from(_personalRedDaysCache[year] ?? []);
+    existing.removeWhere((rd) => _isSameDate(rd.date, normalizedDate));
+    existing.add(saved.copyWith(date: normalizedDate));
+    _personalRedDaysCache[year] = _dedupeRedDaysByDate(existing);
     _saveToHive(year);
 
     notifyListeners();
@@ -232,18 +291,21 @@ class HolidayService extends ChangeNotifier {
 
   /// Delete a personal red day
   Future<void> deletePersonalRedDay(DateTime date) async {
-    if (_repository == null || _userId == null) return;
+    if (_repository == null) {
+      throw Exception('Repository not initialized');
+    }
+    if (_userId == null) {
+      throw Exception('User not authenticated');
+    }
 
-    await _repository!.deleteForDate(userId: _userId!, date: date);
+    final normalizedDate = _normalizeDate(date);
+    await _repository!.deleteForDate(userId: _userId!, date: normalizedDate);
 
     // Update cache
-    final year = date.year;
-    final existing = _personalRedDaysCache[year] ?? [];
-    existing.removeWhere((rd) =>
-        rd.date.year == date.year &&
-        rd.date.month == date.month &&
-        rd.date.day == date.day);
-    _personalRedDaysCache[year] = existing;
+    final year = normalizedDate.year;
+    final existing = List<UserRedDay>.from(_personalRedDaysCache[year] ?? []);
+    existing.removeWhere((rd) => _isSameDate(rd.date, normalizedDate));
+    _personalRedDaysCache[year] = _dedupeRedDaysByDate(existing);
     _saveToHive(year);
 
     notifyListeners();

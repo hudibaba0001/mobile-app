@@ -79,6 +79,14 @@ For mobile-initiated reset links, configure the Supabase **Reset Password** emai
 
 Keep your Flutter `resetPasswordForEmail(..., redirectTo: 'https://app.kviktime.se/reset-password')` value in Supabase Redirect URLs.
 
+### 7. Configure signup confirmation redirect (Supabase)
+
+For mobile signup confirmation, add this redirect URL in Supabase Auth settings:
+
+`https://app.kviktime.se/email-verified`
+
+The mobile app now sends this URL via `signUp(..., emailRedirectTo: ...)` so users get a clear "email verified, open app and login" page.
+
 ## Pages
 
 - `/` - Home/landing page
@@ -87,6 +95,7 @@ Keep your Flutter `resetPasswordForEmail(..., redirectTo: 'https://app.kviktime.
 - `/signup/cancel` - Payment canceled
 - `/account` - Manage subscription (access billing portal)
 - `/auth/confirm` - Verifies reset `token_hash` and redirects with recovery session
+- `/email-verified` - Post-email-confirmation page with "Open App" action
 - `/terms` - Terms of Service (placeholder)
 - `/privacy` - Privacy Policy (placeholder)
 

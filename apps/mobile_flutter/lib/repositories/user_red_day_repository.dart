@@ -13,6 +13,11 @@ class UserRedDayRepository {
   UserRedDayRepository({SupabaseClient? supabase})
       : _supabase = supabase ?? Supabase.instance.client;
 
+  String _dateString(DateTime date) {
+    final normalized = DateTime(date.year, date.month, date.day);
+    return '${normalized.year}-${normalized.month.toString().padLeft(2, '0')}-${normalized.day.toString().padLeft(2, '0')}';
+  }
+
   /// Get all red days for a user within a date range
   Future<List<UserRedDay>> getForDateRange({
     required String userId,
@@ -20,10 +25,8 @@ class UserRedDayRepository {
     required DateTime endDate,
   }) async {
     try {
-      final startStr =
-          '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}';
-      final endStr =
-          '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}';
+      final startStr = _dateString(startDate);
+      final endStr = _dateString(endDate);
 
       final response = await _supabase
           .from(_tableName)
@@ -77,8 +80,7 @@ class UserRedDayRepository {
     required DateTime date,
   }) async {
     try {
-      final dateStr =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final dateStr = _dateString(date);
 
       final response = await _supabase
           .from(_tableName)
@@ -136,8 +138,7 @@ class UserRedDayRepository {
     required DateTime date,
   }) async {
     try {
-      final dateStr =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final dateStr = _dateString(date);
 
       await _supabase
           .from(_tableName)

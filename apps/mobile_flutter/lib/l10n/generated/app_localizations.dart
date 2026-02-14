@@ -1004,6 +1004,18 @@ abstract class AppLocalizations {
   /// **'Edit Personal Red Day'**
   String get redDay_editPersonal;
 
+  /// No description provided for @redDay_currentPersonalDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Current personal red days'**
+  String get redDay_currentPersonalDays;
+
+  /// No description provided for @redDay_noPersonalDaysYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No personal red days added yet.'**
+  String get redDay_noPersonalDaysYet;
+
   /// No description provided for @redDay_reason.
   ///
   /// In en, this message translates to:
