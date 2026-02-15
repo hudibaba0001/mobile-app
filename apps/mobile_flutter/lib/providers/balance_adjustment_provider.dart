@@ -9,6 +9,7 @@ import '../services/supabase_auth_service.dart';
 class BalanceAdjustmentProvider extends ChangeNotifier {
   final SupabaseAuthService _authService;
   final BalanceAdjustmentRepository _repository;
+  String? _activeUserId;
 
   // In-memory cache: year -> list of adjustments
   final Map<int, List<BalanceAdjustment>> _adjustmentsByYear = {};
@@ -19,7 +20,9 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  BalanceAdjustmentProvider(this._authService, this._repository);
+  BalanceAdjustmentProvider(this._authService, this._repository) {
+    _activeUserId = _authService.currentUser?.id;
+  }
 
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -30,14 +33,17 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
   /// Initialize Hive box for local caching
   Future<void> initHive(Box<BalanceAdjustment> box) async {
     _hiveBox = box;
+    _adjustmentsByYear.clear();
     _loadFromHive();
   }
 
   /// Load cached adjustments from Hive into memory
   void _loadFromHive() {
-    if (_hiveBox == null) return;
+    final userId = _activeUserId ?? _userId;
+    if (_hiveBox == null || userId == null) return;
 
     for (final adj in _hiveBox!.values) {
+      if (adj.userId != userId) continue;
       final year = adj.effectiveDate.year;
       _adjustmentsByYear.putIfAbsent(year, () => []);
       final existing = _adjustmentsByYear[year]!;
@@ -49,7 +55,8 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
 
   /// Save adjustments for a year to Hive
   void _saveToHive(int year) {
-    if (_hiveBox == null) return;
+    final userId = _activeUserId ?? _userId;
+    if (_hiveBox == null || userId == null) return;
 
     try {
       final adjustments = _adjustmentsByYear[year] ?? [];
@@ -57,7 +64,9 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
       final keysToRemove = <dynamic>[];
       for (final key in _hiveBox!.keys) {
         final entry = _hiveBox!.get(key);
-        if (entry != null && entry.effectiveDate.year == year) {
+        if (entry != null &&
+            entry.userId == userId &&
+            entry.effectiveDate.year == year) {
           keysToRemove.add(key);
         }
       }
@@ -73,6 +82,28 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('BalanceAdjustmentProvider: Error saving to Hive: $e');
     }
+  }
+
+  /// Clear/reload provider state when authenticated user changes.
+  Future<void> handleAuthUserChanged({
+    required String? previousUserId,
+    required String? currentUserId,
+  }) async {
+    if (_activeUserId == currentUserId) return;
+    _activeUserId = currentUserId;
+
+    _adjustmentsByYear.clear();
+    _error = null;
+    _isLoading = false;
+
+    if (currentUserId == null) {
+      notifyListeners();
+      return;
+    }
+
+    _loadFromHive();
+    notifyListeners();
+    await loadAdjustments(year: DateTime.now().year, forceRefresh: true);
   }
 
   /// Load adjustments for a specific year
@@ -110,7 +141,8 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
       debugPrint('BalanceAdjustmentProvider: Error: $_error');
       // Fall back to Hive cache
       if (_adjustmentsByYear.containsKey(year)) {
-        debugPrint('BalanceAdjustmentProvider: Using cached data for year $year');
+        debugPrint(
+            'BalanceAdjustmentProvider: Using cached data for year $year');
         _error = null;
       }
       notifyListeners();

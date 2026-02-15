@@ -18,6 +18,7 @@ class EntryProvider extends ChangeNotifier {
   final SupabaseAuthService _authService;
   final SupabaseEntryService _supabaseService = SupabaseEntryService();
   final SyncQueueService _syncQueue = SyncQueueService();
+  String? _activeUserId;
 
   List<Entry> _entries = [];
   List<Entry> _filteredEntries = [];
@@ -40,6 +41,7 @@ class EntryProvider extends ChangeNotifier {
   late final Future<void> _syncQueueReady;
 
   EntryProvider(this._authService) {
+    _activeUserId = _authService.currentUser?.id;
     _syncQueueReady = _syncQueue.init();
   }
 
@@ -70,8 +72,54 @@ class EntryProvider extends ChangeNotifier {
   DateTime? get startDate => _startDate;
   DateTime? get endDate => _endDate;
   int get pendingOfflineOperations => _pendingOfflineOperations;
-  bool get hasPendingSync => _syncQueue.hasPendingOperations;
-  int get pendingSyncCount => _syncQueue.pendingCount;
+  bool get hasPendingSync {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return false;
+    return _syncQueue.pendingCountForUser(userId) > 0;
+  }
+
+  int get pendingSyncCount {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return 0;
+    return _syncQueue.pendingCountForUser(userId);
+  }
+
+  /// Handle auth user switches to avoid cross-account in-memory leakage.
+  Future<void> handleAuthUserChanged({
+    required String? previousUserId,
+    required String? currentUserId,
+  }) async {
+    if (_activeUserId == currentUserId) return;
+    _activeUserId = currentUserId;
+
+    _entries = [];
+    _filteredEntries = [];
+    _searchQuery = '';
+    _selectedType = null;
+    _startDate = null;
+    _endDate = null;
+    _error = null;
+    _syncError = null;
+    _isLoading = false;
+    _isSyncing = false;
+    _pendingOfflineOperations = 0;
+    notifyListeners();
+
+    await _ensureSyncQueueReady();
+
+    if (currentUserId == null) {
+      // No active user: remove prior user's pending queue operations.
+      if (previousUserId != null) {
+        await _syncQueue.clearForUser(previousUserId);
+      }
+      return;
+    }
+
+    // Keep only current user's pending queue operations.
+    await _syncQueue.clearAllExceptUser(currentUserId);
+    _pendingOfflineOperations = _syncQueue.pendingCountForUser(currentUserId);
+    await loadEntries();
+  }
 
   Future<void> loadEntries() async {
     _isLoading = true;
@@ -81,6 +129,9 @@ class EntryProvider extends ChangeNotifier {
       final userId = _authService.currentUser?.id;
       if (userId == null) {
         _error = 'User not authenticated';
+        _entries = [];
+        _filteredEntries = [];
+        _pendingOfflineOperations = 0;
         _isLoading = false;
         notifyListeners();
         return;
@@ -192,6 +243,7 @@ class EntryProvider extends ChangeNotifier {
       _entries = supabaseEntries;
       _filteredEntries = List.from(_entries);
       _error = null;
+      _pendingOfflineOperations = _syncQueue.pendingCountForUser(userId);
     } catch (e) {
       debugPrint('Error loading entries: $e');
       _error = 'Unable to load entries. Please try again.';
@@ -840,7 +892,7 @@ class EntryProvider extends ChangeNotifier {
       await _ensureSyncQueueReady();
 
       debugPrint(
-          'EntryProvider: Processing ${_syncQueue.pendingCount} pending sync operations...');
+          'EntryProvider: Processing ${_syncQueue.pendingCountForUser(userId)} pending sync operations...');
 
       final result = await _syncQueue.processQueue((operation) async {
         switch (operation.type) {
@@ -861,10 +913,10 @@ class EntryProvider extends ChangeNotifier {
                 operation.entryId, operation.userId);
             break;
         }
-      });
+      }, userId: userId);
 
+      _pendingOfflineOperations = _syncQueue.pendingCountForUser(userId);
       if (result.succeeded > 0) {
-        _pendingOfflineOperations = _syncQueue.pendingCount;
         debugPrint(
             'EntryProvider: Sync complete - ${result.succeeded}/${result.processed} succeeded');
       }

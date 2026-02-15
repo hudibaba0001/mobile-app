@@ -10,6 +10,7 @@ class LocationProvider extends ChangeNotifier {
   final LocationRepository _repository;
   SupabaseLocationRepository? _supabaseRepo;
   SupabaseAuthService? _authService;
+  String? _activeUserId;
   List<Location> _locations = [];
   bool _isLoading = false;
   String? _error;
@@ -19,9 +20,11 @@ class LocationProvider extends ChangeNotifier {
   /// Set Supabase dependencies for cloud sync.
   /// Does NOT push to cloud immediately — call loadFromCloud() first
   /// to avoid overwriting server data with local defaults.
-  void setSupabaseDeps(SupabaseLocationRepository repo, SupabaseAuthService auth) {
+  void setSupabaseDeps(
+      SupabaseLocationRepository repo, SupabaseAuthService auth) {
     _supabaseRepo = repo;
     _authService = auth;
+    _activeUserId = auth.currentUser?.id;
   }
 
   String? get _userId => _authService?.currentUser?.id;
@@ -75,6 +78,31 @@ class LocationProvider extends ChangeNotifier {
       _syncAllToCloud();
     } catch (e) {
       debugPrint('LocationProvider: Error loading from cloud: $e');
+    }
+  }
+
+  /// Clear/reload provider state when authenticated user changes.
+  Future<void> handleAuthUserChanged({
+    required String? previousUserId,
+    required String? currentUserId,
+  }) async {
+    if (_activeUserId == currentUserId) return;
+    _activeUserId = currentUserId;
+
+    _updateState(() {
+      _locations = [];
+      _error = null;
+      _isLoading = false;
+    });
+
+    // Location cache is not user-scoped. Purge on user switches to prevent leakage.
+    if (previousUserId != currentUserId) {
+      await _repository.clearAll();
+    }
+
+    await refreshLocations();
+    if (currentUserId != null) {
+      await loadFromCloud();
     }
   }
 

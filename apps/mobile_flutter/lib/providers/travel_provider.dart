@@ -105,6 +105,17 @@ class TravelProvider extends ChangeNotifier {
     await _loadEntries();
   }
 
+  /// Clear/reload state when authenticated user changes.
+  Future<void> handleAuthUserChanged() async {
+    _entries = [];
+    _filteredEntries = [];
+    _currentSummary = null;
+    _searchQuery = '';
+    _clearError();
+    notifyListeners();
+    await _loadEntries();
+  }
+
   // Add new entry - Updated to use Entry model
   Future<bool> addEntry(Entry entry) async {
     _setLoading(true);

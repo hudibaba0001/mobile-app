@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -321,6 +322,9 @@ class _NetworkSyncSetup extends StatefulWidget {
 }
 
 class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
+  SupabaseAuthService? _authService;
+  String? _lastAuthUserId;
+
   @override
   void initState() {
     super.initState();
@@ -328,6 +332,12 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupConnectivityCallback();
     });
+  }
+
+  @override
+  void dispose() {
+    _authService?.removeListener(_onAuthStateChanged);
+    super.dispose();
   }
 
   void _setupConnectivityCallback() {
@@ -344,6 +354,69 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
             'main_prod: Auto-synced ${result.succeeded} pending operations');
       }
     });
+
+    _authService = context.read<SupabaseAuthService>();
+    _lastAuthUserId = _authService?.currentUser?.id;
+    _authService?.removeListener(_onAuthStateChanged);
+    _authService?.addListener(_onAuthStateChanged);
+  }
+
+  void _onAuthStateChanged() {
+    final authService = _authService;
+    if (authService == null) return;
+
+    final currentUserId = authService.currentUser?.id;
+    final previousUserId = _lastAuthUserId;
+    if (currentUserId == previousUserId) {
+      return;
+    }
+
+    _lastAuthUserId = currentUserId;
+    unawaited(_handleAuthUserSwitch(
+      previousUserId: previousUserId,
+      currentUserId: currentUserId,
+    ));
+  }
+
+  Future<void> _handleAuthUserSwitch({
+    required String? previousUserId,
+    required String? currentUserId,
+  }) async {
+    if (!mounted) return;
+    debugPrint(
+        'main_prod: Auth user changed from $previousUserId to $currentUserId, resetting providers...');
+
+    await context.read<EntryProvider>().handleAuthUserChanged(
+          previousUserId: previousUserId,
+          currentUserId: currentUserId,
+        );
+    if (!mounted) return;
+
+    await context.read<AbsenceProvider>().handleAuthUserChanged(
+          previousUserId: previousUserId,
+          currentUserId: currentUserId,
+        );
+    if (!mounted) return;
+
+    await context.read<BalanceAdjustmentProvider>().handleAuthUserChanged(
+          previousUserId: previousUserId,
+          currentUserId: currentUserId,
+        );
+    if (!mounted) return;
+
+    await context.read<LocationProvider>().handleAuthUserChanged(
+          previousUserId: previousUserId,
+          currentUserId: currentUserId,
+        );
+    if (!mounted) return;
+
+    await context.read<SettingsProvider>().handleAuthUserChanged(currentUserId);
+    if (!mounted) return;
+
+    await context.read<ContractProvider>().handleAuthUserChanged(currentUserId);
+    if (!mounted) return;
+
+    await context.read<TravelProvider>().handleAuthUserChanged();
   }
 
   @override

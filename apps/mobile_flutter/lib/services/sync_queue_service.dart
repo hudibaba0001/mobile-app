@@ -78,6 +78,11 @@ class SyncQueueService extends ChangeNotifier {
   bool get hasPendingOperations => _queue.isNotEmpty;
   bool get isProcessing => _isProcessing;
 
+  /// Number of pending operations for a specific user.
+  int pendingCountForUser(String userId) {
+    return _queue.where((op) => op.userId == userId).length;
+  }
+
   /// Initialize the service and load any persisted queue
   Future<void> init() async {
     if (_initialized) return;
@@ -191,14 +196,19 @@ class SyncQueueService extends ChangeNotifier {
   /// Process all pending operations
   /// [executor] is a function that executes the actual sync operation
   Future<SyncResult> processQueue(
-    Future<void> Function(SyncOperation) executor,
-  ) async {
+    Future<void> Function(SyncOperation) executor, {
+    String? userId,
+  }) async {
     if (_isProcessing) {
       debugPrint('SyncQueueService: Already processing queue');
       return SyncResult(processed: 0, succeeded: 0, failed: 0);
     }
 
-    if (_queue.isEmpty) {
+    final operations = userId == null
+        ? List<SyncOperation>.from(_queue)
+        : _queue.where((op) => op.userId == userId).toList();
+
+    if (operations.isEmpty) {
       debugPrint('SyncQueueService: No pending operations');
       return SyncResult(processed: 0, succeeded: 0, failed: 0);
     }
@@ -211,10 +221,15 @@ class SyncQueueService extends ChangeNotifier {
     int failed = 0;
     final List<SyncOperation> toRemove = [];
 
-    debugPrint(
-        'SyncQueueService: Processing ${_queue.length} pending operations...');
+    if (userId == null) {
+      debugPrint(
+          'SyncQueueService: Processing ${operations.length} pending operations...');
+    } else {
+      debugPrint(
+          'SyncQueueService: Processing ${operations.length} pending operations for user $userId...');
+    }
 
-    for (final operation in List.from(_queue)) {
+    for (final operation in operations) {
       processed++;
       try {
         await RetryHelper.executeWithRetry(
@@ -272,6 +287,32 @@ class SyncQueueService extends ChangeNotifier {
     await _persist();
     notifyListeners();
     debugPrint('SyncQueueService: Cleared all pending operations');
+  }
+
+  /// Clear pending operations for a specific user only.
+  Future<void> clearForUser(String userId) async {
+    final before = _queue.length;
+    _queue.removeWhere((op) => op.userId == userId);
+    if (_queue.length == before) {
+      return;
+    }
+    await _persist();
+    notifyListeners();
+    debugPrint(
+        'SyncQueueService: Cleared ${before - _queue.length} operations for user $userId');
+  }
+
+  /// Keep only pending operations for a specific user.
+  Future<void> clearAllExceptUser(String userId) async {
+    final before = _queue.length;
+    _queue.removeWhere((op) => op.userId != userId);
+    if (_queue.length == before) {
+      return;
+    }
+    await _persist();
+    notifyListeners();
+    debugPrint(
+        'SyncQueueService: Removed ${before - _queue.length} operations for non-active users');
   }
 
   /// Persist the queue to SharedPreferences

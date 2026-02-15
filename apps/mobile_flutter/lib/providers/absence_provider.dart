@@ -9,6 +9,7 @@ import '../services/supabase_auth_service.dart';
 class AbsenceProvider extends ChangeNotifier {
   final SupabaseAuthService _authService;
   final SupabaseAbsenceService _absenceService;
+  String? _activeUserId;
 
   // In-memory storage: year -> list of absences
   final Map<int, List<AbsenceEntry>> _absencesByYear = {};
@@ -19,7 +20,9 @@ class AbsenceProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  AbsenceProvider(this._authService, this._absenceService);
+  AbsenceProvider(this._authService, this._absenceService) {
+    _activeUserId = _authService.currentUser?.id;
+  }
 
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -27,14 +30,23 @@ class AbsenceProvider extends ChangeNotifier {
   /// Initialize Hive box for local caching
   Future<void> initHive(Box<AbsenceEntry> box) async {
     _hiveBox = box;
+    _absencesByYear.clear();
     _loadFromHive();
   }
 
+  String _cacheKey(String userId, String absenceId) => '$userId:$absenceId';
+
   /// Load cached absences from Hive into memory
   void _loadFromHive() {
-    if (_hiveBox == null) return;
+    final userId = _activeUserId ?? _authService.currentUser?.id;
+    if (_hiveBox == null || userId == null) return;
 
-    for (final absence in _hiveBox!.values) {
+    for (final key in _hiveBox!.keys) {
+      if (key is! String || !key.startsWith('$userId:')) {
+        continue;
+      }
+      final absence = _hiveBox!.get(key);
+      if (absence == null) continue;
       final year = absence.date.year;
       _absencesByYear.putIfAbsent(year, () => []);
       final existing = _absencesByYear[year]!;
@@ -46,13 +58,17 @@ class AbsenceProvider extends ChangeNotifier {
 
   /// Save absences for a year to Hive
   void _saveToHive(int year) {
-    if (_hiveBox == null) return;
+    final userId = _activeUserId ?? _authService.currentUser?.id;
+    if (_hiveBox == null || userId == null) return;
 
     try {
       final absences = _absencesByYear[year] ?? [];
       // Remove old entries for this year
       final keysToRemove = <dynamic>[];
       for (final key in _hiveBox!.keys) {
+        if (key is! String || !key.startsWith('$userId:')) {
+          continue;
+        }
         final entry = _hiveBox!.get(key);
         if (entry != null && entry.date.year == year) {
           keysToRemove.add(key);
@@ -64,12 +80,34 @@ class AbsenceProvider extends ChangeNotifier {
       // Add current entries
       for (final absence in absences) {
         if (absence.id != null) {
-          _hiveBox!.put(absence.id, absence);
+          _hiveBox!.put(_cacheKey(userId, absence.id!), absence);
         }
       }
     } catch (e) {
       debugPrint('AbsenceProvider: Error saving to Hive: $e');
     }
+  }
+
+  /// Clear/reload provider state when authenticated user changes.
+  Future<void> handleAuthUserChanged({
+    required String? previousUserId,
+    required String? currentUserId,
+  }) async {
+    if (_activeUserId == currentUserId) return;
+    _activeUserId = currentUserId;
+
+    _absencesByYear.clear();
+    _error = null;
+    _isLoading = false;
+
+    if (currentUserId == null) {
+      notifyListeners();
+      return;
+    }
+
+    _loadFromHive();
+    notifyListeners();
+    await loadAbsences(year: DateTime.now().year, forceRefresh: true);
   }
 
   /// Load absences for a specific year

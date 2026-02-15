@@ -112,4 +112,9 @@ class HiveLocationRepository implements LocationRepository {
   Future<void> delete(Location location) async {
     await _box.delete(location.id);
   }
+
+  @override
+  Future<void> clearAll() async {
+    await _box.clear();
+  }
 }

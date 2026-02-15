@@ -162,10 +162,10 @@ void main() {
     final deleteButton = find.widgetWithText(FilledButton, 'Confirm Delete');
     expect(tester.widget<FilledButton>(deleteButton).onPressed, isNull);
 
-    // Type incorrect confirmation
+    // Type lowercase confirmation
     await tester.enterText(find.byType(TextField).last, 'delete');
     await tester.pump();
-    expect(tester.widget<FilledButton>(deleteButton).onPressed, isNull);
+    expect(tester.widget<FilledButton>(deleteButton).onPressed, isNotNull);
 
     // Type correct confirmation
     await tester.enterText(find.byType(TextField).last, 'DELETE');

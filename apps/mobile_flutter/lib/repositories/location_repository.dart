@@ -22,6 +22,10 @@ class LocationRepository {
     await _box.delete(location.id);
   }
 
+  Future<void> clearAll() async {
+    await _box.clear();
+  }
+
   Future<void> close() async {
     await _box.close();
   }

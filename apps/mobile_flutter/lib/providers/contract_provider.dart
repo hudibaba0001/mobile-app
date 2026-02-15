@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/supabase_config.dart';
 import '../services/profile_service.dart';
 
 /// Provider for managing contract settings and work hour calculations
@@ -16,6 +17,7 @@ import '../services/profile_service.dart';
 class ContractProvider extends ChangeNotifier {
   // Service for Supabase persistence
   final ProfileService _profileService = ProfileService();
+  String? _activeUserId;
 
   // Private fields
   int _contractPercent = 100; // Default to 100% (full-time)
@@ -93,7 +95,29 @@ class ContractProvider extends ChangeNotifier {
   /// Initialize the provider by loading settings from local cache
   /// Call loadFromSupabase() after user is authenticated to sync cloud settings
   Future<void> init() async {
+    _activeUserId = SupabaseConfig.client.auth.currentUser?.id;
     await _loadFromLocalCache();
+  }
+
+  void _resetInMemoryToDefaults() {
+    _contractPercent = 100;
+    _fullTimeHours = 40;
+    _trackingStartDate = null;
+    _openingFlexMinutes = 0;
+    _employerMode = 'standard';
+  }
+
+  /// Clear/reload provider state when authenticated user changes.
+  Future<void> handleAuthUserChanged(String? userId) async {
+    if (_activeUserId == userId) return;
+    _activeUserId = userId;
+
+    _resetInMemoryToDefaults();
+    notifyListeners();
+
+    if (userId != null) {
+      await loadFromSupabase();
+    }
   }
 
   /// Load settings from Supabase (call when user is authenticated)
@@ -278,11 +302,7 @@ class ContractProvider extends ChangeNotifier {
 
   /// Reset contract settings to default values
   Future<void> resetToDefaults() async {
-    _contractPercent = 100;
-    _fullTimeHours = 40;
-    _trackingStartDate = null;
-    _openingFlexMinutes = 0;
-    _employerMode = 'standard';
+    _resetInMemoryToDefaults();
 
     // Clear from local cache
     final prefs = await SharedPreferences.getInstance();
