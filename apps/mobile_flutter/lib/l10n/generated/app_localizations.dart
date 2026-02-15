@@ -5001,6 +5001,24 @@ abstract class AppLocalizations {
   /// **'New users will be redirected to our account creation page'**
   String get auth_redirectNote;
 
+  /// No description provided for @auth_signInInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email or password. Please check your credentials.'**
+  String get auth_signInInvalidCredentials;
+
+  /// No description provided for @auth_signInNetworkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reach server. Check your internet connection and try again.'**
+  String get auth_signInNetworkError;
+
+  /// No description provided for @auth_signInGenericError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred during sign in. Please try again.'**
+  String get auth_signInGenericError;
+
   /// No description provided for @auth_invalidEmail.
   ///
   /// In en, this message translates to:

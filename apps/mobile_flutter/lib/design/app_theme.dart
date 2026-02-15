@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 const List<FontFeature> _tabularFigures = [FontFeature.tabularFigures()];
 
@@ -298,7 +297,6 @@ class AppThemeData {
       brightness: Brightness.light,
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.neutral50,
-      fontFamily: GoogleFonts.manrope().fontFamily,
       visualDensity: VisualDensity.standard,
       textTheme: _buildTextTheme(AppColors.neutral900),
       elevatedButtonTheme: _buildElevatedButtonTheme(),
@@ -356,7 +354,6 @@ class AppThemeData {
       brightness: Brightness.dark,
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.darkSurface,
-      fontFamily: GoogleFonts.manrope().fontFamily,
       visualDensity: VisualDensity.standard,
       textTheme: _buildTextTheme(AppColors.neutral100),
       elevatedButtonTheme: _buildElevatedButtonTheme(),
@@ -389,7 +386,7 @@ class AppThemeData {
       required double height,
       double letterSpacing = 0,
     }) {
-      return GoogleFonts.manrope(
+      return TextStyle(
         fontSize: size,
         fontWeight: weight,
         height: height,
@@ -441,7 +438,7 @@ class AppThemeData {
           horizontal: AppSpacing.xl,
           vertical: AppSpacing.md,
         ),
-        textStyle: GoogleFonts.manrope(
+        textStyle: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,
@@ -461,7 +458,7 @@ class AppThemeData {
           horizontal: AppSpacing.xl,
           vertical: AppSpacing.md,
         ),
-        textStyle: GoogleFonts.manrope(
+        textStyle: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,
@@ -482,7 +479,7 @@ class AppThemeData {
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.sm,
         ),
-        textStyle: GoogleFonts.manrope(
+        textStyle: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,
@@ -540,19 +537,19 @@ class AppThemeData {
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.md,
       ),
-      hintStyle: GoogleFonts.manrope(
+      hintStyle: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.2,
         color: scheme.onSurfaceVariant,
       ),
-      labelStyle: GoogleFonts.manrope(
+      labelStyle: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.2,
         color: scheme.onSurfaceVariant,
       ),
-      errorStyle: GoogleFonts.manrope(
+      errorStyle: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.2,
@@ -567,7 +564,7 @@ class AppThemeData {
       centerTitle: false,
       titleSpacing: AppSpacing.lg,
       toolbarHeight: 56,
-      titleTextStyle: GoogleFonts.manrope(
+      titleTextStyle: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w700,
         letterSpacing: 0,

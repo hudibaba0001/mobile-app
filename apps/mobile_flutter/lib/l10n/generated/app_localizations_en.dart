@@ -2756,6 +2756,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'New users will be redirected to our account creation page';
 
   @override
+  String get auth_signInInvalidCredentials =>
+      'Invalid email or password. Please check your credentials.';
+
+  @override
+  String get auth_signInNetworkError =>
+      'Cannot reach server. Check your internet connection and try again.';
+
+  @override
+  String get auth_signInGenericError =>
+      'An error occurred during sign in. Please try again.';
+
+  @override
   String get auth_invalidEmail => 'Invalid email';
 
   @override

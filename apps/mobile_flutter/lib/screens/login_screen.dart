@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../design/app_theme.dart';
@@ -80,6 +81,39 @@ class _LoginScreenState extends State<LoginScreen>
     AppRouter.goToSignup(context);
   }
 
+  String _buildSignInErrorMessage(Object error) {
+    final t = AppLocalizations.of(context);
+
+    if (error is AuthException) {
+      final code = error.code?.toLowerCase();
+      const invalidCredentialCodes = {
+        'invalid_credentials',
+        'invalid_login_credentials',
+        'invalid_grant',
+      };
+
+      if (code != null && invalidCredentialCodes.contains(code)) {
+        return t.auth_signInInvalidCredentials;
+      }
+      if (code == 'email_not_confirmed') {
+        return t.signup_errorEmailNotConfirmed;
+      }
+    }
+
+    final errStr = error.toString().toLowerCase();
+    final isConnectivityError = errStr.contains('failed host lookup') ||
+        errStr.contains('socketexception') ||
+        errStr.contains('connection') ||
+        errStr.contains('network is unreachable') ||
+        errStr.contains('timed out');
+
+    if (isConnectivityError) {
+      return t.auth_signInNetworkError;
+    }
+
+    return t.auth_signInGenericError;
+  }
+
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -98,14 +132,7 @@ class _LoginScreenState extends State<LoginScreen>
           context.go(AppRouter.homePath);
         }
       } catch (e) {
-        String errorMessage = 'An error occurred during sign in.';
-        final errStr = e.toString();
-
-        if (errStr.contains('invalid-credential') ||
-            errStr.contains('Invalid login credentials')) {
-          errorMessage =
-              'Invalid email or password. Please check your credentials.';
-        }
+        final errorMessage = _buildSignInErrorMessage(e);
 
         if (mounted) {
           setState(() {
@@ -139,8 +166,12 @@ class _LoginScreenState extends State<LoginScreen>
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xl, vertical: AppSpacing.xxxl),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.xxl,
+                AppSpacing.xl,
+                AppSpacing.lg,
+              ),
               child: FadeTransition(
                 opacity: _fadeAnimation,
                 child: SlideTransition(
@@ -148,33 +179,35 @@ class _LoginScreenState extends State<LoginScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildLanguageSwitcher(t, localeProvider),
-                      const SizedBox(height: AppSpacing.lg),
-
                       // Logo Card with glassmorphism
                       _buildLogoCard(),
-                      const SizedBox(height: AppSpacing.xxl),
+                      const SizedBox(height: AppSpacing.lg),
 
                       // Form Card with glassmorphism
                       _buildFormCard(),
-                      const SizedBox(height: AppSpacing.xxl),
+                      const SizedBox(height: AppSpacing.lg),
 
                       // Divider with text
                       _buildDividerWithText(t.auth_newToKvikTime),
-                      const SizedBox(height: AppSpacing.xl),
+                      const SizedBox(height: AppSpacing.md),
 
                       // Create Account Button
                       _buildCreateAccountButton(),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.md),
 
                       // Disclaimer text
                       Text(
                         t.auth_redirectNote,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.neutral50.withValues(alpha: 0.7),
+                              color:
+                                  AppColors.neutral50.withValues(alpha: 0.65),
                             ),
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // Language selector at bottom
+                      _buildLanguageSwitcher(t, localeProvider),
                     ],
                   ),
                 ),
@@ -204,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen>
     }
 
     return Align(
-      alignment: Alignment.centerRight,
+      alignment: Alignment.center,
       child: PopupMenuButton<String>(
         tooltip: t.settings_language,
         initialValue: localeProvider.localeCode ?? 'system',
@@ -238,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
+            vertical: AppSpacing.xs,
           ),
           decoration: BoxDecoration(
             color: AppColors.neutral50.withValues(alpha: 0.14),
@@ -280,20 +313,22 @@ class _LoginScreenState extends State<LoginScreen>
     final theme = Theme.of(context);
     return _GlassCard(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xxxl, vertical: AppSpacing.xxl),
+        horizontal: AppSpacing.xxl,
+        vertical: AppSpacing.lg,
+      ),
       child: Column(
         children: [
           // Clock icon with glow effect
           Container(
-            width: 80,
-            height: 80,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.neutral50, width: 3),
+              border: Border.all(color: AppColors.neutral50, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.neutral50.withValues(alpha: 0.3),
-                  blurRadius: 20,
+                  blurRadius: 16,
                   spreadRadius: 2,
                 ),
               ],
@@ -304,12 +339,12 @@ class _LoginScreenState extends State<LoginScreen>
               color: AppColors.neutral50,
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.md),
           Text(
             'KvikTime',
-            style: theme.textTheme.displayLarge?.copyWith(
+            style: theme.textTheme.headlineLarge?.copyWith(
               color: AppColors.neutral50,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -327,7 +362,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildFormCard() {
     final theme = Theme.of(context);
     return _GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Form(
         key: _formKey,
         child: Column(
@@ -343,7 +378,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ? AppLocalizations.of(context).auth_invalidEmail
                   : null,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
 
             // Password field
             GlassTextFormField(
@@ -363,7 +398,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ? AppLocalizations.of(context).auth_passwordRequired
                   : null,
             ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
 
             // Error Message
             if (_errorMessage.isNotEmpty) ...[
@@ -378,8 +413,8 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 child: Text(
                   _errorMessage,
-                  style:
-                      theme.textTheme.bodySmall?.copyWith(color: AppColors.neutral50),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: AppColors.neutral50),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -388,7 +423,7 @@ class _LoginScreenState extends State<LoginScreen>
 
             // Sign In Button
             _buildSignInButton(),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
 
             // Forgot Password
             Center(
@@ -421,7 +456,7 @@ class _LoginScreenState extends State<LoginScreen>
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.neutral50,
           foregroundColor: _gradientStart,
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
@@ -466,7 +501,7 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: Text(
             text,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -499,7 +534,9 @@ class _LoginScreenState extends State<LoginScreen>
         foregroundColor: AppColors.neutral50,
         side: const BorderSide(color: AppColors.neutral50, width: 2),
         padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.lg, horizontal: AppSpacing.xxxl),
+          vertical: AppSpacing.md,
+          horizontal: AppSpacing.xxl,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.pillRadius,
         ),

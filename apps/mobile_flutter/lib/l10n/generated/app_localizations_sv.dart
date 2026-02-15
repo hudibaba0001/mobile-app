@@ -2751,6 +2751,18 @@ class AppLocalizationsSv extends AppLocalizations {
       'Nya användare omdirigeras till vår kontoregistreringssida';
 
   @override
+  String get auth_signInInvalidCredentials =>
+      'Fel e-post eller lösenord. Kontrollera dina uppgifter.';
+
+  @override
+  String get auth_signInNetworkError =>
+      'Kan inte nå servern. Kontrollera internetanslutningen och försök igen.';
+
+  @override
+  String get auth_signInGenericError =>
+      'Ett fel uppstod vid inloggning. Försök igen.';
+
+  @override
   String get auth_invalidEmail => 'Ogiltig e-postadress';
 
   @override
