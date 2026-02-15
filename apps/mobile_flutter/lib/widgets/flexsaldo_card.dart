@@ -173,15 +173,18 @@ class FlexsaldoCard extends StatelessWidget {
                     TextSpan(text: '${t.balance_workedToDate} '),
                     TextSpan(
                       text: '${workedText}h',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: theme.colorScheme.primary,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: theme.colorScheme.primary,
+                          ),
                     ),
                     const TextSpan(text: ' / '),
                     TextSpan(
                       text: '${targetText}h',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -191,7 +194,8 @@ class FlexsaldoCard extends StatelessWidget {
 
               // Line 3 (small): Full month target: XXXh
               Text(
-                t.balance_fullMonthTarget(fullMonthTargetHours.toStringAsFixed(0)),
+                t.balance_fullMonthTarget(
+                    fullMonthTargetHours.toStringAsFixed(0)),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color:
                       theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
@@ -234,15 +238,18 @@ class FlexsaldoCard extends StatelessWidget {
                     TextSpan(
                       text:
                           '${((yearActualMinutes + yearCreditMinutes) / 60.0).toStringAsFixed(1)}h',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: theme.colorScheme.primary,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: theme.colorScheme.primary,
+                          ),
                     ),
                     const TextSpan(text: ' / '),
                     TextSpan(
                       text: '${(yearTargetMinutes / 60.0).toStringAsFixed(1)}h',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),

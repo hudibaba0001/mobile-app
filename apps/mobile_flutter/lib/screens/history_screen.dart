@@ -445,9 +445,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final holidayInfo = holidayService.getHolidayInfo(entry.date);
 
     // Vibrant gradient colors
-    final Color lightColor = isWorkEntry
-        ? AppColors.success
-        : AppColors.primaryLight;
+    final Color lightColor =
+        isWorkEntry ? AppColors.success : AppColors.primaryLight;
     final Color darkColor =
         isWorkEntry ? FlexsaldoColors.positiveDark : AppColors.primaryDark;
 
@@ -573,16 +572,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.accentDark,
-                                  borderRadius: BorderRadius.circular(AppRadius.sm / 2),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.sm / 2),
                                 ),
                                 child: Text(
                                   AppLocalizations.of(context)
                                       .history_holidayWorkBadge,
-                                  style: const TextStyle(
-                                    color: AppColors.neutral50,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: AppColors.neutral50,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                 ),
                               ),
                             ),
@@ -600,16 +603,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: AppColors.error,
-                                    borderRadius: BorderRadius.circular(AppRadius.sm / 2),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.sm / 2),
                                   ),
                                   child: Text(
                                     AppLocalizations.of(context)
                                         .history_autoBadge,
-                                    style: const TextStyle(
-                                      color: AppColors.neutral50,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: AppColors.neutral50,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                   ),
                                 ),
                               ),
@@ -621,8 +628,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Text(
                         _travelRouteText(entry) ??
                             entry.description ??
-                            AppLocalizations.of(context)
-                                .history_noDescription,
+                            AppLocalizations.of(context).history_noDescription,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -1145,7 +1151,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     color: leg.source == 'auto'
                                         ? FlexsaldoColors.positiveLight
                                         : AppColors.primaryContainer,
-                                    borderRadius: BorderRadius.circular(AppRadius.sm - 2),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.sm - 2),
                                   ),
                                   child: Text(
                                     leg.source == 'auto'
@@ -1203,4 +1210,3 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 }
-

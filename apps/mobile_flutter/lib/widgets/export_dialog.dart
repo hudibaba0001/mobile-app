@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../design/app_theme.dart';
+import '../design/components/components.dart';
 import '../models/entry.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -228,12 +229,9 @@ class _ExportDialogState extends State<ExportDialog> {
             ),
             const SizedBox(height: AppSpacing.sm),
 
-            TextField(
-              decoration: InputDecoration(
-                labelText: t.export_filename,
-                hintText: t.export_filenameHint,
-                border: const OutlineInputBorder(),
-              ),
+            AppTextField(
+              labelText: t.export_filename,
+              hintText: t.export_filenameHint,
               controller: _fileNameController,
               onChanged: (value) {
                 _customFileName = value;

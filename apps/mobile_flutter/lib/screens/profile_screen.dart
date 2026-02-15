@@ -66,7 +66,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.only(bottom: 16.0),
               child: Text(
                 _error!,
-                style: TextStyle(color: theme.colorScheme.error, fontSize: 14),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: theme.colorScheme.error, fontSize: 14),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -121,7 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       IconButton(
                         icon: const Icon(Icons.edit_outlined),
                         onPressed: () => _showEditNameDialog(context, user),
-                        tooltip: 'Edit Name',
+                        tooltip: t.profile_editName,
                       ),
                     ],
                   ),
@@ -243,7 +246,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           // Sign Out
           ListTile(
-            leading: Icon(Icons.logout, color: theme.colorScheme.onSurfaceVariant),
+            leading:
+                Icon(Icons.logout, color: theme.colorScheme.onSurfaceVariant),
             title: Text(t.profile_signOut),
             onTap: _handleSignOut,
           ),
@@ -253,7 +257,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             leading: Icon(Icons.delete_forever, color: theme.colorScheme.error),
             title: Text(
               t.settings_deleteAccount,
-              style: TextStyle(color: theme.colorScheme.error),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: theme.colorScheme.error),
             ),
             subtitle: Text(t.settings_deleteAccountDesc),
             onTap: () => _showDeleteAccountDialog(context, authService, t),
@@ -290,10 +297,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(t.profile_editName),
-        content: TextField(
+        content: AppTextField(
           controller: controller,
-          autofocus: true,
           textCapitalization: TextCapitalization.words,
+          hintText: t.profile_editName,
         ),
         actions: [
           TextButton(
@@ -345,6 +352,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String confirmationText = '';
     bool isDeleting = false;
     final theme = Theme.of(context);
+    final deleteKeyword = t.common_delete.toUpperCase();
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -358,33 +366,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(
                 t.settings_deleteAccountConfirmBody,
-                style: TextStyle(color: theme.colorScheme.error),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: theme.colorScheme.error),
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(
-                t.settings_deleteAccountConfirmHint,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                t.settings_deleteAccountConfirmHint
+                    .replaceAll('DELETE', deleteKeyword),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: AppSpacing.sm),
-              TextField(
+              AppTextField(
                 onChanged: (value) {
                   setState(() => confirmationText = value);
                 },
-                decoration: InputDecoration(
-                  hintText: 'DELETE',
-                  border: const OutlineInputBorder(),
-                  enabled: !isDeleting,
-                ),
+                hintText: deleteKeyword,
+                enabled: !isDeleting,
               ),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: isDeleting ? null : () => Navigator.of(context).pop(false),
+              onPressed:
+                  isDeleting ? null : () => Navigator.of(context).pop(false),
               child: Text(t.common_cancel),
             ),
             FilledButton(
-              onPressed: isDeleting || confirmationText != 'DELETE'
+              onPressed: isDeleting ||
+                      confirmationText.trim().toUpperCase() != deleteKeyword
                   ? null
                   : () async {
                       setState(() => isDeleting = true);
@@ -397,7 +411,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         setState(() => isDeleting = false);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(t.settings_deleteAccountError(e.toString())),
+                            content: Text(
+                                t.settings_deleteAccountError(e.toString())),
                             backgroundColor: theme.colorScheme.error,
                           ),
                         );
@@ -431,4 +446,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 }
-

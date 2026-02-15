@@ -227,7 +227,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
                       ),
                       child: Text(
                         t.redDay_auto,
-                        style: const TextStyle(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.neutral50,
                             fontSize: 11,
                             fontWeight: FontWeight.w600),
@@ -237,7 +237,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
                     Expanded(
                       child: Text(
                         redDayInfo.autoHolidayName ?? t.redDay_publicHoliday,
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onErrorContainer,
                             fontWeight: FontWeight.w500),
                       ),

@@ -201,6 +201,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -240,7 +241,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                       Text(
                         _startDate != null && _endDate != null
                             ? '${DateFormat(AppConstants.dateFormat).format(_startDate!)} - ${DateFormat(AppConstants.dateFormat).format(_endDate!)}'
-                            : 'Select date range',
+                            : t.dateRange_title,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: _startDate != null && _endDate != null
                                   ? Theme.of(context).colorScheme.onSurface
@@ -252,7 +253,9 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                       if (_startDate != null && _endDate != null) ...[
                         const SizedBox(height: AppSpacing.xs / 2),
                         Text(
-                          '${_endDate!.difference(_startDate!).inDays + 1} days',
+                          t.common_days(
+                            _endDate!.difference(_startDate!).inDays + 1,
+                          ),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Theme.of(context)
@@ -268,7 +271,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                   IconButton(
                     onPressed: _clearDates,
                     icon: const Icon(Icons.clear),
-                    tooltip: 'Clear dates',
+                    tooltip: t.common_reset,
                   ),
               ],
             ),

@@ -241,12 +241,12 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
             onPressed: _isFormValid ? _saveSettings : null,
             child: Text(
               t.common_save,
-              style: TextStyle(
-                color: _isFormValid
-                    ? colorScheme.primary
-                    : colorScheme.onSurface.withValues(alpha: 0.5),
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: _isFormValid
+                        ? colorScheme.primary
+                        : colorScheme.onSurface.withValues(alpha: 0.5),
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
         ],

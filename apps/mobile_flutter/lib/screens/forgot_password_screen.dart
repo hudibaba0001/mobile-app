@@ -92,13 +92,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   height: 20,
                                   width: 20,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: AppColors.neutral50),
+                                      strokeWidth: 2,
+                                      color: AppColors.neutral50),
                                 )
                               : Text(
                                   t.password_sendResetLink,
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
                                 ),
                         ),
                         const SizedBox(height: AppSpacing.lg),
@@ -106,7 +110,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           onPressed: () => AppRouter.goToLogin(context),
                           child: Text(
                             t.password_backToSignIn,
-                            style: TextStyle(color: colorScheme.primary),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(color: colorScheme.primary),
                           ),
                         ),
                       ],
@@ -196,4 +203,3 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 }
-

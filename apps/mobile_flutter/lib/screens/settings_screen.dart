@@ -155,11 +155,12 @@ class SettingsScreen extends StatelessWidget {
                         ),
                         child: Text(
                           t.redDay_auto,
-                          style: const TextStyle(
-                            color: AppColors.neutral50,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.neutral50,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                       ),
                       title: Text(holiday.name),
@@ -335,7 +336,8 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(confirmContext).pop(true),
-                  style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+                  style:
+                      FilledButton.styleFrom(backgroundColor: AppColors.error),
                   child: Text(t.redDay_remove),
                 ),
               ],
@@ -822,4 +824,3 @@ class _ThemeOption {
 
   const _ThemeOption(this.mode, this.icon);
 }
-

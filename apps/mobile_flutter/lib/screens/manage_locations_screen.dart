@@ -129,12 +129,12 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         AppTextFormField(
                           controller: _nameController,
-                            labelText: t.location_name,
-                            hintText: t.location_nameHint,
-                            prefixIcon: Icon(
-                              Icons.place_outlined,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          labelText: t.location_name,
+                          hintText: t.location_nameHint,
+                          prefixIcon: Icon(
+                            Icons.place_outlined,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return t.location_enterName;
@@ -145,12 +145,12 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         AppTextFormField(
                           controller: _addressController,
-                            labelText: t.location_fullAddress,
-                            hintText: t.location_fullAddress,
-                            prefixIcon: Icon(
-                              Icons.location_on_outlined,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          labelText: t.location_fullAddress,
+                          hintText: t.location_fullAddress,
+                          prefixIcon: Icon(
+                            Icons.location_on_outlined,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return t.location_enterAddress;
@@ -166,17 +166,21 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                               child: OutlinedButton(
                                 onPressed: () => Navigator.of(context).pop(),
                                 style: OutlinedButton.styleFrom(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: AppSpacing.lg),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
                                   ),
                                 ),
                                 child: Text(
                                   t.common_cancel,
-                                  style: TextStyle(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
                                 ),
                               ),
                             ),
@@ -210,8 +214,10 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                                 Icons.check_circle_outline,
                                                 color: colorScheme.onPrimary,
                                               ),
-                                              const SizedBox(width: AppSpacing.md),
-                                              Text(t.location_addedSuccessfully),
+                                              const SizedBox(
+                                                  width: AppSpacing.md),
+                                              Text(
+                                                  t.location_addedSuccessfully),
                                             ],
                                           ),
                                           behavior: SnackBarBehavior.floating,
@@ -222,10 +228,11 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                   }
                                 },
                                 style: FilledButton.styleFrom(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: AppSpacing.lg),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
                                   ),
                                 ),
                                 child: Text(AppLocalizations.of(context)
@@ -266,14 +273,17 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
             return Center(
               child: Text(
                 provider.error!,
-                style: TextStyle(color: colorScheme.error),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: colorScheme.error),
               ),
             );
           }
 
-          return SingleChildScrollView(
-            padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom),
+          return Padding(
+            padding:
+                EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
             child: Column(
               children: [
                 Padding(
@@ -324,7 +334,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: AppTextField(
                     hintText: t.location_searchLocations,
                     prefixIcon: const Icon(Icons.search),
@@ -336,8 +347,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.6,
+                Expanded(
                   child: provider.locations.isEmpty
                       ? Center(
                           child: Container(
@@ -399,7 +409,9 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                         )
                       : ListView.builder(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
+                            horizontal: AppSpacing.lg,
+                            vertical: AppSpacing.sm,
+                          ),
                           itemCount: provider.locations.length,
                           itemBuilder: (context, index) {
                             final location = provider.locations[index];
@@ -603,7 +615,10 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         t.common_delete,
-                        style: TextStyle(color: colorScheme.error),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: colorScheme.error),
                       ),
                     ],
                   ),
@@ -616,4 +631,3 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
     );
   }
 }
-

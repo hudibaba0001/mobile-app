@@ -121,7 +121,7 @@ void main() {
       // This is verified by the code structure (no loops creating new entries)
     });
 
-    testWidgets('edit mode does not show "Add another" buttons',
+    testWidgets('edit mode shows add shift button',
         (WidgetTester tester) async {
       final existingEntry = Entry.makeWorkAtomicFromShift(
         id: 'entry-789',
@@ -138,8 +138,8 @@ void main() {
       await tester.pumpWidget(createTestWidget(entryId: 'entry-789'));
       await tester.pumpAndSettle();
 
-      // In the new edit screen, we still allow adding extra shifts (they become new entries)
-      expect(find.text('Add another shift'), findsOneWidget);
+      // In edit mode we still allow adding extra shifts (they become new entries)
+      expect(find.text('Add Shift'), findsOneWidget);
     });
   });
 }

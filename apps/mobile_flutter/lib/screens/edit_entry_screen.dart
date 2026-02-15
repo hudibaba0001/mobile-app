@@ -45,13 +45,21 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   bool _isFormValid = false;
   bool _isSaving = false;
+  bool _hasLoadedInitialEntryData = false;
 
   @override
   void initState() {
     super.initState();
     _currentEntryType = _parseEntryType(widget.entryType);
-    _loadEntryData();
     _addFormListeners();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedInitialEntryData) return;
+    _hasLoadedInitialEntryData = true;
+    _loadEntryData();
   }
 
   @override
@@ -1199,8 +1207,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(AppColors.neutral50),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.neutral50),
                           ),
                         )
                       : Text(AppLocalizations.of(context).edit_save),
@@ -1224,7 +1232,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     );
 
     if (picked != null) {
-      controller.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      controller.text =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       _validateForm();
     }
   }
@@ -1322,4 +1331,3 @@ class _Shift {
     endTimeController.dispose();
   }
 }
-

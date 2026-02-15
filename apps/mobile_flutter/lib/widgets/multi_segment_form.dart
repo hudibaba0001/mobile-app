@@ -330,7 +330,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                     IconButton(
                       onPressed: widget.onCancel,
                       icon: const Icon(Icons.close),
-                      tooltip: 'Close',
+                      tooltip: AppLocalizations.of(context).common_close,
                     ),
                 ],
               ),
@@ -356,11 +356,11 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        '${_segments.length} segments • Total: $_formattedTotalDuration',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        '${_segments.length} ${AppLocalizations.of(context).multiSegment_journeySegments} • ${AppLocalizations.of(context).entry_duration}: $_formattedTotalDuration',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
                       ),
                     ],
                   ),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../design/app_theme.dart';
+import '../design/components/components.dart';
 import '../models/balance_adjustment.dart';
 import '../providers/balance_adjustment_provider.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -59,12 +60,13 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
   }
 
   Future<void> _selectDate() async {
+    final t = AppLocalizations.of(context);
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      helpText: 'Adjustment effective date',
+      helpText: t.adjustment_effectiveDate,
     );
 
     if (picked != null && picked != _selectedDate && mounted) {
@@ -270,9 +272,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                       Text('+',
                           style: theme.textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold)),
-                      Text('−',
-                          style: theme.textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      Icon(Icons.remove, size: AppIconSize.md),
                     ],
                   ),
                 ),
@@ -281,21 +281,16 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
 
                 // Hours
                 Expanded(
-                  child: TextField(
+                  child: AppTextField(
                     controller: _hoursController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(3),
                     ],
-                    decoration: InputDecoration(
-                      hintText: '0',
-                      suffixText: 'h',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      contentPadding: const EdgeInsets.all(AppSpacing.lg),
-                    ),
+                    hintText: '0',
+                    suffixText: 'h',
+                    contentPadding: const EdgeInsets.all(AppSpacing.lg),
                   ),
                 ),
 
@@ -304,21 +299,16 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                 // Minutes
                 SizedBox(
                   width: 80,
-                  child: TextField(
+                  child: AppTextField(
                     controller: _minutesController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(2),
                     ],
-                    decoration: InputDecoration(
-                      hintText: '00',
-                      suffixText: 'm',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      contentPadding: const EdgeInsets.all(AppSpacing.lg),
-                    ),
+                    hintText: '00',
+                    suffixText: 'm',
+                    contentPadding: const EdgeInsets.all(AppSpacing.lg),
                   ),
                 ),
               ],
@@ -332,16 +322,11 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: AppSpacing.sm),
-            TextField(
+            AppTextField(
               controller: _noteController,
               maxLines: 2,
-              decoration: InputDecoration(
-                hintText: t.adjustment_noteHint,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                contentPadding: const EdgeInsets.all(AppSpacing.lg),
-              ),
+              hintText: t.adjustment_noteHint,
+              contentPadding: const EdgeInsets.all(AppSpacing.lg),
             ),
 
             if (_error != null) ...[
@@ -397,3 +382,4 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
     );
   }
 }
+

@@ -773,7 +773,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
+                    borderRadius:
+                        BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
                     border: Border.all(
                       color: theme.colorScheme.primary.withValues(alpha: 0.2),
                     ),
@@ -972,7 +973,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                         darkColor.withValues(alpha: 0.15),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
+                    borderRadius:
+                        BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
                     border: Border.all(
                       color: lightColor.withValues(alpha: 0.3),
                       width: 1,
@@ -1202,7 +1204,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           child: SafeArea(
             top: false,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl - AppSpacing.xs, AppSpacing.lg, AppSpacing.xl - AppSpacing.xs, AppSpacing.xl - AppSpacing.xs),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl - AppSpacing.xs,
+                  AppSpacing.lg,
+                  AppSpacing.xl - AppSpacing.xs,
+                  AppSpacing.xl - AppSpacing.xs),
               child: UnifiedEntryForm(
                 entryType: EntryType.travel,
               ),
@@ -1232,7 +1238,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           child: SafeArea(
             top: false,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl - AppSpacing.xs, AppSpacing.lg, AppSpacing.xl - AppSpacing.xs, AppSpacing.xl - AppSpacing.xs),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl - AppSpacing.xs,
+                  AppSpacing.lg,
+                  AppSpacing.xl - AppSpacing.xs,
+                  AppSpacing.xl - AppSpacing.xs),
               child: UnifiedEntryForm(
                 entryType: EntryType.work,
               ),
@@ -1754,10 +1764,11 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         ),
                         label: Text(
                           t.home_addAnotherTrip,
-                          style: TextStyle(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                         ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1811,11 +1822,14 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                               children: [
                                 Text(
                                   AppLocalizations.of(context).entry_hours,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.neutral700,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.neutral700,
+                                      ),
                                 ),
                                 const SizedBox(height: AppSpacing.xs),
                                 TextField(
@@ -1825,12 +1839,14 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   decoration: InputDecoration(
                                     hintText: '0',
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
                                       borderSide: BorderSide.none,
                                     ),
                                     filled: true,
                                     fillColor: AppColors.neutral50,
-                                    contentPadding: const EdgeInsets.all(AppSpacing.md),
+                                    contentPadding:
+                                        const EdgeInsets.all(AppSpacing.md),
                                   ),
                                 ),
                               ],
@@ -1843,11 +1859,14 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                               children: [
                                 Text(
                                   AppLocalizations.of(context).entry_minutes,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.neutral700,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.neutral700,
+                                      ),
                                 ),
                                 const SizedBox(height: AppSpacing.xs),
                                 TextField(
@@ -1857,12 +1876,14 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   decoration: InputDecoration(
                                     hintText: '0',
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
                                       borderSide: BorderSide.none,
                                     ),
                                     filled: true,
                                     fillColor: AppColors.neutral50,
-                                    contentPadding: const EdgeInsets.all(AppSpacing.md),
+                                    contentPadding:
+                                        const EdgeInsets.all(AppSpacing.md),
                                   ),
                                 ),
                               ],
@@ -1920,11 +1941,14 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           Expanded(
                             child: Text(
                               t.home_entryWillBeLoggedFor(todayLabel),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.primaryDark,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    fontSize: 12,
+                                    color: AppColors.primaryDark,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                           ),
                         ],
@@ -1958,10 +1982,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       ),
                       child: Text(
                         t.common_cancel,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w500,
+                            ),
                       ),
                     ),
                   ),
@@ -2036,7 +2060,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                     backgroundColor: AppColors.success,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
                                     ),
                                   ),
                                 );
@@ -2057,7 +2082,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                     backgroundColor: AppColors.error,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
                                     ),
                                   ),
                                 );
@@ -2083,9 +2109,12 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           const SizedBox(width: AppSpacing.sm),
                           Text(
                             t.home_logEntry,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ],
                       ),
@@ -2194,11 +2223,11 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   children: [
                     Text(
                       t.form_hours,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     TextField(
@@ -2242,11 +2271,11 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   children: [
                     Text(
                       t.form_minutes,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     TextField(
@@ -2770,10 +2799,11 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         ),
                         label: Text(
                           t.home_addAnotherShift,
-                          style: TextStyle(
-                            color: theme.colorScheme.secondary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.secondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                         ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -2827,11 +2857,14 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               children: [
                                 Text(
                                   AppLocalizations.of(context).entry_hours,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.neutral700,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.neutral700,
+                                      ),
                                 ),
                                 const SizedBox(height: AppSpacing.xs),
                                 TextField(
@@ -2841,12 +2874,14 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   decoration: InputDecoration(
                                     hintText: '0',
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
                                       borderSide: BorderSide.none,
                                     ),
                                     filled: true,
                                     fillColor: AppColors.neutral50,
-                                    contentPadding: const EdgeInsets.all(AppSpacing.md),
+                                    contentPadding:
+                                        const EdgeInsets.all(AppSpacing.md),
                                   ),
                                 ),
                               ],
@@ -2859,11 +2894,14 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               children: [
                                 Text(
                                   AppLocalizations.of(context).entry_minutes,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.neutral700,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.neutral700,
+                                      ),
                                 ),
                                 const SizedBox(height: AppSpacing.xs),
                                 TextField(
@@ -2873,12 +2911,14 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   decoration: InputDecoration(
                                     hintText: '0',
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
                                       borderSide: BorderSide.none,
                                     ),
                                     filled: true,
                                     fillColor: AppColors.neutral50,
-                                    contentPadding: const EdgeInsets.all(AppSpacing.md),
+                                    contentPadding:
+                                        const EdgeInsets.all(AppSpacing.md),
                                   ),
                                 ),
                               ],
@@ -2936,11 +2976,14 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           Expanded(
                             child: Text(
                               t.home_entryWillBeLoggedFor(todayLabel),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.primaryDark,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    fontSize: 12,
+                                    color: AppColors.primaryDark,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                           ),
                         ],
@@ -2974,10 +3017,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       ),
                       child: Text(
                         t.common_cancel,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w500,
+                            ),
                       ),
                     ),
                   ),
@@ -3092,7 +3135,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                     backgroundColor: AppColors.success,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
                                     ),
                                   ),
                                 );
@@ -3113,7 +3157,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                     backgroundColor: AppColors.error,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
                                     ),
                                   ),
                                 );
@@ -3139,9 +3184,12 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           const SizedBox(width: AppSpacing.sm),
                           Text(
                             t.home_logEntry,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                         ],
                       ),
@@ -3227,11 +3275,11 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   children: [
                     Text(
                       AppLocalizations.of(context).home_startTime,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.neutral700,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.neutral700,
+                          ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     if (!widget.enableSuggestions)
@@ -3273,12 +3321,15 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                       ? AppLocalizations.of(context)
                                           .home_selectTime
                                       : shift.startTimeController.text,
-                                  style: TextStyle(
-                                    color:
-                                        shift.startTimeController.text.isEmpty
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: shift.startTimeController.text
+                                                .isEmpty
                                             ? AppColors.neutral500
                                             : AppColors.neutral700,
-                                  ),
+                                      ),
                                 ),
                               ),
                             ],
@@ -3295,11 +3346,11 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   children: [
                     Text(
                       AppLocalizations.of(context).home_endTime,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.neutral700,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.neutral700,
+                          ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     if (!widget.enableSuggestions)
@@ -3340,11 +3391,15 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                       ? AppLocalizations.of(context)
                                           .home_selectTime
                                       : shift.endTimeController.text,
-                                  style: TextStyle(
-                                    color: shift.endTimeController.text.isEmpty
-                                        ? AppColors.neutral500
-                                        : AppColors.neutral700,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color:
+                                            shift.endTimeController.text.isEmpty
+                                                ? AppColors.neutral500
+                                                : AppColors.neutral700,
+                                      ),
                                 ),
                               ),
                             ],
@@ -3377,11 +3432,11 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   '${t.entry_duration}: ${shift.formattedDuration}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primaryDark,
-                  ),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.primaryDark,
+                      ),
                 ),
               ],
             ),
@@ -3513,6 +3568,3 @@ class _ShiftData {
     return null;
   }
 }
-
-
-

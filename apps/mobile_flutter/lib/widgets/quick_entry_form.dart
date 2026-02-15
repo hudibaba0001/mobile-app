@@ -230,19 +230,24 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.95,
-          height: MediaQuery.of(context).size.height * 0.8,
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: MultiSegmentForm(
-            initialDate: _selectedDate,
-            onSuccess: () {
-              Navigator.of(context).pop(); // Close multi-segment dialog
-              widget.onSuccess?.call(); // Call parent success callback
-            },
-            onCancel: () {
-              Navigator.of(context).pop(); // Close multi-segment dialog
-            },
+        insetPadding: const EdgeInsets.all(AppSpacing.lg),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 500,
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
+          ),
+          child: SizedBox(
+            width: double.maxFinite,
+            child: MultiSegmentForm(
+              initialDate: _selectedDate,
+              onSuccess: () {
+                Navigator.of(context).pop(); // Close multi-segment dialog
+                widget.onSuccess?.call(); // Call parent success callback
+              },
+              onCancel: () {
+                Navigator.of(context).pop(); // Close multi-segment dialog
+              },
+            ),
           ),
         ),
       ),
@@ -292,7 +297,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                         icon: const Icon(Icons.close),
                         tooltip: AppLocalizations.of(context).common_close,
                         style: IconButton.styleFrom(
-                          backgroundColor: AppColors.neutral500.withValues(alpha: 0.1),
+                          backgroundColor:
+                              AppColors.neutral500.withValues(alpha: 0.1),
                         ),
                       ),
                     ] else ...[
@@ -307,7 +313,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                         icon: const Icon(Icons.close),
                         tooltip: AppLocalizations.of(context).common_close,
                         style: IconButton.styleFrom(
-                          backgroundColor: AppColors.neutral500.withValues(alpha: 0.1),
+                          backgroundColor:
+                              AppColors.neutral500.withValues(alpha: 0.1),
                         ),
                       ),
                     ],
@@ -324,7 +331,10 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                         .map((route) => ActionChip(
                               label: Text(
                                 route,
-                                style: const TextStyle(fontSize: 12),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontSize: 12),
                               ),
                               onPressed: () => _useRecentRoute(route),
                               backgroundColor: Theme.of(context)

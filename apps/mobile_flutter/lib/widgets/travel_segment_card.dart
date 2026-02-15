@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/app_theme.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../models/travel_segment.dart';
 
 class TravelSegmentCard extends StatelessWidget {
@@ -21,6 +22,7 @@ class TravelSegmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
@@ -54,7 +56,7 @@ class TravelSegmentCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Segment ${index + 1}',
+                        '${t.multiSegment_journeySegments} ${index + 1}',
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -71,13 +73,13 @@ class TravelSegmentCard extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.edit, size: 20),
                     onPressed: onEdit,
-                    tooltip: 'Edit segment',
+                    tooltip: t.common_edit,
                   ),
                 if (onDelete != null)
                   IconButton(
                     icon: const Icon(Icons.delete, size: 20),
                     onPressed: onDelete,
-                    tooltip: 'Delete segment',
+                    tooltip: t.common_delete,
                     color: theme.colorScheme.error,
                   ),
               ],
@@ -92,7 +94,7 @@ class TravelSegmentCard extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
-                  '${segment.durationMinutes} minutes',
+                  '${segment.durationMinutes} ${t.entry_minutes.toLowerCase()}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

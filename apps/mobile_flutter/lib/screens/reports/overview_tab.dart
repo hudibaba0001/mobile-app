@@ -258,7 +258,9 @@ class OverviewTab extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ) ??
                 const TextStyle(
-                    color: AppColors.neutral50, fontWeight: FontWeight.bold),
+                  color: AppColors.neutral50,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           PieChartSectionData(
             value: travelMinutes.toDouble(),
@@ -271,7 +273,9 @@ class OverviewTab extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ) ??
                 const TextStyle(
-                    color: AppColors.neutral50, fontWeight: FontWeight.bold),
+                  color: AppColors.neutral50,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ],
         centerSpaceRadius: 40,
@@ -320,4 +324,3 @@ class OverviewTab extends StatelessWidget {
     }
   }
 }
-

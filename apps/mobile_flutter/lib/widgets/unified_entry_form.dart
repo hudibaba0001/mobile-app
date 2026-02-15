@@ -1213,11 +1213,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 return FilterChip(
                   label: Text(
                     '$minutes',
-                    style: TextStyle(
-                      color: isSelected
-                          ? theme.colorScheme.onSecondaryContainer
-                          : theme.colorScheme.onSurface,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: isSelected
+                              ? theme.colorScheme.onSecondaryContainer
+                              : theme.colorScheme.onSurface,
+                        ),
                   ),
                   selected: isSelected,
                   onSelected: (selected) {
@@ -1361,7 +1361,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       ),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
           child: TextFormField(
             controller: controller,
             decoration: InputDecoration(

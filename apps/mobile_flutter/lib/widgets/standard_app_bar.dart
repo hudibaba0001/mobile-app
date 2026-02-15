@@ -36,15 +36,27 @@ class StandardAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canPop = GoRouter.of(context).canPop();
+    final goRouter = GoRouter.maybeOf(context);
+    final navigator = Navigator.of(context);
+    final canPop = goRouter?.canPop() ?? navigator.canPop();
     final shouldShowBackButton = showBackButton ?? canPop;
+
+    void defaultBack() {
+      if (goRouter != null && goRouter.canPop()) {
+        context.pop();
+        return;
+      }
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+    }
 
     return AppBar(
       title: _buildTitle(),
       leading: shouldShowBackButton
           ? IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: onBack ?? () => context.pop(),
+              onPressed: onBack ?? defaultBack,
             )
           : null,
       actions: actions,

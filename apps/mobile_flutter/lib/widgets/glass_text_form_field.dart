@@ -48,7 +48,8 @@ class GlassTextFormField extends StatelessWidget {
             obscureText: obscureText,
             validator: validator,
             onChanged: onChanged,
-            style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral50),
+            style:
+                theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral50),
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: theme.textTheme.bodyLarge?.copyWith(
@@ -69,7 +70,10 @@ class GlassTextFormField extends StatelessWidget {
               focusedBorder: InputBorder.none,
               errorBorder: InputBorder.none,
               focusedErrorBorder: InputBorder.none,
-              errorStyle: const TextStyle(height: 0, fontSize: 0),
+              errorStyle: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(height: 0, fontSize: 0),
             ),
           ),
         ),

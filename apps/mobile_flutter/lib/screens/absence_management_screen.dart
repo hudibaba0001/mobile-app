@@ -116,7 +116,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  ElevatedButton(
+                  FilledButton(
                     onPressed: _loadAbsences,
                     child: Text(t.common_retry),
                   ),
@@ -307,9 +307,9 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: Text(t.common_cancel),
           ),
-          ElevatedButton(
+          FilledButton(
             onPressed: () => _deleteAbsence(ctx, absence),
-            style: ElevatedButton.styleFrom(
+            style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             child: Text(t.common_delete),

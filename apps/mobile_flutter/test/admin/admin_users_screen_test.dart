@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:myapp/screens/admin_users_screen.dart';
 import 'package:myapp/services/admin_api_service.dart';
 import 'package:myapp/models/admin_user.dart';
+import 'package:myapp/l10n/generated/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 @GenerateMocks([AdminApiService])
 import 'admin_users_screen_test.mocks.dart';
@@ -38,6 +40,17 @@ void main() {
 
   Widget createTestWidget() {
     return MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('sv', ''),
+      ],
       home: Provider<AdminApiService>.value(
         value: mockAdminApiService,
         child: const AdminUsersScreen(),

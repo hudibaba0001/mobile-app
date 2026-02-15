@@ -80,9 +80,12 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                       labelText: t.adminUsers_filterByRole,
                     ),
                     items: [
-                      DropdownMenuItem(value: 'All', child: Text(t.adminUsers_roleAll)),
-                      DropdownMenuItem(value: 'Admin', child: Text(t.adminUsers_roleAdmin)),
-                      DropdownMenuItem(value: 'User', child: Text(t.adminUsers_roleUser)),
+                      DropdownMenuItem(
+                          value: 'All', child: Text(t.adminUsers_roleAll)),
+                      DropdownMenuItem(
+                          value: 'Admin', child: Text(t.adminUsers_roleAdmin)),
+                      DropdownMenuItem(
+                          value: 'User', child: Text(t.adminUsers_roleUser)),
                     ],
                     onChanged: (value) =>
                         viewModel.setFilterRole(value ?? 'All'),
@@ -140,7 +143,8 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                   return Center(
                     child: Text(
                       viewModel.searchQuery != null
-                          ? t.adminUsers_noUsersFoundQuery(viewModel.searchQuery!)
+                          ? t.adminUsers_noUsersFoundQuery(
+                              viewModel.searchQuery!)
                           : t.adminUsers_noUsersFound,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSurfaceVariant,
@@ -165,7 +169,9 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                                 ? _enableUser(context, user, viewModel)
                                 : _disableUser(context, user, viewModel),
                             icon: Icon(
-                              user.disabled ? Icons.check_circle_outline : Icons.block,
+                              user.disabled
+                                  ? Icons.check_circle_outline
+                                  : Icons.block,
                               color: user.disabled
                                   ? Theme.of(context).colorScheme.primary
                                   : Theme.of(context).colorScheme.error,
@@ -194,10 +200,13 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                                     const SizedBox(width: AppSpacing.sm),
                                     Text(
                                       t.common_delete,
-                                      style: TextStyle(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .error),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .error),
                                     ),
                                   ],
                                 ),
@@ -234,8 +243,10 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${t.adminUsers_labelUid}: ${user.uid}'),
-            Text('${t.adminUsers_labelEmail}: ${user.email ?? t.adminUsers_none}'),
-            Text('${t.adminUsers_labelName}: ${user.displayName ?? t.adminUsers_none}'),
+            Text(
+                '${t.adminUsers_labelEmail}: ${user.email ?? t.adminUsers_none}'),
+            Text(
+                '${t.adminUsers_labelName}: ${user.displayName ?? t.adminUsers_none}'),
             Text(
                 '${t.adminUsers_labelStatus}: ${user.disabled ? t.adminUsers_statusDisabled : t.adminUsers_statusActive}'),
             Text('${t.adminUsers_labelCreated}: ${user.createdAt}'),
@@ -340,6 +351,7 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
   Future<void> _showDeleteConfirmation(BuildContext context, AdminUser user,
       AdminUsersViewModel viewModel) async {
     final t = AppLocalizations.of(context);
+    final deleteKeyword = t.common_delete.toUpperCase();
     String confirmationText = '';
     bool isLoading = false;
 
@@ -354,19 +366,27 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
             children: [
               Text(
                 t.adminUsers_deleteWarning,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Theme.of(context).colorScheme.error),
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(
-                t.adminUsers_typeDeleteToConfirm,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                t.adminUsers_typeDeleteToConfirm
+                    .replaceAll('DELETE', deleteKeyword),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: AppSpacing.sm),
               AppTextField(
                 onChanged: (value) {
                   setState(() => confirmationText = value);
                 },
-                hintText: t.adminUsers_typeDeleteHere,
+                hintText:
+                    t.adminUsers_typeDeleteHere.replaceAll('DELETE', deleteKeyword),
               ),
             ],
           ),
@@ -377,7 +397,8 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
               child: Text(t.common_cancel),
             ),
             FilledButton(
-              onPressed: isLoading || confirmationText != 'DELETE'
+              onPressed: isLoading ||
+                      confirmationText.trim().toUpperCase() != deleteKeyword
                   ? null
                   : () async {
                       setState(() => isLoading = true);

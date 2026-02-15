@@ -210,11 +210,11 @@ class _PieChartStatsState extends State<PieChartStats>
         value: stats.workMinutes.toDouble() * _animation.value,
         title: widget.showPercentages ? '${workPercentage.toInt()}%' : '',
         radius: touchedIndex == 0 ? 80 * _hoverAnimation.value : 70,
-        titleStyle: TextStyle(
-          fontSize: touchedIndex == 0 ? 16 : 14,
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onSecondary,
-        ),
+        titleStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontSize: touchedIndex == 0 ? 16 : 14,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSecondary,
+            ),
         titlePositionPercentageOffset: 0.6,
       ),
       // Travel section
@@ -223,11 +223,11 @@ class _PieChartStatsState extends State<PieChartStats>
         value: stats.travelMinutes.toDouble() * _animation.value,
         title: widget.showPercentages ? '${travelPercentage.toInt()}%' : '',
         radius: touchedIndex == 1 ? 80 * _hoverAnimation.value : 70,
-        titleStyle: TextStyle(
-          fontSize: touchedIndex == 1 ? 16 : 14,
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onPrimary,
-        ),
+        titleStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontSize: touchedIndex == 1 ? 16 : 14,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onPrimary,
+            ),
         titlePositionPercentageOffset: 0.6,
       ),
     ];

@@ -49,7 +49,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   Future<void> _initialize() async {
     try {
-      await _billingService.initialize(onEntitlementUpdated: _refreshEntitlement);
+      await _billingService.initialize(
+          onEntitlementUpdated: _refreshEntitlement);
       await _refreshEntitlement();
     } catch (e) {
       if (!mounted) return;
@@ -159,9 +160,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xl),
-              _buildFeatureTile(Icons.history, t.paywall_featureFullHistoryReports),
+              _buildFeatureTile(
+                  Icons.history, t.paywall_featureFullHistoryReports),
               _buildFeatureTile(Icons.cloud_sync, t.paywall_featureCloudSync),
-              _buildFeatureTile(Icons.shield_outlined, t.paywall_featureSecureSubscription),
+              _buildFeatureTile(
+                  Icons.shield_outlined, t.paywall_featureSecureSubscription),
               const SizedBox(height: AppSpacing.xl),
               if (_entitlement != null)
                 Text(
@@ -208,7 +211,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 Text(
                   _screenError!,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: theme.colorScheme.error),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: theme.colorScheme.error),
                 ),
               ],
             ],
