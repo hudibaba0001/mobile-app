@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../design/app_theme.dart';
 import '../models/balance_adjustment.dart';
 import '../providers/balance_adjustment_provider.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -148,7 +149,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: Text(t.common_delete),
           ),
         ],
@@ -191,7 +192,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
             Icons.tune,
             color: colorScheme.primary,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Flexible(
               child: Text(_isEditing
                   ? t.adjustment_editAdjustment
@@ -208,21 +209,21 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
               t.adjustment_effectiveDate,
               style: theme.textTheme.labelLarge,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             InkWell(
               onTap: _selectDate,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 decoration: BoxDecoration(
                   border: Border.all(color: colorScheme.outline),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Row(
                   children: [
                     Icon(Icons.calendar_today,
                         size: 20, color: colorScheme.primary),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Text(dateFormat.format(_selectedDate)),
                     const Spacer(),
                     Icon(Icons.edit,
@@ -232,14 +233,14 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
             // Amount input
             Text(
               t.adjustment_amount,
               style: theme.textTheme.labelLarge,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,10 +249,10 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                 Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: colorScheme.outline),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: ToggleButtons(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     isSelected: [_isCredit, !_isCredit],
                     onPressed: (index) {
                       setState(() {
@@ -263,7 +264,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                       minHeight: 48,
                     ),
                     selectedColor: colorScheme.onPrimary,
-                    fillColor: _isCredit ? Colors.green : Colors.red,
+                    fillColor: _isCredit ? AppColors.success : AppColors.error,
                     color: colorScheme.onSurface,
                     children: [
                       Text('+',
@@ -276,7 +277,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                   ),
                 ),
 
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
 
                 // Hours
                 Expanded(
@@ -291,14 +292,14 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                       hintText: '0',
                       suffixText: 'h',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      contentPadding: const EdgeInsets.all(16),
+                      contentPadding: const EdgeInsets.all(AppSpacing.lg),
                     ),
                   ),
                 ),
 
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
 
                 // Minutes
                 SizedBox(
@@ -314,48 +315,48 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                       hintText: '00',
                       suffixText: 'm',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      contentPadding: const EdgeInsets.all(16),
+                      contentPadding: const EdgeInsets.all(AppSpacing.lg),
                     ),
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
             // Note
             Text(
               t.form_notesOptional,
               style: theme.textTheme.labelLarge,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             TextField(
               controller: _noteController,
               maxLines: 2,
               decoration: InputDecoration(
                 hintText: t.adjustment_noteHint,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                contentPadding: const EdgeInsets.all(16),
+                contentPadding: const EdgeInsets.all(AppSpacing.lg),
               ),
             ),
 
             if (_error != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
                   children: [
                     Icon(Icons.error_outline,
                         color: colorScheme.error, size: 20),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
                         _error!,
@@ -375,7 +376,7 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
         if (_isEditing)
           TextButton(
             onPressed: _isSaving ? null : _delete,
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: Text(t.common_delete),
           ),
         TextButton(

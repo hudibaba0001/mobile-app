@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../design/app_theme.dart';
 import '../models/travel_segment.dart';
 import '../models/entry.dart'; // Updated to use unified Entry model
 import '../providers/entry_provider.dart'; // Updated to use EntryProvider
@@ -174,7 +175,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
       ),
     );
   }
@@ -249,7 +250,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
             content: Text(isEditing
                 ? 'Multi-segment journey updated successfully!'
                 : 'Multi-segment journey with ${_segments.length} segments added successfully!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
       } else if (mounted) {
@@ -315,7 +316,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                     Icons.route,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     widget.editingJourneyId != null
                         ? AppLocalizations.of(context).multiSegment_editJourney
@@ -338,13 +339,13 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
               if (_segments.isNotEmpty || _totalMinutes > 0) ...[
                 const SizedBox(height: AppConstants.smallPadding),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: Theme.of(context)
                         .colorScheme
                         .primaryContainer
                         .withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Row(
                     children: [
@@ -353,7 +354,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
                         size: 16,
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         '${_segments.length} segments • Total: $_formattedTotalDuration',
                         style: TextStyle(

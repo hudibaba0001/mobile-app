@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'design/app_theme.dart';
 import 'models/location.dart';
 import 'utils/constants.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -69,7 +70,7 @@ class LocationsScreenState extends State<LocationsScreen> {
         title: Text(t.location_manageLocations),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           children: [
             TextField(
@@ -80,12 +81,12 @@ class LocationsScreenState extends State<LocationsScreen> {
               controller: _addressController,
               decoration: InputDecoration(labelText: t.location_fullAddress),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.md - 2),
             ElevatedButton(
               onPressed: _addLocation,
               child: Text(t.location_addLocation),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
             Expanded(
               child: ValueListenableBuilder(
                 valueListenable: _locationsBox.listenable(),

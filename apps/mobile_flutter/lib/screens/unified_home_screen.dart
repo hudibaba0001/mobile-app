@@ -22,6 +22,7 @@ import '../providers/location_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../widgets/standard_app_bar.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -266,8 +267,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     return Scaffold(
       key: const Key('screen_home'),
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Builder(
+      appBar: StandardAppBar(
+        showBackButton: false,
+        titleWidget: Builder(
           builder: (context) {
             final user = context.read<SupabaseAuthService>().currentUser;
             final userName = user?.userMetadata?['full_name'] ??
@@ -276,18 +278,18 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             return Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Icon(
                     Icons.timer_rounded,
                     color: colorScheme.primary,
-                    size: 24,
+                    size: AppIconSize.md,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,16 +316,15 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             );
           },
         ),
-        elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: colorScheme.onSurface,
         actions: [
           IconButton(
             icon: Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
                   color: colorScheme.outline.withValues(alpha: 0.2),
                   width: 1,
@@ -332,25 +333,27 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               child: Icon(
                 Icons.person_outline_rounded,
                 color: colorScheme.onSurfaceVariant,
-                size: 20,
+                size: AppIconSize.sm,
               ),
             ),
             onPressed: () => AppRouter.goToProfile(context),
             tooltip: t.common_profile,
           ),
-          const SizedBox(width: 8),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.md),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Flexsaldo / Simple summary
             if (context.watch<SettingsProvider>().isTimeBalanceEnabled) ...[
               const FlexsaldoCard(),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
             ],
 
             // Today's Total Card
@@ -358,28 +361,28 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               builder: (context, entryProvider, _) =>
                   _buildTotalCard(theme, entryProvider, t, travelEnabled),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Stats Section
             Consumer<EntryProvider>(
               builder: (context, entryProvider, _) =>
                   _buildStatsSection(theme, entryProvider, t, travelEnabled),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Recent Entries
             _buildRecentEntries(theme, t),
-            const SizedBox(height: 80), // Space for bottom nav
+            const SizedBox(height: AppSpacing.xxxl + AppSpacing.xxl),
           ],
         ),
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.lg + AppSpacing.xs),
           boxShadow: [
             BoxShadow(
               color: colorScheme.primary.withValues(alpha: 0.3),
-              blurRadius: 20,
+              blurRadius: AppSpacing.xxl - AppSpacing.xs,
               offset: const Offset(0, 8),
             ),
           ],
@@ -389,9 +392,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
           elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: const Icon(Icons.add, size: 28),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg + AppSpacing.xs),
+          ),
+          child: const Icon(Icons.add, size: AppIconSize.lg - AppSpacing.xs),
         ),
       ),
       // bottomNavigationBar removed; global nav from AppScaffold is used
@@ -625,49 +629,54 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ],
             ),
           ),
-          // Breakdown chip
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.08),
-              borderRadius: AppRadius.buttonRadius,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (travelEnabled) ...[
-                  Icon(
-                    Icons.directions_car_rounded,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    size: AppIconSize.sm,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    formatHours(travelDuration),
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                  borderRadius: AppRadius.buttonRadius,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (travelEnabled) ...[
+                      Icon(
+                        Icons.directions_car_rounded,
+                        color: theme.colorScheme.onSurfaceVariant,
+                        size: AppIconSize.sm,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        formatHours(travelDuration),
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                    ],
+                    Icon(
+                      Icons.work_rounded,
+                      color: theme.colorScheme.onSurfaceVariant,
+                      size: AppIconSize.sm,
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                ],
-                Icon(
-                  Icons.work_rounded,
-                  color: theme.colorScheme.onSurfaceVariant,
-                  size: AppIconSize.sm,
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      formatHours(workDuration),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(
-                  formatHours(workDuration),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -688,7 +697,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 20, color: color),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -714,7 +723,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
   Widget _buildRecentEntries(ThemeData theme, AppLocalizations t) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -724,7 +733,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,7 +741,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -740,7 +749,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       theme.colorScheme.primary.withValues(alpha: 0.08),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Icon(
                   Icons.history_rounded,
@@ -748,7 +757,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   color: theme.colorScheme.primary,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 t.home_recentEntries,
                 style: theme.textTheme.titleMedium?.copyWith(
@@ -764,7 +773,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
                     border: Border.all(
                       color: theme.colorScheme.primary.withValues(alpha: 0.2),
                     ),
@@ -778,7 +787,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: AppSpacing.xs),
                       Icon(
                         Icons.arrow_forward_rounded,
                         size: 14,
@@ -790,14 +799,14 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           if (_recentEntries.isEmpty)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
                   color: theme.colorScheme.outline.withValues(alpha: 0.1),
                   width: 2,
@@ -807,7 +816,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primaryContainer
                           .withValues(alpha: 0.3),
@@ -819,7 +828,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       color: theme.colorScheme.primary.withValues(alpha: 0.5),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     t.home_noEntriesYet,
                     style: theme.textTheme.bodyLarge?.copyWith(
@@ -845,20 +854,20 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
     switch (entry.type) {
       case 'travel':
-        lightColor = const Color(0xFF6366F1); // Indigo
-        darkColor = const Color(0xFF4F46E5);
+        lightColor = AppColors.primaryLight;
+        darkColor = AppColors.primaryDark;
         break;
       case 'work':
-        lightColor = const Color(0xFF10B981); // Emerald
-        darkColor = const Color(0xFF059669);
+        lightColor = AppColors.success;
+        darkColor = FlexsaldoColors.positiveDark;
         break;
       case 'absence':
-        lightColor = const Color(0xFFF59E0B); // Amber
-        darkColor = const Color(0xFFD97706);
+        lightColor = AppColors.accent;
+        darkColor = AppColors.accentDark;
         break;
       default:
-        lightColor = const Color(0xFF8B5CF6); // Purple
-        darkColor = const Color(0xFF7C3AED);
+        lightColor = AppColors.secondaryLight;
+        darkColor = AppColors.secondaryDark;
     }
 
     return Container(
@@ -914,7 +923,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       ),
                     ],
                   ),
-                  child: Icon(entry.icon, color: Colors.white, size: 24),
+                  child: Icon(entry.icon, color: AppColors.neutral50, size: 24),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -929,7 +938,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                           color: theme.colorScheme.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpacing.xs / 2),
                       Text(
                         entry.title,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -939,7 +948,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpacing.xs / 2),
                       Text(
                         entry.subtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -963,7 +972,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                         darkColor.withValues(alpha: 0.15),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
                     border: Border.all(
                       color: lightColor.withValues(alpha: 0.3),
                       width: 1,
@@ -1193,7 +1202,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           child: SafeArea(
             top: false,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl - AppSpacing.xs, AppSpacing.lg, AppSpacing.xl - AppSpacing.xs, AppSpacing.xl - AppSpacing.xs),
               child: UnifiedEntryForm(
                 entryType: EntryType.travel,
               ),
@@ -1223,7 +1232,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           child: SafeArea(
             top: false,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl - AppSpacing.xs, AppSpacing.lg, AppSpacing.xl - AppSpacing.xs, AppSpacing.xl - AppSpacing.xs),
               child: UnifiedEntryForm(
                 entryType: EntryType.work,
               ),
@@ -1361,7 +1370,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
           offset: const Offset(0.0, 60.0), // Below the text field
           child: Material(
             elevation: 8,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             child: Container(
               constraints: BoxConstraints(
                 maxHeight: 200,
@@ -1369,7 +1378,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
               ),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
                   color: theme.colorScheme.outline.withValues(alpha: 0.2),
                 ),
@@ -1403,7 +1412,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                             size: 20,
                             color: _getSuggestionColor(theme, suggestion.type),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1454,7 +1463,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
   Color _getSuggestionColor(ThemeData theme, SuggestionType type) {
     switch (type) {
       case SuggestionType.favorite:
-        return Colors.amber;
+        return AppColors.accent;
       case SuggestionType.recent:
         return theme.colorScheme.secondary;
       case SuggestionType.saved:
@@ -1483,10 +1492,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
           hintText: hint,
           prefixIcon: Icon(icon, color: iconColor, size: 20),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             borderSide: BorderSide(color: iconColor, width: 2),
           ),
         ),
@@ -1504,10 +1513,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
           hintText: hint,
           prefixIcon: Icon(icon, color: iconColor, size: 20),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             borderSide: BorderSide(color: iconColor, width: 2),
           ),
         ),
@@ -1612,7 +1621,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
       ),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
@@ -1621,7 +1630,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -1639,18 +1648,18 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.neutral50.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Icon(
                       Icons.directions_car,
-                      color: Colors.white,
+                      color: AppColors.neutral50,
                       size: 24,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.lg),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1658,15 +1667,15 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         Text(
                           t.home_logTravelEntry,
                           style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.neutral50,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           t.home_trackJourneyDetails,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
+                            color: AppColors.neutral50.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -1676,7 +1685,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: Icon(
                       Icons.close,
-                      color: Colors.white,
+                      color: AppColors.neutral50,
                       size: 24,
                     ),
                   ),
@@ -1687,7 +1696,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
             // Content
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1699,7 +1708,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           size: 20,
                           color: theme.colorScheme.primary,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         Text(
                           t.home_tripDetails,
                           style: theme.textTheme.titleMedium?.copyWith(
@@ -1709,7 +1718,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
 
                     // List of trips
                     ..._trips.asMap().entries.map((entry) {
@@ -1719,12 +1728,12 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       return Column(
                         children: [
                           if (index > 0) ...[
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.lg),
                             Container(
                               height: 1,
-                              color: Colors.grey[200],
+                              color: AppColors.neutral200,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.lg),
                           ],
                           _buildTripRow(theme, index, trip),
                         ],
@@ -1732,7 +1741,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     }),
 
                     // Add trip button
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
@@ -1757,13 +1766,13 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                 .withValues(alpha: 0.3),
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xl),
 
                     // Total duration
                     Row(
@@ -1771,26 +1780,26 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         Icon(
                           Icons.timer,
                           size: 20,
-                          color: Colors.grey[700],
+                          color: AppColors.neutral700,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         Text(
                           t.home_totalDuration,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
+                            color: AppColors.neutral700,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.neutral50,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                         border: Border.all(
-                          color: Colors.grey[200]!,
+                          color: AppColors.neutral200,
                           width: 1,
                         ),
                       ),
@@ -1805,10 +1814,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: AppColors.neutral700,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: AppSpacing.xs),
                                 TextField(
                                   controller: _totalHoursController,
                                   keyboardType: TextInputType.number,
@@ -1816,18 +1825,18 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   decoration: InputDecoration(
                                     hintText: '0',
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(AppRadius.sm),
                                       borderSide: BorderSide.none,
                                     ),
                                     filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: const EdgeInsets.all(12),
+                                    fillColor: AppColors.neutral50,
+                                    contentPadding: const EdgeInsets.all(AppSpacing.md),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1837,10 +1846,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: AppColors.neutral700,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: AppSpacing.xs),
                                 TextField(
                                   controller: _totalMinutesController,
                                   keyboardType: TextInputType.number,
@@ -1848,12 +1857,12 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   decoration: InputDecoration(
                                     hintText: '0',
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(AppRadius.sm),
                                       borderSide: BorderSide.none,
                                     ),
                                     filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: const EdgeInsets.all(12),
+                                    fillColor: AppColors.neutral50,
+                                    contentPadding: const EdgeInsets.all(AppSpacing.md),
                                   ),
                                 ),
                               ],
@@ -1863,7 +1872,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl - AppSpacing.xs),
 
                     // Notes
                     TextField(
@@ -1876,10 +1885,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                           borderSide: BorderSide(
                             color: theme.colorScheme.primary,
                             width: 2,
@@ -1889,15 +1898,15 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       maxLines: 3,
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
 
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.primaryContainer,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                         border: Border.all(
-                          color: Colors.blue[200]!,
+                          color: AppColors.primaryContainer,
                         ),
                       ),
                       child: Row(
@@ -1905,15 +1914,15 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           Icon(
                             Icons.info_outline,
                             size: 16,
-                            color: Colors.blue[700],
+                            color: AppColors.primaryDark,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           Expanded(
                             child: Text(
                               t.home_entryWillBeLoggedFor(todayLabel),
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.blue[700],
+                                color: AppColors.primaryDark,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -1928,9 +1937,9 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
 
             // Actions
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: AppColors.neutral50,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
@@ -1944,7 +1953,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                       ),
                       child: Text(
@@ -1956,7 +1965,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: ElevatedButton(
                       key: const Key('travel_save_button'),
@@ -2017,17 +2026,17 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                       children: [
                                         Icon(
                                           Icons.check_circle,
-                                          color: Colors.white,
+                                          color: AppColors.neutral50,
                                           size: 20,
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: AppSpacing.sm),
                                         Text(t.home_travelEntryLoggedSuccess),
                                       ],
                                     ),
-                                    backgroundColor: Colors.green[600],
+                                    backgroundColor: AppColors.success,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(AppRadius.sm),
                                     ),
                                   ),
                                 );
@@ -2038,17 +2047,17 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                       children: [
                                         Icon(
                                           Icons.error,
-                                          color: Colors.white,
+                                          color: AppColors.neutral50,
                                           size: 20,
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: AppSpacing.sm),
                                         Text(t.edit_errorSaving(e.toString())),
                                       ],
                                     ),
-                                    backgroundColor: Colors.red[600],
+                                    backgroundColor: AppColors.error,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(AppRadius.sm),
                                     ),
                                   ),
                                 );
@@ -2057,10 +2066,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.neutral50,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         elevation: 2,
                       ),
@@ -2071,7 +2080,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                             Icons.save,
                             size: 18,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             t.home_logEntry,
                             style: TextStyle(
@@ -2094,12 +2103,12 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
   Widget _buildTripRow(ThemeData theme, int index, _TripData trip) {
     final t = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.neutral50,
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
-          color: Colors.grey[200]!,
+          color: AppColors.neutral200,
         ),
       ),
       child: Column(
@@ -2108,10 +2117,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Icon(
                   Icons.directions_car,
@@ -2119,7 +2128,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   color: theme.colorScheme.primary,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppSpacing.md - 2),
               Text(
                 t.edit_trip(index + 1),
                 style: theme.textTheme.titleSmall?.copyWith(
@@ -2131,17 +2140,17 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
               if (_trips.length > 1)
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.errorContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: IconButton(
                     onPressed: () => _removeTrip(index),
                     icon: Icon(
                       Icons.delete_outline,
                       size: 18,
-                      color: Colors.red[600],
+                      color: AppColors.error,
                     ),
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(AppSpacing.sm - 2),
                     constraints: const BoxConstraints(
                       minWidth: 32,
                       minHeight: 32,
@@ -2150,7 +2159,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
           // From field
           _buildLocationField(
@@ -2162,7 +2171,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
             iconColor: theme.colorScheme.primary,
             fieldKey: Key('travel_from_$index'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
 
           // To field
           _buildLocationField(
@@ -2174,7 +2183,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
             iconColor: theme.colorScheme.secondary,
             fieldKey: Key('travel_to_$index'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
 
           // Duration fields
           Row(
@@ -2191,7 +2200,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     TextField(
                       key: Key('travel_hours_$index'),
                       controller: trip.hoursController,
@@ -2204,10 +2213,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                           borderSide: BorderSide(
                             color: theme.colorScheme.primary,
                             width: 2,
@@ -2226,7 +2235,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2239,7 +2248,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     TextField(
                       key: Key('travel_minutes_$index'),
                       controller: trip.minutesController,
@@ -2252,10 +2261,10 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                           borderSide: BorderSide(
                             color: theme.colorScheme.primary,
                             width: 2,
@@ -2390,7 +2399,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
           offset: const Offset(0.0, 60.0), // Below the text field
           child: Material(
             elevation: 8,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             child: Container(
               constraints: BoxConstraints(
                 maxHeight: 200,
@@ -2398,7 +2407,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
               ),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
                   color: theme.colorScheme.outline.withValues(alpha: 0.2),
                 ),
@@ -2432,7 +2441,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                             size: 20,
                             color: _getSuggestionColor(theme, suggestion.type),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2483,7 +2492,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
   Color _getSuggestionColor(ThemeData theme, SuggestionType type) {
     switch (type) {
       case SuggestionType.favorite:
-        return Colors.amber;
+        return AppColors.accent;
       case SuggestionType.recent:
         return theme.colorScheme.secondary;
       case SuggestionType.saved:
@@ -2513,10 +2522,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
             size: 20,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             borderSide: BorderSide(
               color: iconColor,
               width: 2,
@@ -2542,10 +2551,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
             size: 20,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             borderSide: BorderSide(
               color: iconColor,
               width: 2,
@@ -2628,7 +2637,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
       ),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
@@ -2637,7 +2646,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -2655,18 +2664,18 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.neutral50.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Icon(
                       Icons.work,
-                      color: Colors.white,
+                      color: AppColors.neutral50,
                       size: 24,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.lg),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2674,15 +2683,15 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         Text(
                           t.home_logWorkEntry,
                           style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.neutral50,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           t.home_trackWorkShifts,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
+                            color: AppColors.neutral50.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -2692,7 +2701,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: Icon(
                       Icons.close,
-                      color: Colors.white,
+                      color: AppColors.neutral50,
                       size: 24,
                     ),
                   ),
@@ -2703,7 +2712,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
             // Content
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -2715,7 +2724,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           size: 20,
                           color: theme.colorScheme.secondary,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         Text(
                           t.home_workShifts,
                           style: theme.textTheme.titleMedium?.copyWith(
@@ -2725,7 +2734,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
 
                     // List of shifts
                     ..._shifts.asMap().entries.map((entry) {
@@ -2735,12 +2744,12 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       return Column(
                         children: [
                           if (index > 0) ...[
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.lg),
                             Container(
                               height: 1,
-                              color: Colors.grey[200],
+                              color: AppColors.neutral200,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.lg),
                           ],
                           _buildShiftRow(theme, index, shift),
                         ],
@@ -2748,7 +2757,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     }),
 
                     // Add shift button
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
@@ -2773,13 +2782,13 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                 .withValues(alpha: 0.3),
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xl),
 
                     // Total duration
                     Row(
@@ -2787,26 +2796,26 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                         Icon(
                           Icons.timer,
                           size: 20,
-                          color: Colors.grey[700],
+                          color: AppColors.neutral700,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         Text(
                           t.home_totalDuration,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
+                            color: AppColors.neutral700,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.neutral50,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                         border: Border.all(
-                          color: Colors.grey[200]!,
+                          color: AppColors.neutral200,
                           width: 1,
                         ),
                       ),
@@ -2821,10 +2830,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: AppColors.neutral700,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: AppSpacing.xs),
                                 TextField(
                                   controller: _totalHoursController,
                                   keyboardType: TextInputType.number,
@@ -2832,18 +2841,18 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   decoration: InputDecoration(
                                     hintText: '0',
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(AppRadius.sm),
                                       borderSide: BorderSide.none,
                                     ),
                                     filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: const EdgeInsets.all(12),
+                                    fillColor: AppColors.neutral50,
+                                    contentPadding: const EdgeInsets.all(AppSpacing.md),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2853,10 +2862,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: AppColors.neutral700,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: AppSpacing.xs),
                                 TextField(
                                   controller: _totalMinutesController,
                                   keyboardType: TextInputType.number,
@@ -2864,12 +2873,12 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   decoration: InputDecoration(
                                     hintText: '0',
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(AppRadius.sm),
                                       borderSide: BorderSide.none,
                                     ),
                                     filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: const EdgeInsets.all(12),
+                                    fillColor: AppColors.neutral50,
+                                    contentPadding: const EdgeInsets.all(AppSpacing.md),
                                   ),
                                 ),
                               ],
@@ -2879,7 +2888,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl - AppSpacing.xs),
 
                     // Notes
                     TextField(
@@ -2892,10 +2901,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                           borderSide: BorderSide(
                             color: theme.colorScheme.secondary,
                             width: 2,
@@ -2905,15 +2914,15 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       maxLines: 3,
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
 
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.primaryContainer,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                         border: Border.all(
-                          color: Colors.blue[200]!,
+                          color: AppColors.primaryContainer,
                         ),
                       ),
                       child: Row(
@@ -2921,15 +2930,15 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           Icon(
                             Icons.info_outline,
                             size: 16,
-                            color: Colors.blue[700],
+                            color: AppColors.primaryDark,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           Expanded(
                             child: Text(
                               t.home_entryWillBeLoggedFor(todayLabel),
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.blue[700],
+                                color: AppColors.primaryDark,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -2944,9 +2953,9 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
 
             // Actions
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: AppColors.neutral50,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
@@ -2960,7 +2969,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                       ),
                       child: Text(
@@ -2972,7 +2981,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: ElevatedButton(
                       key: const Key('work_save_button'),
@@ -3073,17 +3082,17 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                       children: [
                                         Icon(
                                           Icons.check_circle,
-                                          color: Colors.white,
+                                          color: AppColors.neutral50,
                                           size: 20,
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: AppSpacing.sm),
                                         Text(successText),
                                       ],
                                     ),
-                                    backgroundColor: Colors.green[600],
+                                    backgroundColor: AppColors.success,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(AppRadius.sm),
                                     ),
                                   ),
                                 );
@@ -3094,17 +3103,17 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                       children: [
                                         Icon(
                                           Icons.error,
-                                          color: Colors.white,
+                                          color: AppColors.neutral50,
                                           size: 20,
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: AppSpacing.sm),
                                         Text(t.edit_errorSaving(e.toString())),
                                       ],
                                     ),
-                                    backgroundColor: Colors.red[600],
+                                    backgroundColor: AppColors.error,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(AppRadius.sm),
                                     ),
                                   ),
                                 );
@@ -3113,10 +3122,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.secondary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.neutral50,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         elevation: 2,
                       ),
@@ -3127,7 +3136,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                             Icons.save,
                             size: 18,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             t.home_logEntry,
                             style: TextStyle(
@@ -3150,12 +3159,12 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
   Widget _buildShiftRow(ThemeData theme, int index, _ShiftData shift) {
     final t = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.neutral50,
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
-          color: Colors.grey[200]!,
+          color: AppColors.neutral200,
           width: 1,
         ),
       ),
@@ -3165,10 +3174,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.secondary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Icon(
                   Icons.schedule,
@@ -3176,7 +3185,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   color: theme.colorScheme.secondary,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: AppSpacing.md - 2),
               Text(
                 t.edit_shift(index + 1),
                 style: theme.textTheme.titleSmall?.copyWith(
@@ -3188,17 +3197,17 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
               if (_shifts.length > 1)
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.errorContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: IconButton(
                     onPressed: () => _removeShift(index),
                     icon: Icon(
                       Icons.delete_outline,
                       size: 18,
-                      color: Colors.red[600],
+                      color: AppColors.error,
                     ),
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(AppSpacing.sm - 2),
                     constraints: const BoxConstraints(
                       minWidth: 32,
                       minHeight: 32,
@@ -3207,7 +3216,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
           // Time fields
           Row(
@@ -3221,10 +3230,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
+                        color: AppColors.neutral700,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     if (!widget.enableSuggestions)
                       TextField(
                         key: Key('work_start_$index'),
@@ -3247,17 +3256,17 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.neutral300),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Row(
                             children: [
                               Icon(
                                 Icons.access_time,
                                 size: 16,
-                                color: Colors.grey[600],
+                                color: AppColors.neutral600,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 child: Text(
                                   shift.startTimeController.text.isEmpty
@@ -3267,8 +3276,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   style: TextStyle(
                                     color:
                                         shift.startTimeController.text.isEmpty
-                                            ? Colors.grey[500]
-                                            : Colors.grey[700],
+                                            ? AppColors.neutral500
+                                            : AppColors.neutral700,
                                   ),
                                 ),
                               ),
@@ -3279,7 +3288,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3289,10 +3298,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
+                        color: AppColors.neutral700,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     if (!widget.enableSuggestions)
                       TextField(
                         key: Key('work_end_$index'),
@@ -3314,17 +3323,17 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.neutral300),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Row(
                             children: [
                               Icon(
                                 Icons.access_time,
                                 size: 16,
-                                color: Colors.grey[600],
+                                color: AppColors.neutral600,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 child: Text(
                                   shift.endTimeController.text.isEmpty
@@ -3333,8 +3342,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                       : shift.endTimeController.text,
                                   style: TextStyle(
                                     color: shift.endTimeController.text.isEmpty
-                                        ? Colors.grey[500]
-                                        : Colors.grey[700],
+                                        ? AppColors.neutral500
+                                        : AppColors.neutral700,
                                   ),
                                 ),
                               ),
@@ -3348,30 +3357,30 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
 
           // Duration display
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue[200]!),
+              color: AppColors.primaryContainer,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              border: Border.all(color: AppColors.primaryContainer),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.timer,
                   size: 16,
-                  color: Colors.blue[700],
+                  color: AppColors.primaryDark,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   '${t.entry_duration}: ${shift.formattedDuration}',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: Colors.blue[700],
+                    color: AppColors.primaryDark,
                   ),
                 ),
               ],
@@ -3504,3 +3513,6 @@ class _ShiftData {
     return null;
   }
 }
+
+
+

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+import '../design/app_theme.dart';
 import '../models/location.dart';
 import '../providers/location_provider.dart';
 import '../services/map_service.dart';
@@ -214,14 +215,14 @@ class _LocationSelectorState extends State<LocationSelector> {
         offset: Offset(0, size.height + 4),
         child: Material(
           elevation: 4,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 300),
             child: Container(
               width: size.width,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 border: Border.all(
                   color: Theme.of(context)
                       .colorScheme
@@ -298,7 +299,7 @@ class _LocationSelectorState extends State<LocationSelector> {
         // Loading indicator for Mapbox suggestions
         if (_isLoadingMapboxSuggestions)
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -310,7 +311,7 @@ class _LocationSelectorState extends State<LocationSelector> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   t.location_searchingAddresses,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -349,22 +350,24 @@ class _LocationSelectorState extends State<LocationSelector> {
   }
 
   Widget _buildMapboxAddressTile(String address) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       dense: true,
       leading: CircleAvatar(
         radius: 16,
-        backgroundColor: Colors.blue.withValues(alpha: 0.1),
-        child: const Icon(
+        backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+        child: Icon(
           Icons.map,
           size: 16,
-          color: Colors.blue,
+          color: colorScheme.primary,
         ),
       ),
       title: Text(
         address,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.w500),
+        style:
+            AppTypography.body(colorScheme.onSurface).copyWith(fontWeight: FontWeight.w500),
       ),
       onTap: () => _selectAddress(address),
     );
@@ -372,30 +375,31 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   Widget _buildEmptyState() {
     final t = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
     final locationProvider = context.watch<LocationProvider>();
     final recentLocations =
         locationProvider.getRecentlyAddedLocations(limit: 5);
 
     if (recentLocations.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.location_off,
               size: 32,
-              color: Colors.grey[400],
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               t.location_noSavedYet,
-              style: TextStyle(color: Colors.grey[600]),
+              style: AppTypography.body(colorScheme.onSurfaceVariant),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               t.location_startTypingToAdd,
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
+              style: AppTypography.caption(colorScheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -422,49 +426,45 @@ class _LocationSelectorState extends State<LocationSelector> {
   }
 
   Widget _buildLocationTile(Location location) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final favoriteColor = AppColors.accent;
     return ListTile(
       dense: true,
       leading: CircleAvatar(
         radius: 16,
         backgroundColor: location.isFavorite
-            ? Colors.amber.withValues(alpha: 0.2)
-            : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            ? favoriteColor.withValues(alpha: 0.2)
+            : colorScheme.primary.withValues(alpha: 0.1),
         child: Icon(
           location.isFavorite ? Icons.star : Icons.location_on,
           size: 16,
           color: location.isFavorite
-              ? Colors.amber[700]
-              : Theme.of(context).colorScheme.primary,
+              ? AppColors.accentDark
+              : colorScheme.primary,
         ),
       ),
       title: Text(
         location.name,
-        style: const TextStyle(fontWeight: FontWeight.w500),
+        style:
+            AppTypography.body(colorScheme.onSurface).copyWith(fontWeight: FontWeight.w500),
       ),
       subtitle: Text(
         location.address,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey[600],
-        ),
+        style: AppTypography.caption(colorScheme.onSurfaceVariant),
       ),
       trailing: location.usageCount > 0
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadius.sm + 2),
               ),
               child: Text(
                 '${location.usageCount}',
-                style: TextStyle(
+                style: AppTypography.caption(colorScheme.primary).copyWith(
                   fontSize: 10,
-                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -475,15 +475,16 @@ class _LocationSelectorState extends State<LocationSelector> {
   }
 
   Widget _buildAddressTile(String address) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       dense: true,
       leading: CircleAvatar(
         radius: 16,
-        backgroundColor: Colors.grey.withValues(alpha: 0.1),
-        child: const Icon(
+        backgroundColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
+        child: Icon(
           Icons.history,
           size: 16,
-          color: Colors.grey,
+          color: colorScheme.onSurfaceVariant,
         ),
       ),
       title: Text(
@@ -497,22 +498,24 @@ class _LocationSelectorState extends State<LocationSelector> {
 
   Widget _buildSaveLocationTile(String address) {
     final t = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    const successColor = AppColors.success;
     return ListTile(
       dense: true,
       leading: CircleAvatar(
         radius: 16,
-        backgroundColor: Colors.green.withValues(alpha: 0.1),
+        backgroundColor: successColor.withValues(alpha: 0.1),
         child: const Icon(
           Icons.add_location,
           size: 16,
-          color: Colors.green,
+          color: successColor,
         ),
       ),
       title: Text(
         t.location_saveAsNew(address),
-        style: const TextStyle(
+        style: AppTypography.body(colorScheme.onSurface).copyWith(
           fontWeight: FontWeight.w500,
-          color: Colors.green,
+          color: successColor,
         ),
       ),
       onTap: () => _saveNewLocation(address),
@@ -566,7 +569,7 @@ class _LocationSelectorState extends State<LocationSelector> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.location_saved(name)),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
       }
@@ -586,7 +589,7 @@ class _LocationSelectorState extends State<LocationSelector> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(t.location_address(address)),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             TextField(
               controller: controller,
               decoration: InputDecoration(

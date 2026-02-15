@@ -1,6 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../design/app_theme.dart';
+import '../design/components/components.dart';
 import '../models/location.dart';
 import '../providers/location_provider.dart';
 import '../widgets/standard_app_bar.dart';
@@ -44,7 +46,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
       context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 400),
@@ -54,21 +56,21 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
               children: [
                 // Header
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(28),
-                      topRight: Radius.circular(28),
+                      topLeft: Radius.circular(AppRadius.xl),
+                      topRight: Radius.circular(AppRadius.xl),
                     ),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
                           color: colorScheme.primary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Icon(
                           Icons.add_location_alt_rounded,
@@ -76,7 +78,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                           size: 24,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: AppSpacing.lg),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,7 +90,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 color: colorScheme.onSurface,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: AppSpacing.xs),
                             Text(
                               t.location_saveFrequentPlace,
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -111,7 +113,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
 
                 // Form
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -124,20 +126,15 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                             color: colorScheme.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextFormField(
                           controller: _nameController,
-                          decoration: InputDecoration(
                             labelText: t.location_name,
                             hintText: t.location_nameHint,
                             prefixIcon: Icon(
                               Icons.place_outlined,
                               color: colorScheme.onSurfaceVariant,
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return t.location_enterName;
@@ -145,20 +142,15 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextFormField(
                           controller: _addressController,
-                          decoration: InputDecoration(
                             labelText: t.location_fullAddress,
                             hintText: t.location_fullAddress,
                             prefixIcon: Icon(
                               Icons.location_on_outlined,
                               color: colorScheme.onSurfaceVariant,
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return t.location_enterAddress;
@@ -167,7 +159,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                           },
                           maxLines: 2,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppSpacing.xl),
                         Row(
                           children: [
                             Expanded(
@@ -175,9 +167,9 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 onPressed: () => Navigator.of(context).pop(),
                                 style: OutlinedButton.styleFrom(
                                   padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
+                                      const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.md),
                                   ),
                                 ),
                                 child: Text(
@@ -188,7 +180,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: FilledButton(
                                 onPressed: () async {
@@ -218,7 +210,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                                 Icons.check_circle_outline,
                                                 color: colorScheme.onPrimary,
                                               ),
-                                              const SizedBox(width: 12),
+                                              const SizedBox(width: AppSpacing.md),
                                               Text(t.location_addedSuccessfully),
                                             ],
                                           ),
@@ -231,9 +223,9 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                 },
                                 style: FilledButton.styleFrom(
                                   padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
+                                      const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.md),
                                   ),
                                 ),
                                 child: Text(AppLocalizations.of(context)
@@ -285,7 +277,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: AppSpacing.pagePadding,
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       const spacing = 12.0;
@@ -332,44 +324,30 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: t.location_searchLocations,
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: colorScheme.outline.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: colorScheme.outline.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      filled: true,
-                      fillColor: colorScheme.surface,
-                    ),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: AppTextField(
+                    hintText: t.location_searchLocations,
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: colorScheme.surface,
                     onChanged: (value) {
                       // TODO: Implement search functionality
                     },
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.6,
                   child: provider.locations.isEmpty
                       ? Center(
                           child: Container(
-                            padding: const EdgeInsets.all(32),
+                            padding: const EdgeInsets.all(AppSpacing.xxl),
                             constraints: const BoxConstraints(maxWidth: 400),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(24),
+                                  padding: const EdgeInsets.all(AppSpacing.xl),
                                   decoration: BoxDecoration(
                                     color: colorScheme.primary
                                         .withValues(alpha: 0.1),
@@ -381,7 +359,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                     color: colorScheme.primary,
                                   ),
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: AppSpacing.xl),
                                 Text(
                                   t.location_noSavedYet,
                                   style:
@@ -390,7 +368,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                     color: colorScheme.onSurface,
                                   ),
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: AppSpacing.md),
                                 Text(
                                   t.location_addFirstToGetStarted,
                                   style: theme.textTheme.bodyLarge?.copyWith(
@@ -398,7 +376,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
-                                const SizedBox(height: 32),
+                                const SizedBox(height: AppSpacing.xxl),
                                 FilledButton.icon(
                                   onPressed: _showAddLocationDialog,
                                   icon: const Icon(Icons.add),
@@ -406,11 +384,12 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                                       .location_addFirstLocation),
                                   style: FilledButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 16,
+                                      horizontal: AppSpacing.xl,
+                                      vertical: AppSpacing.lg,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.md),
                                     ),
                                   ),
                                 ),
@@ -453,22 +432,22 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(
           color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(
                 icon,
@@ -476,7 +455,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                 size: 20,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
@@ -488,7 +467,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               title,
               maxLines: 1,
@@ -511,14 +490,14 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
       margin: const EdgeInsets.symmetric(vertical: 4),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
           color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: ListTile(
         leading: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
             color: location.isFavorite
                 ? colorScheme.primary.withValues(alpha: 0.1)
@@ -621,7 +600,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                         color: colorScheme.error,
                         size: 20,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         t.common_delete,
                         style: TextStyle(color: colorScheme.error),
@@ -637,3 +616,4 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
     );
   }
 }
+

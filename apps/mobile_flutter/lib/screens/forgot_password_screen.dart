@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
-import '../design/components/app_card.dart';
+import '../design/app_theme.dart';
+import '../design/components/components.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../widgets/standard_app_bar.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -42,9 +44,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        title: Text(t.password_forgotTitle),
-      ),
+      appBar: StandardAppBar(title: t.password_forgotTitle),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -53,7 +53,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 AppCard(
-                  padding: const EdgeInsets.all(28),
+                  padding: const EdgeInsets.all(AppSpacing.xxl - AppSpacing.xs),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -66,7 +66,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: AppSpacing.xxl),
                         _buildTextField(
                           label: t.password_emailLabel,
                           controller: _emailController,
@@ -75,7 +75,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           keyboardType: TextInputType.emailAddress,
                           validator: _validateEmail,
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: AppSpacing.xxl),
                         ElevatedButton(
                           onPressed: _isLoading ? null : _handleResetPassword,
                           style: ElevatedButton.styleFrom(
@@ -83,7 +83,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             foregroundColor: colorScheme.onPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                             elevation: 0,
                           ),
@@ -92,7 +92,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   height: 20,
                                   width: 20,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white),
+                                      strokeWidth: 2, color: AppColors.neutral50),
                                 )
                               : Text(
                                   t.password_sendResetLink,
@@ -101,7 +101,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       fontWeight: FontWeight.bold),
                                 ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
                         TextButton(
                           onPressed: () => AppRouter.goToLogin(context),
                           child: Text(
@@ -140,25 +140,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 8),
-        TextFormField(
+        const SizedBox(height: AppSpacing.sm),
+        AppTextFormField(
           controller: controller,
           keyboardType: keyboardType,
           validator: validator,
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: Icon(prefixIcon, size: 20),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
-            ),
-          ),
+          hintText: hint,
+          prefixIcon: Icon(prefixIcon, size: 20),
         ),
       ],
     );
@@ -188,7 +176,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.password_resetLinkSent),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -208,3 +196,4 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 }
+

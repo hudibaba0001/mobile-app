@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../design/app_theme.dart';
 import '../models/entry.dart'; // Updated to use unified Entry model
 import '../utils/constants.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -88,13 +89,13 @@ class _TravelEntryCardState extends State<TravelEntryCard>
     final minutes = widget.entry.travelMinutes ??
         0; // Entry uses 'travelMinutes' instead of 'minutes'
     if (minutes < 30) {
-      return Colors.green;
+      return AppColors.success;
     } else if (minutes < 60) {
-      return Colors.orange;
+      return AppColors.accent;
     } else if (minutes < 120) {
-      return Colors.red;
+      return AppColors.error;
     } else {
-      return Colors.purple;
+      return AppColors.secondary;
     }
   }
 
@@ -145,7 +146,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
               elevation: _isPressed ? 8 : 2,
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
                     color: Theme.of(context)
                         .colorScheme
@@ -165,17 +166,19 @@ class _TravelEntryCardState extends State<TravelEntryCard>
   }
 
   Widget _buildCompactContent() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final onSurfaceVariant = colorScheme.onSurfaceVariant;
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
         children: [
           // Route icon
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(AppSpacing.md - 2),
             decoration: BoxDecoration(
               color:
                   Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppRadius.sm + 2),
             ),
             child: Icon(
               _routeIcon,
@@ -184,7 +187,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
             ),
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
 
           // Route info
           Expanded(
@@ -193,10 +196,8 @@ class _TravelEntryCardState extends State<TravelEntryCard>
               children: [
                 Text(
                   '${widget.entry.from ?? 'Unknown'} → ${widget.entry.to ?? 'Unknown'}', // Entry uses 'from' and 'to'
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                  ),
+                  style: AppTypography.body(colorScheme.onSurface)
+                      .copyWith(fontWeight: FontWeight.w500),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -204,10 +205,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                   Text(
                     DateFormat(AppConstants.displayDateFormat)
                         .format(widget.entry.date),
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
+                    style: AppTypography.caption(onSurfaceVariant),
                   ),
               ],
             ),
@@ -218,15 +216,12 @@ class _TravelEntryCardState extends State<TravelEntryCard>
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: _durationColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Text(
               _formattedDuration,
-              style: TextStyle(
-                color: _durationColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
+              style: AppTypography.caption(_durationColor)
+                  .copyWith(fontWeight: FontWeight.w600),
             ),
           ),
 
@@ -256,9 +251,9 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                   value: 'delete',
                   child: ListTile(
                     leading:
-                        const Icon(Icons.delete, color: Colors.red, size: 20),
+                        Icon(Icons.delete, color: colorScheme.error, size: 20),
                     title: Text(AppLocalizations.of(context).common_delete,
-                        style: const TextStyle(color: Colors.red)),
+                        style: AppTypography.body(colorScheme.error)),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
@@ -271,6 +266,8 @@ class _TravelEntryCardState extends State<TravelEntryCard>
   }
 
   Widget _buildFullContent() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final onSurfaceVariant = colorScheme.onSurfaceVariant;
     return Padding(
       padding: const EdgeInsets.all(AppConstants.defaultPadding),
       child: Column(
@@ -281,13 +278,13 @@ class _TravelEntryCardState extends State<TravelEntryCard>
             children: [
               // Route icon
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(AppSpacing.md - 2),
                 decoration: BoxDecoration(
                   color: Theme.of(context)
                       .colorScheme
                       .primary
                       .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppRadius.sm + 2),
                 ),
                 child: Icon(
                   _routeIcon,
@@ -296,7 +293,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                 ),
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
 
               // Date and duration
               Expanded(
@@ -307,10 +304,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                       Text(
                         DateFormat(AppConstants.displayDateFormat)
                             .format(widget.entry.date),
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
+                        style: AppTypography.body(onSurfaceVariant),
                       ),
                     Row(
                       children: [
@@ -319,14 +313,11 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                           size: 16,
                           color: _durationColor,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: AppSpacing.xs),
                         Text(
                           _formattedDuration,
-                          style: TextStyle(
-                            color: _durationColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
+                          style: AppTypography.sectionTitle(_durationColor)
+                              .copyWith(fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -359,9 +350,9 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                     PopupMenuItem(
                       value: 'delete',
                       child: ListTile(
-                        leading: const Icon(Icons.delete, color: Colors.red),
+                        leading: Icon(Icons.delete, color: colorScheme.error),
                         title: Text(AppLocalizations.of(context).common_delete,
-                            style: const TextStyle(color: Colors.red)),
+                            style: AppTypography.body(colorScheme.error)),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -370,17 +361,17 @@ class _TravelEntryCardState extends State<TravelEntryCard>
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
 
           // Route details
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: Theme.of(context)
                   .colorScheme
                   .surfaceContainerHighest
                   .withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Column(
               children: [
@@ -391,18 +382,17 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(4),
+                        color: AppColors.success,
+                        borderRadius: BorderRadius.circular(AppRadius.sm / 2),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
                         widget.entry.from ??
                             'Unknown', // Entry uses 'from' instead of 'departure'
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: AppTypography.body(colorScheme.onSurface)
+                            .copyWith(fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
@@ -413,17 +403,17 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     children: [
-                      const SizedBox(width: 4),
+                      const SizedBox(width: AppSpacing.xs),
                       Container(
                         width: 1,
                         height: 20,
-                        color: Colors.grey[400],
+                        color: onSurfaceVariant.withValues(alpha: 0.6),
                       ),
-                      const SizedBox(width: 7),
+                      const SizedBox(width: AppSpacing.sm - 1),
                       Icon(
                         Icons.arrow_downward,
                         size: 16,
-                        color: Colors.grey[600],
+                        color: onSurfaceVariant,
                       ),
                     ],
                   ),
@@ -436,18 +426,17 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(4),
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(AppRadius.sm / 2),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
                         widget.entry.to ??
                             'Unknown', // Entry uses 'to' instead of 'arrival'
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: AppTypography.body(colorScheme.onSurface)
+                            .copyWith(fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
@@ -459,15 +448,15 @@ class _TravelEntryCardState extends State<TravelEntryCard>
           // Additional info
           if (widget.entry.notes != null && widget.entry.notes!.isNotEmpty) ...[
             // Entry uses 'notes' instead of 'info'
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(8),
+                color: colorScheme.primary.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 border: Border.all(
-                  color: Colors.blue.withValues(alpha: 0.2),
+                  color: colorScheme.primary.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -476,17 +465,15 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                   Icon(
                     Icons.info_outline,
                     size: 16,
-                    color: Colors.blue[700],
+                    color: colorScheme.primary,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       widget
                           .entry.notes!, // Entry uses 'notes' instead of 'info'
-                      style: TextStyle(
-                        color: Colors.blue[700],
-                        fontSize: 13,
-                      ),
+                      style: AppTypography.body(colorScheme.primary)
+                          .copyWith(fontSize: 13),
                     ),
                   ),
                 ],
@@ -496,7 +483,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
 
           // Multi-segment journey indicator
           if (widget.entry.journeyId != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -504,7 +491,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                     .colorScheme
                     .primaryContainer
                     .withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -514,11 +501,10 @@ class _TravelEntryCardState extends State<TravelEntryCard>
                     size: 12,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
                     'Segment ${widget.entry.segmentOrder}/${widget.entry.totalSegments}',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                    style: AppTypography.caption(colorScheme.primary).copyWith(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -530,34 +516,32 @@ class _TravelEntryCardState extends State<TravelEntryCard>
 
           // Metadata
           if (widget.entry.createdAt != widget.entry.date) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 Icon(
                   Icons.schedule,
                   size: 12,
-                  color: Colors.grey[500],
+                  color: onSurfaceVariant.withValues(alpha: 0.85),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: AppSpacing.xs),
                 Text(
                   'Logged ${DateFormat('MMM dd, HH:mm').format(widget.entry.createdAt)}',
-                  style: TextStyle(
-                    color: Colors.grey[500],
+                  style: AppTypography.caption(onSurfaceVariant).copyWith(
                     fontSize: 11,
                   ),
                 ),
                 if (widget.entry.updatedAt != null) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Icon(
                     Icons.edit,
                     size: 12,
-                    color: Colors.grey[500],
+                    color: onSurfaceVariant.withValues(alpha: 0.85),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
                     'Updated ${DateFormat('MMM dd, HH:mm').format(widget.entry.updatedAt!)}',
-                    style: TextStyle(
-                      color: Colors.grey[500],
+                    style: AppTypography.caption(onSurfaceVariant).copyWith(
                       fontSize: 11,
                     ),
                   ),

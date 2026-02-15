@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../design/app_theme.dart';
 import '../utils/constants.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -216,14 +217,14 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
         // Date range input
         InkWell(
           onTap: _selectDateRange,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           child: Container(
             padding: const EdgeInsets.all(AppConstants.defaultPadding),
             decoration: BoxDecoration(
               border: Border.all(
                 color: Theme.of(context).colorScheme.outline,
               ),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Row(
               children: [
@@ -249,7 +250,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                             ),
                       ),
                       if (_startDate != null && _endDate != null) ...[
-                        const SizedBox(height: 2),
+                        const SizedBox(height: AppSpacing.xs / 2),
                         Text(
                           '${_endDate!.difference(_startDate!).inDays + 1} days',
                           style:

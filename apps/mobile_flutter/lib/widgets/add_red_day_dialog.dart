@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../design/app_theme.dart';
+import '../design/components/components.dart';
 import '../models/user_red_day.dart';
 import '../services/holiday_service.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -68,22 +70,24 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
       await widget.holidayService.upsertPersonalRedDay(redDay);
 
       if (mounted) {
+        final colorScheme = Theme.of(context).colorScheme;
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(widget.existingRedDay != null
                 ? t.redDay_updated
                 : t.redDay_added),
-            backgroundColor: Colors.green,
+            backgroundColor: colorScheme.primary,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final colorScheme = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.redDay_errorSaving(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: colorScheme.error,
           ),
         );
       }
@@ -109,7 +113,10 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor:
+                  Theme.of(dialogContext).colorScheme.errorContainer,
+              foregroundColor:
+                  Theme.of(dialogContext).colorScheme.onErrorContainer,
             ),
             child: Text(t.redDay_remove),
           ),
@@ -126,20 +133,22 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
           .deletePersonalRedDay(widget.existingRedDay?.date ?? widget.date);
 
       if (mounted) {
+        final colorScheme = Theme.of(context).colorScheme;
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.redDay_removed),
-            backgroundColor: Colors.green,
+            backgroundColor: colorScheme.primary,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final colorScheme = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.redDay_errorRemoving(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: colorScheme.error,
           ),
         );
       }
@@ -154,6 +163,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final dateStr = DateFormat('EEEE, MMMM d, y').format(widget.date);
     final redDayInfo = widget.holidayService.getRedDayInfo(widget.date);
     final isEditing = widget.existingRedDay != null;
@@ -163,9 +173,9 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
         children: [
           Icon(
             Icons.event_busy,
-            color: Colors.red.shade600,
+            color: colorScheme.error,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child:
                 Text(isEditing ? t.redDay_editRedDay : t.redDay_markAsRedDay),
@@ -179,16 +189,16 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
           children: [
             // Date display
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Row(
                 children: [
                   Icon(Icons.calendar_today,
                       size: 20, color: theme.colorScheme.primary),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(child: Text(dateStr)),
                 ],
               ),
@@ -196,37 +206,39 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
 
             // Show auto holiday notice if applicable
             if (redDayInfo.isAutoHoliday) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
+                  color: colorScheme.errorContainer.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(
+                    color: colorScheme.error.withValues(alpha: 0.25),
+                  ),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                       decoration: BoxDecoration(
-                        color: Colors.red.shade600,
-                        borderRadius: BorderRadius.circular(6),
+                        color: colorScheme.error,
+                        borderRadius: BorderRadius.circular(AppRadius.sm - 2),
                       ),
                       child: Text(
                         t.redDay_auto,
                         style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.neutral50,
                             fontSize: 11,
                             fontWeight: FontWeight.w600),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
                         redDayInfo.autoHolidayName ?? t.redDay_publicHoliday,
                         style: TextStyle(
-                            color: Colors.red.shade800,
+                            color: colorScheme.onErrorContainer,
                             fontWeight: FontWeight.w500),
                       ),
                     ),
@@ -235,7 +247,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
               ),
             ],
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
 
             // Kind selector
             Text(
@@ -243,7 +255,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
               style: theme.textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             SegmentedButton<RedDayKind>(
               segments: [
                 ButtonSegment(
@@ -270,7 +282,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
 
             // Half day selector (only if half)
             if (_kind == RedDayKind.half) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               SegmentedButton<HalfDay>(
                 segments: [
                   ButtonSegment(
@@ -289,7 +301,7 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
               ),
             ],
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
 
             // Reason field
             Text(
@@ -297,13 +309,10 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
               style: theme.textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: 8),
-            TextField(
+            const SizedBox(height: AppSpacing.sm),
+            AppTextField(
               controller: _reasonController,
-              decoration: InputDecoration(
-                hintText: t.redDay_reasonHint,
-                border: const OutlineInputBorder(),
-              ),
+              hintText: t.redDay_reasonHint,
               maxLines: 2,
               textCapitalization: TextCapitalization.sentences,
             ),
@@ -315,10 +324,9 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
         if (isEditing)
           TextButton(
             onPressed: _isLoading ? null : _delete,
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: colorScheme.error),
             child: Text(t.redDay_remove),
           ),
-        const Spacer(),
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(false),
           child: Text(t.common_cancel),

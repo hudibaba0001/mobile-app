@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../design/app_theme.dart';
 import '../../providers/time_provider.dart';
 import '../../providers/entry_provider.dart';
 import '../../providers/contract_provider.dart';
@@ -66,18 +67,18 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                   size: 48,
                   color: Theme.of(context).colorScheme.error,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   AppLocalizations.of(context).error_loadingBalance,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   timeProvider.error!,
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 ElevatedButton(
                   onPressed: _loadBalances,
                   child: Text(AppLocalizations.of(context).common_retry),
@@ -152,7 +153,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
             adjustmentProvider.allAdjustments.take(5).toList();
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -185,7 +186,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 showMonthLoggedSince: showMonthLoggedSince,
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
 
               // Adjustments Section
               _buildAdjustmentsSection(
@@ -210,10 +211,10 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
       elevation: 0,
       color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -224,7 +225,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                   color: colorScheme.tertiary,
                   size: 24,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     AppLocalizations.of(context).adjustment_title,
@@ -240,16 +241,16 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: totalAdjustmentHours >= 0
-                          ? Colors.green.withValues(alpha: 0.1)
-                          : Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
+                          ? AppColors.success.withValues(alpha: 0.1)
+                          : AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Text(
                       '${totalAdjustmentHours >= 0 ? '+' : ''}${totalAdjustmentHours.toStringAsFixed(1)}h',
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: totalAdjustmentHours >= 0
-                            ? Colors.green
-                            : Colors.red,
+                            ? AppColors.success
+                            : AppColors.error,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -258,7 +259,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               ],
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             Text(
               AppLocalizations.of(context).adjustment_description,
@@ -267,7 +268,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Add Adjustment Button
             OutlinedButton.icon(
@@ -278,22 +279,22 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
               ),
             ),
 
             if (recentAdjustments.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               const Divider(),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 AppLocalizations.of(context).adjustment_recent,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               ...recentAdjustments.map((adjustment) {
                 return _buildAdjustmentItem(
                   context,
@@ -319,26 +320,26 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
 
     return InkWell(
       onTap: () => _showEditAdjustmentDialog(context, adjustment),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: isPositive
-                    ? Colors.green.withValues(alpha: 0.1)
-                    : Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                    ? AppColors.success.withValues(alpha: 0.1)
+                    : AppColors.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(
                 isPositive ? Icons.add : Icons.remove,
                 size: 20,
-                color: isPositive ? Colors.green : Colors.red,
+                color: isPositive ? AppColors.success : AppColors.error,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,7 +365,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               adjustment.deltaFormatted,
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: isPositive ? Colors.green : Colors.red,
+                color: isPositive ? AppColors.success : AppColors.error,
               ),
             ),
           ],
@@ -398,3 +399,4 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
     }
   }
 }
+

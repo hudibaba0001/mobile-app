@@ -5,7 +5,9 @@ import '../models/admin_user.dart';
 import '../services/admin_api_service.dart';
 import '../viewmodels/admin_users_view_model.dart';
 import '../design/app_theme.dart';
+import '../design/components/components.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../widgets/standard_app_bar.dart';
 
 class AdminUsersScreen extends StatelessWidget {
   const AdminUsersScreen({super.key});
@@ -47,9 +49,8 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
     final viewModel = context.watch<AdminUsersViewModel>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(t.adminUsers_title),
-        elevation: 0,
+      appBar: StandardAppBar(
+        title: t.adminUsers_title,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
       ),
@@ -63,14 +64,9 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                 // Search Field
                 Expanded(
                   flex: 2,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: t.adminUsers_searchHint,
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                    ),
+                  child: AppTextField(
+                    hintText: t.adminUsers_searchHint,
+                    prefixIcon: const Icon(Icons.search),
                     onChanged: viewModel.setSearchQuery,
                   ),
                 ),
@@ -79,11 +75,9 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: viewModel.filterRole,
-                    decoration: InputDecoration(
+                    decoration: appInputDecoration(
+                      context,
                       labelText: t.adminUsers_filterByRole,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
                     ),
                     items: [
                       DropdownMenuItem(value: 'All', child: Text(t.adminUsers_roleAll)),
@@ -368,14 +362,11 @@ class _AdminUsersScreenContentState extends State<_AdminUsersScreenContent> {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: AppSpacing.sm),
-              TextField(
+              AppTextField(
                 onChanged: (value) {
                   setState(() => confirmationText = value);
                 },
-                decoration: InputDecoration(
-                  hintText: t.adminUsers_typeDeleteHere,
-                  border: const OutlineInputBorder(),
-                ),
+                hintText: t.adminUsers_typeDeleteHere,
               ),
             ],
           ),

@@ -7,6 +7,7 @@ import '../services/supabase_auth_service.dart';
 import '../design/app_theme.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../providers/locale_provider.dart';
+import '../widgets/glass_text_form_field.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
@@ -170,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen>
                       Text(
                         t.auth_redirectNote,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.7),
+                              color: AppColors.neutral50.withValues(alpha: 0.7),
                             ),
                         textAlign: TextAlign.center,
                       ),
@@ -240,10 +241,10 @@ class _LoginScreenState extends State<LoginScreen>
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.14),
+            color: AppColors.neutral50.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
+              color: AppColors.neutral50.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -251,21 +252,21 @@ class _LoginScreenState extends State<LoginScreen>
             children: [
               Icon(
                 Icons.language,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: AppColors.neutral50.withValues(alpha: 0.9),
                 size: AppIconSize.sm,
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 selectedLanguageLabel,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.95),
+                      color: AppColors.neutral50.withValues(alpha: 0.95),
                       fontWeight: FontWeight.w600,
                     ),
               ),
               const SizedBox(width: AppSpacing.xs),
               Icon(
                 Icons.arrow_drop_down,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: AppColors.neutral50.withValues(alpha: 0.9),
                 size: AppIconSize.sm,
               ),
             ],
@@ -288,10 +289,10 @@ class _LoginScreenState extends State<LoginScreen>
             height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
+              border: Border.all(color: AppColors.neutral50, width: 3),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: AppColors.neutral50.withValues(alpha: 0.3),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
@@ -300,14 +301,14 @@ class _LoginScreenState extends State<LoginScreen>
             child: Icon(
               Icons.access_time_rounded,
               size: AppIconSize.xl,
-              color: Colors.white,
+              color: AppColors.neutral50,
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
           Text(
             'KvikTime',
             style: theme.textTheme.displayLarge?.copyWith(
-              color: Colors.white,
+              color: AppColors.neutral50,
               letterSpacing: 1.2,
             ),
           ),
@@ -315,7 +316,7 @@ class _LoginScreenState extends State<LoginScreen>
           Text(
             AppLocalizations.of(context).auth_signInPrompt,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: AppColors.neutral50.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -333,7 +334,7 @@ class _LoginScreenState extends State<LoginScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Email field
-            _buildGlassTextField(
+            GlassTextFormField(
               controller: _emailController,
               hintText: AppLocalizations.of(context).auth_emailLabel,
               prefixIcon: Icons.email_outlined,
@@ -345,7 +346,7 @@ class _LoginScreenState extends State<LoginScreen>
             const SizedBox(height: AppSpacing.lg),
 
             // Password field
-            _buildGlassTextField(
+            GlassTextFormField(
               controller: _passwordController,
               hintText: AppLocalizations.of(context).auth_passwordLabel,
               prefixIcon: Icons.lock_outline,
@@ -353,7 +354,7 @@ class _LoginScreenState extends State<LoginScreen>
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: AppColors.neutral50.withValues(alpha: 0.6),
                 ),
                 onPressed: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
@@ -378,7 +379,7 @@ class _LoginScreenState extends State<LoginScreen>
                 child: Text(
                   _errorMessage,
                   style:
-                      theme.textTheme.bodySmall?.copyWith(color: Colors.white),
+                      theme.textTheme.bodySmall?.copyWith(color: AppColors.neutral50),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -394,72 +395,18 @@ class _LoginScreenState extends State<LoginScreen>
               child: TextButton(
                 onPressed: () => AppRouter.goToForgotPassword(context),
                 style: TextButton.styleFrom(
-                  foregroundColor: Colors.white.withValues(alpha: 0.9),
+                  foregroundColor: AppColors.neutral50.withValues(alpha: 0.9),
                 ),
                 child: Text(
                   AppLocalizations.of(context).auth_forgotPassword,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: AppColors.neutral50.withValues(alpha: 0.9),
                   ),
                 ),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGlassTextField({
-    required TextEditingController controller,
-    required String hintText,
-    required IconData prefixIcon,
-    TextInputType? keyboardType,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.md),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-            ),
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            obscureText: obscureText,
-            validator: validator,
-            style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: theme.textTheme.bodyLarge?.copyWith(
-                color: Colors.white.withValues(alpha: 0.6),
-              ),
-              prefixIcon: Icon(
-                prefixIcon,
-                color: Colors.white.withValues(alpha: 0.7),
-                size: AppIconSize.sm,
-              ),
-              suffixIcon: suffixIcon,
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              focusedErrorBorder: InputBorder.none,
-              errorStyle: const TextStyle(height: 0, fontSize: 0),
-            ),
-          ),
         ),
       ),
     );
@@ -472,7 +419,7 @@ class _LoginScreenState extends State<LoginScreen>
       child: ElevatedButton(
         onPressed: _isLoading ? null : _signIn,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.neutral50,
           foregroundColor: _gradientStart,
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
           shape: RoundedRectangleBorder(
@@ -511,8 +458,8 @@ class _LoginScreenState extends State<LoginScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withValues(alpha: 0.0),
-                  Colors.white.withValues(alpha: 0.5),
+                  AppColors.neutral50.withValues(alpha: 0.0),
+                  AppColors.neutral50.withValues(alpha: 0.5),
                 ],
               ),
             ),
@@ -523,7 +470,7 @@ class _LoginScreenState extends State<LoginScreen>
           child: Text(
             text,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: AppColors.neutral50.withValues(alpha: 0.8),
             ),
           ),
         ),
@@ -533,8 +480,8 @@ class _LoginScreenState extends State<LoginScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withValues(alpha: 0.5),
-                  Colors.white.withValues(alpha: 0.0),
+                  AppColors.neutral50.withValues(alpha: 0.5),
+                  AppColors.neutral50.withValues(alpha: 0.0),
                 ],
               ),
             ),
@@ -549,8 +496,8 @@ class _LoginScreenState extends State<LoginScreen>
     return OutlinedButton(
       onPressed: _launchSignup,
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
-        side: const BorderSide(color: Colors.white, width: 2),
+        foregroundColor: AppColors.neutral50,
+        side: const BorderSide(color: AppColors.neutral50, width: 2),
         padding: const EdgeInsets.symmetric(
             vertical: AppSpacing.lg, horizontal: AppSpacing.xxxl),
         shape: RoundedRectangleBorder(
@@ -562,7 +509,7 @@ class _LoginScreenState extends State<LoginScreen>
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
           letterSpacing: 0.5,
-          color: Colors.white,
+          color: AppColors.neutral50,
         ),
       ),
     );
@@ -592,18 +539,18 @@ class _GlassCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.25),
-                Colors.white.withValues(alpha: 0.1),
+                AppColors.neutral50.withValues(alpha: 0.25),
+                AppColors.neutral50.withValues(alpha: 0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
+              color: AppColors.neutral50.withValues(alpha: 0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: AppColors.neutral900.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),

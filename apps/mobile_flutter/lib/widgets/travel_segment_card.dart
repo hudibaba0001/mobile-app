@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../design/app_theme.dart';
 import '../models/travel_segment.dart';
 
 class TravelSegmentCard extends StatelessWidget {
@@ -24,7 +25,7 @@ class TravelSegmentCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -47,7 +48,7 @@ class TravelSegmentCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +59,7 @@ class TravelSegmentCard extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         '${segment.departure} → ${segment.arrival}',
                         style: theme.textTheme.bodyMedium,
@@ -81,7 +82,7 @@ class TravelSegmentCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 Icon(
@@ -89,7 +90,7 @@ class TravelSegmentCard extends StatelessWidget {
                   size: 16,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: AppSpacing.xs),
                 Text(
                   '${segment.durationMinutes} minutes',
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -103,7 +104,7 @@ class TravelSegmentCard extends StatelessWidget {
                     size: 16,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(
                       segment.info!,
@@ -118,7 +119,7 @@ class TravelSegmentCard extends StatelessWidget {
               ],
             ),
             if (!isLast) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Container(
                 height: 1,
                 color: theme.colorScheme.outline.withValues(alpha: 0.2),

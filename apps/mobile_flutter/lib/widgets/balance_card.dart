@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../design/app_theme.dart';
 import '../providers/travel_provider.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -79,15 +80,15 @@ class _BalanceCardState extends State<BalanceCard>
                 elevation: 2,
                 shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: InkWell(
                   onTap: widget.onTap,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -101,10 +102,10 @@ class _BalanceCardState extends State<BalanceCard>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildHeader(theme, dayStats),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
                         _buildProgressBar(theme, dayStats),
                         if (widget.showDetails) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.lg),
                           _buildDetailRow(theme, dayStats),
                         ],
                       ],
@@ -125,10 +126,10 @@ class _BalanceCardState extends State<BalanceCard>
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Icon(
             Icons.balance,
@@ -136,7 +137,7 @@ class _BalanceCardState extends State<BalanceCard>
             size: 24,
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +149,7 @@ class _BalanceCardState extends State<BalanceCard>
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 _formatDuration(stats.totalMinutes),
                 style: theme.textTheme.headlineSmall?.copyWith(
@@ -174,7 +175,7 @@ class _BalanceCardState extends State<BalanceCard>
         color: isBalanced
             ? colorScheme.tertiary.withValues(alpha: 0.1)
             : colorScheme.error.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -184,7 +185,7 @@ class _BalanceCardState extends State<BalanceCard>
             size: 16,
             color: isBalanced ? colorScheme.tertiary : colorScheme.error,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.sm - 2),
           Text(
             isBalanced
                 ? AppLocalizations.of(context).balance_balanced
@@ -225,14 +226,14 @@ class _BalanceCardState extends State<BalanceCard>
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         AnimatedBuilder(
           animation: _progressAnimation,
           builder: (context, child) {
             return Container(
               height: 8,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppRadius.sm / 2),
                 color: colorScheme.outline.withValues(alpha: 0.2),
               ),
               child: Row(
@@ -290,7 +291,7 @@ class _BalanceCardState extends State<BalanceCard>
             color: colorScheme.secondary,
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: _buildStatItem(
             theme,
@@ -300,7 +301,7 @@ class _BalanceCardState extends State<BalanceCard>
             color: colorScheme.primary,
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: _buildStatItem(
             theme,
@@ -324,10 +325,10 @@ class _BalanceCardState extends State<BalanceCard>
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: colorScheme.surface.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: color.withValues(alpha: 0.2),
           width: 1,
@@ -340,7 +341,7 @@ class _BalanceCardState extends State<BalanceCard>
             color: color,
             size: 20,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             value,
             style: theme.textTheme.labelLarge?.copyWith(

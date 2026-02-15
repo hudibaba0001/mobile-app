@@ -1,10 +1,12 @@
 // ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../design/app_theme.dart';
 import '../providers/time_provider.dart';
 import '../providers/entry_provider.dart';
 import '../providers/contract_provider.dart';
 import '../widgets/time_balance_dashboard.dart';
+import '../widgets/standard_app_bar.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../config/app_router.dart';
 
@@ -65,7 +67,7 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
         if (timeProvider.error != null) {
           final t = AppLocalizations.of(context);
           return Scaffold(
-            appBar: AppBar(title: Text(t.balance_title)),
+            appBar: StandardAppBar(title: t.balance_title),
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -75,18 +77,18 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
                     size: 48,
                     color: Theme.of(context).colorScheme.error,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     t.error_loadingBalance,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     timeProvider.error!,
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   ElevatedButton(
                     onPressed: _loadBalances,
                     child: Text(t.common_retry),
@@ -161,8 +163,8 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
 
         final t = AppLocalizations.of(context);
         return Scaffold(
-          appBar: AppBar(
-            title: Text(t.balance_myTimeBalance(currentMonth.year)),
+          appBar: StandardAppBar(
+            title: t.balance_myTimeBalance(currentMonth.year),
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings),
@@ -174,7 +176,7 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
             ],
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: TimeBalanceDashboard(
               currentMonthHours: currentMonthHours,
               currentYearHours: currentYearHours,
@@ -208,3 +210,4 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
     );
   }
 }
+

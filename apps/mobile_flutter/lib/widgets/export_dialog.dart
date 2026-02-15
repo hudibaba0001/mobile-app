@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../design/app_theme.dart';
 import '../models/entry.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -84,6 +85,12 @@ class _ExportDialogState extends State<ExportDialog> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final filteredEntries = _getFilteredEntries();
+    final headingStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+        );
+    final summaryStyle = Theme.of(context).textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        );
 
     return AlertDialog(
       title: Text(t.export_title),
@@ -95,12 +102,9 @@ class _ExportDialogState extends State<ExportDialog> {
             // Date Range Section
             Text(
               t.export_dateRange,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: headingStyle,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // Include All Data Toggle
             CheckboxListTile(
@@ -124,7 +128,7 @@ class _ExportDialogState extends State<ExportDialog> {
             ),
 
             if (!_includeAllData) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
 
               // Date Range (single picker)
               ListTile(
@@ -135,17 +139,14 @@ class _ExportDialogState extends State<ExportDialog> {
               ),
             ],
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
             // Entry Type Filter Section
             Text(
               t.export_entryType,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: headingStyle,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // Entry Type Selection
             RadioListTile<String>(
@@ -185,17 +186,14 @@ class _ExportDialogState extends State<ExportDialog> {
               },
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xl),
 
             // Export Format Section
             Text(
               t.export_formatTitle,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: headingStyle,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // Export Format Selection
             RadioListTile<String>(
@@ -221,17 +219,14 @@ class _ExportDialogState extends State<ExportDialog> {
               },
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Filename Section
             Text(
               t.export_options,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: headingStyle,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             TextField(
               decoration: InputDecoration(
@@ -245,25 +240,23 @@ class _ExportDialogState extends State<ExportDialog> {
               },
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Export Summary
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     t.export_summary,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: summaryStyle,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(t.export_totalEntries(filteredEntries.length)),
                   Text(t.export_travelEntries(filteredEntries
                       .where((e) => e.type == EntryType.travel)

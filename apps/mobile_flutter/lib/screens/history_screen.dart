@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../design/app_theme.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
 import '../services/holiday_service.dart';
@@ -91,18 +92,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
         children: [
           // Filter Controls
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               children: [
                 // Entry Type Segmented Control
                 _buildSegmentedControl(context),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
 
                 // Date Range Filter Chips
                 _buildDateRangeChips(context),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
 
                 // Search Field
                 _buildSearchField(context),
@@ -130,7 +131,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return Container(
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Row(
             children: [
@@ -197,12 +198,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   endDate: _getDateRangeFilter()?.end,
                 );
           },
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           child: Container(
             height: 48,
             decoration: BoxDecoration(
               color: isSelected ? colorScheme.primary : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -214,7 +215,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ? colorScheme.onPrimary
                       : colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   label,
                   style: theme.textTheme.labelLarge?.copyWith(
@@ -245,13 +246,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 children: [
                   _buildDateChip(
                       context, t.common_today, DateRange.today, selectedRange),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   _buildDateChip(context, t.history_yesterday,
                       DateRange.yesterday, selectedRange),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   _buildDateChip(context, t.history_last7Days,
                       DateRange.lastWeek, selectedRange),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   _buildDateChip(context, t.history_custom, DateRange.custom,
                       selectedRange),
                 ],
@@ -299,7 +300,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       backgroundColor: colorScheme.surface,
       selectedColor: colorScheme.primary,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         side: BorderSide(
           color: isSelected ? colorScheme.primary : colorScheme.outline,
         ),
@@ -340,7 +341,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(
@@ -388,7 +389,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   CircularProgressIndicator(
                     color: colorScheme.primary,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     AppLocalizations.of(context).history_loadingEntries,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -408,7 +409,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
           return ListView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             itemCount: entries.length + (_isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == entries.length) {
@@ -445,10 +446,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     // Vibrant gradient colors
     final Color lightColor = isWorkEntry
-        ? const Color(0xFF10B981) // Emerald for work
-        : const Color(0xFF6366F1); // Indigo for travel
+        ? AppColors.success
+        : AppColors.primaryLight;
     final Color darkColor =
-        isWorkEntry ? const Color(0xFF059669) : const Color(0xFF4F46E5);
+        isWorkEntry ? FlexsaldoColors.positiveDark : AppColors.primaryDark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -461,7 +462,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             darkColor.withValues(alpha: 0.05),
           ],
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppRadius.lg + 2),
         border: Border.all(
           color: lightColor.withValues(alpha: 0.15),
           width: 1.5,
@@ -476,12 +477,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppRadius.lg + 2),
         child: InkWell(
           onTap: () => _openQuickView(entry),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadius.lg + 2),
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(AppSpacing.lg + 2),
             child: Row(
               children: [
                 // Leading Icon with gradient
@@ -494,7 +495,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       end: Alignment.bottomRight,
                       colors: [lightColor, darkColor],
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                     boxShadow: [
                       BoxShadow(
                         color: lightColor.withValues(alpha: 0.35),
@@ -507,12 +508,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     isWorkEntry
                         ? Icons.work_outline_rounded
                         : Icons.directions_car_rounded,
-                    color: Colors.white,
+                    color: AppColors.neutral50,
                     size: 28,
                   ),
                 ),
 
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
 
                 // Entry Details
                 Expanded(
@@ -530,7 +531,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               color: colorScheme.onSurface,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -543,7 +544,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   darkColor.withValues(alpha: 0.15),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(AppRadius.lg),
                               border: Border.all(
                                 color: lightColor.withValues(alpha: 0.3),
                                 width: 1,
@@ -559,7 +560,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                           // Holiday work badge (for work entries on red days)
                           if (entry.isHolidayWork) ...[
-                            const SizedBox(width: 6),
+                            const SizedBox(width: AppSpacing.sm - 2),
                             Tooltip(
                               message: AppLocalizations.of(context)
                                   .history_holidayWork(entry.holidayName ??
@@ -571,14 +572,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.shade700,
-                                  borderRadius: BorderRadius.circular(4),
+                                  color: AppColors.accentDark,
+                                  borderRadius: BorderRadius.circular(AppRadius.sm / 2),
                                 ),
                                 child: Text(
                                   AppLocalizations.of(context)
                                       .history_holidayWorkBadge,
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.neutral50,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -588,7 +589,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ] else ...[
                             // Show red day badges (Auto and/or Personal)
                             if (holidayInfo != null) ...[
-                              const SizedBox(width: 6),
+                              const SizedBox(width: AppSpacing.sm - 2),
                               Tooltip(
                                 message: AppLocalizations.of(context)
                                     .history_autoMarked(holidayInfo.name),
@@ -598,14 +599,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.red.shade600,
-                                    borderRadius: BorderRadius.circular(4),
+                                    color: AppColors.error,
+                                    borderRadius: BorderRadius.circular(AppRadius.sm / 2),
                                   ),
                                   child: Text(
                                     AppLocalizations.of(context)
                                         .history_autoBadge,
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.neutral50,
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -616,7 +617,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ],
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         _travelRouteText(entry) ??
                             entry.description ??
@@ -628,7 +629,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: AppSpacing.xs / 2),
                       Row(
                         children: [
                           Flexible(
@@ -644,13 +645,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             Text(
                               ' • ',
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: Colors.red.shade400,
+                                color: AppColors.error,
                               ),
                             ),
                             Text(
                               holidayInfo.name,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: Colors.red.shade600,
+                                color: AppColors.error,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -724,14 +725,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
             size: 64,
             color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             AppLocalizations.of(context).history_noEntriesFound,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             AppLocalizations.of(context).history_tryAdjustingFilters,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -748,7 +749,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Center(
         child: CircularProgressIndicator(
           color: colorScheme.primary,
@@ -900,15 +901,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
               right: 16,
             ),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: () => _openQuickView(entry),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
                       // Date and shift number
@@ -933,7 +934,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.md),
                       // Time range and location
                       Expanded(
                         child: Column(
@@ -947,7 +948,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                             if (shift.location != null &&
                                 shift.location!.isNotEmpty) ...[
-                              const SizedBox(height: 4),
+                              const SizedBox(height: AppSpacing.xs),
                               Row(
                                 children: [
                                   Icon(
@@ -956,7 +957,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     color: colorScheme.onSurfaceVariant
                                         .withValues(alpha: 0.7),
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: AppSpacing.xs),
                                   Flexible(
                                     child: Text(
                                       shift.location!.length > 25
@@ -987,7 +988,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               size: 16,
                               color: colorScheme.primary.withValues(alpha: 0.7),
                             ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -996,7 +997,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             decoration: BoxDecoration(
                               color:
                                   colorScheme.secondary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
                             ),
                             child: Text(
                               '${t.history_worked} ${_formatDuration(shift.workedDuration)}',
@@ -1019,10 +1020,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         // Daily total line
         Container(
           margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: Row(
             children: [
@@ -1041,7 +1042,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
               if (entry.travelMinutes != null && entry.travelMinutes! > 0) ...[
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Text(
                   '(+ ${t.history_travel} ${_formatDuration(Duration(minutes: entry.travelMinutes!))})',
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -1080,15 +1081,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
               right: 16,
             ),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: () => _openQuickView(entry),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
                       // Date and leg number
@@ -1113,7 +1114,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.md),
                       // Route
                       Expanded(
                         child: Column(
@@ -1125,7 +1126,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: AppSpacing.xs),
                             Row(
                               children: [
                                 Text(
@@ -1136,15 +1137,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         .withValues(alpha: 0.7),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: AppSpacing.sm),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: leg.source == 'auto'
-                                        ? Colors.green.shade50
-                                        : Colors.blue.shade50,
-                                    borderRadius: BorderRadius.circular(6),
+                                        ? FlexsaldoColors.positiveLight
+                                        : AppColors.primaryContainer,
+                                    borderRadius: BorderRadius.circular(AppRadius.sm - 2),
                                   ),
                                   child: Text(
                                     leg.source == 'auto'
@@ -1152,8 +1153,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         : t.travel_sourceManual,
                                     style: theme.textTheme.labelSmall?.copyWith(
                                       color: leg.source == 'auto'
-                                          ? Colors.green.shade700
-                                          : Colors.blue.shade700,
+                                          ? FlexsaldoColors.positiveDark
+                                          : AppColors.primaryDark,
                                       fontSize: 10,
                                     ),
                                   ),
@@ -1174,10 +1175,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         // Daily total line
         Container(
           margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: Row(
             children: [
@@ -1202,3 +1203,4 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 }
+

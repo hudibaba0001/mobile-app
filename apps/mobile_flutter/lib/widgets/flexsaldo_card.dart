@@ -106,7 +106,7 @@ class FlexsaldoCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(
+                color: AppColors.neutral900.withValues(
                     alpha: theme.brightness == Brightness.dark ? 0.3 : 0.08),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
@@ -263,7 +263,7 @@ class FlexsaldoCard extends StatelessWidget {
 
               // Progress bar for month
               ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Container(
                   decoration: BoxDecoration(
                     boxShadow: [

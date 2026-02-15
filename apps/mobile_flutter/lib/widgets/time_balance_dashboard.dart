@@ -64,7 +64,7 @@ class TimeBalanceDashboard extends StatelessWidget {
           trackingStartDate: trackingStartDate,
           showLoggedSince: showMonthLoggedSince,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         YearlyBalanceCard(
           year: currentYear,
           hoursWorked: currentYearHours,
@@ -126,8 +126,9 @@ class MonthlyStatusCard extends StatelessWidget {
 
     // Theme-aware colors
     final positiveColor =
-        isDark ? Colors.green.shade300 : Colors.green.shade700;
-    final negativeColor = isDark ? Colors.red.shade300 : Colors.red.shade700;
+        isDark ? FlexsaldoColors.positive : FlexsaldoColors.positiveDark;
+    final negativeColor =
+        isDark ? FlexsaldoColors.negative : FlexsaldoColors.negativeDark;
 
     return AppCard(
       padding: AppSpacing.cardPadding * 1.5, // Slightly more padding
@@ -178,15 +179,15 @@ class MonthlyStatusCard extends StatelessWidget {
                 TextSpan(text: '${l10n.balance_workedToDate} '),
                 TextSpan(
                   text: '${effectiveHours.toStringAsFixed(1)}h',
-                  style: TextStyle(
+                  style: AppTypography.body(theme.colorScheme.primary).copyWith(
                     fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.primary,
                   ),
                 ),
                 const TextSpan(text: ' / '),
                 TextSpan(
                   text: '${targetForVariance.toStringAsFixed(1)}h',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: AppTypography.body(theme.colorScheme.onSurface)
+                      .copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -213,7 +214,7 @@ class MonthlyStatusCard extends StatelessWidget {
             ),
           ],
           if (adjustmentHours != 0) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               l10n.balance_manualAdjustments('${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}'),
               style: AppTypography.caption(
@@ -362,16 +363,17 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
 
     // Theme-aware colors
     final positiveColor =
-        isDark ? Colors.green.shade300 : Colors.green.shade700;
-    final negativeColor = isDark ? Colors.red.shade300 : Colors.red.shade700;
-    final warningColor = isDark ? Colors.amber.shade300 : Colors.amber.shade700;
+        isDark ? FlexsaldoColors.positive : FlexsaldoColors.positiveDark;
+    final negativeColor =
+        isDark ? FlexsaldoColors.negative : FlexsaldoColors.negativeDark;
+    final warningColor = isDark ? AppColors.warning : AppColors.accentDark;
     final cardBgColor = isDark
         ? (isPositive
-            ? Colors.green.withValues(alpha: 0.06)
-            : Colors.red.withValues(alpha: 0.06))
+            ? positiveColor.withValues(alpha: 0.06)
+            : negativeColor.withValues(alpha: 0.06))
         : (isPositive
-            ? Colors.green.withValues(alpha: 0.04)
-            : Colors.red.withValues(alpha: 0.04));
+            ? positiveColor.withValues(alpha: 0.04)
+            : negativeColor.withValues(alpha: 0.04));
     
     // Show details if there's an opening balance OR adjustments to explain
     final hasDetails = widget.openingBalanceHours != 0 || widget.adjustmentHours != 0;
@@ -402,15 +404,15 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                 TextSpan(text: '${l10n.balance_workedToDate} '),
                 TextSpan(
                   text: '${(widget.hoursWorked + (widget.creditHours ?? 0.0) + widget.adjustmentHours).toStringAsFixed(1)}h',
-                  style: TextStyle(
+                  style: AppTypography.body(theme.colorScheme.primary).copyWith(
                     fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.primary,
                   ),
                 ),
                 const TextSpan(text: ' / '),
                 TextSpan(
                   text: '${targetForDisplay.toStringAsFixed(1)}h',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: AppTypography.body(theme.colorScheme.onSurface)
+                      .copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -460,7 +462,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                   ),
                   // Show starting balance if there is one
                   if (widget.openingBalanceFormatted != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: AppSpacing.xs / 2),
                     Text(
                       l10n.balance_startingBalanceAsOf(
                         DateFormat('d MMM').format(widget.trackingStartDate!),
@@ -550,10 +552,11 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           const SizedBox(height: AppSpacing.sm),
           Text(
             displayBalance,
-            style: TextStyle(
+            style: AppTypography.headline(
+              isPositive ? positiveColor : negativeColor,
+            ).copyWith(
               fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: isPositive ? positiveColor : negativeColor,
+              fontWeight: FontWeight.w700,
             ),
           ),
 
@@ -567,7 +570,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                   size: AppIconSize.xs,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: AppSpacing.sm - 2),
                 Text(
                   l10n.balance_netThisYear(
                     '${widget.yearNetBalance >= 0 ? '+' : ''}${widget.yearNetBalance.toStringAsFixed(1)}h',
@@ -576,7 +579,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Row(
               children: [
                 Icon(
@@ -584,7 +587,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                   size: AppIconSize.xs,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: AppSpacing.sm - 2),
                 Text(
                   l10n.balance_startingBalanceValue(
                     widget.openingBalanceFormatted ?? '${widget.openingBalanceHours >= 0 ? '+' : ''}${widget.openingBalanceHours.toStringAsFixed(1)}h',
@@ -617,7 +620,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                       _showDetails ? Icons.expand_less : Icons.expand_more,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       l10n.balance_details,
                       style: theme.textTheme.labelMedium?.copyWith(
@@ -631,11 +634,11 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
 
             if (_showDetails) ...[
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                     border: Border.all(
                       color: theme.colorScheme.outline.withValues(alpha: 0.3),
                     ),
@@ -650,7 +653,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
 
                       // Starting balance row
                       if (widget.openingBalanceHours != 0) ...[
@@ -669,7 +672,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                           positiveColor: positiveColor,
                           negativeColor: negativeColor,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                       ],
 
                       // Net this year row
@@ -685,7 +688,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
 
                       // Adjustments row (if any)
                       if (widget.adjustmentHours != 0) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.sm),
                         _buildBreakdownRow(
                           context,
                           icon: Icons.tune,
@@ -697,9 +700,9 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                         ),
                       ],
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                       Divider(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
 
                       // Total row
                       Row(

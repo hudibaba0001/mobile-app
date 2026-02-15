@@ -67,12 +67,12 @@ class _TrendsTabState extends State<TrendsTab> {
               size: 48,
               color: colorScheme.error,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               AppLocalizations.of(context).overview_errorLoadingData,
               style: theme.textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               viewModel.errorMessage!,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -223,12 +223,12 @@ class _TrendsTabState extends State<TrendsTab> {
               size: 48,
               color: colorScheme.error,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               t.trends_errorLoadingData,
               style: theme.textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               t.trends_tryRefreshingPage,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -581,10 +581,10 @@ class _TrendsTabState extends State<TrendsTab> {
     if (dayData == null) {
       return Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
             color: colorScheme.outline.withValues(alpha: 0.2),
           ),
@@ -605,10 +605,10 @@ class _TrendsTabState extends State<TrendsTab> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: colorScheme.outline.withValues(alpha: 0.2),
         ),
@@ -616,10 +616,10 @@ class _TrendsTabState extends State<TrendsTab> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Text(
               _getDayAbbreviation(context, date.weekday),
@@ -629,7 +629,7 @@ class _TrendsTabState extends State<TrendsTab> {
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -641,7 +641,7 @@ class _TrendsTabState extends State<TrendsTab> {
                     color: colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   '${totalHours.toStringAsFixed(1)}h ${AppLocalizations.of(context).trends_total}',
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -706,3 +706,4 @@ class _MonthlyLeaveSummary {
 
   bool get hasAny => paidVacation > 0 || sickLeave > 0 || vab > 0 || unpaid > 0;
 }
+

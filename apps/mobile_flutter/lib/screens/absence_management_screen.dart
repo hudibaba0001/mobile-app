@@ -7,6 +7,7 @@ import '../models/absence.dart';
 import '../providers/absence_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../widgets/absence_entry_dialog.dart';
+import '../widgets/standard_app_bar.dart';
 
 /// Screen for managing absence entries (vacation, sick leave, VAB, etc.)
 class AbsenceManagementScreen extends StatefulWidget {
@@ -65,10 +66,9 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     final years = _availableYears();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(t.absence_title),
+      appBar: StandardAppBar(
+        title: t.absence_title,
         actions: [
-          // Year selector
           PopupMenuButton<int>(
             icon: Text('$_selectedYear'),
             onSelected: (year) {

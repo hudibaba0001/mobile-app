@@ -8,6 +8,8 @@ import '../services/billing_service.dart';
 import '../services/entitlement_service.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../design/app_theme.dart';
+import '../widgets/standard_app_bar.dart';
 
 class PaywallScreen extends StatefulWidget {
   final VoidCallback? onUnlocked;
@@ -121,9 +123,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
         _isCheckingEntitlement;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(t.paywall_title),
+      appBar: StandardAppBar(
+        title: t.paywall_title,
+        showBackButton: false,
         actions: [
           IconButton(
             onPressed: isBusy ? null : _refreshEntitlement,
@@ -133,16 +135,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: AppSpacing.pagePadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Icon(
                 Icons.workspace_premium,
-                size: 80,
+                size: AppIconSize.xl * 1.7,
                 color: theme.colorScheme.primary,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
               Text(
                 t.paywall_unlockAllFeatures,
                 style: theme.textTheme.headlineSmall?.copyWith(
@@ -150,30 +152,30 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 t.paywall_subscribeWithGooglePlay,
                 style: theme.textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               _buildFeatureTile(Icons.history, t.paywall_featureFullHistoryReports),
               _buildFeatureTile(Icons.cloud_sync, t.paywall_featureCloudSync),
               _buildFeatureTile(Icons.shield_outlined, t.paywall_featureSecureSubscription),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               if (_entitlement != null)
                 Text(
                   t.paywall_currentEntitlement(_entitlement!.status),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium,
                 ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               FilledButton(
                 onPressed: isBusy || product == null ? null : _buyNow,
                 child: isBusy
                     ? const SizedBox(
-                        width: 18,
-                        height: 18,
+                        width: AppIconSize.sm,
+                        height: AppIconSize.sm,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
@@ -182,7 +184,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                             : t.paywall_subscribe(product.price),
                       ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               TextButton(
                 onPressed: isBusy ? null : _billingService.restorePurchases,
                 child: Text(t.paywall_restorePurchase),
@@ -202,7 +204,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   child: Text(t.paywall_signOut),
                 ),
               if (_screenError != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   _screenError!,
                   textAlign: TextAlign.center,

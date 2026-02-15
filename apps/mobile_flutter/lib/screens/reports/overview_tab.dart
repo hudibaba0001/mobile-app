@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../design/app_theme.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
 import '../../l10n/generated/app_localizations.dart';
 
@@ -27,12 +28,12 @@ class OverviewTab extends StatelessWidget {
               size: 48,
               color: colorScheme.error,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               AppLocalizations.of(context).overview_errorLoadingData,
               style: theme.textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               viewModel.errorMessage!,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -48,7 +49,7 @@ class OverviewTab extends StatelessWidget {
     final overviewData = viewModel.overviewData;
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         // Summary Cards
         Row(
@@ -64,7 +65,7 @@ class OverviewTab extends StatelessWidget {
                 subtitle: AppLocalizations.of(context).overview_allActivities,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: _buildSummaryCard(
                 theme,
@@ -78,7 +79,7 @@ class OverviewTab extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Row(
           children: [
             Expanded(
@@ -92,7 +93,7 @@ class OverviewTab extends StatelessWidget {
                 subtitle: AppLocalizations.of(context).overview_totalCommute,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: _buildSummaryCard(
                 theme,
@@ -106,7 +107,7 @@ class OverviewTab extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xl),
 
         // Activity Distribution
         Text(
@@ -116,14 +117,14 @@ class OverviewTab extends StatelessWidget {
             color: colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         AspectRatio(
           aspectRatio: 1.5,
           child: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
               border: Border.all(
                 color: colorScheme.outline.withValues(alpha: 0.2),
               ),
@@ -133,7 +134,7 @@ class OverviewTab extends StatelessWidget {
                 Expanded(
                   child: _buildDistributionChart(context, theme, overviewData),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 24,
@@ -168,10 +169,10 @@ class OverviewTab extends StatelessWidget {
     required String subtitle,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
         border: Border.all(
           color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
@@ -182,10 +183,10 @@ class OverviewTab extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: iconBgColor,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Icon(
                   icon,
@@ -193,7 +194,7 @@ class OverviewTab extends StatelessWidget {
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
                   title,
@@ -205,7 +206,7 @@ class OverviewTab extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Text(
             value,
             style: theme.textTheme.headlineSmall?.copyWith(
@@ -213,7 +214,7 @@ class OverviewTab extends StatelessWidget {
               color: theme.colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             subtitle,
             style: theme.textTheme.bodySmall?.copyWith(
@@ -253,11 +254,11 @@ class OverviewTab extends StatelessWidget {
             color: colorScheme.error,
             radius: 60,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.neutral50,
                   fontWeight: FontWeight.bold,
                 ) ??
                 const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
+                    color: AppColors.neutral50, fontWeight: FontWeight.bold),
           ),
           PieChartSectionData(
             value: travelMinutes.toDouble(),
@@ -266,11 +267,11 @@ class OverviewTab extends StatelessWidget {
             color: colorScheme.tertiary,
             radius: 60,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.neutral50,
                   fontWeight: FontWeight.bold,
                 ) ??
                 const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
+                    color: AppColors.neutral50, fontWeight: FontWeight.bold),
           ),
         ],
         centerSpaceRadius: 40,
@@ -295,7 +296,7 @@ class OverviewTab extends StatelessWidget {
             shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: AppSpacing.sm),
         Text(
           label,
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -319,3 +320,4 @@ class OverviewTab extends StatelessWidget {
     }
   }
 }
+

@@ -10,6 +10,7 @@ import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 import '../config/external_links.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../widgets/standard_app_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -51,18 +52,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        title: Text(t.profile_title),
-        elevation: 0,
+      appBar: StandardAppBar(
+        title: t.profile_title,
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => AppRouter.goBackOrHome(context),
-        ),
+        onBack: () => AppRouter.goBackOrHome(context),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         children: [
           if (_error != null)
             Padding(
@@ -83,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
 
           // User Info Card
           Card(
@@ -91,10 +88,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: theme.colorScheme.surfaceContainerHighest
                 .withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -129,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Email
                   Column(
@@ -149,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
 
           // Change Password
           ListTile(
@@ -261,7 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             subtitle: Text(t.settings_deleteAccountDesc),
             onTap: () => _showDeleteAccountDialog(context, authService, t),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: AppSpacing.xxl),
         ],
       ),
     );
@@ -434,3 +431,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 }
+

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../design/app_theme.dart';
 import 'dart:developer' as developer;
 
 enum ErrorType {
@@ -105,11 +106,11 @@ class ErrorHandler {
       case ErrorType.storage:
       case ErrorType.network:
       case ErrorType.unknown:
-        return Colors.red;
+        return AppColors.error;
       case ErrorType.validation:
-        return Colors.orange;
+        return AppColors.accent;
       case ErrorType.permission:
-        return Colors.blue;
+        return AppColors.primary;
     }
   }
 

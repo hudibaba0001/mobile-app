@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../design/app_theme.dart';
 import '../../models/absence.dart';
 import '../../providers/absence_provider.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -69,12 +70,12 @@ class _LeavesTabState extends State<LeavesTab> {
     return RefreshIndicator(
       onRefresh: _loadAbsences,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
           // Leave Summary Section
           _buildSummarySection(theme, colorScheme, summary, currentYear),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
 
           // Recent Leaves Section
           _buildRecentLeavesSection(theme, colorScheme),
@@ -125,10 +126,10 @@ class _LeavesTabState extends State<LeavesTab> {
       elevation: 0,
       color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -139,7 +140,7 @@ class _LeavesTabState extends State<LeavesTab> {
                   color: colorScheme.primary,
                   size: 24,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   t.leave_summary(year),
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -149,41 +150,41 @@ class _LeavesTabState extends State<LeavesTab> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Summary grid
             _buildSummaryRow(
               theme,
               colorScheme,
               icon: Icons.beach_access,
-              iconColor: Colors.blue,
+              iconColor: AppColors.primary,
               label: t.leave_paidVacation,
               value: summary[AbsenceType.vacationPaid]!,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             _buildSummaryRow(
               theme,
               colorScheme,
               icon: Icons.local_hospital,
-              iconColor: Colors.red,
+              iconColor: AppColors.error,
               label: t.leave_sickLeave,
               value: summary[AbsenceType.sickPaid]!,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             _buildSummaryRow(
               theme,
               colorScheme,
               icon: Icons.child_care,
-              iconColor: Colors.orange,
+              iconColor: AppColors.accent,
               label: t.leave_vab,
               value: summary[AbsenceType.vabPaid]!,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             _buildSummaryRow(
               theme,
               colorScheme,
               icon: Icons.event_busy,
-              iconColor: Colors.grey,
+              iconColor: AppColors.neutral500,
               label: t.leave_unpaid,
               value: summary[AbsenceType.unpaid]!,
             ),
@@ -234,14 +235,14 @@ class _LeavesTabState extends State<LeavesTab> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(AppSpacing.sm),
           decoration: BoxDecoration(
             color: iconColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: Icon(icon, color: iconColor, size: 20),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Text(
             label,
@@ -281,7 +282,7 @@ class _LeavesTabState extends State<LeavesTab> {
               color: colorScheme.secondary,
               size: 20,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               AppLocalizations.of(context).leave_recentLeaves,
               style: theme.textTheme.titleMedium?.copyWith(
@@ -290,16 +291,16 @@ class _LeavesTabState extends State<LeavesTab> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         if (recentAbsences.isEmpty)
           Card(
             elevation: 0,
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(32),
+              padding: const EdgeInsets.all(AppSpacing.xxl),
               child: Center(
                 child: Column(
                   children: [
@@ -309,14 +310,14 @@ class _LeavesTabState extends State<LeavesTab> {
                       color:
                           colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     Text(
                       AppLocalizations.of(context).leave_noLeavesRecorded,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       AppLocalizations.of(context).leave_noLeavesDescription,
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -346,24 +347,24 @@ class _LeavesTabState extends State<LeavesTab> {
       color: colorScheme.surface,
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
           color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(AppSpacing.md - 2),
               decoration: BoxDecoration(
                 color: typeInfo.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.md - 2),
               ),
               child: Icon(typeInfo.icon, color: typeInfo.color, size: 24),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,7 +375,7 @@ class _LeavesTabState extends State<LeavesTab> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppSpacing.xs / 2),
                   Text(
                     dateFormat.format(absence.date),
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -388,7 +389,7 @@ class _LeavesTabState extends State<LeavesTab> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: typeInfo.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               child: Text(
                 absence.minutes == 0
@@ -412,25 +413,25 @@ class _LeavesTabState extends State<LeavesTab> {
       case AbsenceType.vacationPaid:
         return _TypeInfo(
           icon: Icons.beach_access,
-          color: Colors.blue,
+          color: AppColors.primary,
           label: t.leave_paidVacation,
         );
       case AbsenceType.sickPaid:
         return _TypeInfo(
           icon: Icons.local_hospital,
-          color: Colors.red,
+          color: AppColors.error,
           label: t.leave_sickLeave,
         );
       case AbsenceType.vabPaid:
         return _TypeInfo(
           icon: Icons.child_care,
-          color: Colors.orange,
+          color: AppColors.accent,
           label: t.leave_vab,
         );
       case AbsenceType.unpaid:
         return _TypeInfo(
           icon: Icons.event_busy,
-          color: Colors.grey,
+          color: AppColors.neutral500,
           label: t.leave_unpaid,
         );
     }
@@ -452,3 +453,4 @@ class _TypeInfo {
   const _TypeInfo(
       {required this.icon, required this.color, required this.label});
 }
+

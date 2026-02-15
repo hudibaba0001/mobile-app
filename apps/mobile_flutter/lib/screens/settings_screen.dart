@@ -156,7 +156,7 @@ class SettingsScreen extends StatelessWidget {
                         child: Text(
                           t.redDay_auto,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.neutral50,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                           ),
@@ -335,7 +335,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(confirmContext).pop(true),
-                  style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                  style: FilledButton.styleFrom(backgroundColor: AppColors.error),
                   child: Text(t.redDay_remove),
                 ),
               ],
@@ -352,7 +352,7 @@ class SettingsScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(t.redDay_removed),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.success,
                 ),
               );
             }
@@ -361,7 +361,7 @@ class SettingsScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(t.redDay_errorRemoving(e.toString())),
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppColors.error,
                 ),
               );
             }
@@ -536,7 +536,7 @@ class SettingsScreen extends StatelessWidget {
                                               size: 16,
                                             ),
                                             style: TextButton.styleFrom(
-                                              foregroundColor: Colors.red,
+                                              foregroundColor: AppColors.error,
                                             ),
                                             label: Text(t.common_delete),
                                           ),
@@ -655,13 +655,13 @@ class SettingsScreen extends StatelessWidget {
                           : Icons.light_mode,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: AppSpacing.lg),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(t.settings_theme,
                             style: theme.textTheme.bodyLarge),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           themeProvider.themeModeDisplayName,
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -672,7 +672,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 _buildThemeModeSelector(context, themeProvider, t),
               ],
             ),
@@ -809,7 +809,7 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => context.go(AppRouter.absenceManagementPath),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: AppSpacing.xxl),
         ],
       ),
     );
@@ -822,3 +822,4 @@ class _ThemeOption {
 
   const _ThemeOption(this.mode, this.icon);
 }
+

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../design/app_theme.dart';
 import '../models/entry.dart';
 import '../models/location.dart';
 import '../providers/entry_provider.dart';
@@ -183,7 +184,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
             content: Text(widget.initialEntry != null
                 ? 'Travel entry updated!'
                 : 'Travel entry added!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
       } else if (mounted) {
@@ -191,7 +192,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
           SnackBar(
             content: Text(
                 'Failed to ${widget.initialEntry != null ? 'update' : 'save'} entry'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -201,7 +202,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.quickEntry_error(error.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -282,7 +283,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                     ],
 
                     if (widget.onCancel != null) ...[
@@ -291,7 +292,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                         icon: const Icon(Icons.close),
                         tooltip: AppLocalizations.of(context).common_close,
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                          backgroundColor: AppColors.neutral500.withValues(alpha: 0.1),
                         ),
                       ),
                     ] else ...[
@@ -306,7 +307,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                         icon: const Icon(Icons.close),
                         tooltip: AppLocalizations.of(context).common_close,
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                          backgroundColor: AppColors.neutral500.withValues(alpha: 0.1),
                         ),
                       ),
                     ],
@@ -316,7 +317,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                 // Recent routes chips
                 if (_recentRoutes.isNotEmpty &&
                     widget.initialEntry == null) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Wrap(
                     spacing: 8,
                     children: _recentRoutes
@@ -392,7 +393,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                                   .colorScheme
                                   .primary
                                   .withValues(alpha: 0.1),
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(AppSpacing.sm),
                             ),
                           ),
                         ),
@@ -468,7 +469,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                             Text(AppLocalizations.of(context).quickEntry_clear),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                   ],
                   Expanded(
                     flex: widget.isCompact ? 1 : 2,

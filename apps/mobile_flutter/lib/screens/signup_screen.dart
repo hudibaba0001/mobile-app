@@ -13,6 +13,7 @@ import '../config/external_links.dart';
 import '../services/entitlement_service.dart';
 import '../services/profile_service.dart';
 import '../services/supabase_auth_service.dart';
+import '../widgets/glass_text_form_field.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -172,7 +173,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       t.auth_createAccount,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.displaySmall?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.neutral50,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -180,7 +181,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       t.signup_subtitle,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: AppColors.neutral50.withValues(alpha: 0.85),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xxl),
@@ -190,10 +191,17 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _buildGlassTextField(
+                            GlassTextFormField(
                               controller: _firstNameController,
                               hintText: t.signup_firstNameLabel,
                               prefixIcon: Icons.person_outline,
+                              onChanged: (_) {
+                                if (_error != null) {
+                                  setState(() {
+                                    _error = null;
+                                  });
+                                }
+                              },
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return t.signup_firstNameRequired;
@@ -202,10 +210,17 @@ class _SignupScreenState extends State<SignupScreen> {
                               },
                             ),
                             const SizedBox(height: AppSpacing.lg),
-                            _buildGlassTextField(
+                            GlassTextFormField(
                               controller: _lastNameController,
                               hintText: t.signup_lastNameLabel,
                               prefixIcon: Icons.person_outline,
+                              onChanged: (_) {
+                                if (_error != null) {
+                                  setState(() {
+                                    _error = null;
+                                  });
+                                }
+                              },
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return t.signup_lastNameRequired;
@@ -214,11 +229,18 @@ class _SignupScreenState extends State<SignupScreen> {
                               },
                             ),
                             const SizedBox(height: AppSpacing.lg),
-                            _buildGlassTextField(
+                            GlassTextFormField(
                               controller: _emailController,
                               hintText: t.password_emailLabel,
                               prefixIcon: Icons.email_outlined,
                               keyboardType: TextInputType.emailAddress,
+                              onChanged: (_) {
+                                if (_error != null) {
+                                  setState(() {
+                                    _error = null;
+                                  });
+                                }
+                              },
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return t.password_emailRequired;
@@ -230,11 +252,18 @@ class _SignupScreenState extends State<SignupScreen> {
                               },
                             ),
                             const SizedBox(height: AppSpacing.lg),
-                            _buildGlassTextField(
+                            GlassTextFormField(
                               controller: _passwordController,
                               hintText: t.auth_passwordLabel,
                               prefixIcon: Icons.lock_outline,
                               obscureText: true,
+                              onChanged: (_) {
+                                if (_error != null) {
+                                  setState(() {
+                                    _error = null;
+                                  });
+                                }
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return t.auth_passwordRequired;
@@ -246,11 +275,18 @@ class _SignupScreenState extends State<SignupScreen> {
                               },
                             ),
                             const SizedBox(height: AppSpacing.lg),
-                            _buildGlassTextField(
+                            GlassTextFormField(
                               controller: _confirmPasswordController,
                               hintText: t.signup_confirmPasswordLabel,
                               prefixIcon: Icons.lock_outline,
                               obscureText: true,
+                              onChanged: (_) {
+                                if (_error != null) {
+                                  setState(() {
+                                    _error = null;
+                                  });
+                                }
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return t.signup_confirmPasswordRequired;
@@ -277,9 +313,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                           ),
                                   checkColor: _gradientStart,
                                   fillColor:
-                                      WidgetStateProperty.all(Colors.white),
+                                      WidgetStateProperty.all(AppColors.neutral50),
                                   side: BorderSide(
-                                    color: Colors.white.withValues(alpha: 0.8),
+                                    color: AppColors.neutral50.withValues(alpha: 0.8),
                                   ),
                                 ),
                                 Expanded(
@@ -293,7 +329,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                           t.signup_acceptLegalPrefix,
                                           style: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                            color: Colors.white
+                                            color: AppColors.neutral50
                                                 .withValues(alpha: 0.9),
                                           ),
                                         ),
@@ -319,7 +355,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                             t.settings_terms,
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                              color: Colors.white,
+                                              color: AppColors.neutral50,
                                               decoration:
                                                   TextDecoration.underline,
                                             ),
@@ -329,7 +365,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                           t.signup_acceptLegalAnd,
                                           style: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                            color: Colors.white
+                                            color: AppColors.neutral50
                                                 .withValues(alpha: 0.9),
                                           ),
                                         ),
@@ -355,7 +391,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                             t.settings_privacy,
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                              color: Colors.white,
+                                              color: AppColors.neutral50,
                                               decoration:
                                                   TextDecoration.underline,
                                             ),
@@ -388,7 +424,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   _error!,
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.white,
+                                    color: AppColors.neutral50,
                                   ),
                                 ),
                               ),
@@ -397,7 +433,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ElevatedButton(
                               onPressed: _isLoading ? null : _handleSignup,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
+                                backgroundColor: AppColors.neutral50,
                                 foregroundColor: _gradientStart,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: AppSpacing.lg,
@@ -433,12 +469,12 @@ class _SignupScreenState extends State<SignupScreen> {
                                   ? null
                                   : () => AppRouter.goToLogin(context),
                               style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
+                                foregroundColor: AppColors.neutral50,
                               ),
                               child: Text(
                                 t.password_backToSignIn,
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.9),
+                                  color: AppColors.neutral50.withValues(alpha: 0.9),
                                 ),
                               ),
                             ),
@@ -456,66 +492,6 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildGlassTextField({
-    required TextEditingController controller,
-    required String hintText,
-    required IconData prefixIcon,
-    TextInputType? keyboardType,
-    bool obscureText = false,
-    String? Function(String?)? validator,
-  }) {
-    final theme = Theme.of(context);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.md),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-            ),
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            obscureText: obscureText,
-            validator: validator,
-            onChanged: (_) {
-              if (_error != null) {
-                setState(() {
-                  _error = null;
-                });
-              }
-            },
-            style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: theme.textTheme.bodyLarge?.copyWith(
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-              prefixIcon: Icon(
-                prefixIcon,
-                color: Colors.white.withValues(alpha: 0.75),
-                size: AppIconSize.sm,
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.lg,
-              ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              focusedErrorBorder: InputBorder.none,
-              errorStyle: const TextStyle(height: 0, fontSize: 0),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _SignupGlassCard extends StatelessWidget {
@@ -536,18 +512,18 @@ class _SignupGlassCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.25),
-                Colors.white.withValues(alpha: 0.1),
+                AppColors.neutral50.withValues(alpha: 0.25),
+                AppColors.neutral50.withValues(alpha: 0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
+              color: AppColors.neutral50.withValues(alpha: 0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: AppColors.neutral900.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),

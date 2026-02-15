@@ -242,7 +242,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                         : theme.colorScheme.secondary,
                     size: 24,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Text(
                     isTravel
                         ? AppLocalizations.of(context).entry_logTravelEntry
@@ -262,7 +262,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
 
               // Date and Time Section
               isTravel
@@ -271,19 +271,19 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
               // Holiday Notice (if date is a public holiday)
               _buildHolidayNotice(theme),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
               // Location Section: for Travel (multiple legs)
               if (isTravel) _buildTravelLegsSection(theme),
               if (!isTravel) _buildWorkLocationSection(theme),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
               // Work-specific fields
               ...(!isTravel ? _buildWorkSpecificFields(theme) : []),
 
               // Notes Section
               _buildNotesSection(theme),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
 
               // Action Buttons
               _buildActionButtons(theme),
@@ -308,18 +308,18 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Row(
           children: [
             Expanded(
               child: InkWell(
                 onTap: _selectDate,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     border: Border.all(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Row(
                     children: [
@@ -328,7 +328,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                         size: 20,
                         color: theme.colorScheme.primary,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         DateFormat.yMMMd().format(_selectedDate),
                         style: theme.textTheme.bodyMedium,
@@ -354,18 +354,18 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Row(
           children: [
             Expanded(
               child: InkWell(
                 onTap: _selectDate,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     border: Border.all(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Row(
                     children: [
@@ -374,7 +374,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                         size: 20,
                         color: theme.colorScheme.primary,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         DateFormat.yMMMd().format(_selectedDate),
                         style: theme.textTheme.bodyMedium,
@@ -402,11 +402,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
     return Container(
       margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.shade200),
+        color: AppColors.errorContainer,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.errorContainer),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,19 +421,19 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: badge == 'Auto'
-                            ? Colors.red.shade600
-                            : Colors.purple.shade600,
-                        borderRadius: BorderRadius.circular(4),
+                            ? AppColors.error
+                            : AppColors.secondary,
+                        borderRadius: BorderRadius.circular(AppRadius.sm / 2),
                       ),
                       child: Text(
                         badge,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.neutral50,
                         ),
                       ),
                     ),
                   )),
-              const SizedBox(width: 6),
+              const SizedBox(width: AppSpacing.sm - 2),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,7 +444,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                             AppLocalizations.of(context).entry_publicHoliday,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Colors.red.shade800,
+                          color: AppColors.error,
                         ),
                       ),
                     if (redDayInfo.personalRedDay != null)
@@ -454,7 +454,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                                 ? ' - ${redDayInfo.personalRedDay!.reason}'
                                 : ''),
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.purple.shade700,
+                          color: AppColors.secondaryDark,
                         ),
                       ),
                     if (redDayInfo.isAutoHoliday &&
@@ -462,7 +462,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       Text(
                         AppLocalizations.of(context).entry_publicHolidaySweden,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.red.shade700,
+                          color: AppColors.error,
                         ),
                       ),
                   ],
@@ -473,31 +473,31 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 child: Icon(
                   Icons.info_outline,
                   size: 20,
-                  color: Colors.red.shade600,
+                  color: AppColors.error,
                 ),
               ),
             ],
           ),
           // Show work-specific notice
           if (isWorkEntry) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.md - 2),
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(AppSpacing.md - 2),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.amber.shade300),
+                color: AppColors.accentContainer,
+                borderRadius: BorderRadius.circular(AppRadius.sm - 2),
+                border: Border.all(color: AppColors.accentLight),
               ),
               child: Row(
                 children: [
                   Icon(Icons.work_outline,
-                      size: 18, color: Colors.amber.shade800),
-                  const SizedBox(width: 8),
+                      size: 18, color: AppColors.accentDark),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       AppLocalizations.of(context).entry_redDayWarning,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.amber.shade900,
+                        color: AppColors.accentDark,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -521,14 +521,14 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         // Travel legs
         ..._travelLegs.asMap().entries.map((entry) {
           final index = entry.key;
           final leg = entry.value;
           return _buildTravelLegCard(theme, index, leg);
         }),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         // Add Another Travel button
         OutlinedButton.icon(
           onPressed: _addTravelLeg,
@@ -541,7 +541,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ),
         ),
         if (_isEditMode && _travelLegs.length > 1) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             AppLocalizations.of(context).entry_travelLegUpdateNotice,
             style: theme.textTheme.bodySmall?.copyWith(
@@ -561,7 +561,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -588,13 +588,13 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: leg.source == 'auto'
-                        ? Colors.green.shade50
-                        : Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(12),
+                        ? FlexsaldoColors.positiveLight
+                        : AppColors.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
                       color: leg.source == 'auto'
-                          ? Colors.green.shade200
-                          : Colors.blue.shade200,
+                          ? FlexsaldoColors.positiveLight
+                          : AppColors.primaryContainer,
                     ),
                   ),
                   child: Text(
@@ -603,15 +603,15 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                         : t.travel_sourceManual,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: leg.source == 'auto'
-                          ? Colors.green.shade700
-                          : Colors.blue.shade700,
+                          ? FlexsaldoColors.positiveDark
+                          : AppColors.primaryDark,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
                 // Remove button only in create mode and if more than one leg
                 if (!_isEditMode && _travelLegs.length > 1) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
                     onPressed: () => _removeTravelLeg(index),
@@ -620,7 +620,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 ],
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // From location
             LocationSelector(
@@ -646,7 +646,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               },
               prefixIcon: Icons.my_location,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // To location
             LocationSelector(
@@ -672,7 +672,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               },
               prefixIcon: Icons.location_on,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // Duration input
             Row(
@@ -703,7 +703,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: TextFormField(
                     controller: _legMinutesControllers[index] ??=
@@ -732,7 +732,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // Calculate button
             if (leg.fromText.isNotEmpty && leg.toText.isNotEmpty)
@@ -756,7 +756,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
             // Error message
             if (error != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 error,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -876,7 +876,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               AppLocalizations.of(context)
                   .entry_travelTimeCalculated(durationText, distanceText),
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -893,7 +893,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_calculatingTravelTime(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -911,7 +911,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         LocationSelector(
           labelText: AppLocalizations.of(context).entry_location,
           hintText: AppLocalizations.of(context).entry_locationHint,
@@ -929,7 +929,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           },
           prefixIcon: Icons.work,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         // Toggle for "Use location for all shifts"
         Row(
           children: [
@@ -1053,7 +1053,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           fontWeight: FontWeight.w600,
         ),
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: AppSpacing.md),
       Column(
         children: _shifts.asMap().entries.map((entry) {
           int index = entry.key;
@@ -1061,7 +1061,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           return _buildShiftRow(theme, index, shift);
         }).toList(),
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: AppSpacing.md),
       // Add Another Shift button (only in create mode)
       if (!_isEditMode) ...[
         OutlinedButton.icon(
@@ -1074,17 +1074,17 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       ] else ...[
         // Edit mode info text
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerHighest
                 .withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: Row(
             children: [
               Icon(Icons.info_outline,
                   size: 20, color: theme.colorScheme.onSurfaceVariant),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   AppLocalizations.of(context).editMode_singleEntryInfo_work,
@@ -1097,7 +1097,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ),
         ),
       ],
-      const SizedBox(height: 20),
+      const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
     ];
   }
 
@@ -1110,7 +1110,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1133,7 +1133,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // Time selection row
             Row(
@@ -1141,12 +1141,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 Expanded(
                   child: InkWell(
                     onTap: () => _selectShiftStartTime(index),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
                         border: Border.all(color: theme.colorScheme.outline),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(
                         children: [
@@ -1155,7 +1155,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                             size: 20,
                             color: theme.colorScheme.primary,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             TimeOfDay.fromDateTime(shift.start).format(context),
                             style: theme.textTheme.bodyMedium,
@@ -1165,16 +1165,16 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: InkWell(
                     onTap: () => _selectShiftEndTime(index),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
                         border: Border.all(color: theme.colorScheme.outline),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(
                         children: [
@@ -1183,7 +1183,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                             size: 20,
                             color: theme.colorScheme.primary,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             TimeOfDay.fromDateTime(shift.end).format(context),
                             style: theme.textTheme.bodyMedium,
@@ -1195,7 +1195,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Break control
             Text(
@@ -1204,7 +1204,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -1234,7 +1234,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             TextFormField(
               controller: _shiftBreakControllers[index] ??=
                   TextEditingController(
@@ -1255,15 +1255,15 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 });
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // Computed values display
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest
                     .withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppRadius.sm - 2),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1287,7 +1287,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Shift location
             LocationSelector(
@@ -1317,7 +1317,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               prefixIcon: Icons.location_on,
               isRequired: false,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // Shift notes (collapsed by default)
             _buildShiftNotesField(theme, index, shift),
@@ -1341,7 +1341,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             size: 20,
             color: theme.colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             AppLocalizations.of(context).form_shiftNotes,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -1349,7 +1349,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             ),
           ),
           if (!hasNotes) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               AppLocalizations.of(context).common_optional,
               style: theme.textTheme.bodySmall?.copyWith(
@@ -1361,7 +1361,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       ),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
           child: TextFormField(
             controller: controller,
             decoration: InputDecoration(
@@ -1393,7 +1393,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           value,
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -1417,7 +1417,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         TextFormField(
           controller: _notesController,
           decoration: InputDecoration(
@@ -1449,12 +1449,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           // Save button
           SizedBox(
             width: double.infinity,
@@ -1463,7 +1463,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
               ),
               child: _isLoading
@@ -1488,19 +1488,19 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(AppRadius.md)),
             ),
             child: Text(t.common_cancel),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: FilledButton(
             onPressed: _isLoading ? null : _saveEntry,
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(AppRadius.md)),
             ),
             child: _isLoading
                 ? const SizedBox(
@@ -1627,7 +1627,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(t.error_endTimeBeforeStart),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           return;
@@ -1648,7 +1648,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_addAtLeastOneTravelLeg),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
         return;
@@ -1661,7 +1661,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(t.error_selectTravelLocations(i + 1)),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           return;
@@ -1671,7 +1671,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(t.error_invalidTravelDuration(i + 1)),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           return;
@@ -1683,7 +1683,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_addAtLeastOneShift),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
         return;
@@ -1697,7 +1697,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(t.error_invalidShiftTime(i + 1)),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           return;
@@ -1709,7 +1709,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(t.error_negativeBreakMinutes(i + 1)),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           return;
@@ -1720,7 +1720,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             SnackBar(
               content: Text(t.error_breakExceedsSpan(
                   i + 1, shift.unpaidBreakMinutes, spanMinutes)),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           return;
@@ -1736,7 +1736,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_signInRequired),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
         return;
@@ -1931,7 +1931,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                           : t.common_saved,
                     ),
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
         widget.onSaved?.call();
@@ -1941,7 +1941,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_savingEntry(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }

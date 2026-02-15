@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../design/app_theme.dart';
 import '../viewmodels/customer_analytics_viewmodel.dart';
 import '../widgets/standard_app_bar.dart';
 import '../widgets/export_dialog.dart';
@@ -91,7 +92,7 @@ class _ReportsScreenState extends State<ReportsScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.error_loadingEntries(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -150,7 +151,7 @@ class _ReportsScreenState extends State<ReportsScreen>
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(t.export_noEntries),
-            backgroundColor: Colors.orange,
+            backgroundColor: AppColors.accent,
           ),
         );
         return;
@@ -165,7 +166,7 @@ class _ReportsScreenState extends State<ReportsScreen>
           content: Row(
             children: [
               const CircularProgressIndicator(),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Flexible(child: Text(t.export_generating(format.toUpperCase()))),
             ],
           ),
@@ -203,7 +204,7 @@ class _ReportsScreenState extends State<ReportsScreen>
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(t.export_downloadedSuccess(format.toUpperCase())),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
       }
@@ -214,7 +215,7 @@ class _ReportsScreenState extends State<ReportsScreen>
       scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text(t.export_failed(e.toString())),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           duration: const Duration(seconds: 5),
         ),
       );
@@ -237,8 +238,8 @@ class _ReportsScreenState extends State<ReportsScreen>
       builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.green, size: 28),
-            const SizedBox(width: 12),
+            const Icon(Icons.check_circle, color: AppColors.success, size: 28),
+            const SizedBox(width: AppSpacing.md),
             Expanded(child: Text(t.export_complete)),
           ],
         ),
@@ -250,7 +251,7 @@ class _ReportsScreenState extends State<ReportsScreen>
               t.export_savedSuccess(format.toUpperCase()),
               style: theme.textTheme.bodyMedium,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               t.export_sharePrompt,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -279,7 +280,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(t.error_shareFile(e.toString())),
-                      backgroundColor: Colors.orange,
+                      backgroundColor: AppColors.accent,
                     ),
                   );
                 }
@@ -351,7 +352,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                       Icon(Icons.cloud_done,
                           size: 18,
                           color: Theme.of(context).colorScheme.primary),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           t.reports_serverAnalytics,
@@ -416,3 +417,4 @@ class _ReportsScreenState extends State<ReportsScreen>
     );
   }
 }
+

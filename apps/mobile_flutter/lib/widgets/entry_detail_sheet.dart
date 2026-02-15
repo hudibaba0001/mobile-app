@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../design/app_theme.dart';
 import '../models/entry.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -35,10 +36,10 @@ class EntryDetailSheet extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(AppSpacing.md - 2),
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Icon(
                     entry.type == EntryType.travel
@@ -47,7 +48,7 @@ class EntryDetailSheet extends StatelessWidget {
                     color: colorScheme.primary,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
                     _titleFor(context, entry),
@@ -65,11 +66,11 @@ class EntryDetailSheet extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             ..._detailWidgets(context, entry),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
             Builder(builder: (context) {
               final t = AppLocalizations.of(context);
               return Row(
@@ -84,7 +85,7 @@ class EntryDetailSheet extends StatelessWidget {
                       label: Text(t.common_edit),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () {
@@ -138,10 +139,10 @@ class EntryDetailSheet extends StatelessWidget {
           items.add(
             Container(
               margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
                     color: colorScheme.outline.withValues(alpha: 0.2)),
               ),
@@ -153,7 +154,7 @@ class EntryDetailSheet extends StatelessWidget {
                       children: [
                         Text(AppLocalizations.of(context).edit_shift(i + 1),
                             style: theme.textTheme.labelLarge),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           '${_formatTime(s.start)} - ${_formatTime(s.end)}',
                           style: theme.textTheme.bodyMedium,
@@ -205,7 +206,7 @@ class EntryDetailSheet extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               value,

@@ -8,6 +8,7 @@ import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 import '../design/app_theme.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../widgets/standard_app_bar.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -68,14 +69,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
+      appBar: StandardAppBar(
+        titleWidget: Row(
           children: [
-            Text(t.analytics_dashboardTitle),
+            Flexible(
+              child: Text(
+                t.analytics_dashboardTitle,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             const SizedBox(width: AppSpacing.sm),
             Container(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.xs,
+              ),
               decoration: BoxDecoration(
                 color: AppColors.accent,
                 borderRadius: BorderRadius.circular(AppRadius.md),
@@ -84,7 +92,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 t.analytics_adminBadge,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.neutral50,
                     ),
               ),
             ),
@@ -92,7 +100,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        elevation: 0,
       ),
       body: Consumer<AnalyticsViewModel>(
         builder: (context, viewModel, child) {
@@ -395,7 +402,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             radius: 50,
             titleStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.neutral50,
                 ),
           );
         }).toList(),

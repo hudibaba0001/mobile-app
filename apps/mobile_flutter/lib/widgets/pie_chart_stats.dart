@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
+import '../design/app_theme.dart';
 import '../providers/travel_provider.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -87,15 +88,15 @@ class _PieChartStatsState extends State<PieChartStats>
           elevation: 2,
           shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(theme),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
                 SizedBox(
                   height: widget.height ?? 200,
                   child: AnimatedBuilder(
@@ -106,7 +107,7 @@ class _PieChartStatsState extends State<PieChartStats>
                   ),
                 ),
                 if (widget.showLegend) ...[
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
                   _buildLegend(theme, stats),
                 ],
               ],
@@ -123,10 +124,10 @@ class _PieChartStatsState extends State<PieChartStats>
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Icon(
             Icons.pie_chart,
@@ -134,7 +135,7 @@ class _PieChartStatsState extends State<PieChartStats>
             size: 24,
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,7 +248,7 @@ class _PieChartStatsState extends State<PieChartStats>
               : 0,
           isSelected: touchedIndex == 0,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         _buildLegendItem(
           theme,
           color: colorScheme.primary,
@@ -258,9 +259,9 @@ class _PieChartStatsState extends State<PieChartStats>
               : 0,
           isSelected: touchedIndex == 1,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -295,10 +296,10 @@ class _PieChartStatsState extends State<PieChartStats>
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border:
             isSelected ? Border.all(color: color.withValues(alpha: 0.3)) : null,
       ),
@@ -309,10 +310,10 @@ class _PieChartStatsState extends State<PieChartStats>
             height: 16,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(AppRadius.sm / 2),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               label,
@@ -357,14 +358,14 @@ class _PieChartStatsState extends State<PieChartStats>
             size: 64,
             color: colorScheme.outline.withValues(alpha: 0.5),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             AppLocalizations.of(context).chart_noDataAvailable,
             style: theme.textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             AppLocalizations.of(context).chart_startTracking,
             style: theme.textTheme.bodySmall?.copyWith(

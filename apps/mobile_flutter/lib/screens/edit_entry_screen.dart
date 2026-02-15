@@ -9,6 +9,7 @@ import '../services/travel_cache_service.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../design/app_theme.dart';
+import '../widgets/standard_app_bar.dart';
 
 /// Edit Entry screen for both travel and work entries.
 /// Features: Entry type switching, form validation, Material 3 theming.
@@ -422,13 +423,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context).edit_title),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-          tooltip: AppLocalizations.of(context).common_back,
-        ),
+      appBar: StandardAppBar(
+        title: AppLocalizations.of(context).edit_title,
+        onBack: () => context.pop(),
       ),
       body: Column(
         children: [
@@ -877,7 +874,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       AppLocalizations.of(context).edit_from,
                       style: theme.textTheme.labelMedium,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     TextFormField(
                       controller: travelEntry.fromController,
                       decoration: InputDecoration(
@@ -885,15 +882,15 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                             AppLocalizations.of(context).edit_departureHint,
                         prefixIcon: const Icon(Icons.my_location, size: 20),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
-                        contentPadding: const EdgeInsets.all(12),
+                        contentPadding: const EdgeInsets.all(AppSpacing.md),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               // Swap Route Button
               Container(
                 margin: const EdgeInsets.only(top: 20),
@@ -908,8 +905,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -918,7 +915,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       AppLocalizations.of(context).edit_to,
                       style: theme.textTheme.labelMedium,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     TextFormField(
                       controller: travelEntry.toController,
                       decoration: InputDecoration(
@@ -926,9 +923,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                             AppLocalizations.of(context).edit_destinationHint,
                         prefixIcon: const Icon(Icons.location_on, size: 20),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
-                        contentPadding: const EdgeInsets.all(12),
+                        contentPadding: const EdgeInsets.all(AppSpacing.md),
                       ),
                     ),
                   ],
@@ -950,7 +947,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       AppLocalizations.of(context).edit_hours,
                       style: theme.textTheme.labelMedium,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     TextFormField(
                       controller: travelEntry.durationHoursController,
                       keyboardType: TextInputType.number,
@@ -962,15 +959,15 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       decoration: InputDecoration(
                         hintText: '0',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
-                        contentPadding: const EdgeInsets.all(12),
+                        contentPadding: const EdgeInsets.all(AppSpacing.md),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -979,7 +976,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       AppLocalizations.of(context).edit_minutes,
                       style: theme.textTheme.labelMedium,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     TextFormField(
                       controller: travelEntry.durationMinutesController,
                       keyboardType: TextInputType.number,
@@ -991,15 +988,15 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       decoration: InputDecoration(
                         hintText: '0',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
-                        contentPadding: const EdgeInsets.all(12),
+                        contentPadding: const EdgeInsets.all(AppSpacing.md),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1008,13 +1005,13 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       AppLocalizations.of(context).edit_total,
                       style: theme.textTheme.labelMedium,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Container(
                       height: 48,
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerHighest
                             .withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                         border: Border.all(
                           color:
                               theme.colorScheme.outline.withValues(alpha: 0.5),
@@ -1043,13 +1040,13 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   Widget _buildShiftRow(ThemeData theme, _Shift shift) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withValues(alpha: 0.04),
         border: Border.all(
           color: theme.colorScheme.primary.withValues(alpha: 0.2),
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(
         children: [
@@ -1079,7 +1076,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       AppLocalizations.of(context).edit_startTime,
                       style: theme.textTheme.labelMedium,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     TextFormField(
                       controller: shift.startTimeController,
                       readOnly: true,
@@ -1089,22 +1086,22 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                         hintText: AppLocalizations.of(context).edit_selectTime,
                         suffixIcon: const Icon(Icons.access_time),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
-                        contentPadding: const EdgeInsets.all(12),
+                        contentPadding: const EdgeInsets.all(AppSpacing.md),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Text(
                 AppLocalizations.of(context).edit_toLabel,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1113,7 +1110,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       AppLocalizations.of(context).edit_endTime,
                       style: theme.textTheme.labelMedium,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     TextFormField(
                       controller: shift.endTimeController,
                       readOnly: true,
@@ -1123,9 +1120,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                         hintText: AppLocalizations.of(context).edit_selectTime,
                         suffixIcon: const Icon(Icons.access_time),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
-                        contentPadding: const EdgeInsets.all(12),
+                        contentPadding: const EdgeInsets.all(AppSpacing.md),
                       ),
                     ),
                   ],
@@ -1140,7 +1137,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   Widget _buildSaveBar(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
@@ -1162,12 +1159,12 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           //     style: OutlinedButton.styleFrom(
           //       minimumSize: const Size(0, 48),
           //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(12),
+          //         borderRadius: BorderRadius.circular(AppRadius.md),
           //       ),
           //     ),
           //   ),
           // ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           // Save and Cancel buttons
           Row(
             children: [
@@ -1177,13 +1174,13 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 48),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                   ),
                   child: Text(AppLocalizations.of(context).edit_cancel),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
@@ -1193,7 +1190,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     foregroundColor: theme.colorScheme.onPrimary,
                     minimumSize: const Size(0, 48),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                   ),
                   child: _isSaving
@@ -1203,7 +1200,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                                AlwaysStoppedAnimation<Color>(AppColors.neutral50),
                           ),
                         )
                       : Text(AppLocalizations.of(context).edit_save),
@@ -1325,3 +1322,4 @@ class _Shift {
     endTimeController.dispose();
   }
 }
+

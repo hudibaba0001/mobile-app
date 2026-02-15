@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
+import '../design/app_theme.dart';
 import '../models/entry.dart';
 import '../providers/local_entry_provider.dart';
 import '../services/supabase_auth_service.dart';
@@ -78,7 +79,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
     final isTravel = widget.entryType == EntryType.travel;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -100,7 +101,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                         : theme.colorScheme.secondary,
                     size: 28,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Text(
                     isTravel
                         ? t.entry_logTravelEntry
@@ -116,11 +117,11 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
 
               // Date Selection
               _buildDateTimeSection(theme),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
               // Location fields for travel
               if (isTravel) ...[
@@ -139,7 +140,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
                 TextFormField(
                   controller: _toController,
                   decoration: InputDecoration(
@@ -155,7 +156,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
               ],
 
               // Duration Section
@@ -165,7 +166,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
                   Expanded(
@@ -186,7 +187,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                       },
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: TextFormField(
                       controller: _minutesController,
@@ -207,7 +208,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
 
               // Notes Section
               TextFormField(
@@ -221,7 +222,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                 maxLines: 3,
                 textCapitalization: TextCapitalization.sentences,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
 
               // Action Buttons
               Row(
@@ -232,7 +233,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                       child: Text(t.common_cancel),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _saveEntry,
@@ -268,18 +269,18 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Row(
           children: [
             Expanded(
               child: InkWell(
                 onTap: _selectDate,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     border: Border.all(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Row(
                     children: [
@@ -288,7 +289,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                         size: 20,
                         color: theme.colorScheme.primary,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
                         style: theme.textTheme.bodyMedium,
@@ -298,16 +299,16 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: InkWell(
                 onTap: _selectStartTime,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     border: Border.all(color: theme.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Row(
                     children: [
@@ -316,7 +317,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                         size: 20,
                         color: theme.colorScheme.primary,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Text(
                         _startTime.format(context),
                         style: theme.textTheme.bodyMedium,
@@ -375,7 +376,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.simpleEntry_validDuration),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
         return;
@@ -445,7 +446,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.simpleEntry_entrySaved(typeStr, actionStr)),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
         widget.onSaved?.call();
@@ -456,7 +457,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.edit_errorSaving(e.toString())),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }

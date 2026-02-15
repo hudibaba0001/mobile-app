@@ -6,6 +6,7 @@ import '../providers/contract_provider.dart';
 import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../design/app_theme.dart';
+import '../widgets/standard_app_bar.dart';
 
 /// Contract Settings screen with full ContractProvider integration
 /// Features: Contract percentage input, full-time hours input, live preview, validation
@@ -230,15 +231,11 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text(t.contract_title),
-        elevation: 0,
+      appBar: StandardAppBar(
+        title: t.contract_title,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => AppRouter.goBackOrHome(context),
-        ),
+        onBack: () => AppRouter.goBackOrHome(context),
         actions: [
           TextButton(
             onPressed: _isFormValid ? _saveSettings : null,
@@ -793,8 +790,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       _validateForm();
                     },
                     constraints: const BoxConstraints(
-                      minWidth: 52,
-                      minHeight: 52,
+                      minWidth: 44,
+                      minHeight: 48,
                     ),
                     selectedColor: colorScheme.onPrimary,
                     fillColor: _isDeficit ? AppColors.error : AppColors.success,
@@ -815,7 +812,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: AppSpacing.lg),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Row(
                     children: [
