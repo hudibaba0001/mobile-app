@@ -37,6 +37,7 @@ class EntryProvider extends ChangeNotifier {
   // Hive box for local cache (Entry objects directly)
   static const String _entriesBoxName = 'entries_cache';
   Box<Entry>? _entriesBox;
+  Future<void>? _activeLoadEntriesFuture;
 
   late final Future<void> _syncQueueReady;
 
@@ -121,7 +122,20 @@ class EntryProvider extends ChangeNotifier {
     await loadEntries();
   }
 
-  Future<void> loadEntries() async {
+  Future<void> loadEntries() {
+    final inFlight = _activeLoadEntriesFuture;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = _loadEntriesInternal();
+    _activeLoadEntriesFuture = future.whenComplete(() {
+      _activeLoadEntriesFuture = null;
+    });
+    return _activeLoadEntriesFuture!;
+  }
+
+  Future<void> _loadEntriesInternal() async {
     _isLoading = true;
     notifyListeners();
 
@@ -132,21 +146,23 @@ class EntryProvider extends ChangeNotifier {
         _entries = [];
         _filteredEntries = [];
         _pendingOfflineOperations = 0;
-        _isLoading = false;
-        notifyListeners();
         return;
+      }
+
+      // Fast-path: show locally cached entries immediately while cloud sync runs.
+      final localEntries = await _loadFromLocalCache(userId);
+      if (localEntries.isNotEmpty) {
+        localEntries.sort((a, b) => b.date.compareTo(a.date));
+        _entries = localEntries;
+        _filteredEntries = List.from(_entries);
+        _error = null;
+        _pendingOfflineOperations = _syncQueue.pendingCountForUser(userId);
+        notifyListeners();
       }
 
       // PRIMARY: Load from Supabase (cloud storage)
       List<Entry> supabaseEntries = [];
       try {
-        // Test connection first
-        final connectionOk = await _supabaseService.testConnection();
-        if (!connectionOk) {
-          debugPrint(
-              'EntryProvider: ⚠️ Supabase connection test failed, will use local cache');
-        }
-
         debugPrint('EntryProvider: Loading entries from Supabase...');
         supabaseEntries = await _supabaseService.getAllEntries(userId);
         debugPrint(
@@ -156,13 +172,12 @@ class EntryProvider extends ChangeNotifier {
         if (supabaseEntries.isEmpty) {
           debugPrint(
               'EntryProvider: Supabase is empty, checking local cache...');
-          final localEntries = await _loadFromLocalCache(userId);
           debugPrint(
               'EntryProvider: Found ${localEntries.length} entries in local cache');
 
           if (localEntries.isNotEmpty) {
             debugPrint(
-                'EntryProvider: 🔄 Starting sync of ${localEntries.length} local entries to Supabase...');
+                'EntryProvider: Starting sync of ${localEntries.length} local entries to Supabase...');
             int syncedCount = 0;
             int failedCount = 0;
 
@@ -174,11 +189,11 @@ class EntryProvider extends ChangeNotifier {
                 await _supabaseService.addEntry(entry);
                 syncedCount++;
                 debugPrint(
-                    'EntryProvider: ✅ Successfully synced entry ${entry.id} to Supabase');
+                    'EntryProvider: Successfully synced entry ${entry.id} to Supabase');
               } catch (e) {
                 failedCount++;
                 debugPrint(
-                    'EntryProvider: ❌ Failed to sync entry ${entry.id}: $e');
+                    'EntryProvider: Failed to sync entry ${entry.id}: $e');
                 // Continue with other entries even if one fails
               }
             }
@@ -192,21 +207,20 @@ class EntryProvider extends ChangeNotifier {
                   'EntryProvider: Reloading entries from Supabase after sync...');
               supabaseEntries = await _supabaseService.getAllEntries(userId);
               debugPrint(
-                  'EntryProvider: ✅ Reloaded ${supabaseEntries.length} entries from Supabase after sync');
+                  'EntryProvider: Reloaded ${supabaseEntries.length} entries from Supabase after sync');
             } else {
               debugPrint(
-                  'EntryProvider: ⚠️ No entries were synced, using local cache');
+                  'EntryProvider: No entries were synced, using local cache');
               supabaseEntries = localEntries;
             }
           } else {
             debugPrint('EntryProvider: Local cache is also empty');
           }
         } else {
-          // Supabase has entries, but check if local has more (shouldn't happen, but just in case)
-          final localEntries = await _loadFromLocalCache(userId);
+          // Supabase has entries, but check if local has more (should not happen)
           if (localEntries.length > supabaseEntries.length) {
             debugPrint(
-                'EntryProvider: ⚠️ Local cache has more entries than Supabase, syncing...');
+                'EntryProvider: Local cache has more entries than Supabase, syncing...');
             final supabaseIds = supabaseEntries.map((e) => e.id).toSet();
             final entriesToSync =
                 localEntries.where((e) => !supabaseIds.contains(e.id)).toList();
@@ -215,10 +229,10 @@ class EntryProvider extends ChangeNotifier {
               try {
                 await _supabaseService.addEntry(entry);
                 debugPrint(
-                    'EntryProvider: ✅ Synced missing entry ${entry.id} to Supabase');
+                    'EntryProvider: Synced missing entry ${entry.id} to Supabase');
               } catch (e) {
                 debugPrint(
-                    'EntryProvider: ❌ Failed to sync entry ${entry.id}: $e');
+                    'EntryProvider: Failed to sync entry ${entry.id}: $e');
               }
             }
 
@@ -231,10 +245,16 @@ class EntryProvider extends ChangeNotifier {
         await _syncToLocalCache(supabaseEntries, userId);
       } catch (e) {
         debugPrint('EntryProvider: Error loading from Supabase: $e');
-        debugPrint('EntryProvider: Falling back to local cache...');
-
-        // FALLBACK: Load from local Hive cache if Supabase fails
-        supabaseEntries = await _loadFromLocalCache(userId);
+        if (localEntries.isEmpty) {
+          _entries = [];
+          _filteredEntries = [];
+          _error = 'Unable to load entries. Please try again.';
+        } else {
+          // Keep local data visible when cloud load fails.
+          _error = null;
+        }
+        _pendingOfflineOperations = _syncQueue.pendingCountForUser(userId);
+        return;
       }
 
       // Sort by date (most recent first)

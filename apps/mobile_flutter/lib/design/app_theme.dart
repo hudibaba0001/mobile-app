@@ -157,6 +157,9 @@ class AppColors {
   static const Color neutral300 = Color(0xFFD1D5DB);
   static const Color neutral400 = Color(0xFF9CA3AF);
   static const Color neutral500 = Color(0xFF6B7280);
+  // Dark-mode variant of neutral500 with WCAG AA contrast on darkSurface.
+  // Contrast against #121212: ~4.97:1
+  static const Color neutral500Dark = Color(0xFF7C8491);
   static const Color neutral600 = Color(0xFF4B5563);
   static const Color neutral700 = Color(0xFF374151);
   static const Color neutral800 = Color(0xFF1F2937);
@@ -170,6 +173,9 @@ class AppColors {
   // Gradient colors (Login/Auth screens)
   static const Color gradientStart = Color(0xFF7B68EE); // Medium slate blue
   static const Color gradientEnd = Color(0xFF6B5B95); // Purple haze
+
+  static Color mutedForeground(Brightness brightness) =>
+      brightness == Brightness.dark ? neutral500Dark : neutral500;
 }
 
 // =============================================================================
@@ -305,9 +311,11 @@ class AppThemeData {
       cardTheme: _buildCardTheme(scheme),
       inputDecorationTheme: _buildInputDecorationTheme(scheme),
       appBarTheme: _buildAppBarTheme(scheme.onSurface),
-      bottomNavigationBarTheme: _buildBottomNavigationBarTheme(),
+      bottomNavigationBarTheme:
+          _buildBottomNavigationBarTheme(Brightness.light),
       floatingActionButtonTheme: _buildFloatingActionButtonTheme(),
       dialogTheme: _buildDialogTheme(),
+      timePickerTheme: _buildTimePickerTheme(),
       snackBarTheme: _buildSnackBarTheme(),
       chipTheme: _buildChipTheme(),
       listTileTheme: _buildListTileTheme(AppColors.neutral700),
@@ -362,9 +370,10 @@ class AppThemeData {
       cardTheme: _buildCardTheme(scheme),
       inputDecorationTheme: _buildInputDecorationTheme(scheme),
       appBarTheme: _buildAppBarTheme(scheme.onSurface),
-      bottomNavigationBarTheme: _buildBottomNavigationBarTheme(),
+      bottomNavigationBarTheme: _buildBottomNavigationBarTheme(Brightness.dark),
       floatingActionButtonTheme: _buildFloatingActionButtonTheme(),
       dialogTheme: _buildDialogTheme(),
+      timePickerTheme: _buildTimePickerTheme(),
       snackBarTheme: _buildSnackBarTheme(),
       chipTheme: _buildChipTheme(),
       listTileTheme: _buildListTileTheme(AppColors.neutral200),
@@ -576,19 +585,20 @@ class AppThemeData {
     );
   }
 
-  static BottomNavigationBarThemeData _buildBottomNavigationBarTheme() {
-    return const BottomNavigationBarThemeData(
+  static BottomNavigationBarThemeData _buildBottomNavigationBarTheme(
+      Brightness brightness) {
+    return BottomNavigationBarThemeData(
       elevation: 8,
       backgroundColor: Colors.transparent,
       selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.neutral500,
+      unselectedItemColor: AppColors.mutedForeground(brightness),
       type: BottomNavigationBarType.fixed,
-      selectedLabelStyle: TextStyle(
+      selectedLabelStyle: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.2,
       ),
-      unselectedLabelStyle: TextStyle(
+      unselectedLabelStyle: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.2,
@@ -612,6 +622,27 @@ class AppThemeData {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
+    );
+  }
+
+  static TimePickerThemeData _buildTimePickerTheme() {
+    const pickerTextStyle = TextStyle(
+      fontSize: 52,
+      fontWeight: FontWeight.w500,
+      height: 1.0,
+      letterSpacing: 0,
+      fontFeatures: _tabularFigures,
+    );
+
+    return const TimePickerThemeData(
+      hourMinuteTextStyle: pickerTextStyle,
+      dayPeriodTextStyle: TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.w500,
+        height: 1.0,
+        letterSpacing: 0,
+      ),
+      timeSelectorSeparatorTextStyle: WidgetStatePropertyAll(pickerTextStyle),
     );
   }
 

@@ -15,8 +15,11 @@ class MapConfig {
   /// The token will have access to:
   /// - Directions API (for route calculation)
   /// - Geocoding API (for address to coordinates conversion)
-  static const String mapboxApiKey =
-      'pk.eyJ1IjoiZWtheXVuZ2VyaWNhMjgiLCJhIjoiY21qdGJldnpwMDBpYjNlczR6NXBueTh3ciJ9.WEa3vVzc6qKC6RE-UxUc9Q';
+  static const String mapboxApiKey = String.fromEnvironment(
+    'MAPBOX_API_KEY',
+    defaultValue:
+        'pk.eyJ1IjoiZWtheXVuZ2VyaWNhMjgiLCJhIjoiY21qdGJldnpwMDBpYjNlczR6NXBueTh3ciJ9.WEa3vVzc6qKC6RE-UxUc9Q',
+  );
 
   /// Check if the API key is configured
   static bool get isConfigured => mapboxApiKey != 'YOUR_MAPBOX_API_KEY';

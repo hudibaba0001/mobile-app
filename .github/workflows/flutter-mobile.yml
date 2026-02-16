@@ -13,7 +13,7 @@ on:
       - '.github/workflows/flutter-mobile.yml'
 
 jobs:
-  build:
+  build-mobile:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,7 +25,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.3'
+          flutter-version: '3.32.8'
           channel: 'stable'
 
       - name: Install dependencies
@@ -40,5 +40,29 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Setup release signing (optional)
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' }}
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=../upload-keystore.jks
+          EOF
+
+      - name: Build Android artifact
+        run: |
+          if [ -f android/key.properties ]; then
+            flutter build appbundle --release --target lib/main_prod.dart
+          else
+            flutter build apk --debug --target lib/main_prod.dart
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-android-build
+          path: |
+            apps/mobile_flutter/build/app/outputs/bundle/release/*.aab
+            apps/mobile_flutter/build/app/outputs/flutter-apk/*.apk

@@ -29,6 +29,7 @@ import 'services/supabase_absence_service.dart';
 import 'repositories/user_red_day_repository.dart';
 import 'services/admin_api_service.dart';
 import 'services/holiday_service.dart';
+import 'services/reminder_service.dart';
 import 'services/travel_cache_service.dart';
 import 'services/legacy_hive_migration_service.dart';
 import 'viewmodels/analytics_view_model.dart';
@@ -125,6 +126,10 @@ void main() async {
     await settingsProvider.loadFromCloud();
   }
 
+  final reminderService = ReminderService();
+  await reminderService.initialize();
+  await reminderService.applySettings(settingsProvider);
+
   // Create Supabase repository for locations
   final supabaseLocationRepo = SupabaseLocationRepository(supabase);
 
@@ -134,6 +139,7 @@ void main() async {
       localeProvider: localeProvider,
       contractProvider: contractProvider,
       settingsProvider: settingsProvider,
+      reminderService: reminderService,
       locationRepository: locationRepository,
       supabaseLocationRepo: supabaseLocationRepo,
       absenceBox: absenceBox,
@@ -148,6 +154,7 @@ class MyApp extends StatelessWidget {
   final LocaleProvider localeProvider;
   final ContractProvider contractProvider;
   final SettingsProvider settingsProvider;
+  final ReminderService reminderService;
   final LocationRepository locationRepository;
   final SupabaseLocationRepository supabaseLocationRepo;
   final Box<AbsenceEntry> absenceBox;
@@ -160,6 +167,7 @@ class MyApp extends StatelessWidget {
     required this.localeProvider,
     required this.contractProvider,
     required this.settingsProvider,
+    required this.reminderService,
     required this.locationRepository,
     required this.supabaseLocationRepo,
     required this.absenceBox,
@@ -176,6 +184,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<SettingsProvider>.value(
           value: settingsProvider,
         ),
+        Provider<ReminderService>.value(value: reminderService),
         // Network status provider (for offline/online detection)
         ChangeNotifierProvider(create: (_) => NetworkStatusProvider()),
         // Existing providers
@@ -429,7 +438,11 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
         );
     if (!mounted) return;
 
-    await context.read<SettingsProvider>().handleAuthUserChanged(currentUserId);
+    final settingsProvider = context.read<SettingsProvider>();
+    await settingsProvider.handleAuthUserChanged(currentUserId);
+    if (!mounted) return;
+
+    await context.read<ReminderService>().applySettings(settingsProvider);
     if (!mounted) return;
 
     await context.read<ContractProvider>().handleAuthUserChanged(currentUserId);

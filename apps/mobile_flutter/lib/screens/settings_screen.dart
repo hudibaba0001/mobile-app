@@ -11,6 +11,7 @@ import '../services/holiday_service.dart';
 import '../config/app_router.dart';
 import '../widgets/standard_app_bar.dart';
 import '../services/supabase_auth_service.dart';
+import '../services/reminder_service.dart';
 import '../widgets/add_red_day_dialog.dart';
 import '../models/user_red_day.dart';
 
@@ -581,6 +582,109 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  String _formatReminderTime(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) {
+    final time = TimeOfDay(
+      hour: settingsProvider.dailyReminderHour,
+      minute: settingsProvider.dailyReminderMinute,
+    );
+    final alwaysUse24Hour =
+        MediaQuery.maybeOf(context)?.alwaysUse24HourFormat ?? false;
+    return MaterialLocalizations.of(context).formatTimeOfDay(
+      time,
+      alwaysUse24HourFormat: alwaysUse24Hour,
+    );
+  }
+
+  Future<void> _syncReminderSchedule(BuildContext context) async {
+    final t = AppLocalizations.of(context);
+    final settingsProvider = context.read<SettingsProvider>();
+    final reminderService = context.read<ReminderService>();
+
+    if (settingsProvider.isDailyReminderEnabled) {
+      final granted = await reminderService.requestPermissions();
+      if (!granted) {
+        await settingsProvider.setDailyReminderEnabled(false);
+        await reminderService.cancelDailyReminder();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.settings_dailyReminderPermissionDenied)),
+          );
+        }
+        return;
+      }
+    }
+
+    await reminderService.applySettings(settingsProvider);
+  }
+
+  Future<void> _pickReminderTime(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: settingsProvider.dailyReminderHour,
+        minute: settingsProvider.dailyReminderMinute,
+      ),
+    );
+
+    if (picked == null) return;
+    await settingsProvider.setDailyReminderTime(
+      hour: picked.hour,
+      minute: picked.minute,
+    );
+
+    if (context.mounted) {
+      await _syncReminderSchedule(context);
+    }
+  }
+
+  Future<void> _editReminderText(
+    BuildContext context,
+    SettingsProvider settingsProvider,
+  ) async {
+    final t = AppLocalizations.of(context);
+    final controller =
+        TextEditingController(text: settingsProvider.dailyReminderText);
+
+    final text = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.settings_dailyReminderText),
+        content: TextField(
+          controller: controller,
+          maxLength: 120,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: t.settings_dailyReminderTextHint,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(t.common_cancel),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: Text(t.common_save),
+          ),
+        ],
+      ),
+    );
+
+    if (text == null) return;
+    await settingsProvider.setDailyReminderText(text);
+
+    if (context.mounted) {
+      await _syncReminderSchedule(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
@@ -780,6 +884,42 @@ class SettingsScreen extends StatelessWidget {
               value: settingsProvider.isTimeBalanceEnabled,
               onChanged: settingsProvider.setTimeBalanceEnabled,
             ),
+          ),
+
+          // Daily reminder (user-defined time and custom text)
+          ListTile(
+            leading: const Icon(Icons.notifications_active_outlined),
+            title: Text(t.settings_dailyReminder),
+            subtitle: Text(t.settings_dailyReminderDesc),
+            trailing: Switch(
+              value: settingsProvider.isDailyReminderEnabled,
+              onChanged: (value) async {
+                await settingsProvider.setDailyReminderEnabled(value);
+                if (context.mounted) {
+                  await _syncReminderSchedule(context);
+                }
+              },
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.schedule_outlined),
+            title: Text(t.settings_dailyReminderTime),
+            subtitle: Text(_formatReminderTime(context, settingsProvider)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _pickReminderTime(context, settingsProvider),
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: Text(t.settings_dailyReminderText),
+            subtitle: Text(
+              settingsProvider.dailyReminderText.trim().isEmpty
+                  ? t.settings_dailyReminderDefaultText
+                  : settingsProvider.dailyReminderText.trim(),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _editReminderText(context, settingsProvider),
           ),
 
           const Divider(),

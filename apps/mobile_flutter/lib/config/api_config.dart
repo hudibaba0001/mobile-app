@@ -1,12 +1,14 @@
+import 'supabase_config.dart';
+
 class ApiConfig {
   ApiConfig._();
 
-  // Current API URL (update with your Supabase Edge Functions URL if needed)
-  static const String functionBaseUrl =
-      'https://your-project-id.supabase.co/functions/v1';
-
-  // Future Custom Domain URL (after DNS setup)
-  // static const String functionBaseUrl = 'https://api.kviktime.se';
+  // Override in CI/prod with:
+  // --dart-define=SUPABASE_FUNCTIONS_URL=https://<project-ref>.supabase.co/functions/v1
+  static const String functionBaseUrl = String.fromEnvironment(
+    'SUPABASE_FUNCTIONS_URL',
+    defaultValue: '${SupabaseConfig.url}/functions/v1',
+  );
 
   // Add other API configuration constants here
   static const int timeoutSeconds = 30;

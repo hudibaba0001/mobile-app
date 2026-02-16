@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,6 +11,8 @@ import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 import '../config/external_links.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../providers/entry_provider.dart';
+import '../widgets/legal_document_dialog.dart';
 import '../widgets/standard_app_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -50,6 +53,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return Scaffold(body: Center(child: Text(t.profile_notSignedIn)));
     }
 
+    final rawName = (user.userMetadata?['full_name'] as String?)?.trim();
+    final displayName =
+        (rawName != null && rawName.isNotEmpty) ? rawName : (user.email ?? '—');
+    final email = user.email ?? '—';
+    final createdAt = DateTime.tryParse(user.createdAt);
+    final localeName = Localizations.localeOf(context).toString();
+    final memberSince = createdAt != null
+        ? DateFormat.yMMM(localeName).format(createdAt)
+        : t.common_unknown;
+
+    final entries = context.watch<EntryProvider>().entries;
+    final totalLoggedMinutes =
+        entries.fold<int>(0, (sum, entry) => sum + entry.totalDuration.inMinutes);
+    final totalLoggedHours = totalLoggedMinutes / 60.0;
+    final totalHoursLabel = totalLoggedHours >= 100
+        ? '${totalLoggedHours.toStringAsFixed(0)} h'
+        : '${totalLoggedHours.toStringAsFixed(1)} h';
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: StandardAppBar(
@@ -59,7 +80,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onBack: () => AppRouter.goBackOrHome(context),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.xl,
+          AppSpacing.md,
+          AppSpacing.xl,
+          AppSpacing.xl,
+        ),
         children: [
           if (_error != null)
             Padding(
@@ -74,16 +100,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-          // Profile Icon
-          Center(
-            child: Icon(
-              Icons.account_circle_outlined,
-              size: 96,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          _buildHeroHeader(
+            theme: theme,
+            t: t,
+            name: displayName,
+            email: email,
+            memberSince: memberSince,
+            totalHours: totalHoursLabel,
           ),
-
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xxl + AppSpacing.sm),
 
           // User Info Card
           Card(
@@ -107,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Name',
+                              t.profile_labelName,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -136,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Email',
+                        t.profile_labelEmail,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -198,22 +223,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
             title: Text(t.settings_privacy),
-            trailing: const Icon(Icons.open_in_new, size: 18),
-            onTap: () => launchUrl(
-              Uri.parse(ExternalLinks.privacyUrl),
-              mode: LaunchMode.externalApplication,
-            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => LegalDocumentDialog.showPrivacy(context),
           ),
 
           // Terms of Service
           ListTile(
             leading: const Icon(Icons.description_outlined),
             title: Text(t.settings_terms),
-            trailing: const Icon(Icons.open_in_new, size: 18),
-            onTap: () => launchUrl(
-              Uri.parse(ExternalLinks.termsUrl),
-              mode: LaunchMode.externalApplication,
-            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => LegalDocumentDialog.showTerms(context),
           ),
 
           // Contact Support
@@ -242,6 +261,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
           ),
 
+          // Admin section (only visible to admins)
+          FutureBuilder<bool>(
+            future: authService.isAdmin(),
+            builder: (context, snapshot) {
+              if (snapshot.data != true) return const SizedBox.shrink();
+              return Column(
+                children: [
+                  const Divider(),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: AppSpacing.lg,
+                      top: AppSpacing.sm,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Admin',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.people),
+                    title: const Text('Manage Users'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => AppRouter.goToAdminUsers(context),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.edit_document),
+                    title: const Text('Content Management'),
+                    subtitle: const Text('Legal docs & app messages'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => AppRouter.goToAdminContent(context),
+                  ),
+                ],
+              );
+            },
+          ),
+
           const Divider(),
 
           // Sign Out
@@ -266,6 +327,156 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onTap: () => _showDeleteAccountDialog(context, authService, t),
           ),
           const SizedBox(height: AppSpacing.xxl),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroHeader({
+    required ThemeData theme,
+    required AppLocalizations t,
+    required String name,
+    required String email,
+    required String memberSince,
+    required String totalHours,
+  }) {
+    final firstGlyph = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          constraints: const BoxConstraints(minHeight: 180),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.xxxl,
+          ),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppColors.gradientStart, AppColors.gradientEnd],
+            ),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gradientStart.withValues(alpha: 0.25),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: AppColors.neutral50,
+                  fontWeight: FontWeight.w700,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                email,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.neutral50.withValues(alpha: 0.9),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  _buildHeroBadge(
+                    theme,
+                    icon: Icons.calendar_month_outlined,
+                    label: t.profile_memberSince,
+                    value: memberSince,
+                  ),
+                  _buildHeroBadge(
+                    theme,
+                    icon: Icons.query_builder_outlined,
+                    label: t.profile_totalHoursLogged,
+                    value: totalHours,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: -34,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.neutral50, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.22),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                backgroundColor: theme.colorScheme.primaryContainer,
+                child: Text(
+                  firstGlyph,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeroBadge(
+    ThemeData theme, {
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm + 2,
+        vertical: AppSpacing.sm - 2,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.neutral50.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(
+          color: AppColors.neutral50.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppColors.neutral50.withValues(alpha: 0.95)),
+          const SizedBox(width: AppSpacing.xs + 2),
+          Text(
+            '$label: $value',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.neutral50,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );

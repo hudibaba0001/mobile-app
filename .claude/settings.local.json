@@ -10,7 +10,9 @@
       "Bash(del \"c:\\\\Users\\\\sanlo\\\\Documents\\\\GitHub\\\\mobile-app\\\\apps\\\\mobile_flutter\\\\ios\\\\Runner\\\\GoogleService-Info.plist\")",
       "Bash(git add:*)",
       "WebFetch(domain:www.kviktime.se)",
-      "mcp__supabase__search_docs"
+      "mcp__supabase__search_docs",
+      "Bash(flutter build:*)",
+      "WebFetch(domain:developers.google.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

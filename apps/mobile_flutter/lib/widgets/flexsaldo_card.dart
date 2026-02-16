@@ -80,16 +80,35 @@ class FlexsaldoCard extends StatelessWidget {
         final balanceColor =
             isPositive ? FlexsaldoColors.positive : FlexsaldoColors.negative;
 
-        // Format headline: Balance Today
-        final balanceTodayText = isPositive
-            ? '+${balanceTodayHours.toStringAsFixed(1)} h'
-            : '${balanceTodayHours.toStringAsFixed(1)} h';
-
         // Format monthly balance for secondary line
         final isMonthPositive = monthBalanceMinutes >= 0;
         // Format values for progress text (no "h" suffix - localization adds it)
         final workedText = (monthWorkedPlusCredited / 60.0).toStringAsFixed(1);
         final targetText = (monthTargetMinutesToDate / 60.0).toStringAsFixed(1);
+
+        Widget animatedSignedHours({
+          required double valueHours,
+          required TextStyle? style,
+          bool showPlusForPositive = true,
+          bool showPlusForZero = false,
+        }) {
+          return TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: valueHours),
+            duration: const Duration(milliseconds: 750),
+            curve: Curves.easeOutCubic,
+            builder: (context, animatedValue, child) {
+              final showPlus = animatedValue > 0 ||
+                  (showPlusForPositive &&
+                      showPlusForZero &&
+                      animatedValue == 0);
+              final prefix = showPlus ? '+' : '';
+              return Text(
+                '$prefix${animatedValue.toStringAsFixed(1)}h',
+                style: style,
+              );
+            },
+          );
+        }
 
         return Container(
           key: const Key('card_balance'),
@@ -148,8 +167,9 @@ class FlexsaldoCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Text(
-                    '${monthBalanceHours > 0 ? '+' : ''}${monthBalanceHours.toStringAsFixed(1)}h',
+                  const SizedBox(width: AppSpacing.xs),
+                  animatedSignedHours(
+                    valueHours: monthBalanceHours,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: isMonthPositive
                           ? FlexsaldoColors.positive
@@ -215,8 +235,9 @@ class FlexsaldoCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
-                  Text(
-                    balanceTodayText,
+                  animatedSignedHours(
+                    valueHours: balanceTodayHours,
+                    showPlusForZero: true,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: balanceColor,

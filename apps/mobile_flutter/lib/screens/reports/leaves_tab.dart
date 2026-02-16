@@ -184,7 +184,7 @@ class _LeavesTabState extends State<LeavesTab> {
               theme,
               colorScheme,
               icon: Icons.event_busy,
-              iconColor: AppColors.neutral500,
+              iconColor: AppColors.mutedForeground(theme.brightness),
               label: t.leave_unpaid,
               value: summary[AbsenceType.unpaid]!,
             ),
@@ -431,7 +431,7 @@ class _LeavesTabState extends State<LeavesTab> {
       case AbsenceType.unpaid:
         return _TypeInfo(
           icon: Icons.event_busy,
-          color: AppColors.neutral500,
+          color: AppColors.mutedForeground(Theme.of(context).brightness),
           label: t.leave_unpaid,
         );
     }

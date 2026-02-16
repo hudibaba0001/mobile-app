@@ -9,7 +9,7 @@ import '../config/app_config.dart';
 import '../config/supabase_config.dart';
 
 class BillingService extends ChangeNotifier {
-  static const String defaultProductId = 'kviktime_premium_monthly';
+  static const String defaultProductId = 'kviktime_susbcription';
 
   final InAppPurchase _inAppPurchase;
   final String productId;

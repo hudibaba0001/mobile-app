@@ -209,6 +209,30 @@ class AppLocalizationsSv extends AppLocalizations {
   String get settings_privacy => 'Integritetspolicy';
 
   @override
+  String get settings_dailyReminder => 'Daglig påminnelse';
+
+  @override
+  String get settings_dailyReminderDesc =>
+      'Få en påminnelse varje dag vid vald tid';
+
+  @override
+  String get settings_dailyReminderTime => 'Påminnelsetid';
+
+  @override
+  String get settings_dailyReminderText => 'Påminnelsetext';
+
+  @override
+  String get settings_dailyReminderTextHint =>
+      'Skriv ditt påminnelsemeddelande';
+
+  @override
+  String get settings_dailyReminderDefaultText => 'Dags att logga dina timmar';
+
+  @override
+  String get settings_dailyReminderPermissionDenied =>
+      'Behörighet för notiser krävs för påminnelser.';
+
+  @override
   String get contract_title => 'Anställningsinställningar';
 
   @override
@@ -1325,6 +1349,18 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get profile_editName => 'Redigera namn';
+
+  @override
+  String get profile_labelName => 'Namn';
+
+  @override
+  String get profile_labelEmail => 'E-post';
+
+  @override
+  String get profile_memberSince => 'Medlem sedan';
+
+  @override
+  String get profile_totalHoursLogged => 'Totalt loggade timmar';
 
   @override
   String get profile_nameUpdated => 'Namn uppdaterat';

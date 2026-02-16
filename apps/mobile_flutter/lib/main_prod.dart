@@ -28,6 +28,7 @@ import 'repositories/supabase_location_repository.dart';
 import 'services/supabase_absence_service.dart';
 import 'repositories/user_red_day_repository.dart';
 import 'services/holiday_service.dart';
+import 'services/reminder_service.dart';
 import 'services/travel_cache_service.dart';
 import 'services/legacy_hive_migration_service.dart';
 import 'repositories/location_repository.dart';
@@ -100,27 +101,32 @@ void main() async {
     await migrationService.migrateIfNeeded(userId);
   }
 
-  // Initialize LocaleProvider
+  // Initialize independent providers in parallel
   final localeProvider = LocaleProvider();
-  await localeProvider.init();
-
   final contractProvider = ContractProvider();
-  await contractProvider.init();
-
-  // If user is already authenticated, load contract settings from Supabase
-  if (userId != null) {
-    await contractProvider.loadFromSupabase();
-  }
-
   final settingsProvider = SettingsProvider();
-  await settingsProvider.init();
+  final reminderService = ReminderService();
+
+  await Future.wait([
+    localeProvider.init(),
+    contractProvider.init(),
+    settingsProvider.init(),
+    reminderService.initialize(),
+  ]);
 
   // Set up Supabase dependencies for settings (pull-before-push)
   final supabase = SupabaseConfig.client;
   settingsProvider.setSupabaseDeps(supabase, userId);
+
+  // Load cloud data in parallel if authenticated
   if (userId != null) {
-    await settingsProvider.loadFromCloud();
+    await Future.wait([
+      contractProvider.loadFromSupabase(),
+      settingsProvider.loadFromCloud(),
+    ]);
   }
+
+  await reminderService.applySettings(settingsProvider);
 
   // Create Supabase repository for locations
   final supabaseLocationRepo = SupabaseLocationRepository(supabase);
@@ -131,6 +137,7 @@ void main() async {
       localeProvider: localeProvider,
       contractProvider: contractProvider,
       settingsProvider: settingsProvider,
+      reminderService: reminderService,
       locationRepository: locationRepository,
       supabaseLocationRepo: supabaseLocationRepo,
       absenceBox: absenceBox,
@@ -145,6 +152,7 @@ class MyApp extends StatelessWidget {
   final LocaleProvider localeProvider;
   final ContractProvider contractProvider;
   final SettingsProvider settingsProvider;
+  final ReminderService reminderService;
   final LocationRepository locationRepository;
   final SupabaseLocationRepository supabaseLocationRepo;
   final Box<AbsenceEntry> absenceBox;
@@ -157,6 +165,7 @@ class MyApp extends StatelessWidget {
     required this.localeProvider,
     required this.contractProvider,
     required this.settingsProvider,
+    required this.reminderService,
     required this.locationRepository,
     required this.supabaseLocationRepo,
     required this.absenceBox,
@@ -173,6 +182,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<SettingsProvider>.value(
           value: settingsProvider,
         ),
+        Provider<ReminderService>.value(value: reminderService),
         // Network status provider (for offline/online detection)
         ChangeNotifierProvider(create: (_) => NetworkStatusProvider()),
         // Existing providers
@@ -410,7 +420,11 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
         );
     if (!mounted) return;
 
-    await context.read<SettingsProvider>().handleAuthUserChanged(currentUserId);
+    final settingsProvider = context.read<SettingsProvider>();
+    await settingsProvider.handleAuthUserChanged(currentUserId);
+    if (!mounted) return;
+
+    await context.read<ReminderService>().applySettings(settingsProvider);
     if (!mounted) return;
 
     await context.read<ContractProvider>().handleAuthUserChanged(currentUserId);

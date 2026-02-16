@@ -209,6 +209,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_privacy => 'Privacy Policy';
 
   @override
+  String get settings_dailyReminder => 'Daily reminder';
+
+  @override
+  String get settings_dailyReminderDesc =>
+      'Get a reminder at your chosen time every day';
+
+  @override
+  String get settings_dailyReminderTime => 'Reminder time';
+
+  @override
+  String get settings_dailyReminderText => 'Reminder text';
+
+  @override
+  String get settings_dailyReminderTextHint => 'Write your reminder message';
+
+  @override
+  String get settings_dailyReminderDefaultText => 'Time to log your hours';
+
+  @override
+  String get settings_dailyReminderPermissionDenied =>
+      'Notification permission is required for reminders.';
+
+  @override
   String get contract_title => 'Contract Settings';
 
   @override
@@ -1324,6 +1347,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profile_editName => 'Edit Name';
+
+  @override
+  String get profile_labelName => 'Name';
+
+  @override
+  String get profile_labelEmail => 'Email';
+
+  @override
+  String get profile_memberSince => 'Member since';
+
+  @override
+  String get profile_totalHoursLogged => 'Total hours logged';
 
   @override
   String get profile_nameUpdated => 'Name updated successfully';

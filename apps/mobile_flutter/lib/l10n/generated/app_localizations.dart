@@ -452,6 +452,48 @@ abstract class AppLocalizations {
   /// **'Privacy Policy'**
   String get settings_privacy;
 
+  /// No description provided for @settings_dailyReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder'**
+  String get settings_dailyReminder;
+
+  /// No description provided for @settings_dailyReminderDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a reminder at your chosen time every day'**
+  String get settings_dailyReminderDesc;
+
+  /// No description provided for @settings_dailyReminderTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get settings_dailyReminderTime;
+
+  /// No description provided for @settings_dailyReminderText.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder text'**
+  String get settings_dailyReminderText;
+
+  /// No description provided for @settings_dailyReminderTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your reminder message'**
+  String get settings_dailyReminderTextHint;
+
+  /// No description provided for @settings_dailyReminderDefaultText.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to log your hours'**
+  String get settings_dailyReminderDefaultText;
+
+  /// No description provided for @settings_dailyReminderPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission is required for reminders.'**
+  String get settings_dailyReminderPermissionDenied;
+
   /// No description provided for @contract_title.
   ///
   /// In en, this message translates to:
@@ -2401,6 +2443,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Name'**
   String get profile_editName;
+
+  /// No description provided for @profile_labelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get profile_labelName;
+
+  /// No description provided for @profile_labelEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get profile_labelEmail;
+
+  /// No description provided for @profile_memberSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Member since'**
+  String get profile_memberSince;
+
+  /// No description provided for @profile_totalHoursLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Total hours logged'**
+  String get profile_totalHoursLogged;
 
   /// No description provided for @profile_nameUpdated.
   ///

@@ -14,16 +14,28 @@ class SettingsProvider extends ChangeNotifier {
   bool _isFirstLaunch = true;
   bool _isTravelLoggingEnabled = true;
   bool _isTimeBalanceEnabled = true;
+  bool _isDailyReminderEnabled = false;
+  int _dailyReminderHour = 17;
+  int _dailyReminderMinute = 0;
+  String _dailyReminderText = '';
 
   static const String _darkModeKey = 'isDarkMode';
   static const String _firstLaunchKey = 'isFirstLaunch';
   static const String _travelLoggingEnabledKey = 'enableTravelLogging';
   static const String _timeBalanceEnabledKey = 'enableTimeBalance';
+  static const String _dailyReminderEnabledKey = 'dailyReminderEnabled';
+  static const String _dailyReminderHourKey = 'dailyReminderHour';
+  static const String _dailyReminderMinuteKey = 'dailyReminderMinute';
+  static const String _dailyReminderTextKey = 'dailyReminderText';
 
   bool get isDarkMode => _isDarkMode;
   bool get isFirstLaunch => _isFirstLaunch;
   bool get isTravelLoggingEnabled => _isTravelLoggingEnabled;
   bool get isTimeBalanceEnabled => _isTimeBalanceEnabled;
+  bool get isDailyReminderEnabled => _isDailyReminderEnabled;
+  int get dailyReminderHour => _dailyReminderHour;
+  int get dailyReminderMinute => _dailyReminderMinute;
+  String get dailyReminderText => _dailyReminderText;
   bool get isInitialized => _isInitialized;
 
   /// Set Supabase dependencies for cloud sync.
@@ -48,6 +60,10 @@ class SettingsProvider extends ChangeNotifier {
     _isDarkMode = false;
     _isTravelLoggingEnabled = true;
     _isTimeBalanceEnabled = true;
+    _isDailyReminderEnabled = false;
+    _dailyReminderHour = 17;
+    _dailyReminderMinute = 0;
+    _dailyReminderText = '';
   }
 
   void _loadLocalCacheForCurrentUser() {
@@ -64,6 +80,29 @@ class SettingsProvider extends ChangeNotifier {
       _scopedKey(_timeBalanceEnabledKey),
       defaultValue: _isTimeBalanceEnabled,
     );
+    _isDailyReminderEnabled = _settingsBox!.get(
+      _scopedKey(_dailyReminderEnabledKey),
+      defaultValue: _isDailyReminderEnabled,
+    );
+    final savedHour = _settingsBox!.get(
+      _scopedKey(_dailyReminderHourKey),
+      defaultValue: _dailyReminderHour,
+    );
+    final savedMinute = _settingsBox!.get(
+      _scopedKey(_dailyReminderMinuteKey),
+      defaultValue: _dailyReminderMinute,
+    );
+    if (savedHour is int && savedHour >= 0 && savedHour <= 23) {
+      _dailyReminderHour = savedHour;
+    }
+    if (savedMinute is int && savedMinute >= 0 && savedMinute <= 59) {
+      _dailyReminderMinute = savedMinute;
+    }
+    _dailyReminderText = _settingsBox!.get(
+          _scopedKey(_dailyReminderTextKey),
+          defaultValue: _dailyReminderText,
+        ) ??
+        '';
   }
 
   Future<void> init() async {
@@ -181,6 +220,38 @@ class SettingsProvider extends ChangeNotifier {
       await _settingsBox!.put(_scopedKey(_timeBalanceEnabledKey), value);
     }
     _syncToCloud();
+    notifyListeners();
+  }
+
+  Future<void> setDailyReminderEnabled(bool value) async {
+    _isDailyReminderEnabled = value;
+    if (_settingsBox != null) {
+      await _settingsBox!.put(_scopedKey(_dailyReminderEnabledKey), value);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setDailyReminderTime({
+    required int hour,
+    required int minute,
+  }) async {
+    if (hour < 0 || hour > 23) return;
+    if (minute < 0 || minute > 59) return;
+
+    _dailyReminderHour = hour;
+    _dailyReminderMinute = minute;
+    if (_settingsBox != null) {
+      await _settingsBox!.put(_scopedKey(_dailyReminderHourKey), hour);
+      await _settingsBox!.put(_scopedKey(_dailyReminderMinuteKey), minute);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setDailyReminderText(String value) async {
+    _dailyReminderText = value;
+    if (_settingsBox != null) {
+      await _settingsBox!.put(_scopedKey(_dailyReminderTextKey), value);
+    }
     notifyListeners();
   }
 }

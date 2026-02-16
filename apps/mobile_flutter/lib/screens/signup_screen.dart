@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '../config/app_router.dart';
 import '../design/app_theme.dart';
 import '../l10n/generated/app_localizations.dart';
-import '../config/external_links.dart';
+import '../widgets/legal_document_dialog.dart';
 import '../services/entitlement_service.dart';
 import '../services/profile_service.dart';
 import '../services/supabase_auth_service.dart';
@@ -39,25 +37,6 @@ class _SignupScreenState extends State<SignupScreen> {
   static const _gradientStart = AppColors.gradientStart;
   static const _gradientEnd = AppColors.gradientEnd;
 
-  String? _validateBeforeSubmit(AppLocalizations t) {
-    final firstName = _firstNameController.text.trim();
-    final lastName = _lastNameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
-
-    if (firstName.isEmpty) return t.signup_firstNameRequired;
-    if (lastName.isEmpty) return t.signup_lastNameRequired;
-    if (email.isEmpty) return t.password_emailRequired;
-    if (!email.contains('@')) return t.password_emailInvalid;
-    if (password.isEmpty) return t.auth_passwordRequired;
-    if (!_isStrongPassword(password)) return t.signup_passwordStrongRequired;
-    if (confirmPassword.isEmpty) return t.signup_confirmPasswordRequired;
-    if (confirmPassword != password) return t.signup_passwordsDoNotMatch;
-    if (!_acceptedLegal) return t.signup_acceptLegalRequired;
-
-    return null;
-  }
 
   String _buildSignupErrorMessage(Object error) {
     final t = AppLocalizations.of(context);
@@ -97,18 +76,48 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _handleSignup() async {
+    // Guard against double-taps
+    if (_isLoading) return;
+
     final t = AppLocalizations.of(context);
-    final validationError = _validateBeforeSubmit(t);
-    if (validationError != null) {
-      _formKey.currentState?.validate();
-      setState(() {
-        _error = validationError;
-      });
+
+    // Collect all field values upfront
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    // --- All validation MUST pass before any network call ---
+    if (firstName.isEmpty) {
+      setState(() => _error = t.signup_firstNameRequired);
+      return;
+    }
+    if (lastName.isEmpty) {
+      setState(() => _error = t.signup_lastNameRequired);
+      return;
+    }
+    if (email.isEmpty || !email.contains('@')) {
+      setState(() => _error = t.password_emailInvalid);
+      return;
+    }
+    if (password.isEmpty || !_isStrongPassword(password)) {
+      setState(() => _error = t.signup_passwordStrongRequired);
+      return;
+    }
+    if (confirmPassword != password) {
+      setState(() => _error = t.signup_passwordsDoNotMatch);
+      return;
+    }
+    if (!_acceptedLegal) {
+      setState(() => _error = t.signup_acceptLegalRequired);
       return;
     }
 
+    // Show inline field errors too
     _formKey.currentState?.validate();
 
+    // Lock the UI immediately — no network calls can happen above this line
     setState(() {
       _isLoading = true;
       _error = null;
@@ -116,14 +125,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
     try {
       final authService = context.read<SupabaseAuthService>();
-      await authService.signUp(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+      await authService.signUp(email, password);
 
       await _entitlementService.bootstrapProfileAndPendingEntitlement(
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
+        firstName: firstName,
+        lastName: lastName,
       );
       await _profileService.acceptLegal();
 
@@ -336,12 +342,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                         TextButton(
                                           onPressed: _isLoading
                                               ? null
-                                              : () => launchUrl(
-                                                    Uri.parse(
-                                                        ExternalLinks.termsUrl),
-                                                    mode: LaunchMode
-                                                        .externalApplication,
-                                                  ),
+                                              : () => LegalDocumentDialog.showTerms(context),
                                           style: TextButton.styleFrom(
                                             minimumSize: Size.zero,
                                             padding: const EdgeInsets.symmetric(
@@ -372,12 +373,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                         TextButton(
                                           onPressed: _isLoading
                                               ? null
-                                              : () => launchUrl(
-                                                    Uri.parse(ExternalLinks
-                                                        .privacyUrl),
-                                                    mode: LaunchMode
-                                                        .externalApplication,
-                                                  ),
+                                              : () => LegalDocumentDialog.showPrivacy(context),
                                           style: TextButton.styleFrom(
                                             minimumSize: Size.zero,
                                             padding: const EdgeInsets.symmetric(

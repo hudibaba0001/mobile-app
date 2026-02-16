@@ -10,6 +10,7 @@ import '../screens/unified_home_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/reports_screen.dart';
 import '../screens/admin_users_screen.dart';
+import '../screens/admin_content_screen.dart';
 import '../screens/contract_settings_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/analytics_screen.dart';
@@ -32,6 +33,7 @@ class AppRouter {
   static const String reportsPath = '/reports';
   static const String historyPath = '/history';
   static const String adminUsersPath = '/admin/users';
+  static const String adminContentPath = '/admin/content';
   static const String analyticsPath = '/analytics';
   static const String contractSettingsPath = '/settings/contract';
   static const String profilePath = '/profile';
@@ -49,6 +51,7 @@ class AppRouter {
   static const String reportsName = 'reports';
   static const String historyName = 'history';
   static const String adminUsersName = 'admin-users';
+  static const String adminContentName = 'admin-content';
   static const String analyticsName = 'analytics';
   static const String contractSettingsName = 'contract-settings';
   static const String profileName = 'profile';
@@ -172,6 +175,11 @@ class AppRouter {
                 name: adminUsersName,
                 builder: (context, state) => const AdminUsersScreen(),
               ),
+              GoRoute(
+                path: 'admin/content',
+                name: adminContentName,
+                builder: (context, state) => const AdminContentScreen(),
+              ),
             ],
           ),
 
@@ -239,6 +247,8 @@ class AppRouter {
   static void goToReports(BuildContext context) => context.goNamed(reportsName);
   static void goToAdminUsers(BuildContext context) =>
       context.goNamed(adminUsersName);
+  static void goToAdminContent(BuildContext context) =>
+      context.goNamed(adminContentName);
   static void goToAnalytics(BuildContext context) =>
       context.goNamed(analyticsName);
   static void goToContractSettings(BuildContext context) =>

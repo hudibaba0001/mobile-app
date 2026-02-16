@@ -12,6 +12,7 @@ import 'dart:async';
 import '../models/entry.dart';
 import '../models/absence.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../config/app_router.dart';
 import '../models/autocomplete_suggestion.dart';
@@ -19,9 +20,11 @@ import '../models/autocomplete_suggestion.dart';
 import '../providers/entry_provider.dart';
 import '../providers/absence_provider.dart';
 import '../providers/location_provider.dart';
+import '../providers/network_status_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../widgets/app_message_banner.dart';
 import '../widgets/standard_app_bar.dart';
 
 extension StringExtension on String {
@@ -45,17 +48,40 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   List<_EntryData> _recentEntries = [];
   bool _isLoadingRecent = false;
   Timer? _recentLoadDebounce;
+  EntryProvider? _entryProvider;
+  AbsenceProvider? _absenceProvider;
 
   @override
   void dispose() {
     _recentLoadDebounce?.cancel();
+    _entryProvider?.removeListener(_onProviderDataChanged);
+    _absenceProvider?.removeListener(_onProviderDataChanged);
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final nextEntryProvider = context.read<EntryProvider>();
+    if (!identical(_entryProvider, nextEntryProvider)) {
+      _entryProvider?.removeListener(_onProviderDataChanged);
+      _entryProvider = nextEntryProvider;
+      _entryProvider?.addListener(_onProviderDataChanged);
+    }
+
+    final nextAbsenceProvider = context.read<AbsenceProvider>();
+    if (!identical(_absenceProvider, nextAbsenceProvider)) {
+      _absenceProvider?.removeListener(_onProviderDataChanged);
+      _absenceProvider = nextAbsenceProvider;
+      _absenceProvider?.addListener(_onProviderDataChanged);
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    // Always sync with Supabase on startup, then load recent entries
+    // Start loading data immediately; provider listeners keep recents in sync.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final entryProvider = context.read<EntryProvider>();
       final absenceProvider = context.read<AbsenceProvider>();
@@ -64,15 +90,17 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       absenceProvider.loadAbsences(year: DateTime.now().year);
 
       if (!entryProvider.isLoading) {
-        // Always load/sync with Supabase on login
-        entryProvider.loadEntries().then((_) {
-          // Reload recent entries after Supabase sync completes
-          _loadRecentEntries();
-        });
-      } else {
-        _loadRecentEntries();
+        // Kick off load/sync without blocking the initial render.
+        entryProvider.loadEntries();
       }
+
+      _loadRecentEntries();
     });
+  }
+
+  void _onProviderDataChanged() {
+    if (!mounted) return;
+    _loadRecentEntries();
   }
 
   void _loadRecentEntries() {
@@ -342,7 +370,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           const SizedBox(width: AppSpacing.md),
         ],
       ),
-      body: SingleChildScrollView(
+      body: Column(
+        children: [
+          const AppMessageBanner(),
+          Expanded(
+            child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
@@ -376,6 +408,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           ],
         ),
       ),
+          ),
+        ],
+      ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.lg + AppSpacing.xs),
@@ -408,6 +443,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     AppLocalizations t,
     bool travelEnabled,
   ) {
+    if (entryProvider.isLoading && entryProvider.entries.isEmpty) {
+      return _buildLoadingTotalCard(theme);
+    }
+
     // Calculate today's totals
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
@@ -552,6 +591,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     AppLocalizations t,
     bool travelEnabled,
   ) {
+    if (entryProvider.isLoading && entryProvider.entries.isEmpty) {
+      return _buildLoadingStatsCard(theme);
+    }
+
     // Calculate this week's totals
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
@@ -589,47 +632,45 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     return AppCard(
       padding: AppSpacing.cardPadding,
       color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Week label + total
-          Expanded(
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_today_rounded,
-                  size: AppIconSize.sm,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    t.common_thisWeek,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
-                    ),
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_today_rounded,
+                size: AppIconSize.sm,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  t.common_thisWeek,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(width: AppSpacing.xs),
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      formatHours(travelDuration + workDuration),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  formatHours(travelDuration + workDuration),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Flexible(
+          const SizedBox(height: AppSpacing.sm),
+          Align(
+            alignment: Alignment.centerRight,
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerRight,
@@ -684,6 +725,84 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
+  Widget _buildLoadingTotalCard(ThemeData theme) {
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.cardPadding,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.primary,
+            theme.colorScheme.primary.withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: AppRadius.cardRadius,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                _ShimmerBox(width: 72, height: 12),
+                SizedBox(height: AppSpacing.sm),
+                _ShimmerBox(width: 120, height: 34),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.15),
+              borderRadius: AppRadius.buttonRadius,
+            ),
+            child: const Row(
+              children: [
+                _ShimmerBox(width: 18, height: 18),
+                SizedBox(width: AppSpacing.xs),
+                _ShimmerBox(width: 42, height: 12),
+                SizedBox(width: AppSpacing.sm),
+                _ShimmerBox(width: 18, height: 18),
+                SizedBox(width: AppSpacing.xs),
+                _ShimmerBox(width: 42, height: 12),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingStatsCard(ThemeData theme) {
+    return AppCard(
+      padding: AppSpacing.cardPadding,
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      child: const Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                _ShimmerBox(width: 18, height: 18),
+                SizedBox(width: AppSpacing.sm),
+                Expanded(child: _ShimmerBox(height: 14)),
+                SizedBox(width: AppSpacing.sm),
+                _ShimmerBox(width: 56, height: 16),
+              ],
+            ),
+          ),
+          SizedBox(width: AppSpacing.md),
+          _ShimmerBox(width: 120, height: 36),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCompactStat(
     ThemeData theme, {
     required IconData icon,
@@ -722,6 +841,12 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Widget _buildRecentEntries(ThemeData theme, AppLocalizations t) {
+    final entryProvider = context.watch<EntryProvider>();
+    final networkStatus = context.watch<NetworkStatusProvider>();
+    final hasPendingSync = entryProvider.pendingSyncCount > 0;
+    final showCachedBadge = networkStatus.isOffline || hasPendingSync;
+    final showLoadingState = entryProvider.isLoading && _recentEntries.isEmpty;
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -765,6 +890,44 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   color: theme.colorScheme.onSurface,
                 ),
               ),
+              if (showCachedBadge) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.tertiaryContainer
+                        .withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    border: Border.all(
+                      color: theme.colorScheme.tertiary.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.cloud_off_rounded,
+                        size: 13,
+                        color: theme.colorScheme.onTertiaryContainer,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        networkStatus.isOffline
+                            ? t.network_offlineTooltip
+                            : t.network_pendingTooltip(
+                                entryProvider.pendingSyncCount),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onTertiaryContainer,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const Spacer(),
               GestureDetector(
                 onTap: () => AppRouter.goToHistory(context),
@@ -801,7 +964,43 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
-          if (_recentEntries.isEmpty)
+          if (showLoadingState)
+            ...List.generate(
+              3,
+              (_) => Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: AppRadius.buttonRadius,
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.12),
+                  ),
+                ),
+                child: const Row(
+                  children: [
+                    _ShimmerBox(width: 48, height: 48, circular: true),
+                    SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _ShimmerBox(height: 14),
+                          SizedBox(height: AppSpacing.xs),
+                          _ShimmerBox(height: 12, width: 180),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: AppSpacing.sm),
+                    _ShimmerBox(height: 14, width: 44),
+                  ],
+                ),
+              ),
+            )
+          else if (_recentEntries.isEmpty)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
@@ -870,6 +1069,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         lightColor = AppColors.secondaryLight;
         darkColor = AppColors.secondaryDark;
     }
+    final Color durationTextColor = theme.brightness == Brightness.dark
+        ? AppColors.neutral50.withValues(alpha: 0.95)
+        : darkColor;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -983,7 +1185,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   child: Text(
                     entry.duration,
                     style: theme.textTheme.labelMedium?.copyWith(
-                      color: darkColor,
+                      color: durationTextColor,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1280,6 +1482,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   title: Text(t.home_logTravel),
                   subtitle: Text(t.home_quickTravelEntry),
                   onTap: () {
+                    HapticFeedback.lightImpact();
                     Navigator.pop(sheetContext);
                     _startTravelEntry();
                   },
@@ -1289,6 +1492,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 title: Text(t.home_logWork),
                 subtitle: Text(t.home_quickWorkEntry),
                 onTap: () {
+                  HapticFeedback.lightImpact();
                   Navigator.pop(sheetContext);
                   _startWorkEntry();
                 },
@@ -1298,6 +1502,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                 title: Text(t.absence_addAbsence),
                 subtitle: Text(t.settings_absencesDesc),
                 onTap: () {
+                  HapticFeedback.lightImpact();
                   Navigator.pop(sheetContext);
                   _startAbsenceEntry();
                 },
@@ -1329,6 +1534,74 @@ class _EntryData {
     required this.icon,
     required this.date,
   });
+}
+
+class _ShimmerBox extends StatefulWidget {
+  final double? width;
+  final double height;
+  final bool circular;
+
+  const _ShimmerBox({
+    this.width,
+    required this.height,
+    this.circular = false,
+  });
+
+  @override
+  State<_ShimmerBox> createState() => _ShimmerBoxState();
+}
+
+class _ShimmerBoxState extends State<_ShimmerBox> {
+  double _begin = -1;
+  double _end = 1.6;
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor = Theme.of(context)
+        .colorScheme
+        .surfaceContainerHighest
+        .withValues(alpha: 0.45);
+    final highlightColor =
+        Theme.of(context).colorScheme.surface.withValues(alpha: 0.85);
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: _begin, end: _end),
+      duration: const Duration(milliseconds: 1100),
+      curve: Curves.linear,
+      onEnd: () {
+        if (!mounted) return;
+        setState(() {
+          final previousBegin = _begin;
+          _begin = _end;
+          _end = previousBegin;
+        });
+      },
+      builder: (context, value, child) {
+        return ClipRRect(
+          borderRadius: widget.circular
+              ? BorderRadius.circular(widget.height / 2)
+              : BorderRadius.circular(AppRadius.sm),
+          child: ShaderMask(
+            blendMode: BlendMode.srcATop,
+            shaderCallback: (bounds) {
+              return LinearGradient(
+                begin: Alignment(-1 + value, 0),
+                end: Alignment(value, 0),
+                colors: [baseColor, highlightColor, baseColor],
+                stops: const [0.1, 0.5, 0.9],
+              ).createShader(bounds);
+            },
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        width: widget.width,
+        height: widget.height,
+        color: baseColor,
+      ),
+    );
+  }
 }
 
 class _TravelEntryDialog extends StatefulWidget {
@@ -1574,6 +1847,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
   }
 
   void _addTrip() {
+    HapticFeedback.lightImpact();
     setState(() {
       // If there are existing trips, use the last destination as the new starting point
       String? lastDestination;
@@ -1731,24 +2005,30 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     const SizedBox(height: AppSpacing.lg),
 
                     // List of trips
-                    ..._trips.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final trip = entry.value;
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      child: Column(
+                        children: _trips.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final trip = entry.value;
 
-                      return Column(
-                        children: [
-                          if (index > 0) ...[
-                            const SizedBox(height: AppSpacing.lg),
-                            Container(
-                              height: 1,
-                              color: AppColors.neutral200,
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                          ],
-                          _buildTripRow(theme, index, trip),
-                        ],
-                      );
-                    }),
+                          return Column(
+                            children: [
+                              if (index > 0) ...[
+                                const SizedBox(height: AppSpacing.lg),
+                                Container(
+                                  height: 1,
+                                  color: AppColors.neutral200,
+                                ),
+                                const SizedBox(height: AppSpacing.lg),
+                              ],
+                              _buildTripRow(theme, index, trip),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
 
                     // Add trip button
                     const SizedBox(height: AppSpacing.lg),
@@ -2615,6 +2895,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
   }
 
   void _addShift() {
+    HapticFeedback.lightImpact();
     setState(() {
       _shifts.add(_ShiftData());
     });
@@ -2766,24 +3047,30 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     const SizedBox(height: AppSpacing.lg),
 
                     // List of shifts
-                    ..._shifts.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final shift = entry.value;
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      child: Column(
+                        children: _shifts.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final shift = entry.value;
 
-                      return Column(
-                        children: [
-                          if (index > 0) ...[
-                            const SizedBox(height: AppSpacing.lg),
-                            Container(
-                              height: 1,
-                              color: AppColors.neutral200,
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                          ],
-                          _buildShiftRow(theme, index, shift),
-                        ],
-                      );
-                    }),
+                          return Column(
+                            children: [
+                              if (index > 0) ...[
+                                const SizedBox(height: AppSpacing.lg),
+                                Container(
+                                  height: 1,
+                                  color: AppColors.neutral200,
+                                ),
+                                const SizedBox(height: AppSpacing.lg),
+                              ],
+                              _buildShiftRow(theme, index, shift),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
 
                     // Add shift button
                     const SizedBox(height: AppSpacing.lg),
@@ -3278,7 +3565,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.neutral700,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
@@ -3312,7 +3600,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               Icon(
                                 Icons.access_time,
                                 size: 16,
-                                color: AppColors.neutral600,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.neutral400
+                                    : AppColors.neutral600,
                               ),
                               const SizedBox(width: AppSpacing.sm),
                               Expanded(
@@ -3327,8 +3618,11 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                       ?.copyWith(
                                         color: shift.startTimeController.text
                                                 .isEmpty
-                                            ? AppColors.neutral500
-                                            : AppColors.neutral700,
+                                            ? AppColors.mutedForeground(
+                                                Theme.of(context).brightness)
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                       ),
                                 ),
                               ),
@@ -3349,7 +3643,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.neutral700,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
@@ -3382,7 +3677,10 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                               Icon(
                                 Icons.access_time,
                                 size: 16,
-                                color: AppColors.neutral600,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.neutral400
+                                    : AppColors.neutral600,
                               ),
                               const SizedBox(width: AppSpacing.sm),
                               Expanded(
@@ -3395,10 +3693,13 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                       .textTheme
                                       .bodyMedium
                                       ?.copyWith(
-                                        color:
-                                            shift.endTimeController.text.isEmpty
-                                                ? AppColors.neutral500
-                                                : AppColors.neutral700,
+                                        color: shift
+                                                .endTimeController.text.isEmpty
+                                            ? AppColors.mutedForeground(
+                                                Theme.of(context).brightness)
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                       ),
                                 ),
                               ),

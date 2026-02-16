@@ -91,6 +91,12 @@ export default function SignupPage() {
     e.preventDefault()
     setError(null)
 
+    // Validate terms and privacy acceptance
+    if (!formData.termsAccepted || !formData.privacyAccepted) {
+      setError('You must accept the Terms of Service and Privacy Policy to continue')
+      return
+    }
+
     // Validate password strength
     if (!passwordStrength.isValid) {
       setError('Please create a stronger password that meets all requirements')

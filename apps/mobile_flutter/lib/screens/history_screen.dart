@@ -449,6 +449,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
         isWorkEntry ? AppColors.success : AppColors.primaryLight;
     final Color darkColor =
         isWorkEntry ? FlexsaldoColors.positiveDark : AppColors.primaryDark;
+    final Color durationTextColor = theme.brightness == Brightness.dark
+        ? AppColors.neutral50.withValues(alpha: 0.95)
+        : darkColor;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -552,7 +555,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             child: Text(
                               _formatDuration(entry.totalDuration),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: darkColor,
+                                color: durationTextColor,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),

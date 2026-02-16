@@ -220,7 +220,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
     return KeyboardAwareFormContainer(
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+        ),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius:
@@ -262,7 +267,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.lg),
 
               // Date and Time Section
               isTravel
@@ -271,19 +276,21 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
               // Holiday Notice (if date is a public holiday)
               _buildHolidayNotice(theme),
-              const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
+              const SizedBox(height: AppSpacing.md),
 
               // Location Section: for Travel (multiple legs)
               if (isTravel) _buildTravelLegsSection(theme),
               if (!isTravel) _buildWorkLocationSection(theme),
-              const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
+              const SizedBox(height: AppSpacing.md),
 
               // Work-specific fields
               ...(!isTravel ? _buildWorkSpecificFields(theme) : []),
 
-              // Notes Section
-              _buildNotesSection(theme),
-              const SizedBox(height: AppSpacing.xl),
+              // Notes Section (travel only; work uses per-shift notes)
+              if (isTravel) ...[
+                _buildNotesSection(theme),
+                const SizedBox(height: AppSpacing.lg),
+              ],
 
               // Action Buttons
               _buildActionButtons(theme),
@@ -304,11 +311,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       children: [
         Text(
           AppLocalizations.of(context).entry_date,
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
             Expanded(
@@ -316,7 +323,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 onTap: _selectDate,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: const EdgeInsets.all(AppSpacing.sm + 2),
                   decoration: BoxDecoration(
                     border: Border.all(color: theme.colorScheme.outline),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -325,7 +332,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     children: [
                       Icon(
                         Icons.calendar_today,
-                        size: 20,
+                        size: 18,
                         color: theme.colorScheme.primary,
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -350,11 +357,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       children: [
         Text(
           AppLocalizations.of(context).form_dateTime,
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
             Expanded(
@@ -362,7 +369,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 onTap: _selectDate,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: const EdgeInsets.all(AppSpacing.sm + 2),
                   decoration: BoxDecoration(
                     border: Border.all(color: theme.colorScheme.outline),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -371,7 +378,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     children: [
                       Icon(
                         Icons.calendar_today,
-                        size: 20,
+                        size: 18,
                         color: theme.colorScheme.primary,
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -523,11 +530,17 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
         const SizedBox(height: AppSpacing.md),
         // Travel legs
-        ..._travelLegs.asMap().entries.map((entry) {
-          final index = entry.key;
-          final leg = entry.value;
-          return _buildTravelLegCard(theme, index, leg);
-        }),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          child: Column(
+            children: _travelLegs.asMap().entries.map((entry) {
+              final index = entry.key;
+              final leg = entry.value;
+              return _buildTravelLegCard(theme, index, leg);
+            }).toList(),
+          ),
+        ),
         const SizedBox(height: AppSpacing.md),
         // Add Another Travel button
         OutlinedButton.icon(
@@ -771,6 +784,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   void _addTravelLeg() {
+    HapticFeedback.lightImpact();
     setState(() {
       final previousLeg = _travelLegs.isNotEmpty ? _travelLegs.last : null;
       final newIndex = _travelLegs.length;
@@ -907,11 +921,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       children: [
         Text(
           AppLocalizations.of(context).form_workLocation,
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
         LocationSelector(
           labelText: AppLocalizations.of(context).entry_location,
           hintText: AppLocalizations.of(context).entry_locationHint,
@@ -929,7 +943,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           },
           prefixIcon: Icons.work,
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
         // Toggle for "Use location for all shifts"
         Row(
           children: [
@@ -973,6 +987,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   void _addShift() {
+    HapticFeedback.lightImpact();
     setState(() {
       // Use selected date instead of DateTime.now() to ensure shifts are on the correct date
       final baseDate = DateTime(
@@ -1045,21 +1060,45 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   List<Widget> _buildWorkSpecificFields(ThemeData theme) {
-    // TODO: Add widget tests for this functionality to ensure it's market-ready.
+    final t = AppLocalizations.of(context);
     return [
       Text(
-        AppLocalizations.of(context).form_workDetails,
+        t.form_workDetails,
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),
       ),
-      const SizedBox(height: AppSpacing.md),
-      Column(
-        children: _shifts.asMap().entries.map((entry) {
-          int index = entry.key;
-          Shift shift = entry.value;
-          return _buildShiftRow(theme, index, shift);
-        }).toList(),
+      const SizedBox(height: AppSpacing.sm),
+      Text(
+        t.edit_quickDuration,
+        style: theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w500,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
+        children: [
+          _buildQuickDurationChip(theme, 2),
+          _buildQuickDurationChip(theme, 4),
+          _buildQuickDurationChip(theme, 6),
+          _buildQuickDurationChip(theme, 8),
+          _buildCopyYesterdayChip(theme),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      AnimatedSize(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        child: Column(
+          children: _shifts.asMap().entries.map((entry) {
+            int index = entry.key;
+            Shift shift = entry.value;
+            return _buildShiftRow(theme, index, shift);
+          }).toList(),
+        ),
       ),
       const SizedBox(height: AppSpacing.md),
       // Add Another Shift button (only in create mode)
@@ -1097,8 +1136,168 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           ),
         ),
       ],
-      const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
+      const SizedBox(height: AppSpacing.md),
     ];
+  }
+
+  Widget _buildQuickDurationChip(ThemeData theme, int hours) {
+    return Material(
+      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          _applyQuickDuration(hours);
+        },
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: AppSpacing.xxxl,
+            minHeight: AppSpacing.xxxl,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.sm + 2,
+            ),
+            child: Center(
+              child: Text(
+                '+${hours}h',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCopyYesterdayChip(ThemeData theme) {
+    final t = AppLocalizations.of(context);
+    return Material(
+      color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          _copyYesterdayShiftTimes();
+        },
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: AppSpacing.xxxl,
+            minHeight: AppSpacing.xxxl,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm + 2,
+            ),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.content_copy_rounded,
+                    size: AppIconSize.xs,
+                    color: theme.colorScheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: AppSpacing.xs + 2),
+                  Text(
+                    t.edit_copyYesterday,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _applyQuickDuration(int hours) {
+    if (_shifts.isEmpty) {
+      _addShift();
+    }
+
+    final start = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      8,
+      0,
+    );
+
+    setState(() {
+      final shift = _shifts.first;
+      _shifts[0] = shift.copyWith(
+        start: start,
+        end: start.add(Duration(hours: hours)),
+      );
+    });
+  }
+
+  void _copyYesterdayShiftTimes() {
+    final t = AppLocalizations.of(context);
+    final entryProvider = context.read<EntryProvider>();
+    final yesterday = _selectedDate.subtract(const Duration(days: 1));
+
+    final yesterdayEntry = entryProvider.entries
+        .where((entry) =>
+            entry.type == EntryType.work &&
+            entry.date.year == yesterday.year &&
+            entry.date.month == yesterday.month &&
+            entry.date.day == yesterday.day &&
+            entry.shifts != null &&
+            entry.shifts!.isNotEmpty)
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    if (yesterdayEntry.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t.edit_noWorkEntryYesterday)),
+      );
+      return;
+    }
+
+    if (_shifts.isEmpty) {
+      _addShift();
+    }
+
+    final sourceShift = yesterdayEntry.first.shifts!.first;
+    final startTime = TimeOfDay.fromDateTime(sourceShift.start);
+    final endTime = TimeOfDay.fromDateTime(sourceShift.end);
+
+    setState(() {
+      final targetShift = _shifts.first;
+      _shifts[0] = targetShift.copyWith(
+        start: DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          startTime.hour,
+          startTime.minute,
+        ),
+        end: DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          endTime.hour,
+          endTime.minute,
+        ),
+      );
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(t.edit_copiedYesterdayShiftTimes)),
+    );
   }
 
   Widget _buildShiftRow(ThemeData theme, int index, Shift shift) {
@@ -1108,9 +1307,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     final workedMinutes = shift.workedMinutes;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1133,7 +1332,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   ),
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
 
             // Time selection row
             Row(
@@ -1143,7 +1342,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     onTap: () => _selectShiftStartTime(index),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                     child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
+                      padding: const EdgeInsets.all(AppSpacing.sm + 2),
                       decoration: BoxDecoration(
                         border: Border.all(color: theme.colorScheme.outline),
                         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -1171,7 +1370,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     onTap: () => _selectShiftEndTime(index),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                     child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
+                      padding: const EdgeInsets.all(AppSpacing.sm + 2),
                       decoration: BoxDecoration(
                         border: Border.all(color: theme.colorScheme.outline),
                         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -1195,7 +1394,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
 
             // Break control
             Text(
@@ -1234,7 +1433,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
             TextFormField(
               controller: _shiftBreakControllers[index] ??=
                   TextEditingController(
@@ -1244,6 +1443,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               decoration: InputDecoration(
                 labelText: t.form_minutes,
                 hintText: '0',
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm + 2,
+                ),
               ),
               onChanged: (value) {
                 final parsed = int.tryParse(value.trim()) ?? 0;
@@ -1255,7 +1459,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 });
               },
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
 
             // Computed values display
             Container(
@@ -1287,37 +1491,31 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Shift location
-            LocationSelector(
-              labelText: AppLocalizations.of(context).form_shiftLocation,
-              hintText: _useLocationForAllShifts && _workLocation != null
-                  ? AppLocalizations.of(context).form_sameAsDefault
-                  : AppLocalizations.of(context).form_shiftLocationHint,
-              // When toggle is ON and shift has no specific location, show default
-              initialValue: shift.location ??
-                  (_useLocationForAllShifts ? _workLocation : null),
-              onLocationSelected: (location) {
-                setState(() {
-                  // If user edits a shift location, toggle flips OFF
-                  if (_useLocationForAllShifts) {
-                    _useLocationForAllShifts = false;
-                  }
-                  // Only set shift.location if it's different from default (to allow null = use default)
-                  if (location != _workLocation) {
-                    _shifts[index] =
-                        _shifts[index].copyWith(location: location);
-                  } else {
-                    // If user selects the same as default, clear shift-specific location
-                    _shifts[index] = _shifts[index].copyWith(location: null);
-                  }
-                });
-              },
-              prefixIcon: Icons.location_on,
-              isRequired: false,
-            ),
             const SizedBox(height: AppSpacing.md),
+
+            if (!_useLocationForAllShifts) ...[
+              // Shift location
+              LocationSelector(
+                labelText: AppLocalizations.of(context).form_shiftLocation,
+                hintText: AppLocalizations.of(context).form_shiftLocationHint,
+                initialValue: shift.location,
+                onLocationSelected: (location) {
+                  setState(() {
+                    // Only set shift.location if it's different from default (to allow null = use default)
+                    if (location != _workLocation) {
+                      _shifts[index] =
+                          _shifts[index].copyWith(location: location);
+                    } else {
+                      // If user selects the same as default, clear shift-specific location
+                      _shifts[index] = _shifts[index].copyWith(location: null);
+                    }
+                  });
+                },
+                prefixIcon: Icons.location_on,
+                isRequired: false,
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
 
             // Shift notes (collapsed by default)
             _buildShiftNotesField(theme, index, shift),
@@ -1409,25 +1607,57 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   }
 
   Widget _buildNotesSection(ThemeData theme) {
+    final hasNotes = _notesController.text.trim().isNotEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          AppLocalizations.of(context).entry_notes,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
+        ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: EdgeInsets.zero,
+          initiallyExpanded: hasNotes,
+          title: Row(
+            children: [
+              Icon(
+                Icons.note_outlined,
+                size: AppIconSize.sm,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                AppLocalizations.of(context).entry_notes,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (!hasNotes) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  AppLocalizations.of(context).common_optional,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ],
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        TextFormField(
-          controller: _notesController,
-          decoration: InputDecoration(
-            hintText: AppLocalizations.of(context).entry_notesHint,
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.note),
-          ),
-          maxLines: 3,
-          textCapitalization: TextCapitalization.sentences,
+          children: [
+            const SizedBox(height: AppSpacing.xs),
+            TextFormField(
+              controller: _notesController,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context).entry_notesHint,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.note),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.md,
+                ),
+              ),
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+          ],
         ),
       ],
     );
@@ -1750,9 +1980,11 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         _selectedDate.day,
       );
 
-      final dayNotes = _notesController.text.trim().isEmpty
+      final dayNotes = widget.entryType == EntryType.work
           ? null
-          : _notesController.text.trim();
+          : (_notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim());
 
       if (widget.entryType == EntryType.work) {
         // WORK MODE: Save one Entry per shift (atomic entries)

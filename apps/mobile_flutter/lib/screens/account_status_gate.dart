@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/entitlement_service.dart';
@@ -9,10 +8,10 @@ import '../services/profile_service.dart';
 import '../models/user_profile.dart';
 import '../models/user_entitlement.dart';
 import '../providers/contract_provider.dart';
-import '../config/external_links.dart';
 import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../design/app_theme.dart';
+import '../widgets/legal_document_dialog.dart';
 import 'paywall_screen.dart';
 
 /// Gate screen that checks legal acceptance and subscription status
@@ -84,21 +83,21 @@ class _AccountStatusGateState extends State<AccountStatusGate>
         profile = await _profileService.fetchProfile();
       }
 
-      // Sync contract settings from Supabase profile
-      if (profile != null && mounted) {
-        final contractProvider = context.read<ContractProvider>();
-        await contractProvider.loadFromSupabase();
-      }
+      // Run remaining checks in parallel
+      final results = await Future.wait([
+        // Sync contract settings from Supabase profile
+        if (profile != null && mounted)
+          context.read<ContractProvider>().loadFromSupabase()
+        else
+          Future.value(null),
+        // Fetch legal versions
+        _profileService.fetchCurrentLegalVersions().catchError((_) => null),
+        // Fetch entitlement
+        _entitlementService.fetchCurrentEntitlement(),
+      ]);
 
-      LegalVersions? requiredLegalVersions;
-      try {
-        requiredLegalVersions =
-            await _profileService.fetchCurrentLegalVersions();
-      } catch (_) {
-        // If legal version lookup fails, fall back to current stored profile state.
-      }
-
-      final entitlement = await _entitlementService.fetchCurrentEntitlement();
+      final requiredLegalVersions = results[1] as LegalVersions?;
+      final entitlement = results[2] as UserEntitlement?;
 
       if (mounted) {
         setState(() {
@@ -192,18 +191,12 @@ class _AccountStatusGateState extends State<AccountStatusGate>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton(
-                    onPressed: () => launchUrl(
-                      Uri.parse(ExternalLinks.termsUrl),
-                      mode: LaunchMode.externalApplication,
-                    ),
+                    onPressed: () => LegalDocumentDialog.showTerms(context),
                     child: Text(t.settings_terms),
                   ),
                   const SizedBox(width: AppSpacing.lg),
                   TextButton(
-                    onPressed: () => launchUrl(
-                      Uri.parse(ExternalLinks.privacyUrl),
-                      mode: LaunchMode.externalApplication,
-                    ),
+                    onPressed: () => LegalDocumentDialog.showPrivacy(context),
                     child: Text(t.settings_privacy),
                   ),
                 ],
