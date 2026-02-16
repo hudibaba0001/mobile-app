@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../config/supabase_config.dart';
 import '../design/app_theme.dart';
-import '../widgets/standard_app_bar.dart';
 
 /// Admin screen for managing legal documents and app messages.
 class AdminContentScreen extends StatefulWidget {
@@ -32,8 +31,8 @@ class _AdminContentScreenState extends State<AdminContentScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: StandardAppBar(
-        title: 'Content Management',
+      appBar: AppBar(
+        title: const Text('Content Management'),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
