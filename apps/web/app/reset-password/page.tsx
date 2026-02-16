@@ -2,12 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+let _supabase: SupabaseClient | null = null
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  return _supabase
+}
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
@@ -21,6 +27,7 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     let cancelled = false
 
+    const supabase = getSupabase()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event) => {
         if (event === 'PASSWORD_RECOVERY' && !cancelled) {
@@ -105,7 +112,8 @@ export default function ResetPasswordPage() {
     setLoading(true)
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
+      const client = getSupabase()
+      const { error: updateError } = await client.auth.updateUser({
         password,
       })
 
@@ -114,7 +122,7 @@ export default function ResetPasswordPage() {
       }
 
       setSuccess(true)
-      await supabase.auth.signOut()
+      await client.auth.signOut()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update password.')
     } finally {

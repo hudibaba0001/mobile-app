@@ -2,12 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+let _supabase: SupabaseClient | null = null
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  return _supabase
+}
 
 export default function AccountPage() {
   const [email, setEmail] = useState('')
@@ -19,7 +25,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     // Check if user already has a session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    getSupabase().auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsLoggedIn(true)
         setEmail(session.user.email || '')
@@ -34,7 +40,7 @@ export default function AccountPage() {
     setLoading(true)
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await getSupabase().auth.signInWithPassword({
         email,
         password,
       })
@@ -56,7 +62,7 @@ export default function AccountPage() {
     setLoading(true)
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session } } = await getSupabase().auth.getSession()
       if (!session) {
         setIsLoggedIn(false)
         throw new Error('Session expired. Please sign in again.')
@@ -151,7 +157,7 @@ export default function AccountPage() {
             <button
               className="link"
               onClick={async () => {
-                await supabase.auth.signOut()
+                await getSupabase().auth.signOut()
                 setIsLoggedIn(false)
                 setPassword('')
               }}
