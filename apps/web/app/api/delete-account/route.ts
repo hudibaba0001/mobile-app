@@ -26,31 +26,30 @@ export async function DELETE(request: NextRequest) {
     const userId = user.id
     const supabase = createServiceRoleClient()
 
-    // Delete user data from all tables (order matters for foreign keys)
-    await supabase.from('travel_segments').delete().eq('entry_id',
-      supabase.from('entries').select('id').eq('user_id', userId)
-    ).throwOnError()
-
-    // Delete travel segments via entries
-    const { data: entryIds } = await supabase
+    // Delete child rows first (order matters for foreign keys)
+    const { data: entryIds, error: entryIdsError } = await supabase
       .from('entries')
       .select('id')
       .eq('user_id', userId)
 
+    if (entryIdsError) {
+      throw entryIdsError
+    }
+
     if (entryIds && entryIds.length > 0) {
       const ids = entryIds.map((e: { id: string }) => e.id)
-      await supabase.from('travel_segments').delete().in('entry_id', ids)
-      await supabase.from('work_shifts').delete().in('entry_id', ids)
+      await supabase.from('travel_segments').delete().in('entry_id', ids).throwOnError()
+      await supabase.from('work_shifts').delete().in('entry_id', ids).throwOnError()
     }
 
     // Delete entries
-    await supabase.from('entries').delete().eq('user_id', userId)
+    await supabase.from('entries').delete().eq('user_id', userId).throwOnError()
 
     // Delete absences
-    await supabase.from('absences').delete().eq('user_id', userId)
+    await supabase.from('absences').delete().eq('user_id', userId).throwOnError()
 
     // Delete profile
-    await supabase.from('profiles').delete().eq('id', userId)
+    await supabase.from('profiles').delete().eq('id', userId).throwOnError()
 
     // Delete storage files
     try {

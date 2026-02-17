@@ -58,10 +58,13 @@ class ProfileService {
     }
   }
 
-  /// Record that the user has accepted terms and privacy policy
+  /// Record that the user has accepted terms and privacy policy.
+  /// Throws if session is missing or the backend rejects the request.
   Future<UserProfile?> acceptLegal() async {
     final session = _supabase.auth.currentSession;
-    if (session == null) return null;
+    if (session == null) {
+      throw StateError('Cannot accept legal: no authenticated session');
+    }
 
     try {
       final uri = Uri.parse('$_apiBase/api/mobile/legal/accept');

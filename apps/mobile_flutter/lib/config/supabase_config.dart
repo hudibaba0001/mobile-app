@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseConfig {
@@ -24,9 +26,16 @@ class SupabaseConfig {
       );
     }
 
-    await Supabase.initialize(
-      url: url,
-      anonKey: anonKey,
-    );
+    // Timeout prevents the app from being stuck on the splash screen
+    // if token refresh hangs due to a slow or unavailable network.
+    try {
+      await Supabase.initialize(
+        url: url,
+        anonKey: anonKey,
+      ).timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      debugPrint(
+          'SupabaseConfig: initialization timed out – continuing without restored session');
+    }
   }
 }

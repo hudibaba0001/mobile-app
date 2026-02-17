@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,7 +10,6 @@ import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 import '../config/external_links.dart';
 import '../l10n/generated/app_localizations.dart';
-import '../providers/entry_provider.dart';
 import '../widgets/legal_document_dialog.dart';
 import '../widgets/standard_app_bar.dart';
 
@@ -25,6 +23,14 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String? _error;
   final _nameController = TextEditingController();
+
+  String _friendlyError(Object error) {
+    final raw = error.toString();
+    if (raw.startsWith('Exception: ')) {
+      return raw.substring('Exception: '.length);
+    }
+    return raw;
+  }
 
   @override
   void initState() {
@@ -57,19 +63,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final displayName =
         (rawName != null && rawName.isNotEmpty) ? rawName : (user.email ?? '—');
     final email = user.email ?? '—';
-    final createdAt = DateTime.tryParse(user.createdAt);
-    final localeName = Localizations.localeOf(context).toString();
-    final memberSince = createdAt != null
-        ? DateFormat.yMMM(localeName).format(createdAt)
-        : t.common_unknown;
-
-    final entries = context.watch<EntryProvider>().entries;
-    final totalLoggedMinutes =
-        entries.fold<int>(0, (sum, entry) => sum + entry.totalDuration.inMinutes);
-    final totalLoggedHours = totalLoggedMinutes / 60.0;
-    final totalHoursLabel = totalLoggedHours >= 100
-        ? '${totalLoggedHours.toStringAsFixed(0)} h'
-        : '${totalLoggedHours.toStringAsFixed(1)} h';
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -89,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           if (_error != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
               child: Text(
                 _error!,
                 style: Theme.of(context)
@@ -102,17 +95,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           _buildHeroHeader(
             theme: theme,
-            t: t,
             name: displayName,
             email: email,
-            memberSince: memberSince,
-            totalHours: totalHoursLabel,
           ),
           const SizedBox(height: AppSpacing.xxl + AppSpacing.sm),
 
           // User Info Card
           Card(
             elevation: 0,
+            margin: EdgeInsets.zero,
             color: theme.colorScheme.surfaceContainerHighest
                 .withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
@@ -334,11 +325,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildHeroHeader({
     required ThemeData theme,
-    required AppLocalizations t,
     required String name,
     required String email,
-    required String memberSince,
-    required String totalHours,
   }) {
     final firstGlyph = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
 
@@ -346,7 +334,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       clipBehavior: Clip.none,
       children: [
         Container(
-          constraints: const BoxConstraints(minHeight: 180),
+          constraints: const BoxConstraints(minHeight: 140),
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg,
             AppSpacing.lg,
@@ -389,25 +377,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: AppSpacing.md),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  _buildHeroBadge(
-                    theme,
-                    icon: Icons.calendar_month_outlined,
-                    label: t.profile_memberSince,
-                    value: memberSince,
-                  ),
-                  _buildHeroBadge(
-                    theme,
-                    icon: Icons.query_builder_outlined,
-                    label: t.profile_totalHoursLogged,
-                    value: totalHours,
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -444,41 +413,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHeroBadge(
-    ThemeData theme, {
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm + 2,
-        vertical: AppSpacing.sm - 2,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.neutral50.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(
-          color: AppColors.neutral50.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: AppColors.neutral50.withValues(alpha: 0.95)),
-          const SizedBox(width: AppSpacing.xs + 2),
-          Text(
-            '$label: $value',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: AppColors.neutral50,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -622,8 +556,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         setState(() => isDeleting = false);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                                t.settings_deleteAccountError(e.toString())),
+                            content: Text(t.settings_deleteAccountError(
+                                _friendlyError(e))),
                             backgroundColor: theme.colorScheme.error,
                           ),
                         );
@@ -650,7 +584,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (confirmed == true && context.mounted) {
-      await authService.signOut();
+      try {
+        await authService.signOut();
+      } catch (_) {}
       if (context.mounted) {
         context.go(AppRouter.loginPath);
       }

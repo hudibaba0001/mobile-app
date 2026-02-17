@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../config/app_config.dart';
 import '../config/external_links.dart';
 import '../config/supabase_config.dart';
 import 'auth_service.dart';
@@ -8,6 +11,12 @@ import 'auth_service.dart';
 class SupabaseAuthService extends ChangeNotifier implements AuthService {
   final _supabase = SupabaseConfig.client;
   bool _initialized = false;
+
+  String get _apiBase {
+    final configured = AppConfig.apiBase.trim();
+    if (configured.isNotEmpty) return configured;
+    return 'https://app.kviktime.se';
+  }
 
   // Callback for session expiry (UI can show re-auth dialog)
   Function()? onSessionExpired;
@@ -150,7 +159,7 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
   }
 
   // Sign up with email and password
-  Future<AuthResponse> signUp(String email, String password) async {
+  Future<AuthResponse> signUp(String email, String password, {String? firstName, String? lastName}) async {
     debugPrint('SupabaseAuthService: Attempting sign up');
 
     // Avoid repeatedly triggering signup emails for an already-created account.
@@ -189,35 +198,26 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     }
 
     try {
+      final fullName = [firstName, lastName]
+          .where((s) => s != null && s.trim().isNotEmpty)
+          .join(' ');
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
         emailRedirectTo: ExternalLinks.emailVerifiedUrl,
+        data: {
+          if (fullName.isNotEmpty) 'full_name': fullName,
+          'legal_accepted_at': DateTime.now().toUtc().toIso8601String(),
+        },
       );
 
-      // If signup flow did not create a session (email confirmation flows),
-      // attempt a password sign-in so in-app signup can continue.
-      if (response.session == null) {
+      // In email-confirmation mode Supabase returns user with null session.
+      // This is a successful sign-up and should be handled in UI as
+      // "check your inbox", not as a failure.
+      if (response.user != null && response.session == null) {
         debugPrint(
-            'SupabaseAuthService: Sign up created no session, attempting sign in');
-        try {
-          final signInResponse = await _supabase.auth.signInWithPassword(
-            email: email,
-            password: password,
-          );
-          debugPrint('SupabaseAuthService: Sign in after sign up successful');
-          return signInResponse;
-        } on AuthApiException catch (signInError) {
-          final code = signInError.code ?? '';
-          if (code == 'email_not_confirmed') {
-            throw AuthApiException(
-              'An account with this email already exists. Please sign in.',
-              statusCode: signInError.statusCode,
-              code: 'user_already_exists',
-            );
-          }
-          rethrow;
-        }
+            'SupabaseAuthService: Sign up successful, awaiting email confirmation');
+        return response;
       }
 
       debugPrint('SupabaseAuthService: Sign up successful');
@@ -338,14 +338,30 @@ class SupabaseAuthService extends ChangeNotifier implements AuthService {
     final session = currentSession;
     if (session == null) throw Exception('Not authenticated');
 
-    final uri = Uri.https('app.kviktime.se', '/api/delete-account');
+    final uri = Uri.parse('$_apiBase/api/delete-account');
     final response = await http.delete(uri, headers: {
       'Authorization': 'Bearer ${session.accessToken}',
       'Content-Type': 'application/json',
     });
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete account');
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String message = 'Failed to delete account';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          final backendError = decoded['error']?.toString().trim();
+          if (backendError != null && backendError.isNotEmpty) {
+            message = backendError;
+          }
+        } else if (response.body.trim().isNotEmpty) {
+          message = response.body.trim();
+        }
+      } catch (_) {
+        if (response.body.trim().isNotEmpty) {
+          message = response.body.trim();
+        }
+      }
+      throw Exception('Delete failed (${response.statusCode}): $message');
     }
   }
 

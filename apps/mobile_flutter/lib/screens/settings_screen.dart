@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import '../design/design.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -12,11 +13,17 @@ import '../config/app_router.dart';
 import '../widgets/standard_app_bar.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/reminder_service.dart';
+import '../services/crash_reporting_service.dart';
 import '../widgets/add_red_day_dialog.dart';
 import '../models/user_red_day.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  static const _enableCrashlyticsTestActions = bool.fromEnvironment(
+    'ENABLE_CRASHLYTICS_TEST_ACTIONS',
+    defaultValue: false,
+  );
 
   Widget _buildThemeModeSelector(
     BuildContext context,
@@ -695,6 +702,8 @@ class SettingsScreen extends StatelessWidget {
     final user = authService.currentUser;
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final showCrashlyticsTestActions =
+        !kReleaseMode || _enableCrashlyticsTestActions;
 
     return Scaffold(
       appBar: StandardAppBar(title: t.settings_title),
@@ -749,7 +758,10 @@ class SettingsScreen extends StatelessWidget {
 
           // Theme Settings
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -950,6 +962,56 @@ class SettingsScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go(AppRouter.absenceManagementPath),
           ),
+
+          if (showCrashlyticsTestActions) ...[
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.bug_report_outlined),
+              title: const Text('Crashlytics test (non-fatal)'),
+              subtitle: const Text('Send a non-fatal test event to Firebase'),
+              onTap: () async {
+                if (!CrashReportingService.isEnabled) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Crashlytics is disabled for this build.',
+                        ),
+                      ),
+                    );
+                  }
+                  return;
+                }
+
+                await CrashReportingService.sendTestNonFatal();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Crashlytics non-fatal event sent.'),
+                    ),
+                  );
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.warning_amber_outlined),
+              title: const Text('Crashlytics test (fatal crash)'),
+              subtitle: const Text('Force app crash to verify Crashlytics'),
+              onTap: () {
+                if (!CrashReportingService.isEnabled) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Crashlytics is disabled for this build.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                CrashReportingService.crashForTest();
+              },
+            ),
+          ],
 
           const SizedBox(height: AppSpacing.xxl),
         ],

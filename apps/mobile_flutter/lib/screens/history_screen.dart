@@ -345,8 +345,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
         ),
       ),
       onChanged: (value) {
@@ -454,7 +454,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         : darkColor;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -905,9 +905,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return Card(
             elevation: 1,
             margin: EdgeInsets.only(
-              bottom: shiftIndex < entry.shifts!.length - 1 ? 8 : 12,
-              left: 16,
-              right: 16,
+              bottom: shiftIndex < entry.shifts!.length - 1
+                  ? AppSpacing.sm
+                  : AppSpacing.md,
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -1028,7 +1028,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
         // Daily total line
         Container(
-          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+          margin: const EdgeInsets.only(bottom: AppSpacing.md),
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
@@ -1085,9 +1085,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return Card(
             elevation: 1,
             margin: EdgeInsets.only(
-              bottom: legIndex < entry.travelLegs!.length - 1 ? 8 : 12,
-              left: 16,
-              right: 16,
+              bottom: legIndex < entry.travelLegs!.length - 1
+                  ? AppSpacing.sm
+                  : AppSpacing.md,
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -1184,7 +1184,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
         // Daily total line
         Container(
-          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+          margin: const EdgeInsets.only(bottom: AppSpacing.md),
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),

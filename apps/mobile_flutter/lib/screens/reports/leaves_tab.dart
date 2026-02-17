@@ -124,9 +124,13 @@ class _LeavesTabState extends State<LeavesTab> {
 
     return Card(
       elevation: 0,
-      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      margin: EdgeInsets.zero,
+      color: colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        side: BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.12),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -142,10 +146,11 @@ class _LeavesTabState extends State<LeavesTab> {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
-                  t.leave_summary(year),
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  t.leave_summary(year).toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    letterSpacing: 1.2,
                     fontWeight: FontWeight.w600,
-                    color: colorScheme.primary,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -284,9 +289,11 @@ class _LeavesTabState extends State<LeavesTab> {
             ),
             const SizedBox(width: AppSpacing.sm),
             Text(
-              AppLocalizations.of(context).leave_recentLeaves,
-              style: theme.textTheme.titleMedium?.copyWith(
+              AppLocalizations.of(context).leave_recentLeaves.toUpperCase(),
+              style: theme.textTheme.labelSmall?.copyWith(
+                letterSpacing: 1.2,
                 fontWeight: FontWeight.w600,
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -295,9 +302,13 @@ class _LeavesTabState extends State<LeavesTab> {
         if (recentAbsences.isEmpty)
           Card(
             elevation: 0,
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            margin: EdgeInsets.zero,
+            color: colorScheme.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
+              side: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.12),
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.xxl),
@@ -345,11 +356,11 @@ class _LeavesTabState extends State<LeavesTab> {
     return Card(
       elevation: 0,
       color: colorScheme.surface,
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
-          color: colorScheme.outline.withValues(alpha: 0.2),
+          color: colorScheme.outline.withValues(alpha: 0.12),
         ),
       ),
       child: Padding(

@@ -125,13 +125,40 @@ class _SignupScreenState extends State<SignupScreen> {
 
     try {
       final authService = context.read<SupabaseAuthService>();
-      await authService.signUp(email, password);
-
-      await _entitlementService.bootstrapProfileAndPendingEntitlement(
+      final signUpResponse = await authService.signUp(
+        email,
+        password,
         firstName: firstName,
         lastName: lastName,
       );
-      await _profileService.acceptLegal();
+
+      if (signUpResponse.session == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(t.signup_errorEmailNotConfirmed),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        AppRouter.goToLogin(context, email: email);
+        return;
+      }
+
+      // Account created — now record legal acceptance.
+      // If this fails, sign out so the user doesn't end up half-registered.
+      try {
+        await _entitlementService.bootstrapProfileAndPendingEntitlement(
+          firstName: firstName,
+          lastName: lastName,
+        );
+        await _profileService.acceptLegal();
+      } catch (legalError) {
+        // Clean up: sign out to prevent access without legal acceptance
+        try {
+          await authService.signOut();
+        } catch (_) {}
+        rethrow;
+      }
 
       if (!mounted) return;
       context.go(AppRouter.homePath);
@@ -427,10 +454,12 @@ class _SignupScreenState extends State<SignupScreen> {
                             ],
                             const SizedBox(height: AppSpacing.xl),
                             ElevatedButton(
-                              onPressed: _isLoading ? null : _handleSignup,
+                              onPressed: (_isLoading || !_acceptedLegal) ? null : _handleSignup,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.neutral50,
                                 foregroundColor: _gradientStart,
+                                disabledBackgroundColor: AppColors.neutral50.withValues(alpha: 0.4),
+                                disabledForegroundColor: _gradientStart.withValues(alpha: 0.5),
                                 padding: const EdgeInsets.symmetric(
                                   vertical: AppSpacing.lg,
                                 ),

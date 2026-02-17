@@ -99,13 +99,9 @@ class _TrendsTabState extends State<TrendsTab> {
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
           // Monthly Comparison
-          Text(
-            t.trends_monthlyComparison.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w600,
-            ),
+          _buildSectionHeader(
+            theme,
+            t.trends_monthlyComparison,
           ),
           const SizedBox(height: AppSpacing.md),
           if (_absencesLoading || absenceProvider.isLoading)
@@ -168,13 +164,9 @@ class _TrendsTabState extends State<TrendsTab> {
           const SizedBox(height: AppSpacing.xl),
 
           // Weekly Hours Chart
-          Text(
-            AppLocalizations.of(context).trends_weeklyHours.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w600,
-            ),
+          _buildSectionHeader(
+            theme,
+            AppLocalizations.of(context).trends_weeklyHours,
           ),
           const SizedBox(height: AppSpacing.md),
           AspectRatio(
@@ -197,13 +189,9 @@ class _TrendsTabState extends State<TrendsTab> {
           const SizedBox(height: AppSpacing.xl),
 
           // Daily Trends
-          Text(
-            AppLocalizations.of(context).trends_dailyTrends.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w600,
-            ),
+          _buildSectionHeader(
+            theme,
+            AppLocalizations.of(context).trends_dailyTrends,
           ),
           const SizedBox(height: AppSpacing.md),
           ...(trendsData['dailyTrends'] as List<Map<String, dynamic>?>? ?? [])
@@ -580,13 +568,13 @@ class _TrendsTabState extends State<TrendsTab> {
     // Handle null dayData
     if (dayData == null) {
       return Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: AppSpacing.md),
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(
-            color: colorScheme.outline.withValues(alpha: 0.2),
+            color: colorScheme.outline.withValues(alpha: 0.12),
           ),
         ),
         child: Text(
@@ -604,13 +592,13 @@ class _TrendsTabState extends State<TrendsTab> {
     final totalHours = (dayData['totalHours'] as double?) ?? 0.0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.2),
+          color: colorScheme.outline.withValues(alpha: 0.12),
         ),
       ),
       child: Row(
@@ -681,6 +669,17 @@ class _TrendsTabState extends State<TrendsTab> {
     final date = DateTime(2024, 1, weekday);
     final shortName = DateFormat.E(localeTag).format(date);
     return shortName.isNotEmpty ? shortName[0].toUpperCase() : '?';
+  }
+
+  Widget _buildSectionHeader(ThemeData theme, String title) {
+    return Text(
+      title.toUpperCase(),
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+        letterSpacing: 1.2,
+        fontWeight: FontWeight.w600,
+      ),
+    );
   }
 }
 

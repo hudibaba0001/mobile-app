@@ -32,6 +32,7 @@ import 'services/holiday_service.dart';
 import 'services/reminder_service.dart';
 import 'services/travel_cache_service.dart';
 import 'services/legacy_hive_migration_service.dart';
+import 'services/crash_reporting_service.dart';
 import 'viewmodels/analytics_view_model.dart';
 import 'repositories/location_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -51,12 +52,32 @@ void _configureReleaseLogging() {
   debugPrint = (String? message, {int? wrapWidth}) {};
 }
 
+const _startupNetworkTimeout = Duration(seconds: 15);
+const _startupMigrationTimeout = Duration(seconds: 20);
+
 void main() async {
   // Add this line to use "clean" URLs
   usePathUrlStrategy();
 
   WidgetsFlutterBinding.ensureInitialized();
   _configureReleaseLogging();
+
+  await CrashReportingService.initialize(entrypoint: 'main');
+
+  try {
+    await _bootstrapAndRunApp();
+  } catch (error, stackTrace) {
+    await CrashReportingService.recordFatal(
+      error,
+      stackTrace,
+      reason: 'main_bootstrap_failed',
+    );
+    rethrow;
+  }
+}
+
+Future<void> _bootstrapAndRunApp() async {
+  await CrashReportingService.log('startup:bootstrap_begin');
 
   // Initialize Hive for local storage
   await Hive.initFlutter();
@@ -101,7 +122,17 @@ void main() async {
   final migrationService = LegacyHiveMigrationService();
   final userId = authService.currentUser?.id;
   if (userId != null) {
-    await migrationService.migrateIfNeeded(userId);
+    try {
+      await migrationService
+          .migrateIfNeeded(userId)
+          .timeout(_startupMigrationTimeout);
+    } catch (error, stackTrace) {
+      await CrashReportingService.recordNonFatal(
+        error,
+        stackTrace,
+        reason: 'startup_legacy_migration_failed',
+      );
+    }
   }
 
   // Initialize LocaleProvider
@@ -113,7 +144,15 @@ void main() async {
 
   // If user is already authenticated, load contract settings from Supabase
   if (userId != null) {
-    await contractProvider.loadFromSupabase();
+    try {
+      await contractProvider.loadFromSupabase().timeout(_startupNetworkTimeout);
+    } catch (error, stackTrace) {
+      await CrashReportingService.recordNonFatal(
+        error,
+        stackTrace,
+        reason: 'startup_contract_load_failed',
+      );
+    }
   }
 
   final settingsProvider = SettingsProvider();
@@ -123,16 +162,33 @@ void main() async {
   final supabase = SupabaseConfig.client;
   settingsProvider.setSupabaseDeps(supabase, userId);
   if (userId != null) {
-    await settingsProvider.loadFromCloud();
+    try {
+      await settingsProvider.loadFromCloud().timeout(_startupNetworkTimeout);
+    } catch (error, stackTrace) {
+      await CrashReportingService.recordNonFatal(
+        error,
+        stackTrace,
+        reason: 'startup_settings_load_failed',
+      );
+    }
   }
 
   final reminderService = ReminderService();
-  await reminderService.initialize();
-  await reminderService.applySettings(settingsProvider);
+  try {
+    await reminderService.initialize();
+    await reminderService.applySettings(settingsProvider);
+  } catch (error, stackTrace) {
+    await CrashReportingService.recordNonFatal(
+      error,
+      stackTrace,
+      reason: 'startup_reminder_apply_failed',
+    );
+  }
 
   // Create Supabase repository for locations
   final supabaseLocationRepo = SupabaseLocationRepository(supabase);
 
+  await CrashReportingService.log('startup:run_app');
   runApp(
     MyApp(
       authService: authService,

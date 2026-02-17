@@ -341,8 +341,10 @@ class _ReportsScreenState extends State<ReportsScreen>
               if (viewModel.usingServer)
                 Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
                   color: Theme.of(context)
                       .colorScheme
                       .primary

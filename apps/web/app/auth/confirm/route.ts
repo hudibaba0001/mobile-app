@@ -36,10 +36,21 @@ export async function GET(request: NextRequest) {
   )
   const failureUrl = buildFailureUrl(requestUrl.origin, redirectPath)
 
-  if (!tokenHash || type !== RECOVERY_TYPE) {
+  if (!tokenHash || !type) {
     return NextResponse.redirect(failureUrl)
   }
 
+  // For recovery requests, redirect to the intermediary page that requires
+  // user interaction. This prevents email link scanners from consuming the
+  // one-time token before the user actually clicks.
+  if (type === RECOVERY_TYPE) {
+    const recoverUrl = new URL('/auth/recover', requestUrl.origin)
+    recoverUrl.searchParams.set('token_hash', tokenHash)
+    recoverUrl.searchParams.set('type', 'recovery')
+    return NextResponse.redirect(recoverUrl)
+  }
+
+  // Non-recovery types (e.g. email verification): verify immediately
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -53,12 +64,12 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase.auth.verifyOtp({
     token_hash: tokenHash,
-    type: RECOVERY_TYPE,
+    type: type as EmailOtpType,
   })
 
   if (error || !data.session?.access_token || !data.session.refresh_token) {
     if (error) {
-      console.error('Password recovery verifyOtp failed:', error.message)
+      console.error('Auth confirm verifyOtp failed:', error.message)
     }
     return NextResponse.redirect(failureUrl)
   }
@@ -69,7 +80,7 @@ export async function GET(request: NextRequest) {
     refresh_token: data.session.refresh_token,
     expires_in: String(data.session.expires_in),
     token_type: data.session.token_type,
-    type: RECOVERY_TYPE,
+    type: type,
   })
 
   if (data.session.expires_at) {

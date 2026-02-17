@@ -6,11 +6,12 @@
 import 'dart:async' as _i6;
 import 'dart:ui' as _i7;
 
+import 'package:hive/hive.dart' as _i11;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i10;
 import 'package:myapp/models/user_profile.dart' as _i9;
 import 'package:myapp/models/user_red_day.dart' as _i3;
-import 'package:myapp/repositories/user_red_day_repository.dart' as _i11;
+import 'package:myapp/repositories/user_red_day_repository.dart' as _i12;
 import 'package:myapp/services/holiday_service.dart' as _i4;
 import 'package:myapp/services/profile_service.dart' as _i8;
 import 'package:myapp/services/supabase_auth_service.dart' as _i5;
@@ -179,8 +180,10 @@ class MockSupabaseAuthService extends _i1.Mock
   @override
   _i6.Future<_i2.AuthResponse> signUp(
     String? email,
-    String? password,
-  ) =>
+    String? password, {
+    String? firstName,
+    String? lastName,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #signUp,
@@ -188,6 +191,10 @@ class MockSupabaseAuthService extends _i1.Mock
             email,
             password,
           ],
+          {
+            #firstName: firstName,
+            #lastName: lastName,
+          },
         ),
         returnValue: _i6.Future<_i2.AuthResponse>.value(_FakeAuthResponse_0(
           this,
@@ -197,6 +204,10 @@ class MockSupabaseAuthService extends _i1.Mock
               email,
               password,
             ],
+            {
+              #firstName: firstName,
+              #lastName: lastName,
+            },
           ),
         )),
         returnValueForMissingStub:
@@ -208,6 +219,10 @@ class MockSupabaseAuthService extends _i1.Mock
               email,
               password,
             ],
+            {
+              #firstName: firstName,
+              #lastName: lastName,
+            },
           ),
         )),
       ) as _i6.Future<_i2.AuthResponse>);
@@ -293,6 +308,16 @@ class MockSupabaseAuthService extends _i1.Mock
       ) as _i6.Future<void>);
 
   @override
+  _i6.Future<void> deleteAccount() => (super.noSuchMethod(
+        Invocation.method(
+          #deleteAccount,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
   _i6.Future<void> createAccountForDevelopment({
     required String? email,
     required String? password,
@@ -362,6 +387,27 @@ class MockProfileService extends _i1.Mock implements _i8.ProfileService {
         returnValue: _i6.Future<_i9.UserProfile?>.value(),
         returnValueForMissingStub: _i6.Future<_i9.UserProfile?>.value(),
       ) as _i6.Future<_i9.UserProfile?>);
+
+  @override
+  _i6.Future<_i9.UserProfile?> acceptLegal() => (super.noSuchMethod(
+        Invocation.method(
+          #acceptLegal,
+          [],
+        ),
+        returnValue: _i6.Future<_i9.UserProfile?>.value(),
+        returnValueForMissingStub: _i6.Future<_i9.UserProfile?>.value(),
+      ) as _i6.Future<_i9.UserProfile?>);
+
+  @override
+  _i6.Future<_i8.LegalVersions?> fetchCurrentLegalVersions() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchCurrentLegalVersions,
+          [],
+        ),
+        returnValue: _i6.Future<_i8.LegalVersions?>.value(),
+        returnValueForMissingStub: _i6.Future<_i8.LegalVersions?>.value(),
+      ) as _i6.Future<_i8.LegalVersions?>);
 
   @override
   _i6.Future<bool> profileExists() => (super.noSuchMethod(
@@ -447,8 +493,19 @@ class MockHolidayService extends _i1.Mock implements _i4.HolidayService {
       ) as bool);
 
   @override
+  _i6.Future<void> initHive(_i11.Box<_i3.UserRedDay>? box) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #initHive,
+          [box],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
   void initialize({
-    required _i11.UserRedDayRepository? repository,
+    required _i12.UserRedDayRepository? repository,
     required String? userId,
   }) =>
       super.noSuchMethod(

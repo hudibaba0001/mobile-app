@@ -375,39 +375,41 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           const AppMessageBanner(),
           Expanded(
             child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Flexsaldo / Simple summary
-            if (context.watch<SettingsProvider>().isTimeBalanceEnabled) ...[
-              const FlexsaldoCard(),
-              const SizedBox(height: AppSpacing.lg),
-            ],
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Flexsaldo / Simple summary
+                  if (context
+                      .watch<SettingsProvider>()
+                      .isTimeBalanceEnabled) ...[
+                    const FlexsaldoCard(),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
 
-            // Today's Total Card
-            Consumer<EntryProvider>(
-              builder: (context, entryProvider, _) =>
-                  _buildTotalCard(theme, entryProvider, t, travelEnabled),
+                  // Today's Total Card
+                  Consumer<EntryProvider>(
+                    builder: (context, entryProvider, _) =>
+                        _buildTotalCard(theme, entryProvider, t, travelEnabled),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+
+                  // Stats Section
+                  Consumer<EntryProvider>(
+                    builder: (context, entryProvider, _) => _buildStatsSection(
+                        theme, entryProvider, t, travelEnabled),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+
+                  // Recent Entries
+                  _buildRecentEntries(theme, t),
+                  const SizedBox(height: AppSpacing.xxxl + AppSpacing.xxl),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Stats Section
-            Consumer<EntryProvider>(
-              builder: (context, entryProvider, _) =>
-                  _buildStatsSection(theme, entryProvider, t, travelEnabled),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Recent Entries
-            _buildRecentEntries(theme, t),
-            const SizedBox(height: AppSpacing.xxxl + AppSpacing.xxl),
-          ],
-        ),
-      ),
           ),
         ],
       ),
@@ -629,9 +631,27 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       return '${mins}m';
     }
 
-    return AppCard(
+    return Container(
+      width: double.infinity,
       padding: AppSpacing.cardPadding,
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.primary,
+            theme.colorScheme.primary.withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: AppRadius.cardRadius,
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -640,7 +660,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               Icon(
                 Icons.calendar_today_rounded,
                 size: AppIconSize.sm,
-                color: theme.colorScheme.primary,
+                color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
@@ -650,7 +670,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
+                    color: theme.colorScheme.onPrimary,
                   ),
                 ),
               ),
@@ -662,7 +682,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   formatHours(travelDuration + workDuration),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.primary,
+                    color: theme.colorScheme.onPrimary,
                   ),
                 ),
               ),
@@ -680,7 +700,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   vertical: AppSpacing.sm,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                  color: theme.colorScheme.onPrimary.withValues(alpha: 0.15),
                   borderRadius: AppRadius.buttonRadius,
                 ),
                 child: Row(
@@ -689,14 +709,15 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                     if (travelEnabled) ...[
                       Icon(
                         Icons.directions_car_rounded,
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color:
+                            theme.colorScheme.onPrimary.withValues(alpha: 0.9),
                         size: AppIconSize.sm,
                       ),
                       const SizedBox(width: AppSpacing.xs),
                       Text(
                         formatHours(travelDuration),
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: theme.colorScheme.onSurface,
+                          color: theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -704,14 +725,14 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                     ],
                     Icon(
                       Icons.work_rounded,
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
                       size: AppIconSize.sm,
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       formatHours(workDuration),
                       style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.onSurface,
+                        color: theme.colorScheme.onPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -780,9 +801,20 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Widget _buildLoadingStatsCard(ThemeData theme) {
-    return AppCard(
+    return Container(
+      width: double.infinity,
       padding: AppSpacing.cardPadding,
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.primary,
+            theme.colorScheme.primary.withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: AppRadius.cardRadius,
+      ),
       child: const Row(
         children: [
           Expanded(

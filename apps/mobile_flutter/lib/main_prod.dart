@@ -31,6 +31,7 @@ import 'services/holiday_service.dart';
 import 'services/reminder_service.dart';
 import 'services/travel_cache_service.dart';
 import 'services/legacy_hive_migration_service.dart';
+import 'services/crash_reporting_service.dart';
 import 'repositories/location_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,12 +50,32 @@ void _configureReleaseLogging() {
   debugPrint = (String? message, {int? wrapWidth}) {};
 }
 
+const _startupNetworkTimeout = Duration(seconds: 15);
+const _startupMigrationTimeout = Duration(seconds: 20);
+
 void main() async {
   // Add this line to use "clean" URLs
   usePathUrlStrategy();
 
   WidgetsFlutterBinding.ensureInitialized();
   _configureReleaseLogging();
+
+  await CrashReportingService.initialize(entrypoint: 'main_prod');
+
+  try {
+    await _bootstrapAndRunApp();
+  } catch (error, stackTrace) {
+    await CrashReportingService.recordFatal(
+      error,
+      stackTrace,
+      reason: 'main_prod_bootstrap_failed',
+    );
+    rethrow;
+  }
+}
+
+Future<void> _bootstrapAndRunApp() async {
+  await CrashReportingService.log('startup_prod:bootstrap_begin');
 
   await Hive.initFlutter();
   Hive.registerAdapter(TravelLegAdapter());
@@ -98,7 +119,17 @@ void main() async {
   final migrationService = LegacyHiveMigrationService();
   final userId = authService.currentUser?.id;
   if (userId != null) {
-    await migrationService.migrateIfNeeded(userId);
+    try {
+      await migrationService
+          .migrateIfNeeded(userId)
+          .timeout(_startupMigrationTimeout);
+    } catch (error, stackTrace) {
+      await CrashReportingService.recordNonFatal(
+        error,
+        stackTrace,
+        reason: 'startup_prod_legacy_migration_failed',
+      );
+    }
   }
 
   // Initialize independent providers in parallel
@@ -118,19 +149,12 @@ void main() async {
   final supabase = SupabaseConfig.client;
   settingsProvider.setSupabaseDeps(supabase, userId);
 
-  // Load cloud data in parallel if authenticated
-  if (userId != null) {
-    await Future.wait([
-      contractProvider.loadFromSupabase(),
-      settingsProvider.loadFromCloud(),
-    ]);
-  }
-
-  await reminderService.applySettings(settingsProvider);
-
   // Create Supabase repository for locations
   final supabaseLocationRepo = SupabaseLocationRepository(supabase);
 
+  // Start the app immediately so the UI renders without waiting for network.
+  // Cloud data is loaded in the background after the first frame.
+  await CrashReportingService.log('startup_prod:run_app');
   runApp(
     MyApp(
       authService: authService,
@@ -369,6 +393,37 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
     _lastAuthUserId = _authService?.currentUser?.id;
     _authService?.removeListener(_onAuthStateChanged);
     _authService?.addListener(_onAuthStateChanged);
+
+    // Load cloud data now that the UI is visible (deferred from main()).
+    unawaited(_loadCloudData());
+  }
+
+  Future<void> _loadCloudData() async {
+    if (!mounted) return;
+    final authService = context.read<SupabaseAuthService>();
+    final userId = authService.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      final contractProvider = context.read<ContractProvider>();
+      final settingsProvider = context.read<SettingsProvider>();
+      final reminderService = context.read<ReminderService>();
+
+      await Future.wait([
+        contractProvider.loadFromSupabase().timeout(_startupNetworkTimeout),
+        settingsProvider.loadFromCloud().timeout(_startupNetworkTimeout),
+      ]);
+
+      if (!mounted) return;
+      await reminderService.applySettings(settingsProvider);
+    } catch (error, stackTrace) {
+      await CrashReportingService.recordNonFatal(
+        error,
+        stackTrace,
+        reason: 'startup_prod_deferred_cloud_load_failed',
+      );
+      debugPrint('main_prod: Deferred cloud load failed: $error');
+    }
   }
 
   void _onAuthStateChanged() {

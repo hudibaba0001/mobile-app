@@ -110,31 +110,26 @@ class OverviewTab extends StatelessWidget {
         const SizedBox(height: AppSpacing.xl),
 
         // Activity Distribution
-        Text(
+        _buildSectionHeader(
+          theme,
           AppLocalizations.of(context).overview_activityDistribution,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurface,
-          ),
         ),
         const SizedBox(height: AppSpacing.lg),
         AspectRatio(
           aspectRatio: 1.5,
           child: Container(
             padding: const EdgeInsets.all(AppSpacing.xl),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
-              border: Border.all(
-                color: colorScheme.outline.withValues(alpha: 0.2),
-              ),
-            ),
+            decoration: _buildReportCardDecoration(theme),
             child: Column(
               children: [
                 Expanded(
-                  child: _buildDistributionChart(context, theme, overviewData),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child:
+                        _buildDistributionChart(context, theme, overviewData),
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.xl),
                 Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 24,
@@ -170,13 +165,7 @@ class OverviewTab extends StatelessWidget {
   }) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.2),
-        ),
-      ),
+      decoration: _buildReportCardDecoration(theme),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -226,12 +215,35 @@ class OverviewTab extends StatelessWidget {
     );
   }
 
+  BoxDecoration _buildReportCardDecoration(ThemeData theme) {
+    return BoxDecoration(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      border: Border.all(
+        color: theme.colorScheme.outline.withValues(alpha: 0.12),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(ThemeData theme, String title) {
+    return Text(
+      title.toUpperCase(),
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+        letterSpacing: 1.2,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
   Widget _buildDistributionChart(BuildContext context, ThemeData theme,
       Map<String, dynamic> overviewData) {
     final colorScheme = theme.colorScheme;
     final workMinutes = overviewData['totalWorkMinutes'] as int;
     final travelMinutes = overviewData['totalTravelMinutes'] as int;
     final totalMinutes = workMinutes + travelMinutes;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final chartRadius = screenWidth < 380 ? 54.0 : 60.0;
 
     if (totalMinutes == 0) {
       return Center(
@@ -252,7 +264,7 @@ class OverviewTab extends StatelessWidget {
             title:
                 '${((workMinutes / totalMinutes) * 100).toStringAsFixed(1)}%',
             color: colorScheme.error,
-            radius: 60,
+            radius: chartRadius,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
                   color: AppColors.neutral50,
                   fontWeight: FontWeight.bold,
@@ -267,7 +279,7 @@ class OverviewTab extends StatelessWidget {
             title:
                 '${((travelMinutes / totalMinutes) * 100).toStringAsFixed(1)}%',
             color: colorScheme.tertiary,
-            radius: 60,
+            radius: chartRadius,
             titleStyle: theme.textTheme.labelMedium?.copyWith(
                   color: AppColors.neutral50,
                   fontWeight: FontWeight.bold,

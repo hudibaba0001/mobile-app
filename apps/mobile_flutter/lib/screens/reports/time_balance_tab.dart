@@ -209,9 +209,13 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
 
     return Card(
       elevation: 0,
-      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      margin: EdgeInsets.zero,
+      color: colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        side: BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.12),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),

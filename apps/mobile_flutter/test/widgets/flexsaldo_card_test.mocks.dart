@@ -139,8 +139,10 @@ class MockSupabaseAuthService extends _i1.Mock
   @override
   _i4.Future<_i2.AuthResponse> signUp(
     String? email,
-    String? password,
-  ) =>
+    String? password, {
+    String? firstName,
+    String? lastName,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #signUp,
@@ -148,6 +150,10 @@ class MockSupabaseAuthService extends _i1.Mock
             email,
             password,
           ],
+          {
+            #firstName: firstName,
+            #lastName: lastName,
+          },
         ),
         returnValue: _i4.Future<_i2.AuthResponse>.value(_FakeAuthResponse_0(
           this,
@@ -157,6 +163,10 @@ class MockSupabaseAuthService extends _i1.Mock
               email,
               password,
             ],
+            {
+              #firstName: firstName,
+              #lastName: lastName,
+            },
           ),
         )),
       ) as _i4.Future<_i2.AuthResponse>);
@@ -235,6 +245,16 @@ class MockSupabaseAuthService extends _i1.Mock
             #email: email,
             #password: password,
           },
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> deleteAccount() => (super.noSuchMethod(
+        Invocation.method(
+          #deleteAccount,
+          [],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

@@ -109,6 +109,24 @@ class MockEntryProvider extends _i1.Mock implements _i3.EntryProvider {
       ) as bool);
 
   @override
+  _i6.Future<void> handleAuthUserChanged({
+    required String? previousUserId,
+    required String? currentUserId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #handleAuthUserChanged,
+          [],
+          {
+            #previousUserId: previousUserId,
+            #currentUserId: currentUserId,
+          },
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
   _i6.Future<void> loadEntries() => (super.noSuchMethod(
         Invocation.method(
           #loadEntries,

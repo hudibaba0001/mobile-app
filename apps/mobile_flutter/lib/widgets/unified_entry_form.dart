@@ -54,6 +54,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
   final Map<int, String?> _legErrors = {}; // Track errors per leg
   final Map<int, TextEditingController> _legMinutesControllers = {};
   final Map<int, TextEditingController> _legHoursControllers = {};
+  final Map<int, TextEditingController> _legNotesControllers = {};
 
   // Work-specific fields
   String? _workLocation;
@@ -110,6 +111,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               text: leg.minutes > 0 ? (leg.minutes % 60).toString() : '',
             );
           }
+          // In edit mode, the entry's notes belong to this leg
+          if (entry.notes != null && entry.notes!.isNotEmpty) {
+            _legNotesControllers[0] = TextEditingController(text: entry.notes);
+          }
         } else {
           // Legacy single travel - convert to travelLegs
           _departureLocation = entry.from;
@@ -138,6 +143,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   ? (_durationMinutes % 60).toString()
                   : '',
             );
+            if (entry.notes != null && entry.notes!.isNotEmpty) {
+              _legNotesControllers[0] = TextEditingController(text: entry.notes);
+            }
           }
         }
       } else if (entry.type == EntryType.work) {
@@ -210,6 +218,10 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       controller.dispose();
     }
     _legHoursControllers.clear();
+    for (final controller in _legNotesControllers.values) {
+      controller.dispose();
+    }
+    _legNotesControllers.clear();
     super.dispose();
   }
 
@@ -286,11 +298,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               // Work-specific fields
               ...(!isTravel ? _buildWorkSpecificFields(theme) : []),
 
-              // Notes Section (travel only; work uses per-shift notes)
-              if (isTravel) ...[
-                _buildNotesSection(theme),
-                const SizedBox(height: AppSpacing.lg),
-              ],
+              // (Travel uses per-leg notes inside each card; work uses per-shift notes)
 
               // Action Buttons
               _buildActionButtons(theme),
@@ -777,6 +785,26 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 ),
               ),
             ],
+
+            // Per-leg notes
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              controller: _legNotesControllers[index] ??=
+                  TextEditingController(),
+              decoration: InputDecoration(
+                hintText: t.entry_notesHint,
+                labelText: t.entry_notes,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.note_outlined),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.md,
+                ),
+              ),
+              maxLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+            ),
           ],
         ),
       ),
@@ -810,31 +838,42 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       // Clean up controllers
       _legHoursControllers[index]?.dispose();
       _legMinutesControllers[index]?.dispose();
+      _legNotesControllers[index]?.dispose();
       _legHoursControllers.remove(index);
       _legMinutesControllers.remove(index);
+      _legNotesControllers.remove(index);
       _isCalculatingLeg.remove(index);
       _legErrors.remove(index);
 
       // Reindex controllers
       final newHoursControllers = <int, TextEditingController>{};
       final newMinutesControllers = <int, TextEditingController>{};
+      final newNotesControllers = <int, TextEditingController>{};
       for (var i = 0; i < _travelLegs.length; i++) {
         if (i < index) {
           if (_legHoursControllers.containsKey(i)) {
             newHoursControllers[i] = _legHoursControllers[i]!;
             newMinutesControllers[i] = _legMinutesControllers[i]!;
           }
+          if (_legNotesControllers.containsKey(i)) {
+            newNotesControllers[i] = _legNotesControllers[i]!;
+          }
         } else if (i > index) {
           if (_legHoursControllers.containsKey(i)) {
             newHoursControllers[i - 1] = _legHoursControllers[i]!;
             newMinutesControllers[i - 1] = _legMinutesControllers[i]!;
           }
+          if (_legNotesControllers.containsKey(i)) {
+            newNotesControllers[i - 1] = _legNotesControllers[i]!;
+          }
         }
       }
       _legHoursControllers.clear();
       _legMinutesControllers.clear();
+      _legNotesControllers.clear();
       _legHoursControllers.addAll(newHoursControllers);
       _legMinutesControllers.addAll(newMinutesControllers);
+      _legNotesControllers.addAll(newNotesControllers);
 
       _travelLegs.removeAt(index);
     });
@@ -1606,63 +1645,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     );
   }
 
-  Widget _buildNotesSection(ThemeData theme) {
-    final hasNotes = _notesController.text.trim().isNotEmpty;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ExpansionTile(
-          tilePadding: EdgeInsets.zero,
-          childrenPadding: EdgeInsets.zero,
-          initiallyExpanded: hasNotes,
-          title: Row(
-            children: [
-              Icon(
-                Icons.note_outlined,
-                size: AppIconSize.sm,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                AppLocalizations.of(context).entry_notes,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (!hasNotes) ...[
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  AppLocalizations.of(context).common_optional,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ],
-          ),
-          children: [
-            const SizedBox(height: AppSpacing.xs),
-            TextFormField(
-              controller: _notesController,
-              decoration: InputDecoration(
-                hintText: AppLocalizations.of(context).entry_notesHint,
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.note),
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.md,
-                ),
-              ),
-              maxLines: 3,
-              textCapitalization: TextCapitalization.sentences,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildActionButtons(ThemeData theme) {
     final t = AppLocalizations.of(context);
 
@@ -2071,6 +2053,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         }
       } else {
         // TRAVEL MODE: Save one Entry per leg (atomic entries)
+        // Each leg has its own notes from _legNotesControllers
+        String? legNotes(int index) {
+          final text = _legNotesControllers[index]?.text.trim();
+          return (text == null || text.isEmpty) ? null : text;
+        }
+
         if (widget.existingEntry != null) {
           // EDITING: Update existing entry with first leg, create new entries for additional legs
           if (_travelLegs.isNotEmpty) {
@@ -2083,7 +2071,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               from: firstLeg.fromText,
               to: firstLeg.toText,
               travelMinutes: firstLeg.minutes,
-              notes: dayNotes,
+              notes: legNotes(0),
               segmentOrder: 1,
               totalSegments: _travelLegs.length,
               createdAt: widget.existingEntry!.createdAt,
@@ -2101,7 +2089,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   from: leg.fromText,
                   to: leg.toText,
                   minutes: leg.minutes,
-                  dayNotes: dayNotes,
+                  dayNotes: legNotes(i),
                   fromPlaceId: leg.fromPlaceId,
                   toPlaceId: leg.toPlaceId,
                   source: leg.source,
@@ -2125,7 +2113,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               from: leg.fromText,
               to: leg.toText,
               minutes: leg.minutes,
-              dayNotes: dayNotes,
+              dayNotes: legNotes(index),
               fromPlaceId: leg.fromPlaceId,
               toPlaceId: leg.toPlaceId,
               source: leg.source,
