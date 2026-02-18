@@ -426,25 +426,42 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
     final userId = authService.currentUser?.id;
     if (userId == null) return;
 
+    final contractProvider = context.read<ContractProvider>();
+    final settingsProvider = context.read<SettingsProvider>();
+    final reminderService = context.read<ReminderService>();
+
     try {
-      final contractProvider = context.read<ContractProvider>();
-      final settingsProvider = context.read<SettingsProvider>();
-      final reminderService = context.read<ReminderService>();
+      await contractProvider.loadFromSupabase().timeout(_startupNetworkTimeout);
+    } catch (error, stackTrace) {
+      await CrashReportingService.recordNonFatal(
+        error,
+        stackTrace,
+        reason: 'startup_deferred_contract_load_failed',
+      );
+      debugPrint('main: Deferred contract load failed: $error');
+    }
 
-      await Future.wait([
-        contractProvider.loadFromSupabase().timeout(_startupNetworkTimeout),
-        settingsProvider.loadFromCloud().timeout(_startupNetworkTimeout),
-      ]);
+    try {
+      await settingsProvider.loadFromCloud().timeout(_startupNetworkTimeout);
+    } catch (error, stackTrace) {
+      await CrashReportingService.recordNonFatal(
+        error,
+        stackTrace,
+        reason: 'startup_deferred_settings_load_failed',
+      );
+      debugPrint('main: Deferred settings load failed: $error');
+    }
 
-      if (!mounted) return;
+    if (!mounted) return;
+    try {
       await reminderService.applySettings(settingsProvider);
     } catch (error, stackTrace) {
       await CrashReportingService.recordNonFatal(
         error,
         stackTrace,
-        reason: 'startup_deferred_cloud_load_failed',
+        reason: 'startup_deferred_reminder_apply_failed',
       );
-      debugPrint('main: Deferred cloud load failed: $error');
+      debugPrint('main: Deferred reminder apply failed: $error');
     }
   }
 
