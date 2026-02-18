@@ -23,7 +23,12 @@
       "mcp__firebase__firebase_read_resources",
       "mcp__firebase__crashlytics_get_report",
       "mcp__firebase__crashlytics_get_issue",
-      "mcp__firebase__crashlytics_list_events"
+      "mcp__firebase__crashlytics_list_events",
+      "Bash(del \"c:\\\\Users\\\\sanlo\\\\Documents\\\\GitHub\\\\mobile-app\\\\apps\\\\mobile_flutter\\\\lib\\\\screens\\\\admin_users_screen.dart\")",
+      "Bash(del \"c:\\\\Users\\\\sanlo\\\\Documents\\\\GitHub\\\\mobile-app\\\\apps\\\\mobile_flutter\\\\lib\\\\screens\\\\admin_content_screen.dart\")",
+      "Bash(git -C c:UserssanloDocumentsGitHubmobile-app log --all --pretty=format:\"%h %s\" --grep=\"legal_documents\\\\|app_messages\")",
+      "Bash(git -C c:UserssanloDocumentsGitHubmobile-app log --all -p --source -- \"*legal_documents*\" \"*app_messages*\")",
+      "Bash(npm run build:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

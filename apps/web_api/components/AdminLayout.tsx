@@ -41,6 +41,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: '\u{1F4CA}' },
     { name: 'Users', href: '/admin/users', icon: '\u{1F465}' },
+    { name: 'Legal Docs', href: '/admin/legal', icon: '\u{1F4C4}' },
+    { name: 'Messages', href: '/admin/messages', icon: '\u{1F4E2}' },
     { name: 'Analytics', href: '/admin/analytics', icon: '\u{1F4C8}' },
   ];
 

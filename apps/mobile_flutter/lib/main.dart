@@ -102,14 +102,18 @@ Future<void> _bootstrapAndRunApp() async {
     await prefs.setBool(locationBoxResetKey, true);
   }
 
-  final locationBox = await Hive.openBox<Location>(AppConstants.locationsBox);
-  final locationRepository = LocationRepository(locationBox);
-
   // Open Hive boxes for cached data
-  final absenceBox = await Hive.openBox<AbsenceEntry>('absences_cache');
-  final adjustmentBox =
-      await Hive.openBox<BalanceAdjustment>('balance_adjustments_cache');
-  final redDayBox = await Hive.openBox<UserRedDay>('user_red_days_cache');
+  final locationBoxFuture = Hive.openBox<Location>(AppConstants.locationsBox);
+  final absenceBoxFuture = Hive.openBox<AbsenceEntry>('absences_cache');
+  final adjustmentBoxFuture =
+      Hive.openBox<BalanceAdjustment>('balance_adjustments_cache');
+  final redDayBoxFuture = Hive.openBox<UserRedDay>('user_red_days_cache');
+
+  final locationBox = await locationBoxFuture;
+  final locationRepository = LocationRepository(locationBox);
+  final absenceBox = await absenceBoxFuture;
+  final adjustmentBox = await adjustmentBoxFuture;
+  final redDayBox = await redDayBoxFuture;
 
   // Initialize Supabase
   await SupabaseConfig.initialize();
@@ -135,59 +139,27 @@ Future<void> _bootstrapAndRunApp() async {
     }
   }
 
-  // Initialize LocaleProvider
+  // Initialize independent providers in parallel.
   final localeProvider = LocaleProvider();
-  await localeProvider.init();
-
   final contractProvider = ContractProvider();
-  await contractProvider.init();
-
-  // If user is already authenticated, load contract settings from Supabase
-  if (userId != null) {
-    try {
-      await contractProvider.loadFromSupabase().timeout(_startupNetworkTimeout);
-    } catch (error, stackTrace) {
-      await CrashReportingService.recordNonFatal(
-        error,
-        stackTrace,
-        reason: 'startup_contract_load_failed',
-      );
-    }
-  }
-
   final settingsProvider = SettingsProvider();
-  await settingsProvider.init();
+  await Future.wait([
+    localeProvider.init(),
+    contractProvider.init(),
+    settingsProvider.init(),
+  ]);
 
-  // Set up Supabase dependencies for settings
+  // Set up Supabase dependencies for settings (pull-before-push)
   final supabase = SupabaseConfig.client;
   settingsProvider.setSupabaseDeps(supabase, userId);
-  if (userId != null) {
-    try {
-      await settingsProvider.loadFromCloud().timeout(_startupNetworkTimeout);
-    } catch (error, stackTrace) {
-      await CrashReportingService.recordNonFatal(
-        error,
-        stackTrace,
-        reason: 'startup_settings_load_failed',
-      );
-    }
-  }
 
   final reminderService = ReminderService();
-  try {
-    await reminderService.initialize();
-    await reminderService.applySettings(settingsProvider);
-  } catch (error, stackTrace) {
-    await CrashReportingService.recordNonFatal(
-      error,
-      stackTrace,
-      reason: 'startup_reminder_apply_failed',
-    );
-  }
 
   // Create Supabase repository for locations
   final supabaseLocationRepo = SupabaseLocationRepository(supabase);
 
+  // Start the app immediately so the first frame is not blocked by cloud calls.
+  // Contract/settings cloud sync and reminder apply are deferred in _NetworkSyncSetup.
   await CrashReportingService.log('startup:run_app');
   runApp(
     MyApp(
@@ -443,6 +415,37 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
         _showSessionExpiredDialog(navContext);
       }
     };
+
+    // Load cloud-backed settings now that the first frame is visible.
+    unawaited(_loadCloudData());
+  }
+
+  Future<void> _loadCloudData() async {
+    if (!mounted) return;
+    final authService = context.read<SupabaseAuthService>();
+    final userId = authService.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      final contractProvider = context.read<ContractProvider>();
+      final settingsProvider = context.read<SettingsProvider>();
+      final reminderService = context.read<ReminderService>();
+
+      await Future.wait([
+        contractProvider.loadFromSupabase().timeout(_startupNetworkTimeout),
+        settingsProvider.loadFromCloud().timeout(_startupNetworkTimeout),
+      ]);
+
+      if (!mounted) return;
+      await reminderService.applySettings(settingsProvider);
+    } catch (error, stackTrace) {
+      await CrashReportingService.recordNonFatal(
+        error,
+        stackTrace,
+        reason: 'startup_deferred_cloud_load_failed',
+      );
+      debugPrint('main: Deferred cloud load failed: $error');
+    }
   }
 
   void _onAuthStateChanged() {

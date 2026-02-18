@@ -197,48 +197,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
           ),
 
-          // Admin section (only visible to admins)
-          FutureBuilder<bool>(
-            future: authService.isAdmin(),
-            builder: (context, snapshot) {
-              if (snapshot.data != true) return const SizedBox.shrink();
-              return Column(
-                children: [
-                  const Divider(),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: AppSpacing.lg,
-                      top: AppSpacing.sm,
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Admin',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.people),
-                    title: const Text('Manage Users'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => AppRouter.goToAdminUsers(context),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.edit_document),
-                    title: const Text('Content Management'),
-                    subtitle: const Text('Legal docs & app messages'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => AppRouter.goToAdminContent(context),
-                  ),
-                ],
-              );
-            },
-          ),
-
           const Divider(),
 
           // Sign Out

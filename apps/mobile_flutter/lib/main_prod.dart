@@ -99,14 +99,18 @@ Future<void> _bootstrapAndRunApp() async {
     await prefs.setBool(locationBoxResetKey, true);
   }
 
-  final locationBox = await Hive.openBox<Location>(AppConstants.locationsBox);
-  final locationRepository = LocationRepository(locationBox);
-
   // Open Hive boxes for cached data
-  final absenceBox = await Hive.openBox<AbsenceEntry>('absences_cache');
-  final adjustmentBox =
-      await Hive.openBox<BalanceAdjustment>('balance_adjustments_cache');
-  final redDayBox = await Hive.openBox<UserRedDay>('user_red_days_cache');
+  final locationBoxFuture = Hive.openBox<Location>(AppConstants.locationsBox);
+  final absenceBoxFuture = Hive.openBox<AbsenceEntry>('absences_cache');
+  final adjustmentBoxFuture =
+      Hive.openBox<BalanceAdjustment>('balance_adjustments_cache');
+  final redDayBoxFuture = Hive.openBox<UserRedDay>('user_red_days_cache');
+
+  final locationBox = await locationBoxFuture;
+  final locationRepository = LocationRepository(locationBox);
+  final absenceBox = await absenceBoxFuture;
+  final adjustmentBox = await adjustmentBoxFuture;
+  final redDayBox = await redDayBoxFuture;
 
   // Initialize Supabase
   await SupabaseConfig.initialize();
@@ -142,7 +146,6 @@ Future<void> _bootstrapAndRunApp() async {
     localeProvider.init(),
     contractProvider.init(),
     settingsProvider.init(),
-    reminderService.initialize(),
   ]);
 
   // Set up Supabase dependencies for settings (pull-before-push)
