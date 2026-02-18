@@ -26,9 +26,9 @@ function getSupabaseAdmin(): SupabaseClient {
 
 // Export a getter instead of a constant
 export const supabaseAdmin = new Proxy({} as SupabaseClient, {
-  get(target, prop) {
+  get(_target, prop) {
     const client = getSupabaseAdmin();
-    return (client as Record<string | symbol, unknown>)[prop];
+    return Reflect.get(client, prop);
   },
 });
 

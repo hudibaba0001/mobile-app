@@ -19,7 +19,7 @@
 #   "TypeToken must be created with a type argument"
 -keep class com.google.gson.reflect.TypeToken { *; }
 -keep class * extends com.google.gson.reflect.TypeToken
--keepattributes Signature
+-keepattributes Signature,InnerClasses,EnclosingMethod,*Annotation*
 
 # Keep the notification plugin's serialization classes.
 -keep class com.dexterous.flutterlocalnotifications.** { *; }

@@ -241,8 +241,10 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 ),
                 if (totalAdjustmentHours != 0) ...[
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md - 2,
+                      vertical: AppSpacing.xs,
+                    ),
                     decoration: BoxDecoration(
                       color: totalAdjustmentHours >= 0
                           ? AppColors.success.withValues(alpha: 0.1)
@@ -326,7 +328,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
       onTap: () => _showEditAdjustmentDialog(context, adjustment),
       borderRadius: BorderRadius.circular(AppRadius.sm),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         child: Row(
           children: [
             Container(
@@ -349,7 +351,8 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    adjustment.note ?? AppLocalizations.of(context).adjustment_title,
+                    adjustment.note ??
+                        AppLocalizations.of(context).adjustment_title,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
@@ -403,4 +406,3 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
     }
   }
 }
-

@@ -917,7 +917,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               const SizedBox(width: AppSpacing.sm),
               // Swap Route Button
               Container(
-                margin: const EdgeInsets.only(top: 20),
+                margin:
+                    const EdgeInsets.only(top: AppSpacing.lg + AppSpacing.xs),
                 child: IconButton(
                   onPressed: () => _swapRoute(travelEntry),
                   icon: const Icon(Icons.swap_horiz_rounded),
@@ -1063,7 +1064,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
   Widget _buildShiftRow(ThemeData theme, _Shift shift) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withValues(alpha: 0.04),

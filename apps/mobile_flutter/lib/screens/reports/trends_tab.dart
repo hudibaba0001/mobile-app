@@ -418,7 +418,9 @@ class _TrendsTabState extends State<TrendsTab> {
           if (leaves.hasAny) ...[
             const SizedBox(height: AppSpacing.sm),
             Padding(
-              padding: const EdgeInsets.only(left: 36),
+              padding: const EdgeInsets.only(
+                left: AppSpacing.xl + AppSpacing.md,
+              ),
               child: Wrap(
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.xs,
@@ -503,8 +505,7 @@ class _TrendsTabState extends State<TrendsTab> {
                 if (value >= 0 && value < 7) {
                   final weekdayDate =
                       DateTime(2024, 1, 1).add(Duration(days: value.toInt()));
-                  final dayLabel =
-                      DateFormat.E(localeTag).format(weekdayDate);
+                  final dayLabel = DateFormat.E(localeTag).format(weekdayDate);
                   return Text(
                     dayLabel,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -540,8 +541,8 @@ class _TrendsTabState extends State<TrendsTab> {
                 toY: entry.value,
                 color: colorScheme.secondary,
                 width: 20,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(4)),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppSpacing.xs)),
               ),
             ],
           );
@@ -705,4 +706,3 @@ class _MonthlyLeaveSummary {
 
   bool get hasAny => paidVacation > 0 || sickLeave > 0 || vab > 0 || unpaid > 0;
 }
-

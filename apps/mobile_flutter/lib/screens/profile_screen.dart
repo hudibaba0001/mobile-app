@@ -98,74 +98,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             name: displayName,
             email: email,
           ),
-          const SizedBox(height: AppSpacing.xxl + AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
 
-          // User Info Card
-          Card(
-            elevation: 0,
-            margin: EdgeInsets.zero,
-            color: theme.colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Display Name
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              t.profile_labelName,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Text(
-                              user.userMetadata?['full_name'] ??
-                                  user.email ??
-                                  '—',
-                              style: theme.textTheme.bodyLarge,
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () => _showEditNameDialog(context, user),
-                        tooltip: t.profile_editName,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // Email
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        t.profile_labelEmail,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      Text(user.email ?? '—', style: theme.textTheme.bodyLarge),
-                    ],
-                  ),
-                ],
-              ),
+          // Edit Name
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              icon: const Icon(Icons.edit_outlined, size: 16),
+              label: Text(t.profile_editName),
+              onPressed: () => _showEditNameDialog(context, user),
             ),
           ),
 
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.sm),
 
           // Change Password
           ListTile(
@@ -330,16 +275,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     final firstGlyph = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
 
-    return Stack(
-      clipBehavior: Clip.none,
+    return Column(
       children: [
         Container(
-          constraints: const BoxConstraints(minHeight: 140),
+          width: double.infinity,
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg,
+            AppSpacing.xxl,
             AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.xxxl,
+            AppSpacing.xxl,
           ),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -357,8 +301,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.neutral50.withValues(alpha: 0.5),
+                    width: 2,
+                  ),
+                  color: AppColors.neutral50.withValues(alpha: 0.2),
+                ),
+                child: Center(
+                  child: Text(
+                    firstGlyph,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: AppColors.neutral50,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 name,
                 style: theme.textTheme.titleLarge?.copyWith(
@@ -367,49 +332,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 email,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.neutral50.withValues(alpha: 0.9),
+                  color: AppColors.neutral50.withValues(alpha: 0.85),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ],
-          ),
-        ),
-        Positioned(
-          bottom: -34,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: Container(
-              width: 68,
-              height: 68,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.neutral50, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.22),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: CircleAvatar(
-                backgroundColor: theme.colorScheme.primaryContainer,
-                child: Text(
-                  firstGlyph,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
           ),
         ),
       ],

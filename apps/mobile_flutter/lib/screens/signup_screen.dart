@@ -37,7 +37,6 @@ class _SignupScreenState extends State<SignupScreen> {
   static const _gradientStart = AppColors.gradientStart;
   static const _gradientEnd = AppColors.gradientEnd;
 
-
   String _buildSignupErrorMessage(Object error) {
     final t = AppLocalizations.of(context);
     if (error is AuthException) {
@@ -345,15 +344,18 @@ class _SignupScreenState extends State<SignupScreen> {
                                             },
                                           ),
                                   checkColor: _gradientStart,
-                                  fillColor:
-                                      WidgetStateProperty.all(AppColors.neutral50),
+                                  fillColor: WidgetStateProperty.all(
+                                      AppColors.neutral50),
                                   side: BorderSide(
-                                    color: AppColors.neutral50.withValues(alpha: 0.8),
+                                    color: AppColors.neutral50
+                                        .withValues(alpha: 0.8),
                                   ),
                                 ),
                                 Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.only(top: 10),
+                                    padding: const EdgeInsets.only(
+                                      top: AppSpacing.md - 2,
+                                    ),
                                     child: Wrap(
                                       crossAxisAlignment:
                                           WrapCrossAlignment.center,
@@ -369,7 +371,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                         TextButton(
                                           onPressed: _isLoading
                                               ? null
-                                              : () => LegalDocumentDialog.showTerms(context),
+                                              : () =>
+                                                  LegalDocumentDialog.showTerms(
+                                                      context),
                                           style: TextButton.styleFrom(
                                             minimumSize: Size.zero,
                                             padding: const EdgeInsets.symmetric(
@@ -400,7 +404,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                         TextButton(
                                           onPressed: _isLoading
                                               ? null
-                                              : () => LegalDocumentDialog.showPrivacy(context),
+                                              : () => LegalDocumentDialog
+                                                  .showPrivacy(context),
                                           style: TextButton.styleFrom(
                                             minimumSize: Size.zero,
                                             padding: const EdgeInsets.symmetric(
@@ -454,12 +459,16 @@ class _SignupScreenState extends State<SignupScreen> {
                             ],
                             const SizedBox(height: AppSpacing.xl),
                             ElevatedButton(
-                              onPressed: (_isLoading || !_acceptedLegal) ? null : _handleSignup,
+                              onPressed: (_isLoading || !_acceptedLegal)
+                                  ? null
+                                  : _handleSignup,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.neutral50,
                                 foregroundColor: _gradientStart,
-                                disabledBackgroundColor: AppColors.neutral50.withValues(alpha: 0.4),
-                                disabledForegroundColor: _gradientStart.withValues(alpha: 0.5),
+                                disabledBackgroundColor:
+                                    AppColors.neutral50.withValues(alpha: 0.4),
+                                disabledForegroundColor:
+                                    _gradientStart.withValues(alpha: 0.5),
                                 padding: const EdgeInsets.symmetric(
                                   vertical: AppSpacing.lg,
                                 ),
@@ -499,7 +508,8 @@ class _SignupScreenState extends State<SignupScreen> {
                               child: Text(
                                 t.password_backToSignIn,
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.neutral50.withValues(alpha: 0.9),
+                                  color: AppColors.neutral50
+                                      .withValues(alpha: 0.9),
                                 ),
                               ),
                             ),
@@ -516,7 +526,6 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
-
 }
 
 class _SignupGlassCard extends StatelessWidget {

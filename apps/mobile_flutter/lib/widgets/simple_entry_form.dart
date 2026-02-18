@@ -82,7 +82,9 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
       padding: const EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppRadius.lg + AppSpacing.xs),
+        ),
       ),
       child: Form(
         key: _formKey,
@@ -103,9 +105,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Text(
-                    isTravel
-                        ? t.entry_logTravelEntry
-                        : t.entry_logWorkEntry,
+                    isTravel ? t.entry_logTravelEntry : t.entry_logWorkEntry,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -128,8 +128,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                 TextFormField(
                   controller: _fromController,
                   decoration: InputDecoration(
-                    labelText:
-                        t.simpleEntry_fromLocation,
+                    labelText: t.simpleEntry_fromLocation,
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.my_location),
                   ),
@@ -144,8 +143,7 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
                 TextFormField(
                   controller: _toController,
                   decoration: InputDecoration(
-                    labelText:
-                        t.simpleEntry_toLocation,
+                    labelText: t.simpleEntry_toLocation,
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.location_on),
                   ),

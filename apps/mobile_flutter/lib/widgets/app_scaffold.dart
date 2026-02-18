@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../config/app_router.dart';
+import '../design/app_theme.dart';
 import '../providers/entry_provider.dart';
 import '../providers/network_status_provider.dart';
 import '../services/supabase_auth_service.dart';
@@ -215,14 +216,15 @@ class _ConnectivityBanner extends StatelessWidget {
                 opacity: showBanner ? 1 : 0,
                 duration: const Duration(milliseconds: 180),
                 child: Container(
-                  margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  margin: const EdgeInsets.fromLTRB(
+                      AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm + 2,
                   ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
                       color: theme.colorScheme.error.withValues(alpha: 0.5),
                     ),
@@ -234,7 +236,7 @@ class _ConnectivityBanner extends StatelessWidget {
                         size: 18,
                         color: theme.colorScheme.onErrorContainer,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           messageResolver(pendingCount, isOffline),

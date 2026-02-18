@@ -397,7 +397,10 @@ class _LeavesTabState extends State<LeavesTab> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md - 2,
+                vertical: AppSpacing.xs,
+              ),
               decoration: BoxDecoration(
                 color: typeInfo.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -464,4 +467,3 @@ class _TypeInfo {
   const _TypeInfo(
       {required this.icon, required this.color, required this.label});
 }
-

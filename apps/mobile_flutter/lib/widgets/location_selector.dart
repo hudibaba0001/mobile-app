@@ -255,12 +255,13 @@ class _LocationSelectorState extends State<LocationSelector> {
 
     return ListView(
       shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       children: [
         // Saved locations section
         if (hasLocationSuggestions) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             child: Text(
               t.location_savedLocations,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -280,7 +281,8 @@ class _LocationSelectorState extends State<LocationSelector> {
         if (hasMapboxSuggestions) ...[
           if (hasLocationSuggestions || hasAddressSuggestions)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md, vertical: AppSpacing.sm),
               child: Text(
                 t.location_addressSuggestions,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -326,7 +328,8 @@ class _LocationSelectorState extends State<LocationSelector> {
         if (hasAddressSuggestions) ...[
           if (hasLocationSuggestions || hasMapboxSuggestions)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md, vertical: AppSpacing.sm),
               child: Text(
                 t.location_recentAddresses,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -366,8 +369,8 @@ class _LocationSelectorState extends State<LocationSelector> {
         address,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style:
-            AppTypography.body(colorScheme.onSurface).copyWith(fontWeight: FontWeight.w500),
+        style: AppTypography.body(colorScheme.onSurface)
+            .copyWith(fontWeight: FontWeight.w500),
       ),
       onTap: () => _selectAddress(address),
     );
@@ -411,7 +414,8 @@ class _LocationSelectorState extends State<LocationSelector> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           child: Text(
             t.location_recentLocations,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -438,15 +442,14 @@ class _LocationSelectorState extends State<LocationSelector> {
         child: Icon(
           location.isFavorite ? Icons.star : Icons.location_on,
           size: 16,
-          color: location.isFavorite
-              ? AppColors.accentDark
-              : colorScheme.primary,
+          color:
+              location.isFavorite ? AppColors.accentDark : colorScheme.primary,
         ),
       ),
       title: Text(
         location.name,
-        style:
-            AppTypography.body(colorScheme.onSurface).copyWith(fontWeight: FontWeight.w500),
+        style: AppTypography.body(colorScheme.onSurface)
+            .copyWith(fontWeight: FontWeight.w500),
       ),
       subtitle: Text(
         location.address,
@@ -456,7 +459,8 @@ class _LocationSelectorState extends State<LocationSelector> {
       ),
       trailing: location.usageCount > 0
           ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
                 color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.sm + 2),

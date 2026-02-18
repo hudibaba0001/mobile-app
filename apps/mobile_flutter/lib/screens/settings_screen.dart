@@ -610,21 +610,32 @@ class SettingsScreen extends StatelessWidget {
     final settingsProvider = context.read<SettingsProvider>();
     final reminderService = context.read<ReminderService>();
 
-    if (settingsProvider.isDailyReminderEnabled) {
-      final granted = await reminderService.requestPermissions();
-      if (!granted) {
-        await settingsProvider.setDailyReminderEnabled(false);
-        await reminderService.cancelDailyReminder();
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(t.settings_dailyReminderPermissionDenied)),
-          );
+    try {
+      if (settingsProvider.isDailyReminderEnabled) {
+        final granted = await reminderService.requestPermissions();
+        if (!granted) {
+          await settingsProvider.setDailyReminderEnabled(false);
+          await reminderService.cancelDailyReminder();
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(t.settings_dailyReminderPermissionDenied)),
+            );
+          }
+          return;
         }
-        return;
+      }
+
+      await reminderService.applySettings(settingsProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Reminder setup failed: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     }
-
-    await reminderService.applySettings(settingsProvider);
   }
 
   Future<void> _pickReminderTime(

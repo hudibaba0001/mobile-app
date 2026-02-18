@@ -9,11 +9,14 @@ class TimeBalanceDashboard extends StatelessWidget {
   final double currentMonthHours;
   final double currentYearHours;
   final double yearNetBalance; // Year-only balance (no opening balance)
-  final double? contractBalance; // Optional: lifetime/contract balance with opening
+  final double?
+      contractBalance; // Optional: lifetime/contract balance with opening
   final double targetHours; // Full month target (for display)
   final double targetYearlyHours; // Full year target (for display)
-  final double? targetHoursToDate; // Month target to date (for variance calculations)
-  final double? targetYearlyHoursToDate; // Year target to date (for variance calculations)
+  final double?
+      targetHoursToDate; // Month target to date (for variance calculations)
+  final double?
+      targetYearlyHoursToDate; // Year target to date (for variance calculations)
   final String currentMonthName;
   final int currentYear;
   final double? creditHours; // Optional: paid absence credits for month
@@ -23,8 +26,10 @@ class TimeBalanceDashboard extends StatelessWidget {
   final double monthlyAdjustmentHours;
   final double yearlyAdjustmentHours;
   final double openingBalanceHours;
-  final bool showYearLoggedSince; // Whether to show "Logged since..." for year card
-  final bool showMonthLoggedSince; // Whether to show "Logged since..." for month card
+  final bool
+      showYearLoggedSince; // Whether to show "Logged since..." for year card
+  final bool
+      showMonthLoggedSince; // Whether to show "Logged since..." for month card
 
   const TimeBalanceDashboard({
     super.key,
@@ -84,7 +89,6 @@ class TimeBalanceDashboard extends StatelessWidget {
   }
 }
 
-
 /// Card displaying current month's work hours status
 class MonthlyStatusCard extends StatelessWidget {
   final String monthName;
@@ -114,8 +118,7 @@ class MonthlyStatusCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     // Calculate effective hours including credits and adjustments
-    final effectiveHours =
-        hoursWorked + (creditHours ?? 0.0) + adjustmentHours;
+    final effectiveHours = hoursWorked + (creditHours ?? 0.0) + adjustmentHours;
     // Use targetHoursToDate for variance (balance) calculation if available
     final targetForVariance = targetHoursToDate ?? targetHours;
     final variance = effectiveHours - targetForVariance;
@@ -158,7 +161,8 @@ class MonthlyStatusCard extends StatelessWidget {
             children: [
               Text(
                 l10n.balance_statusToDate,
-                style: AppTypography.sectionTitle(theme.colorScheme.onSurfaceVariant),
+                style: AppTypography.sectionTitle(
+                    theme.colorScheme.onSurfaceVariant),
               ),
               Text(
                 '${variance > 0 ? '+' : ''}${variance.toStringAsFixed(1)}h',
@@ -174,7 +178,8 @@ class MonthlyStatusCard extends StatelessWidget {
           // Line 2: Worked (to date): X.Xh / Y.Yh
           RichText(
             text: TextSpan(
-              style: AppTypography.body(theme.colorScheme.onSurface).copyWith(fontSize: 16),
+              style: AppTypography.body(theme.colorScheme.onSurface)
+                  .copyWith(fontSize: 16),
               children: [
                 TextSpan(text: '${l10n.balance_workedToDate} '),
                 TextSpan(
@@ -216,7 +221,8 @@ class MonthlyStatusCard extends StatelessWidget {
           if (adjustmentHours != 0) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              l10n.balance_manualAdjustments('${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}'),
+              l10n.balance_manualAdjustments(
+                  '${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}'),
               style: AppTypography.caption(
                 theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               ).copyWith(fontStyle: FontStyle.italic),
@@ -252,7 +258,8 @@ class MonthlyStatusCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            l10n.balance_percentFullMonthTarget((progress * 100).toStringAsFixed(0)),
+            l10n.balance_percentFullMonthTarget(
+                (progress * 100).toStringAsFixed(0)),
             style: AppTypography.caption(theme.colorScheme.onSurfaceVariant),
           ),
         ],
@@ -268,15 +275,18 @@ class YearlyBalanceCard extends StatefulWidget {
   final int year;
   final double hoursWorked;
   final double targetHours; // Full year target (for display)
-  final double? targetHoursToDate; // Year target to date (for variance calculations)
-  final double yearNetBalance; // Year-only balance (worked - target + adjustments, NO opening)
+  final double?
+      targetHoursToDate; // Year target to date (for variance calculations)
+  final double
+      yearNetBalance; // Year-only balance (worked - target + adjustments, NO opening)
   final double? contractBalance; // Balance including opening (for verification)
   final double? creditHours; // Optional: paid absence credits
   final double adjustmentHours;
   final double openingBalanceHours;
   final String? openingBalanceFormatted; // e.g., "+12h 30m" or "-3h 15m"
   final DateTime? trackingStartDate; // Date from which tracking started
-  final bool showLoggedSince; // Whether to show "Logged since..." label prominently
+  final bool
+      showLoggedSince; // Whether to show "Logged since..." label prominently
 
   const YearlyBalanceCard({
     super.key,
@@ -312,7 +322,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
   }) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         children: [
           Icon(
@@ -324,13 +334,15 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           Expanded(
             child: Text(
               label,
-              style: AppTypography.body(theme.colorScheme.onSurfaceVariant).copyWith(fontSize: 13),
+              style: AppTypography.body(theme.colorScheme.onSurfaceVariant)
+                  .copyWith(fontSize: 13),
             ),
           ),
           Text(
             value,
-            style: AppTypography.body(isPositive ? positiveColor : negativeColor)
-                .copyWith(fontWeight: FontWeight.w600),
+            style:
+                AppTypography.body(isPositive ? positiveColor : negativeColor)
+                    .copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -356,9 +368,8 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
 
     // Use target-to-date for display and progress when available
     final targetForDisplay = widget.targetHoursToDate ?? widget.targetHours;
-    final progress = targetForDisplay > 0
-        ? (widget.hoursWorked / targetForDisplay)
-        : 0.0;
+    final progress =
+        targetForDisplay > 0 ? (widget.hoursWorked / targetForDisplay) : 0.0;
     final clampedProgress = progress.clamp(0.0, 1.0);
 
     // Theme-aware colors
@@ -374,9 +385,10 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
         : (isPositive
             ? positiveColor.withValues(alpha: 0.04)
             : negativeColor.withValues(alpha: 0.04));
-    
+
     // Show details if there's an opening balance OR adjustments to explain
-    final hasDetails = widget.openingBalanceHours != 0 || widget.adjustmentHours != 0;
+    final hasDetails =
+        widget.openingBalanceHours != 0 || widget.adjustmentHours != 0;
 
     return AppCard(
       padding: AppSpacing.cardPadding * 1.5,
@@ -389,21 +401,24 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           // Header: THIS YEAR 2026
           Text(
             l10n.balance_thisYear(widget.year),
-            style: AppTypography.cardTitle(theme.colorScheme.onSurfaceVariant).copyWith(
+            style: AppTypography.cardTitle(theme.colorScheme.onSurfaceVariant)
+                .copyWith(
               letterSpacing: 1.2,
               fontSize: 12,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          
+
           // Worked (to date): X.Xh / Y.Yh
           RichText(
             text: TextSpan(
-              style: AppTypography.body(theme.colorScheme.onSurface).copyWith(fontSize: 16),
+              style: AppTypography.body(theme.colorScheme.onSurface)
+                  .copyWith(fontSize: 16),
               children: [
                 TextSpan(text: '${l10n.balance_workedToDate} '),
                 TextSpan(
-                  text: '${(widget.hoursWorked + (widget.creditHours ?? 0.0) + widget.adjustmentHours).toStringAsFixed(1)}h',
+                  text:
+                      '${(widget.hoursWorked + (widget.creditHours ?? 0.0) + widget.adjustmentHours).toStringAsFixed(1)}h',
                   style: AppTypography.body(theme.colorScheme.primary).copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -432,9 +447,13 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           if (widget.showLoggedSince && widget.trackingStartDate != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm - 2,
+              ),
               decoration: BoxDecoration(
-                color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.5),
+                color:
+                    theme.colorScheme.tertiaryContainer.withValues(alpha: 0.5),
                 borderRadius: AppRadius.pillRadius,
                 border: Border.all(
                   color: theme.colorScheme.tertiary.withValues(alpha: 0.3),
@@ -455,7 +474,8 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                         l10n.balance_loggedSince(
                           DateFormat('d MMM').format(widget.trackingStartDate!),
                         ),
-                        style: AppTypography.caption(theme.colorScheme.onTertiaryContainer)
+                        style: AppTypography.caption(
+                                theme.colorScheme.onTertiaryContainer)
                             .copyWith(fontWeight: FontWeight.w500),
                       ),
                     ],
@@ -469,7 +489,8 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                         widget.openingBalanceFormatted!,
                       ),
                       style: AppTypography.caption(
-                        theme.colorScheme.onTertiaryContainer.withValues(alpha: 0.8),
+                        theme.colorScheme.onTertiaryContainer
+                            .withValues(alpha: 0.8),
                       ).copyWith(fontSize: 11),
                     ),
                   ],
@@ -482,7 +503,8 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           if (widget.creditHours != null && widget.creditHours! > 0) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              l10n.balance_creditedHours(widget.creditHours!.toStringAsFixed(1)),
+              l10n.balance_creditedHours(
+                  widget.creditHours!.toStringAsFixed(1)),
               style: AppTypography.body(theme.colorScheme.primary),
             ),
           ],
@@ -498,7 +520,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           ],
 
           const SizedBox(height: AppSpacing.sm),
-          
+
           // Balance today (avoid "Status" wording)
           Row(
             children: [
@@ -516,9 +538,9 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: AppSpacing.md),
-          
+
           // Progress bar
           ClipRRect(
             borderRadius: AppRadius.pillRadius,
@@ -536,7 +558,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
             l10n.balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
             style: AppTypography.caption(theme.colorScheme.onSurfaceVariant),
           ),
-          
+
           const SizedBox(height: AppSpacing.lg),
           Divider(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
           const SizedBox(height: AppSpacing.lg),
@@ -544,7 +566,8 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           // PRIMARY: Balance Today - the main number users care about
           Text(
             l10n.balance_balanceToday,
-            style: AppTypography.cardTitle(theme.colorScheme.onSurfaceVariant).copyWith(
+            style: AppTypography.cardTitle(theme.colorScheme.onSurfaceVariant)
+                .copyWith(
               letterSpacing: 1.2,
               fontSize: 12,
             ),
@@ -590,7 +613,8 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                 const SizedBox(width: AppSpacing.sm - 2),
                 Text(
                   l10n.balance_startingBalanceValue(
-                    widget.openingBalanceFormatted ?? '${widget.openingBalanceHours >= 0 ? '+' : ''}${widget.openingBalanceHours.toStringAsFixed(1)}h',
+                    widget.openingBalanceFormatted ??
+                        '${widget.openingBalanceHours >= 0 ? '+' : ''}${widget.openingBalanceHours.toStringAsFixed(1)}h',
                   ),
                   style: AppTypography.body(theme.colorScheme.onSurfaceVariant),
                 ),
@@ -601,7 +625,8 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           const SizedBox(height: AppSpacing.sm),
           Text(
             l10n.balance_resetsOn('31 Dec'),
-            style: AppTypography.caption(theme.colorScheme.onSurfaceVariant).copyWith(
+            style: AppTypography.caption(theme.colorScheme.onSurfaceVariant)
+                .copyWith(
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -613,7 +638,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
               onTap: () => setState(() => _showDetails = !_showDetails),
               borderRadius: AppRadius.buttonRadius,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 child: Row(
                   children: [
                     Icon(
@@ -631,105 +656,111 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                 ),
               ),
             ),
-
             if (_showDetails) ...[
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                    border: Border.all(
-                      color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                    ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.balance_breakdown,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.balance_breakdown,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
 
-                      // Starting balance row
-                      if (widget.openingBalanceHours != 0) ...[
-                        _buildBreakdownRow(
-                          context,
-                          icon: Icons.account_balance_wallet,
-                          label: widget.trackingStartDate != null
-                              ? l10n.balance_startingBalanceAsOf(
-                                  DateFormat('d MMM').format(widget.trackingStartDate!),
-                                  '',
-                                ).replaceAll(': ', '')
-                              : l10n.balance_startingBalance,
-                          value: widget.openingBalanceFormatted ??
-                              '${widget.openingBalanceHours >= 0 ? '+' : ''}${widget.openingBalanceHours.toStringAsFixed(1)}h',
-                          isPositive: widget.openingBalanceHours >= 0,
-                          positiveColor: positiveColor,
-                          negativeColor: negativeColor,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                      ],
-
-                      // Net this year row
+                    // Starting balance row
+                    if (widget.openingBalanceHours != 0) ...[
                       _buildBreakdownRow(
                         context,
-                        icon: Icons.analytics,
-                        label: l10n.balance_netThisYearLabel,
-                        value: '${widget.yearNetBalance >= 0 ? '+' : ''}${widget.yearNetBalance.toStringAsFixed(1)}h',
-                        isPositive: widget.yearNetBalance >= 0,
+                        icon: Icons.account_balance_wallet,
+                        label: widget.trackingStartDate != null
+                            ? l10n
+                                .balance_startingBalanceAsOf(
+                                  DateFormat('d MMM')
+                                      .format(widget.trackingStartDate!),
+                                  '',
+                                )
+                                .replaceAll(': ', '')
+                            : l10n.balance_startingBalance,
+                        value: widget.openingBalanceFormatted ??
+                            '${widget.openingBalanceHours >= 0 ? '+' : ''}${widget.openingBalanceHours.toStringAsFixed(1)}h',
+                        isPositive: widget.openingBalanceHours >= 0,
                         positiveColor: positiveColor,
                         negativeColor: negativeColor,
                       ),
-
-                      // Adjustments row (if any)
-                      if (widget.adjustmentHours != 0) ...[
-                        const SizedBox(height: AppSpacing.sm),
-                        _buildBreakdownRow(
-                          context,
-                          icon: Icons.tune,
-                          label: l10n.balance_adjustments,
-                          value: '${widget.adjustmentHours >= 0 ? '+' : ''}${widget.adjustmentHours.toStringAsFixed(1)}h',
-                          isPositive: widget.adjustmentHours >= 0,
-                          positiveColor: positiveColor,
-                          negativeColor: negativeColor,
-                        ),
-                      ],
-
-                      const SizedBox(height: AppSpacing.md),
-                      Divider(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
                       const SizedBox(height: AppSpacing.sm),
+                    ],
 
-                      // Total row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.balance_balanceToday,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            displayBalance,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isPositive ? positiveColor : negativeColor,
-                            ),
-                          ),
-                        ],
+                    // Net this year row
+                    _buildBreakdownRow(
+                      context,
+                      icon: Icons.analytics,
+                      label: l10n.balance_netThisYearLabel,
+                      value:
+                          '${widget.yearNetBalance >= 0 ? '+' : ''}${widget.yearNetBalance.toStringAsFixed(1)}h',
+                      isPositive: widget.yearNetBalance >= 0,
+                      positiveColor: positiveColor,
+                      negativeColor: negativeColor,
+                    ),
+
+                    // Adjustments row (if any)
+                    if (widget.adjustmentHours != 0) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      _buildBreakdownRow(
+                        context,
+                        icon: Icons.tune,
+                        label: l10n.balance_adjustments,
+                        value:
+                            '${widget.adjustmentHours >= 0 ? '+' : ''}${widget.adjustmentHours.toStringAsFixed(1)}h',
+                        isPositive: widget.adjustmentHours >= 0,
+                        positiveColor: positiveColor,
+                        negativeColor: negativeColor,
                       ),
                     ],
-                  ),
+
+                    const SizedBox(height: AppSpacing.md),
+                    Divider(
+                        color:
+                            theme.colorScheme.outline.withValues(alpha: 0.3)),
+                    const SizedBox(height: AppSpacing.sm),
+
+                    // Total row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.balance_balanceToday,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          displayBalance,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isPositive ? positiveColor : negativeColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ],
           ],
-        ),
+        ],
+      ),
     );
   }
 }

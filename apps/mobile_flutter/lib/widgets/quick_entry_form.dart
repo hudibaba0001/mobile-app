@@ -86,7 +86,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     final routes = <String>{};
     for (final entry in recentEntries) {
       if (entry.from != null && entry.to != null) {
-        routes.add('${entry.from} → ${entry.to}');
+        routes.add('${entry.from} â†’ ${entry.to}');
       }
     }
 
@@ -126,7 +126,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
   }
 
   void _useRecentRoute(String route) {
-    final parts = route.split(' → ');
+    final parts = route.split(' â†’ ');
     if (parts.length == 2) {
       setState(() {
         _departureController.text = parts[0];
@@ -258,8 +258,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding:
-            EdgeInsets.all(widget.isCompact ? 12 : AppConstants.defaultPadding),
+        padding: EdgeInsets.all(
+            widget.isCompact ? AppSpacing.md : AppConstants.defaultPadding),
         child: Form(
           key: _formKey,
           child: Column(
@@ -285,7 +285,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
                         label: Text(AppLocalizations.of(context)
                             .quickEntry_multiSegment),
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -387,12 +388,14 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
 
                   // Swap button (centered between fields)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                     child: Row(
                       children: [
                         const Expanded(child: Divider()),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md),
                           child: IconButton(
                             onPressed: _swapLocations,
                             icon: const Icon(Icons.swap_vert),

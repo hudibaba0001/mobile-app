@@ -144,7 +144,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   : '',
             );
             if (entry.notes != null && entry.notes!.isNotEmpty) {
-              _legNotesControllers[0] = TextEditingController(text: entry.notes);
+              _legNotesControllers[0] =
+                  TextEditingController(text: entry.notes);
             }
           }
         }
@@ -416,7 +417,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     final isWorkEntry = widget.entryType == EntryType.work;
 
     return Container(
-      margin: const EdgeInsets.only(top: 12),
+      margin: const EdgeInsets.only(top: AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.errorContainer,
@@ -430,7 +431,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             children: [
               // Show badges
               ...redDayInfo.badges.map((badge) => Padding(
-                    padding: const EdgeInsets.only(right: 6),
+                    padding: const EdgeInsets.only(right: AppSpacing.sm - 2),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
@@ -580,7 +581,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     final error = _legErrors[index];
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
@@ -605,8 +606,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   ),
                 // Source badge
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: leg.source == 'auto'
                         ? FlexsaldoColors.positiveLight
@@ -1660,7 +1661,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               icon: const Icon(Icons.add),
               label: Text(t.editMode_addNewEntryForDate),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
@@ -1674,7 +1675,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             child: FilledButton(
               onPressed: _isLoading ? null : _saveEntry,
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
@@ -1699,7 +1700,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           child: OutlinedButton(
             onPressed: () => Navigator.of(context).pop(),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md)),
             ),
@@ -1711,7 +1712,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           child: FilledButton(
             onPressed: _isLoading ? null : _saveEntry,
             style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md)),
             ),

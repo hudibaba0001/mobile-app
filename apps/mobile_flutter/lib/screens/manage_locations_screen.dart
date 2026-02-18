@@ -282,8 +282,8 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
           }
 
           return Padding(
-            padding:
-                EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom),
             child: Column(
               children: [
                 Padding(
@@ -499,7 +499,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
     final t = AppLocalizations.of(context);
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),

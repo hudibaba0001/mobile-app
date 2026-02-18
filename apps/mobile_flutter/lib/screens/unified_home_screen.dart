@@ -167,7 +167,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             type: 'travel',
             title: t.home_travelRoute(fromText, toText),
             subtitle:
-                '${DateFormat.yMMMd().format(entry.date)} • ${entry.notes?.isNotEmpty == true ? entry.notes : t.home_noRemarks}',
+                '${DateFormat.yMMMd().format(entry.date)} â€¢ ${entry.notes?.isNotEmpty == true ? entry.notes : t.home_noRemarks}',
             duration: '${minutes ~/ 60}h ${minutes % 60}m',
             icon: Icons.directions_car,
             date: entry.date,
@@ -191,14 +191,14 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           title =
               '${_formatTimeOfDay(startTime)} - ${_formatTimeOfDay(endTime)}';
           if (shift.location != null && shift.location!.isNotEmpty) {
-            subtitle += ' • ${shift.location}';
+            subtitle += ' â€¢ ${shift.location}';
           }
         }
 
         if (entry.notes?.isNotEmpty == true) {
-          subtitle += ' • ${entry.notes}';
+          subtitle += ' â€¢ ${entry.notes}';
         } else {
-          subtitle += ' • ${t.home_noRemarks}';
+          subtitle += ' â€¢ ${t.home_noRemarks}';
         }
 
         allEntries.add(_EntryData(
@@ -843,7 +843,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     required Color color,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -945,7 +945,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                         size: 13,
                         color: theme.colorScheme.onTertiaryContainer,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         networkStatus.isOffline
                             ? t.network_offlineTooltip
@@ -964,8 +964,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               GestureDetector(
                 onTap: () => AppRouter.goToHistory(context),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm - 2,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius:
@@ -1035,7 +1037,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           else if (_recentEntries.isEmpty)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+              padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.xxl, horizontal: AppSpacing.lg),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -1196,8 +1199,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm - 2,
+                  ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -1260,7 +1265,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         isScrollControlled: true,
         backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
         ),
         builder: (ctx) {
           return Padding(
@@ -1312,7 +1318,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (ctx) {
         return Padding(
@@ -1428,7 +1434,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (BuildContext ctx) {
         return Padding(
@@ -1462,7 +1468,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (BuildContext ctx) {
         return Padding(
@@ -1957,8 +1963,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                   ],
                 ),
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
+                  topLeft: Radius.circular(AppRadius.lg + AppSpacing.xs),
+                  topRight: Radius.circular(AppRadius.lg + AppSpacing.xs),
                 ),
               ),
               child: Row(
@@ -2083,7 +2089,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.md),
                           side: BorderSide(
                             color: theme.colorScheme.primary
                                 .withValues(alpha: 0.3),
@@ -2277,8 +2284,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
               decoration: BoxDecoration(
                 color: AppColors.neutral50,
                 borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+                  bottomLeft: Radius.circular(AppRadius.lg + AppSpacing.xs),
+                  bottomRight: Radius.circular(AppRadius.lg + AppSpacing.xs),
                 ),
               ),
               child: Row(
@@ -2287,7 +2294,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
@@ -2405,7 +2413,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.primary,
                         foregroundColor: AppColors.neutral50,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
@@ -2999,8 +3008,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                   ],
                 ),
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
+                  topLeft: Radius.circular(AppRadius.lg + AppSpacing.xs),
+                  topRight: Radius.circular(AppRadius.lg + AppSpacing.xs),
                 ),
               ),
               child: Row(
@@ -3125,7 +3134,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.md),
                           side: BorderSide(
                             color: theme.colorScheme.secondary
                                 .withValues(alpha: 0.3),
@@ -3319,8 +3329,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
               decoration: BoxDecoration(
                 color: AppColors.neutral50,
                 borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+                  bottomLeft: Radius.circular(AppRadius.lg + AppSpacing.xs),
+                  bottomRight: Radius.circular(AppRadius.lg + AppSpacing.xs),
                 ),
               ),
               child: Row(
@@ -3329,7 +3339,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
@@ -3487,7 +3498,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.secondary,
                         foregroundColor: AppColors.neutral50,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),

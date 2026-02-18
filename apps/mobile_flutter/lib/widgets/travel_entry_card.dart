@@ -195,7 +195,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${widget.entry.from ?? 'Unknown'} → ${widget.entry.to ?? 'Unknown'}', // Entry uses 'from' and 'to'
+                  '${widget.entry.from ?? 'Unknown'} â†’ ${widget.entry.to ?? 'Unknown'}', // Entry uses 'from' and 'to'
                   style: AppTypography.body(colorScheme.onSurface)
                       .copyWith(fontWeight: FontWeight.w500),
                   maxLines: 1,
@@ -213,7 +213,10 @@ class _TravelEntryCardState extends State<TravelEntryCard>
 
           // Duration
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md - 2,
+              vertical: AppSpacing.sm - 2,
+            ),
             decoration: BoxDecoration(
               color: _durationColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -400,7 +403,7 @@ class _TravelEntryCardState extends State<TravelEntryCard>
 
                 // Route line
                 Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                   child: Row(
                     children: [
                       const SizedBox(width: AppSpacing.xs),
@@ -485,7 +488,8 @@ class _TravelEntryCardState extends State<TravelEntryCard>
           if (widget.entry.journeyId != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
                 color: Theme.of(context)
                     .colorScheme

@@ -86,7 +86,8 @@ class _BalanceCardState extends State<BalanceCard>
                   onTap: widget.onTap,
                   borderRadius: BorderRadius.circular(AppRadius.lg),
                   child: Container(
-                    padding: const EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
+                    padding:
+                        const EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                       gradient: LinearGradient(
@@ -170,7 +171,8 @@ class _BalanceCardState extends State<BalanceCard>
     final isBalanced = (stats.workMinutes - stats.travelMinutes).abs() <= 30;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
         color: isBalanced
             ? colorScheme.tertiary.withValues(alpha: 0.1)
@@ -243,8 +245,8 @@ class _BalanceCardState extends State<BalanceCard>
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(4),
-                          bottomLeft: Radius.circular(4),
+                          topLeft: Radius.circular(AppSpacing.xs),
+                          bottomLeft: Radius.circular(AppSpacing.xs),
                         ),
                         color: colorScheme.secondary,
                       ),
@@ -256,8 +258,8 @@ class _BalanceCardState extends State<BalanceCard>
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: const BorderRadius.only(
-                          topRight: Radius.circular(4),
-                          bottomRight: Radius.circular(4),
+                          topRight: Radius.circular(AppSpacing.xs),
+                          bottomRight: Radius.circular(AppSpacing.xs),
                         ),
                         color: colorScheme.primary,
                       ),

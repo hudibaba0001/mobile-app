@@ -111,7 +111,7 @@ class EntryDetailSheet extends StatelessWidget {
 
   String _titleFor(BuildContext context, Entry e) {
     if (e.type == EntryType.travel) {
-      return 'Travel: ${e.from ?? ''} → ${e.to ?? ''}'.trim();
+      return 'Travel: ${e.from ?? ''} â†’ ${e.to ?? ''}'.trim();
     }
     return AppLocalizations.of(context).entryDetail_workSession;
   }
@@ -138,7 +138,7 @@ class EntryDetailSheet extends StatelessWidget {
           final s = shifts[i];
           items.add(
             Container(
-              margin: const EdgeInsets.only(bottom: 12),
+              margin: const EdgeInsets.only(bottom: AppSpacing.md),
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
@@ -193,7 +193,7 @@ class EntryDetailSheet extends StatelessWidget {
 
   Widget _kv(ThemeData theme, String key, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -25,7 +25,8 @@ class TravelSegmentCard extends StatelessWidget {
     final t = AppLocalizations.of(context);
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      margin: const EdgeInsets.symmetric(
+          vertical: AppSpacing.xs, horizontal: AppSpacing.sm),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
@@ -63,7 +64,7 @@ class TravelSegmentCard extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        '${segment.departure} → ${segment.arrival}',
+                        '${segment.departure} â†’ ${segment.arrival}',
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],

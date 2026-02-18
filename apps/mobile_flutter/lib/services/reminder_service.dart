@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -21,6 +22,8 @@ class ReminderService {
   bool _initialized = false;
 
   bool get _supportsNotifications => !kIsWeb;
+  static const String _typeTokenCrashHint =
+      'TypeToken must be created with a type argument';
 
   Future<void> initialize() async {
     if (_initialized || !_supportsNotifications) return;
@@ -57,27 +60,35 @@ class ReminderService {
 
     bool granted = true;
 
-    final android = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    final androidGranted = await android?.requestNotificationsPermission();
-    if (androidGranted == false) {
-      granted = false;
-    }
+    try {
+      final android = _notifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      final androidGranted = await android?.requestNotificationsPermission();
+      if (androidGranted == false) {
+        granted = false;
+      }
 
-    final ios = _notifications.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
-    final iosGranted =
-        await ios?.requestPermissions(alert: true, badge: true, sound: true);
-    if (iosGranted == false) {
-      granted = false;
-    }
+      final ios = _notifications.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      final iosGranted =
+          await ios?.requestPermissions(alert: true, badge: true, sound: true);
+      if (iosGranted == false) {
+        granted = false;
+      }
 
-    final macos = _notifications.resolvePlatformSpecificImplementation<
-        MacOSFlutterLocalNotificationsPlugin>();
-    final macGranted =
-        await macos?.requestPermissions(alert: true, badge: true, sound: true);
-    if (macGranted == false) {
-      granted = false;
+      final macos = _notifications.resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin>();
+      final macGranted = await macos?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      if (macGranted == false) {
+        granted = false;
+      }
+    } catch (e) {
+      debugPrint('ReminderService: Failed requesting permissions: $e');
+      return false;
     }
 
     return granted;
@@ -110,7 +121,7 @@ class ReminderService {
   }) async {
     if (!_supportsNotifications) return;
     await initialize();
-    await cancelDailyReminder();
+    await _cancelDailyReminderInternal();
 
     final now = tz.TZDateTime.now(tz.local);
     var scheduled = tz.TZDateTime(
@@ -157,6 +168,24 @@ class ReminderService {
   Future<void> cancelDailyReminder() async {
     if (!_supportsNotifications) return;
     await initialize();
-    await _notifications.cancel(_dailyReminderNotificationId);
+    await _cancelDailyReminderInternal();
+  }
+
+  Future<void> _cancelDailyReminderInternal() async {
+    try {
+      await _notifications.cancel(_dailyReminderNotificationId);
+    } on PlatformException catch (e) {
+      // Guard against known R8/Gson signature stripping crash in release builds.
+      if (e.message?.contains(_typeTokenCrashHint) == true) {
+        debugPrint(
+          'ReminderService: Ignoring known TypeToken cancel crash. '
+          'Ensure R8 keeps generic signatures for flutter_local_notifications.',
+        );
+        return;
+      }
+      debugPrint('ReminderService: Failed to cancel reminder: $e');
+    } catch (e) {
+      debugPrint('ReminderService: Failed to cancel reminder: $e');
+    }
   }
 }

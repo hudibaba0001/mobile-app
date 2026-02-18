@@ -684,7 +684,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (ctx) {
         return Padding(
@@ -706,7 +706,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
       ),
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(

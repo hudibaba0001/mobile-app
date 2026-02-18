@@ -15,7 +15,15 @@
       "WebFetch(domain:developers.google.com)",
       "Bash(npx next build:*)",
       "Bash(find:*)",
-      "mcp__supabase__get_logs"
+      "mcp__supabase__get_logs",
+      "mcp__firebase__firebase_get_environment",
+      "mcp__firebase__firebase_list_projects",
+      "mcp__firebase__firebase_update_environment",
+      "mcp__firebase__firebase_list_apps",
+      "mcp__firebase__firebase_read_resources",
+      "mcp__firebase__crashlytics_get_report",
+      "mcp__firebase__crashlytics_get_issue",
+      "mcp__firebase__crashlytics_list_events"
     ]
   },
   "enableAllProjectMcpServers": true,
