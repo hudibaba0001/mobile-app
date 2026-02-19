@@ -39,6 +39,7 @@ class ReportExportLabels {
   final String plannedTimeRow;
   final String differenceVsPlanRow;
   final String balanceAfterPeriodRow;
+  final String trackedTotalsNote;
   final String colType;
   final String colDate;
   final String colMinutes;
@@ -65,6 +66,7 @@ class ReportExportLabels {
     required this.plannedTimeRow,
     required this.differenceVsPlanRow,
     required this.balanceAfterPeriodRow,
+    required this.trackedTotalsNote,
     required this.colType,
     required this.colDate,
     required this.colMinutes,
@@ -278,6 +280,7 @@ class ExportService {
   static ExportData _prepareReportEntriesExportData({
     required ReportSummary summary,
     required String sheetName,
+    required String trackedTotalsNote,
   }) {
     final base = prepareExportData(
       summary.filteredEntries,
@@ -319,6 +322,11 @@ class ExportService {
       row[_colHolidayWork] = 'No';
       rows.add(_normalizeEntryExportRow(row));
     }
+
+    final noteRow = List<dynamic>.filled(_entryExportHeaders.length, '');
+    noteRow[_colType] = 'NOTE';
+    noteRow[_colEntryNotes] = trackedTotalsNote;
+    rows.insert(0, _normalizeEntryExportRow(noteRow));
 
     if (rows.isNotEmpty) {
       rows.add(List<dynamic>.filled(_entryExportHeaders.length, ''));
@@ -477,6 +485,7 @@ class ExportService {
     final entriesSheet = _prepareReportEntriesExportData(
       summary: summary,
       sheetName: labels.entriesSheetName,
+      trackedTotalsNote: labels.trackedTotalsNote,
     );
     final summarySheet = _prepareSummarySheet(
       periodSummary: periodSummary,

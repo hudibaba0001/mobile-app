@@ -75,6 +75,8 @@ ReportExportLabels _testReportLabels() {
     plannedTimeRow: 'Planned time',
     differenceVsPlanRow: 'Difference vs plan',
     balanceAfterPeriodRow: 'Your balance after this period',
+    trackedTotalsNote:
+        'TOTAL (tracked only) excludes Leave and Balance events. See Summary (Easy).',
     colType: 'Type',
     colDate: 'Date',
     colMinutes: 'Minutes',
@@ -461,6 +463,12 @@ void main() {
       expect(sections[2].sheetName, 'Balance Events');
 
       final reportRows = sections[0].rows;
+      expect(reportRows.first[_colType], 'NOTE');
+      expect(
+        reportRows.first[_colEntryNotes],
+        'TOTAL (tracked only) excludes Leave and Balance events. See Summary (Easy).',
+      );
+
       final paidLeaveRows = reportRows
           .where((row) => row[_colType].toString().startsWith('Leave ('))
           .toList();

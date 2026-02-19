@@ -940,26 +940,38 @@ class _OverviewTabState extends State<OverviewTab> {
   }
 
   ReportExportLabels _reportExportLabels(AppLocalizations t) {
+    final isSwedish = Localizations.localeOf(context).languageCode == 'sv';
+    final summarySheetName =
+        isSwedish ? 'Sammanfattning (enkel)' : 'Summary (Easy)';
+    final balanceEventsSheetName =
+        isSwedish ? 'Saldohändelser' : 'Balance Events';
+
     return ReportExportLabels(
       entriesSheetName: t.reportsExport_entriesSheetName,
-      summarySheetName: 'Summary (Easy)',
-      balanceEventsSheetName: 'Balance Events',
+      summarySheetName: summarySheetName,
+      balanceEventsSheetName: balanceEventsSheetName,
       openingBalanceRow: t.reportsExport_openingBalanceRow,
       timeAdjustmentRow: t.reportsExport_timeAdjustmentRow,
       timeAdjustmentsTotalRow: t.reportsExport_timeAdjustmentsTotalRow,
       periodStartBalanceRow: t.reportsExport_periodStartBalanceRow,
       periodEndBalanceRow: t.reportsExport_periodEndBalanceRow,
-      metricHeader: 'Metric',
-      minutesHeader: 'Minutes',
-      hoursHeader: 'Hours',
-      periodRow: 'Period',
-      quickReadRow: 'Quick read',
-      totalLoggedTimeRow: 'Total logged time',
-      paidLeaveRow: 'Paid leave',
-      accountedTimeRow: 'Accounted time',
-      plannedTimeRow: 'Planned time',
-      differenceVsPlanRow: 'Difference vs plan',
-      balanceAfterPeriodRow: 'Your balance after this period',
+      metricHeader: isSwedish ? 'Mått' : 'Metric',
+      minutesHeader: isSwedish ? 'Minuter' : 'Minutes',
+      hoursHeader: isSwedish ? 'Timmar' : 'Hours',
+      periodRow: isSwedish ? 'Period' : 'Period',
+      quickReadRow: isSwedish ? 'Snabböversikt' : 'Quick read',
+      totalLoggedTimeRow: isSwedish ? 'Totalt loggad tid' : 'Total logged time',
+      paidLeaveRow: isSwedish ? 'Betald frånvaro' : 'Paid leave',
+      accountedTimeRow: isSwedish ? 'Tid som räknas' : 'Accounted time',
+      plannedTimeRow: isSwedish ? 'Planerad tid' : 'Planned time',
+      differenceVsPlanRow:
+          isSwedish ? 'Skillnad mot plan' : 'Difference vs plan',
+      balanceAfterPeriodRow: isSwedish
+          ? 'Din saldo efter perioden'
+          : 'Your balance after this period',
+      trackedTotalsNote: isSwedish
+          ? 'TOTAL (tracked only) exkluderar frånvaro och saldohändelser. Se $summarySheetName.'
+          : 'TOTAL (tracked only) excludes Leave and Balance events. See $summarySheetName.',
       colType: t.reportsExport_colType,
       colDate: t.reportsExport_colDate,
       colMinutes: t.reportsExport_colMinutes,
