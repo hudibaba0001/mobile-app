@@ -1,31 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../design/design.dart';
+import '../reporting/time_format.dart';
 import '../l10n/generated/app_localizations.dart';
 
 /// Dashboard widget for displaying time balance information
 /// Shows current month status and yearly balance with Material 3 styling
 class TimeBalanceDashboard extends StatelessWidget {
-  final double currentMonthHours;
-  final double currentYearHours;
-  final double yearNetBalance; // Year-only balance (no opening balance)
-  final double?
-      contractBalance; // Optional: lifetime/contract balance with opening
-  final double targetHours; // Full month target (for display)
-  final double targetYearlyHours; // Full year target (for display)
-  final double?
-      targetHoursToDate; // Month target to date (for variance calculations)
-  final double?
-      targetYearlyHoursToDate; // Year target to date (for variance calculations)
+  final int currentMonthMinutes;
+  final int currentYearMinutes;
+  final int yearNetMinutes; // Year-only balance (no opening balance)
+  final int?
+      contractBalanceMinutes; // Optional: lifetime/contract balance with opening
+  final int targetMinutes; // Full month target (for display)
+  final int targetYearlyMinutes; // Full year target (for display)
+  final int?
+      targetMinutesToDate; // Month target to date (for variance calculations)
+  final int?
+      targetYearlyMinutesToDate; // Year target to date (for variance calculations)
   final String currentMonthName;
   final int currentYear;
-  final double? creditHours; // Optional: paid absence credits for month
-  final double? yearCreditHours; // Optional: paid absence credits for year
+  final int? creditMinutes; // Optional: paid absence credits for month
+  final int? yearCreditMinutes; // Optional: paid absence credits for year
   final String? openingBalanceFormatted; // e.g., "+12h 30m" for opening balance
   final DateTime? trackingStartDate; // Date from which tracking started
-  final double monthlyAdjustmentHours;
-  final double yearlyAdjustmentHours;
-  final double openingBalanceHours;
+  final int monthlyAdjustmentMinutes;
+  final int yearlyAdjustmentMinutes;
+  final int openingBalanceMinutes;
   final bool
       showYearLoggedSince; // Whether to show "Logged since..." for year card
   final bool
@@ -33,21 +34,21 @@ class TimeBalanceDashboard extends StatelessWidget {
 
   const TimeBalanceDashboard({
     super.key,
-    required this.currentMonthHours,
-    required this.currentYearHours,
-    required this.yearNetBalance,
-    required this.targetHours,
-    required this.targetYearlyHours,
+    required this.currentMonthMinutes,
+    required this.currentYearMinutes,
+    required this.yearNetMinutes,
+    required this.targetMinutes,
+    required this.targetYearlyMinutes,
     required this.currentMonthName,
     required this.currentYear,
-    required this.monthlyAdjustmentHours,
-    required this.yearlyAdjustmentHours,
-    required this.openingBalanceHours,
-    this.contractBalance,
-    this.targetHoursToDate,
-    this.targetYearlyHoursToDate,
-    this.creditHours,
-    this.yearCreditHours,
+    required this.monthlyAdjustmentMinutes,
+    required this.yearlyAdjustmentMinutes,
+    required this.openingBalanceMinutes,
+    this.contractBalanceMinutes,
+    this.targetMinutesToDate,
+    this.targetYearlyMinutesToDate,
+    this.creditMinutes,
+    this.yearCreditMinutes,
     this.openingBalanceFormatted,
     this.trackingStartDate,
     this.showYearLoggedSince = false,
@@ -61,25 +62,25 @@ class TimeBalanceDashboard extends StatelessWidget {
       children: [
         MonthlyStatusCard(
           monthName: currentMonthName,
-          hoursWorked: currentMonthHours,
-          targetHours: targetHours,
-          targetHoursToDate: targetHoursToDate,
-          creditHours: creditHours,
-          adjustmentHours: monthlyAdjustmentHours,
+          workedMinutes: currentMonthMinutes,
+          targetMinutes: targetMinutes,
+          targetMinutesToDate: targetMinutesToDate,
+          creditMinutes: creditMinutes,
+          adjustmentMinutes: monthlyAdjustmentMinutes,
           trackingStartDate: trackingStartDate,
           showLoggedSince: showMonthLoggedSince,
         ),
         const SizedBox(height: AppSpacing.lg),
         YearlyBalanceCard(
           year: currentYear,
-          hoursWorked: currentYearHours,
-          targetHours: targetYearlyHours,
-          targetHoursToDate: targetYearlyHoursToDate,
-          yearNetBalance: yearNetBalance,
-          contractBalance: contractBalance,
-          creditHours: yearCreditHours,
-          adjustmentHours: yearlyAdjustmentHours,
-          openingBalanceHours: openingBalanceHours,
+          workedMinutes: currentYearMinutes,
+          targetMinutes: targetYearlyMinutes,
+          targetMinutesToDate: targetYearlyMinutesToDate,
+          yearNetMinutes: yearNetMinutes,
+          contractBalanceMinutes: contractBalanceMinutes,
+          creditMinutes: yearCreditMinutes,
+          adjustmentMinutes: yearlyAdjustmentMinutes,
+          openingBalanceMinutes: openingBalanceMinutes,
           openingBalanceFormatted: openingBalanceFormatted,
           trackingStartDate: trackingStartDate,
           showLoggedSince: showYearLoggedSince,
@@ -92,22 +93,22 @@ class TimeBalanceDashboard extends StatelessWidget {
 /// Card displaying current month's work hours status
 class MonthlyStatusCard extends StatelessWidget {
   final String monthName;
-  final double hoursWorked;
-  final double targetHours; // Full month target (for display)
-  final double? targetHoursToDate; // Target to date (for variance calculations)
-  final double adjustmentHours;
-  final double? creditHours; // Optional: paid absence credits
+  final int workedMinutes;
+  final int targetMinutes; // Full month target (for display)
+  final int? targetMinutesToDate; // Target to date (for variance calculations)
+  final int adjustmentMinutes;
+  final int? creditMinutes; // Optional: paid absence credits
   final DateTime? trackingStartDate; // Date from which tracking started
   final bool showLoggedSince; // Whether to show "Logged since..." label
 
   const MonthlyStatusCard({
     super.key,
     required this.monthName,
-    required this.hoursWorked,
-    required this.targetHours,
-    required this.adjustmentHours,
-    this.targetHoursToDate,
-    this.creditHours,
+    required this.workedMinutes,
+    required this.targetMinutes,
+    required this.adjustmentMinutes,
+    this.targetMinutesToDate,
+    this.creditMinutes,
     this.trackingStartDate,
     this.showLoggedSince = false,
   });
@@ -116,15 +117,18 @@ class MonthlyStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final localeCode = Localizations.localeOf(context).languageCode;
     final isDark = theme.brightness == Brightness.dark;
-    // Calculate effective hours including credits and adjustments
-    final effectiveHours = hoursWorked + (creditHours ?? 0.0) + adjustmentHours;
-    // Use targetHoursToDate for variance (balance) calculation if available
-    final targetForVariance = targetHoursToDate ?? targetHours;
-    final variance = effectiveHours - targetForVariance;
-    final isOverTarget = variance >= 0;
-    // Use full targetHours for progress bar (shows progress toward monthly goal)
-    final progress = targetHours > 0 ? (effectiveHours / targetHours) : 0.0;
+    // Calculate effective minutes including credits and adjustments.
+    final effectiveMinutes =
+        workedMinutes + (creditMinutes ?? 0) + adjustmentMinutes;
+    // Use target-to-date for variance calculation when available.
+    final targetForVariance = targetMinutesToDate ?? targetMinutes;
+    final varianceMinutes = effectiveMinutes - targetForVariance;
+    final isOverTarget = varianceMinutes >= 0;
+    // Use full month target for progress bar.
+    final progress =
+        targetMinutes > 0 ? (effectiveMinutes / targetMinutes) : 0.0;
     final clampedProgress = progress.clamp(0.0, 1.0);
 
     // Theme-aware colors
@@ -165,7 +169,10 @@ class MonthlyStatusCard extends StatelessWidget {
                     theme.colorScheme.onSurfaceVariant),
               ),
               Text(
-                '${variance > 0 ? '+' : ''}${variance.toStringAsFixed(1)}h',
+                formatSignedMinutes(
+                  varianceMinutes,
+                  localeCode: localeCode,
+                ),
                 style: AppTypography.headline(
                   isOverTarget ? positiveColor : negativeColor,
                 ).copyWith(fontSize: 28),
@@ -183,14 +190,22 @@ class MonthlyStatusCard extends StatelessWidget {
               children: [
                 TextSpan(text: '${l10n.balance_workedToDate} '),
                 TextSpan(
-                  text: '${effectiveHours.toStringAsFixed(1)}h',
+                  text: formatMinutes(
+                    effectiveMinutes,
+                    localeCode: localeCode,
+                    padMinutes: true,
+                  ),
                   style: AppTypography.body(theme.colorScheme.primary).copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const TextSpan(text: ' / '),
                 TextSpan(
-                  text: '${targetForVariance.toStringAsFixed(1)}h',
+                  text: formatMinutes(
+                    targetForVariance,
+                    localeCode: localeCode,
+                    padMinutes: true,
+                  ),
                   style: AppTypography.body(theme.colorScheme.onSurface)
                       .copyWith(fontWeight: FontWeight.w600),
                 ),
@@ -202,27 +217,43 @@ class MonthlyStatusCard extends StatelessWidget {
 
           // Line 3 (small): Full month target: XXXh
           Text(
-            l10n.balance_fullMonthTarget(targetHours.toStringAsFixed(0)),
+            l10n.balance_fullMonthTargetValue(
+              formatMinutes(
+                targetMinutes,
+                localeCode: localeCode,
+                padMinutes: true,
+              ),
+            ),
             style: AppTypography.caption(
               theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ).copyWith(fontWeight: FontWeight.w500),
           ),
 
           // Show credits and adjustments if any
-          if (creditHours != null && creditHours! > 0) ...[
+          if (creditMinutes != null && creditMinutes! > 0) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              l10n.balance_creditedPaidLeave(creditHours!.toStringAsFixed(1)),
+              l10n.balance_creditedPaidLeaveValue(
+                formatMinutes(
+                  creditMinutes!,
+                  localeCode: localeCode,
+                  padMinutes: true,
+                ),
+              ),
               style: AppTypography.caption(
                 theme.colorScheme.primary.withValues(alpha: 0.8),
               ).copyWith(fontStyle: FontStyle.italic),
             ),
           ],
-          if (adjustmentHours != 0) ...[
+          if (adjustmentMinutes != 0) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              l10n.balance_manualAdjustments(
-                  '${adjustmentHours >= 0 ? '+' : ''}${adjustmentHours.toStringAsFixed(1)}'),
+              l10n.balance_manualAdjustmentsValue(
+                formatSignedMinutes(
+                  adjustmentMinutes,
+                  localeCode: localeCode,
+                ),
+              ),
               style: AppTypography.caption(
                 theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               ).copyWith(fontStyle: FontStyle.italic),
@@ -273,16 +304,16 @@ class MonthlyStatusCard extends StatelessWidget {
 /// Secondary: "Net This Year" (from logged hours only)
 class YearlyBalanceCard extends StatefulWidget {
   final int year;
-  final double hoursWorked;
-  final double targetHours; // Full year target (for display)
-  final double?
-      targetHoursToDate; // Year target to date (for variance calculations)
-  final double
-      yearNetBalance; // Year-only balance (worked - target + adjustments, NO opening)
-  final double? contractBalance; // Balance including opening (for verification)
-  final double? creditHours; // Optional: paid absence credits
-  final double adjustmentHours;
-  final double openingBalanceHours;
+  final int workedMinutes;
+  final int targetMinutes; // Full year target (for display)
+  final int?
+      targetMinutesToDate; // Year target to date (for variance calculations)
+  final int
+      yearNetMinutes; // Year-only balance (worked - target + adjustments, NO opening)
+  final int? contractBalanceMinutes; // Balance including opening (for verification)
+  final int? creditMinutes; // Optional: paid absence credits
+  final int adjustmentMinutes;
+  final int openingBalanceMinutes;
   final String? openingBalanceFormatted; // e.g., "+12h 30m" or "-3h 15m"
   final DateTime? trackingStartDate; // Date from which tracking started
   final bool
@@ -291,14 +322,14 @@ class YearlyBalanceCard extends StatefulWidget {
   const YearlyBalanceCard({
     super.key,
     required this.year,
-    required this.hoursWorked,
-    required this.targetHours,
-    required this.yearNetBalance,
-    required this.adjustmentHours,
-    required this.openingBalanceHours,
-    this.targetHoursToDate,
-    this.contractBalance,
-    this.creditHours,
+    required this.workedMinutes,
+    required this.targetMinutes,
+    required this.yearNetMinutes,
+    required this.adjustmentMinutes,
+    required this.openingBalanceMinutes,
+    this.targetMinutesToDate,
+    this.contractBalanceMinutes,
+    this.creditMinutes,
     this.openingBalanceFormatted,
     this.trackingStartDate,
     this.showLoggedSince = false,
@@ -353,23 +384,26 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final localeCode = Localizations.localeOf(context).languageCode;
     final isDark = theme.brightness == Brightness.dark;
 
-    // PRIMARY: Balance Today = yearNetBalance + openingBalanceHours
+    // PRIMARY: Balance Today = yearNet + opening balance.
     // This is what the user cares about: their actual flex balance right now
-    final balanceToday = widget.contractBalance ??
-        (widget.yearNetBalance + widget.openingBalanceHours);
-    final isPositive = balanceToday >= 0;
-    final displayBalance =
-        '${isPositive ? '+' : ''}${balanceToday.toStringAsFixed(1)}h';
+    final balanceTodayMinutes = widget.contractBalanceMinutes ??
+        (widget.yearNetMinutes + widget.openingBalanceMinutes);
+    final isPositive = balanceTodayMinutes >= 0;
+    final displayBalance = formatSignedMinutes(
+      balanceTodayMinutes,
+      localeCode: localeCode,
+    );
 
     // Status reflects balanceToday (the real balance)
-    final isOverTarget = balanceToday >= 0;
+    final isOverTarget = balanceTodayMinutes >= 0;
 
     // Use target-to-date for display and progress when available
-    final targetForDisplay = widget.targetHoursToDate ?? widget.targetHours;
+    final targetForDisplay = widget.targetMinutesToDate ?? widget.targetMinutes;
     final progress =
-        targetForDisplay > 0 ? (widget.hoursWorked / targetForDisplay) : 0.0;
+        targetForDisplay > 0 ? (widget.workedMinutes / targetForDisplay) : 0.0;
     final clampedProgress = progress.clamp(0.0, 1.0);
 
     // Theme-aware colors
@@ -388,7 +422,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
 
     // Show details if there's an opening balance OR adjustments to explain
     final hasDetails =
-        widget.openingBalanceHours != 0 || widget.adjustmentHours != 0;
+        widget.openingBalanceMinutes != 0 || widget.adjustmentMinutes != 0;
 
     return AppCard(
       padding: AppSpacing.cardPadding * 1.5,
@@ -417,15 +451,24 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
               children: [
                 TextSpan(text: '${l10n.balance_workedToDate} '),
                 TextSpan(
-                  text:
-                      '${(widget.hoursWorked + (widget.creditHours ?? 0.0) + widget.adjustmentHours).toStringAsFixed(1)}h',
+                  text: formatMinutes(
+                    widget.workedMinutes +
+                        (widget.creditMinutes ?? 0) +
+                        widget.adjustmentMinutes,
+                    localeCode: localeCode,
+                    padMinutes: true,
+                  ),
                   style: AppTypography.body(theme.colorScheme.primary).copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const TextSpan(text: ' / '),
                 TextSpan(
-                  text: '${targetForDisplay.toStringAsFixed(1)}h',
+                  text: formatMinutes(
+                    targetForDisplay,
+                    localeCode: localeCode,
+                    padMinutes: true,
+                  ),
                   style: AppTypography.body(theme.colorScheme.onSurface)
                       .copyWith(fontWeight: FontWeight.w600),
                 ),
@@ -437,7 +480,13 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
 
           // Full year target
           Text(
-            l10n.balance_fullYearTarget(widget.targetHours.toStringAsFixed(0)),
+            l10n.balance_fullYearTargetValue(
+              formatMinutes(
+                widget.targetMinutes,
+                localeCode: localeCode,
+                padMinutes: true,
+              ),
+            ),
             style: AppTypography.caption(
               theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ).copyWith(fontWeight: FontWeight.w500),
@@ -500,21 +549,30 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           ],
 
           // Credit hours if any (informational)
-          if (widget.creditHours != null && widget.creditHours! > 0) ...[
+          if (widget.creditMinutes != null && widget.creditMinutes! > 0) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              l10n.balance_creditedHours(
-                  widget.creditHours!.toStringAsFixed(1)),
+              l10n.balance_creditedHoursValue(
+                formatMinutes(
+                  widget.creditMinutes!,
+                  localeCode: localeCode,
+                  padMinutes: true,
+                ),
+              ),
               style: AppTypography.body(theme.colorScheme.primary),
             ),
           ],
 
           // Adjustments if any
-          if (widget.adjustmentHours != 0) ...[
+          if (widget.adjustmentMinutes != 0) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              l10n.balance_includesAdjustments(
-                  '${widget.adjustmentHours >= 0 ? '+' : ''}${widget.adjustmentHours.toStringAsFixed(1)}'),
+              l10n.balance_includesAdjustmentsValue(
+                formatSignedMinutes(
+                  widget.adjustmentMinutes,
+                  localeCode: localeCode,
+                ),
+              ),
               style: AppTypography.caption(theme.colorScheme.onSurfaceVariant),
             ),
           ],
@@ -584,7 +642,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           ),
 
           // SECONDARY: Show Net This Year (logged hours only) when there's an opening balance
-          if (widget.openingBalanceHours != 0) ...[
+          if (widget.openingBalanceMinutes != 0) ...[
             const SizedBox(height: AppSpacing.md),
             Row(
               children: [
@@ -596,7 +654,10 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                 const SizedBox(width: AppSpacing.sm - 2),
                 Text(
                   l10n.balance_netThisYear(
-                    '${widget.yearNetBalance >= 0 ? '+' : ''}${widget.yearNetBalance.toStringAsFixed(1)}h',
+                    formatSignedMinutes(
+                      widget.yearNetMinutes,
+                      localeCode: localeCode,
+                    ),
                   ),
                   style: AppTypography.body(theme.colorScheme.onSurfaceVariant),
                 ),
@@ -614,7 +675,10 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                 Text(
                   l10n.balance_startingBalanceValue(
                     widget.openingBalanceFormatted ??
-                        '${widget.openingBalanceHours >= 0 ? '+' : ''}${widget.openingBalanceHours.toStringAsFixed(1)}h',
+                        formatSignedMinutes(
+                          widget.openingBalanceMinutes,
+                          localeCode: localeCode,
+                        ),
                   ),
                   style: AppTypography.body(theme.colorScheme.onSurfaceVariant),
                 ),
@@ -680,7 +744,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                     const SizedBox(height: AppSpacing.md),
 
                     // Starting balance row
-                    if (widget.openingBalanceHours != 0) ...[
+                    if (widget.openingBalanceMinutes != 0) ...[
                       _buildBreakdownRow(
                         context,
                         icon: Icons.account_balance_wallet,
@@ -694,8 +758,11 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                                 .replaceAll(': ', '')
                             : l10n.balance_startingBalance,
                         value: widget.openingBalanceFormatted ??
-                            '${widget.openingBalanceHours >= 0 ? '+' : ''}${widget.openingBalanceHours.toStringAsFixed(1)}h',
-                        isPositive: widget.openingBalanceHours >= 0,
+                            formatSignedMinutes(
+                              widget.openingBalanceMinutes,
+                              localeCode: localeCode,
+                            ),
+                        isPositive: widget.openingBalanceMinutes >= 0,
                         positiveColor: positiveColor,
                         negativeColor: negativeColor,
                       ),
@@ -707,23 +774,27 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                       context,
                       icon: Icons.analytics,
                       label: l10n.balance_netThisYearLabel,
-                      value:
-                          '${widget.yearNetBalance >= 0 ? '+' : ''}${widget.yearNetBalance.toStringAsFixed(1)}h',
-                      isPositive: widget.yearNetBalance >= 0,
+                      value: formatSignedMinutes(
+                        widget.yearNetMinutes,
+                        localeCode: localeCode,
+                      ),
+                      isPositive: widget.yearNetMinutes >= 0,
                       positiveColor: positiveColor,
                       negativeColor: negativeColor,
                     ),
 
                     // Adjustments row (if any)
-                    if (widget.adjustmentHours != 0) ...[
+                    if (widget.adjustmentMinutes != 0) ...[
                       const SizedBox(height: AppSpacing.sm),
                       _buildBreakdownRow(
                         context,
                         icon: Icons.tune,
                         label: l10n.balance_adjustments,
-                        value:
-                            '${widget.adjustmentHours >= 0 ? '+' : ''}${widget.adjustmentHours.toStringAsFixed(1)}h',
-                        isPositive: widget.adjustmentHours >= 0,
+                        value: formatSignedMinutes(
+                          widget.adjustmentMinutes,
+                          localeCode: localeCode,
+                        ),
+                        isPositive: widget.adjustmentMinutes >= 0,
                         positiveColor: positiveColor,
                         negativeColor: negativeColor,
                       ),

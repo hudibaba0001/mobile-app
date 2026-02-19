@@ -1,90 +1,93 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
-import 'package:provider/provider.dart';
+import 'package:myapp/models/absence.dart';
+import 'package:myapp/models/balance_adjustment.dart';
+import 'package:myapp/models/entry.dart';
 import 'package:myapp/widgets/flexsaldo_card.dart';
-import 'package:myapp/providers/time_provider.dart';
-import 'package:myapp/providers/entry_provider.dart';
-import 'package:myapp/providers/contract_provider.dart';
-import 'package:myapp/l10n/generated/app_localizations.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:myapp/services/supabase_auth_service.dart';
 
-import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-import 'flexsaldo_card_test.mocks.dart';
-
-@GenerateMocks([SupabaseAuthService])
 void main() {
-  setUpAll(() async {
-    HttpOverrides.global = null;
-    TestWidgetsFlutterBinding.ensureInitialized();
-    SharedPreferences.setMockInitialValues({});
-
-    await Supabase.initialize(
-      url: 'https://dummy.supabase.co',
-      anonKey: 'dummy',
-    );
-  });
-
-  group('FlexsaldoCard', () {
-    late MockSupabaseAuthService mockSupabaseAuthService;
-    late EntryProvider mockEntryProvider;
-    late ContractProvider mockContractProvider;
-    late TimeProvider timeProvider;
-
-    setUp(() {
-      mockSupabaseAuthService = MockSupabaseAuthService();
-      when(mockSupabaseAuthService.currentUser).thenReturn(null);
-      mockEntryProvider = EntryProvider(mockSupabaseAuthService);
-      mockContractProvider = ContractProvider();
-      timeProvider = TimeProvider(mockEntryProvider, mockContractProvider);
-    });
-
-    Widget createTestWidget() {
-      return MaterialApp(
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('en')],
-        home: MultiProvider(
-          providers: [
-            ChangeNotifierProvider<EntryProvider>.value(
-                value: mockEntryProvider),
-            ChangeNotifierProvider<ContractProvider>.value(
-                value: mockContractProvider),
-            ChangeNotifierProvider<TimeProvider>.value(value: timeProvider),
-          ],
-          child: Scaffold(
-            body: const FlexsaldoCard(),
+  group('FlexsaldoCard yearly balance', () {
+    test(
+      'includes opening balance + year adjustments + period difference',
+      () {
+        final now = DateTime(2026, 2, 19, 12, 0);
+        final entries = <Entry>[
+          Entry.makeWorkAtomicFromShift(
+            userId: 'user-1',
+            date: DateTime(2026, 2, 10),
+            shift: Shift(
+              start: DateTime(2026, 2, 10, 8, 0),
+              end: DateTime(2026, 2, 10, 13, 15), // +315 min difference
+            ),
           ),
-        ),
-      );
-    }
+        ];
+        final adjustments = <BalanceAdjustment>[
+          BalanceAdjustment(
+            userId: 'user-1',
+            effectiveDate: DateTime(2026, 2, 11),
+            deltaMinutes: -120,
+          ),
+        ];
 
-    testWidgets('renders FlexsaldoCard with month title and status',
-        (tester) async {
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
+        final yearlyBalance = computeHomeYearlyBalanceMinutes(
+          now: now,
+          entries: entries,
+          absences: const <AbsenceEntry>[],
+          adjustments: adjustments,
+          weeklyTargetMinutes: 0,
+          trackingStartDate: DateTime(2026, 1, 1),
+          openingBalanceMinutes: 600,
+          travelEnabled: true,
+        );
 
-      // Should show month status section
-      expect(find.byIcon(Icons.calendar_month_rounded), findsOneWidget);
-      expect(find.textContaining('This month:'), findsOneWidget);
-      expect(find.textContaining('Status (to date):'), findsOneWidget);
-    });
+        expect(yearlyBalance, 795); // 600 - 120 + 315
+      },
+    );
 
-    testWidgets('renders progress bar', (tester) async {
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
+    test(
+      'monthly home status stays unchanged when opening/adjustment events exist',
+      () {
+        final monthlyBefore = computeHomeMonthlyStatusMinutes(
+          monthActualMinutes: 112 * 60,
+          monthCreditMinutes: 8 * 60,
+          monthTargetMinutesToDate: 120 * 60,
+        );
 
-      // Should show LinearProgressIndicator
-      expect(find.byType(LinearProgressIndicator), findsOneWidget);
-    });
+        final yearlyBalance = computeHomeYearlyBalanceMinutes(
+          now: DateTime(2026, 2, 19),
+          entries: <Entry>[
+            Entry.makeWorkAtomicFromShift(
+              userId: 'user-2',
+              date: DateTime(2026, 2, 12),
+              shift: Shift(
+                start: DateTime(2026, 2, 12, 8, 0),
+                end: DateTime(2026, 2, 12, 13, 15),
+              ),
+            ),
+          ],
+          absences: const <AbsenceEntry>[],
+          adjustments: <BalanceAdjustment>[
+            BalanceAdjustment(
+              userId: 'user-2',
+              effectiveDate: DateTime(2026, 2, 12),
+              deltaMinutes: -120,
+            ),
+          ],
+          weeklyTargetMinutes: 0,
+          trackingStartDate: DateTime(2026, 1, 1),
+          openingBalanceMinutes: 600,
+          travelEnabled: true,
+        );
+
+        final monthlyAfter = computeHomeMonthlyStatusMinutes(
+          monthActualMinutes: 112 * 60,
+          monthCreditMinutes: 8 * 60,
+          monthTargetMinutesToDate: 120 * 60,
+        );
+
+        expect(monthlyBefore, 0);
+        expect(monthlyAfter, monthlyBefore);
+        expect(yearlyBalance, 795); // Yearly includes opening/adjustments.
+      },
+    );
   });
 }

@@ -6,6 +6,7 @@ import '../../providers/time_provider.dart';
 import '../../providers/entry_provider.dart';
 import '../../providers/contract_provider.dart';
 import '../../providers/balance_adjustment_provider.dart';
+import '../../reporting/time_format.dart';
 import '../../widgets/time_balance_dashboard.dart';
 import '../../widgets/add_adjustment_dialog.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -95,51 +96,50 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
         final monthSummary = timeProvider.getCurrentMonthSummary();
 
         final currentDate = DateTime.now();
+        final localeCode = Localizations.localeOf(context).languageCode;
 
         // Get to-date values (month-to-date and year-to-date)
-        final currentMonthHours = timeProvider.monthActualMinutesToDate(
-              currentDate.year,
-              currentDate.month,
-            ) /
-            60.0;
-        final currentYearHours =
-            timeProvider.yearActualMinutesToDate(currentDate.year) / 60.0;
-        final monthlyAdjustmentHours = timeProvider.monthlyAdjustmentHours(
+        final currentMonthMinutes = timeProvider.monthActualMinutesToDate(
+          currentDate.year,
+          currentDate.month,
+        );
+        final currentYearMinutes =
+            timeProvider.yearActualMinutesToDate(currentDate.year);
+        final monthlyAdjustmentMinutes = timeProvider.monthlyAdjustmentMinutes(
           year: currentDate.year,
           month: currentDate.month,
         );
-        final yearlyAdjustmentHours = timeProvider.totalYearAdjustmentHours;
+        final yearlyAdjustmentMinutes =
+            timeProvider.yearAdjustmentMinutesToDate(currentDate.year);
 
         // Get to-date targets (for variance/balance calculations)
-        final monthlyTargetToDate = timeProvider.monthTargetHoursToDate(
+        final monthlyTargetToDateMinutes = timeProvider.monthTargetMinutesToDate(
           year: currentDate.year,
           month: currentDate.month,
         );
-        final yearlyTargetToDate =
-            timeProvider.yearTargetHoursToDate(year: currentDate.year);
+        final yearlyTargetToDateMinutes =
+            timeProvider.yearTargetMinutesToDate(currentDate.year);
 
         // Get full month/year targets (for display purposes)
-        final fullMonthlyTarget = timeProvider.monthlyTargetHours(
+        final fullMonthlyTargetMinutes = timeProvider.monthlyTargetMinutes(
           year: currentDate.year,
           month: currentDate.month,
         );
-        final fullYearlyTarget =
-            timeProvider.yearlyTargetHours(year: currentDate.year);
+        final fullYearlyTargetMinutes =
+            timeProvider.yearlyTargetMinutes(year: currentDate.year);
 
-        // Get credit hours to-date for current month
-        final monthlyCredit = timeProvider.monthCreditMinutesToDate(
-              currentDate.year,
-              currentDate.month,
-            ) /
-            60.0;
+        // Get credit minutes to-date for current month/year
+        final monthlyCreditMinutes = timeProvider.monthCreditMinutesToDate(
+          currentDate.year,
+          currentDate.month,
+        );
+        final yearlyCreditMinutes =
+            timeProvider.yearCreditMinutesToDate(currentDate.year);
 
-        // Get credit hours to-date for current year
-        final yearlyCredit =
-            timeProvider.yearCreditMinutesToDate(currentDate.year) / 60.0;
-        final openingBalanceHours = timeProvider.openingFlexHours;
+        final openingBalanceMinutes = contractProvider.openingFlexMinutes;
 
-        // Use provider's year-only net balance (no opening balance)
-        final yearNetBalance = timeProvider.currentYearNetBalance;
+        // Use provider's year-only net balance in minutes (no opening balance)
+        final yearNetMinutes = timeProvider.currentYearNetMinutes;
 
         // Determine if we should show "Logged since..." labels
         final showYearLoggedSince =
@@ -158,27 +158,39 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TimeBalanceDashboard(
-                currentMonthHours: currentMonthHours,
-                currentYearHours: currentYearHours,
-                yearNetBalance: yearNetBalance,
-                // Don't pass contractBalance - let the card calculate it as yearNetBalance + openingBalanceHours
-                targetHours: fullMonthlyTarget, // Full month target for display
-                targetYearlyHours:
-                    fullYearlyTarget, // Full year target for display
-                targetHoursToDate:
-                    monthlyTargetToDate, // To-date target for variance
-                targetYearlyHoursToDate:
-                    yearlyTargetToDate, // To-date target for variance
+                currentMonthMinutes: currentMonthMinutes,
+                currentYearMinutes: currentYearMinutes,
+                yearNetMinutes: yearNetMinutes,
+                // Don't pass contractBalance - let the card calculate
+                // it as yearNet + opening balance in minutes.
+                targetMinutes:
+                    fullMonthlyTargetMinutes, // Full month target for display
+                targetYearlyMinutes:
+                    fullYearlyTargetMinutes, // Full year target for display
+                targetMinutesToDate:
+                    monthlyTargetToDateMinutes, // To-date target for variance
+                targetYearlyMinutesToDate:
+                    yearlyTargetToDateMinutes, // To-date target for variance
                 currentMonthName: monthSummary?.monthName ?? t.common_unknown,
                 currentYear: currentMonth.year,
-                creditHours: monthlyCredit > 0 ? monthlyCredit : null,
-                yearCreditHours: yearlyCredit > 0 ? yearlyCredit : null,
-                monthlyAdjustmentHours: monthlyAdjustmentHours,
-                yearlyAdjustmentHours: yearlyAdjustmentHours,
-                openingBalanceHours: openingBalanceHours,
+                creditMinutes: monthlyCreditMinutes > 0 ? monthlyCreditMinutes : null,
+                yearCreditMinutes: yearlyCreditMinutes > 0 ? yearlyCreditMinutes : null,
+                monthlyAdjustmentMinutes: monthlyAdjustmentMinutes,
+                yearlyAdjustmentMinutes: yearlyAdjustmentMinutes,
+                openingBalanceMinutes: openingBalanceMinutes,
                 openingBalanceFormatted: timeProvider.hasOpeningBalance
-                    ? timeProvider.openingFlexFormatted
-                    : (showYearLoggedSince ? '+0h' : null),
+                    ? formatSignedMinutes(
+                        openingBalanceMinutes,
+                        localeCode: localeCode,
+                        showPlusForZero: true,
+                      )
+                    : (showYearLoggedSince
+                        ? formatSignedMinutes(
+                            0,
+                            localeCode: localeCode,
+                            showPlusForZero: true,
+                          )
+                        : null),
                 trackingStartDate: showYearLoggedSince || showMonthLoggedSince
                     ? timeProvider.trackingStartDate
                     : null,
@@ -190,7 +202,10 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
 
               // Adjustments Section
               _buildAdjustmentsSection(
-                  context, recentAdjustments, yearlyAdjustmentHours),
+                context,
+                recentAdjustments,
+                yearlyAdjustmentMinutes,
+              ),
             ],
           ),
         );
@@ -201,7 +216,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
   Widget _buildAdjustmentsSection(
     BuildContext context,
     List<dynamic> recentAdjustments,
-    double totalAdjustmentHours,
+    int totalAdjustmentMinutes,
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -239,22 +254,22 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                     ),
                   ),
                 ),
-                if (totalAdjustmentHours != 0) ...[
+                if (totalAdjustmentMinutes != 0) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md - 2,
                       vertical: AppSpacing.xs,
                     ),
                     decoration: BoxDecoration(
-                      color: totalAdjustmentHours >= 0
+                      color: totalAdjustmentMinutes >= 0
                           ? AppColors.success.withValues(alpha: 0.1)
                           : AppColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Text(
-                      '${totalAdjustmentHours >= 0 ? '+' : ''}${totalAdjustmentHours.toStringAsFixed(1)}h',
+                      _formatSignedMinutes(context, totalAdjustmentMinutes),
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: totalAdjustmentHours >= 0
+                        color: totalAdjustmentMinutes >= 0
                             ? AppColors.success
                             : AppColors.error,
                         fontWeight: FontWeight.w600,
@@ -369,7 +384,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               ),
             ),
             Text(
-              adjustment.deltaFormatted,
+              _formatSignedMinutes(context, adjustment.deltaMinutes),
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: isPositive ? AppColors.success : AppColors.error,
@@ -404,5 +419,18 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
       // Refresh balances
       await _loadBalances();
     }
+  }
+
+  String _formatSignedMinutes(
+    BuildContext context,
+    int minutes, {
+    bool showPlusForZero = false,
+  }) {
+    final localeCode = Localizations.localeOf(context).languageCode;
+    return formatSignedMinutes(
+      minutes,
+      localeCode: localeCode,
+      showPlusForZero: showPlusForZero,
+    );
   }
 }

@@ -1,12 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../calendar/sweden_holidays.dart';
+import '../models/absence.dart';
+import '../models/balance_adjustment.dart';
+import '../models/entry.dart';
 import '../design/app_theme.dart';
+import '../providers/absence_provider.dart';
+import '../providers/balance_adjustment_provider.dart';
 import '../providers/time_provider.dart';
 import '../providers/contract_provider.dart';
 import '../providers/entry_provider.dart';
+import '../providers/settings_provider.dart';
+import '../reporting/period_summary_calculator.dart';
 import '../reporting/time_format.dart';
+import '../reporting/time_range.dart';
 import '../l10n/generated/app_localizations.dart';
+
+@visibleForTesting
+int computeHomeMonthlyStatusMinutes({
+  required int monthActualMinutes,
+  required int monthCreditMinutes,
+  required int monthTargetMinutesToDate,
+}) {
+  return monthActualMinutes + monthCreditMinutes - monthTargetMinutesToDate;
+}
+
+int _sumAdjustmentsInRangeMinutes({
+  required List<BalanceAdjustment> adjustments,
+  required TimeRange range,
+}) {
+  return adjustments.fold<int>(0, (sum, adjustment) {
+    final date = DateTime(
+      adjustment.effectiveDate.year,
+      adjustment.effectiveDate.month,
+      adjustment.effectiveDate.day,
+    );
+    if (!date.isBefore(range.startInclusive) && date.isBefore(range.endExclusive)) {
+      return sum + adjustment.deltaMinutes;
+    }
+    return sum;
+  });
+}
+
+@visibleForTesting
+int computeHomeYearlyBalanceMinutes({
+  required DateTime now,
+  required List<Entry> entries,
+  required List<AbsenceEntry> absences,
+  required List<BalanceAdjustment> adjustments,
+  required int weeklyTargetMinutes,
+  required DateTime trackingStartDate,
+  required int openingBalanceMinutes,
+  required bool travelEnabled,
+}) {
+  final yearRange = TimeRange.thisYear(now: now);
+  final adjustmentMinutesYear = _sumAdjustmentsInRangeMinutes(
+    adjustments: adjustments,
+    range: yearRange,
+  );
+
+  final periodSummaryYear = PeriodSummaryCalculator.compute(
+    entries: entries,
+    absences: absences,
+    range: yearRange,
+    travelEnabled: travelEnabled,
+    weeklyTargetMinutes: weeklyTargetMinutes,
+    holidays: SwedenHolidayCalendar(),
+    trackingStartDate: trackingStartDate,
+    startBalanceMinutes: openingBalanceMinutes,
+    manualAdjustmentMinutes: adjustmentMinutesYear,
+  );
+
+  return periodSummaryYear.startBalanceMinutes +
+      periodSummaryYear.manualAdjustmentMinutes +
+      periodSummaryYear.differenceMinutes;
+}
 
 /// Flexsaldo card for the Home screen.
 ///
@@ -22,9 +91,11 @@ class FlexsaldoCard extends StatelessWidget {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
 
-    // Watch EntryProvider to rebuild when entries change
-    // (TimeProvider methods read directly from EntryProvider.entries)
-    context.watch<EntryProvider>();
+    // Watch providers used by the formulas so Home balance updates immediately.
+    final entryProvider = context.watch<EntryProvider>();
+    final absenceProvider = context.watch<AbsenceProvider?>();
+    final adjustmentProvider = context.watch<BalanceAdjustmentProvider?>();
+    final settingsProvider = context.watch<SettingsProvider?>();
 
     return Consumer2<TimeProvider, ContractProvider>(
       builder: (context, timeProvider, contractProvider, _) {
@@ -44,8 +115,11 @@ class FlexsaldoCard extends StatelessWidget {
         final monthTargetMinutesToDate =
             timeProvider.monthTargetMinutesToDate(year, month);
         final monthWorkedPlusCredited = monthActualMinutes + monthCreditMinutes;
-        final monthBalanceMinutes =
-            monthWorkedPlusCredited - monthTargetMinutesToDate;
+        final monthBalanceMinutes = computeHomeMonthlyStatusMinutes(
+          monthActualMinutes: monthActualMinutes,
+          monthCreditMinutes: monthCreditMinutes,
+          monthTargetMinutesToDate: monthTargetMinutesToDate,
+        );
 
         // Full month target for display (not just to-date)
         final fullMonthTargetMinutes =
@@ -56,18 +130,23 @@ class FlexsaldoCard extends StatelessWidget {
         final yearActualMinutes = timeProvider.yearActualMinutesToDate(year);
         final yearCreditMinutes = timeProvider.yearCreditMinutesToDate(year);
         final yearTargetMinutes = timeProvider.yearTargetMinutesToDate(year);
-        final yearAdjustmentMinutes =
-            timeProvider.yearAdjustmentMinutesToDate(year);
+        final yearAbsences = absenceProvider?.absencesForYear(year) ??
+            const <AbsenceEntry>[];
+        final yearAdjustments = adjustmentProvider?.allAdjustments ??
+            const <BalanceAdjustment>[];
+        final travelEnabled = settingsProvider?.isTravelLoggingEnabled ?? true;
 
-        // Year net balance (without opening balance)
-        final yearNetMinutes = yearActualMinutes +
-            yearCreditMinutes +
-            yearAdjustmentMinutes -
-            yearTargetMinutes;
-
-        // === BALANCE TODAY (year-to-date + opening balance) ===
-        final openingMinutes = contractProvider.openingFlexMinutes;
-        final balanceTodayMinutes = yearNetMinutes + openingMinutes;
+        // === BALANCE TODAY (year-to-date + opening balance + year adjustments) ===
+        final balanceTodayMinutes = computeHomeYearlyBalanceMinutes(
+          now: now,
+          entries: entryProvider.entries,
+          absences: yearAbsences,
+          adjustments: yearAdjustments,
+          weeklyTargetMinutes: contractProvider.weeklyTargetMinutes,
+          trackingStartDate: contractProvider.trackingStartDate,
+          openingBalanceMinutes: contractProvider.openingFlexMinutes,
+          travelEnabled: travelEnabled,
+        );
 
         // Colors based on balance today (headline)
         final isPositive = balanceTodayMinutes >= 0;

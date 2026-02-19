@@ -1954,6 +1954,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance_adjustments => 'Adjustments';
 
   @override
+  String balance_fullMonthTargetValue(String value) {
+    return 'Full month target: $value';
+  }
+
+  @override
+  String balance_creditedPaidLeaveValue(String value) {
+    return '+ $value credited (paid leave)';
+  }
+
+  @override
+  String balance_manualAdjustmentsValue(String value) {
+    return '$value manual adjustments';
+  }
+
+  @override
+  String balance_fullYearTargetValue(String value) {
+    return 'Full year target: $value';
+  }
+
+  @override
+  String balance_creditedHoursValue(String value) {
+    return 'Credited Hours: $value';
+  }
+
+  @override
+  String balance_includesAdjustmentsValue(String value) {
+    return 'Includes adjustments: $value';
+  }
+
+  @override
   String get locations_errorLoading => 'Error loading data';
 
   @override

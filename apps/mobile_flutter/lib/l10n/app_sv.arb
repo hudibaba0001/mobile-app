@@ -716,6 +716,42 @@
   "balance_startingBalance": "Startsaldo",
   "balance_breakdown": "UPPDELNING",
   "balance_adjustments": "Justeringar",
+  "balance_fullMonthTargetValue": "Mål denna månad: {value}",
+  "@balance_fullMonthTargetValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_creditedPaidLeaveValue": "+ {value} tillgodoräknat (betald ledighet)",
+  "@balance_creditedPaidLeaveValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_manualAdjustmentsValue": "{value} manuella justeringar",
+  "@balance_manualAdjustmentsValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_fullYearTargetValue": "Årsmål: {value}",
+  "@balance_fullYearTargetValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_creditedHoursValue": "Tillgodoräknade timmar: {value}",
+  "@balance_creditedHoursValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_includesAdjustmentsValue": "Inkluderar justeringar: {value}",
+  "@balance_includesAdjustmentsValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
 
   "locations_errorLoading": "Fel vid laddning av data",
   "locations_distribution": "Platsfördelning",

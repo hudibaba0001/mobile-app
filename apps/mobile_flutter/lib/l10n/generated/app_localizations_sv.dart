@@ -1957,6 +1957,36 @@ class AppLocalizationsSv extends AppLocalizations {
   String get balance_adjustments => 'Justeringar';
 
   @override
+  String balance_fullMonthTargetValue(String value) {
+    return 'Mål denna månad: $value';
+  }
+
+  @override
+  String balance_creditedPaidLeaveValue(String value) {
+    return '+ $value tillgodoräknat (betald ledighet)';
+  }
+
+  @override
+  String balance_manualAdjustmentsValue(String value) {
+    return '$value manuella justeringar';
+  }
+
+  @override
+  String balance_fullYearTargetValue(String value) {
+    return 'Årsmål: $value';
+  }
+
+  @override
+  String balance_creditedHoursValue(String value) {
+    return 'Tillgodoräknade timmar: $value';
+  }
+
+  @override
+  String balance_includesAdjustmentsValue(String value) {
+    return 'Inkluderar justeringar: $value';
+  }
+
+  @override
   String get locations_errorLoading => 'Fel vid laddning av data';
 
   @override

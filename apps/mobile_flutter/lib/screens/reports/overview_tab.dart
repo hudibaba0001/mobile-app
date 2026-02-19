@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../config/supabase_config.dart';
 import '../../calendar/sweden_holidays.dart';
 import '../../design/app_theme.dart';
+import '../../design/components/components.dart';
 import '../../models/absence.dart';
 import '../../models/entry.dart';
 import '../../providers/contract_provider.dart';
@@ -196,8 +197,11 @@ class _OverviewTabState extends State<OverviewTab> {
         label: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon,
-                size: 16, color: selected ? colorScheme.onPrimary : null),
+            Icon(
+              icon,
+              size: AppIconSize.xs,
+              color: selected ? colorScheme.onPrimary : null,
+            ),
             const SizedBox(width: AppSpacing.xs),
             Text(label),
           ],
@@ -539,42 +543,32 @@ class _OverviewTabState extends State<OverviewTab> {
       ),
       if (topRoutes.isNotEmpty) ...[
         const SizedBox(height: AppSpacing.md),
-        Card(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(
-              color:
-                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  t.reportsCustom_topRoutes,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                ...topRoutes.map(
-                  (route) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                    child: Text(
-                      t.reportsCustom_topRouteLine(
-                        route.routeKey,
-                        route.tripCount,
-                        _formatMinutes(route.totalMinutes),
-                      ),
+        AppCard(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                t.reportsCustom_topRoutes,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              ...topRoutes.map(
+                (route) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: Text(
+                    t.reportsCustom_topRouteLine(
+                      route.routeKey,
+                      route.tripCount,
+                      _formatMinutes(route.totalMinutes),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
@@ -650,99 +644,90 @@ class _OverviewTabState extends State<OverviewTab> {
     final totalAdjustments = periodSummary.manualAdjustmentMinutes;
     final dateFormat = DateFormat('yyyy-MM-dd');
 
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              t.reportsCustom_balanceAdjustments,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t.reportsCustom_balanceAdjustments,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(height: AppSpacing.sm),
-            if (opening != null) ...[
-              Text(
-                t.reportsCustom_openingBalanceEffectiveFrom(
-                  _formatMinutes(opening.minutes, signed: true),
-                  dateFormat.format(opening.effectiveDate),
-                ),
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          if (opening != null) ...[
             Text(
-              t.reportsCustom_timeAdjustmentsTotal(
-                _formatMinutes(totalAdjustments, signed: true),
+              t.reportsCustom_openingBalanceEffectiveFrom(
+                _formatMinutes(opening.minutes, signed: true),
+                dateFormat.format(opening.effectiveDate),
               ),
               style: theme.textTheme.bodyMedium,
             ),
-            if (adjustments.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.sm),
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                title: Text(t.reportsCustom_timeAdjustmentsInPeriod),
-                children: adjustments.map((adj) {
-                  final note = (adj.note ?? '').trim();
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      note.isEmpty ? t.reportsCustom_noNote : note,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(dateFormat.format(adj.effectiveDate)),
-                    trailing: Text(
-                      _formatMinutes(adj.minutes, signed: true),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
+            const SizedBox(height: AppSpacing.xs),
+          ],
+          Text(
+            t.reportsCustom_timeAdjustmentsTotal(
+              _formatMinutes(totalAdjustments, signed: true),
+            ),
+            style: theme.textTheme.bodyMedium,
+          ),
+          if (adjustments.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
-            Text(
-              t.reportsCustom_balanceAtPeriodStart(
-                _formatMinutes(
-                  periodSummary.startBalanceMinutes,
-                  signed: true,
-                ),
-              ),
-              style: theme.textTheme.bodySmall,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              t.reportsCustom_periodStartIncludesStartDateAdjustmentsHint,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              t.reportsCustom_balanceAtPeriodEnd(
-                _formatMinutes(
-                  periodSummary.endBalanceMinutes,
-                  signed: true,
-                ),
-              ),
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(t.reportsCustom_timeAdjustmentsInPeriod),
+              children: adjustments.map((adj) {
+                final note = (adj.note ?? '').trim();
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    note.isEmpty ? t.reportsCustom_noNote : note,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(dateFormat.format(adj.effectiveDate)),
+                  trailing: Text(
+                    _formatMinutes(adj.minutes, signed: true),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
-        ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            t.reportsCustom_balanceAtPeriodStart(
+              _formatMinutes(
+                periodSummary.startBalanceMinutes,
+                signed: true,
+              ),
+            ),
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            t.reportsCustom_periodStartIncludesStartDateAdjustmentsHint,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            t.reportsCustom_balanceAtPeriodEnd(
+              _formatMinutes(
+                periodSummary.endBalanceMinutes,
+                signed: true,
+              ),
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -844,23 +829,14 @@ class _OverviewTabState extends State<OverviewTab> {
   }
 
   Widget _buildListSectionHeader(BuildContext context, String title) {
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
@@ -869,72 +845,44 @@ class _OverviewTabState extends State<OverviewTab> {
     BuildContext context, {
     required Widget child,
   }) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-        child: child,
-      ),
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: child,
     );
   }
 
   Widget _buildEmptySectionCard(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: _buildEmptyState(context),
-      ),
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: _buildEmptyState(context),
     );
   }
 
   Widget _buildExportSection(BuildContext context, ReportSummary summary) {
     final t = AppLocalizations.of(context);
 
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            OutlinedButton.icon(
-              onPressed: () =>
-                  _exportSummary(context, summary, _ExportFormat.csv),
-              icon: const Icon(Icons.table_view_rounded),
-              label: Text(t.reportsCustom_exportCsv),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            FilledButton.icon(
-              onPressed: () =>
-                  _exportSummary(context, summary, _ExportFormat.excel),
-              icon: const Icon(Icons.grid_on_rounded),
-              label: Text(t.reportsCustom_exportExcel),
-            ),
-          ],
-        ),
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OutlinedButton.icon(
+            onPressed: () =>
+                _exportSummary(context, summary, _ExportFormat.csv),
+            icon: const Icon(Icons.table_view_rounded),
+            label: Text(t.reportsCustom_exportCsv),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          FilledButton.icon(
+            onPressed: () =>
+                _exportSummary(context, summary, _ExportFormat.excel),
+            icon: const Icon(Icons.grid_on_rounded),
+            label: Text(t.reportsCustom_exportExcel),
+          ),
+        ],
       ),
     );
   }
@@ -1173,7 +1121,7 @@ class _OverviewTabState extends State<OverviewTab> {
         children: [
           Icon(
             Icons.inbox_outlined,
-            size: 40,
+            size: AppIconSize.xl,
             color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -1203,21 +1151,15 @@ class _OverviewTabState extends State<OverviewTab> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.12),
-        ),
-      ),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: colorScheme.primary),
+              Icon(icon, size: AppIconSize.sm, color: colorScheme.primary),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
@@ -1256,16 +1198,10 @@ class _OverviewTabState extends State<OverviewTab> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      width: double.infinity,
+    return AppCard(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.1),
-        ),
-      ),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

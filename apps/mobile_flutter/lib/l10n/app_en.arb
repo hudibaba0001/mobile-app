@@ -1135,6 +1135,42 @@
   "@balance_adjustments": {
     "description": "Label for manual adjustments in breakdown"
   },
+  "balance_fullMonthTargetValue": "Full month target: {value}",
+  "@balance_fullMonthTargetValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_creditedPaidLeaveValue": "+ {value} credited (paid leave)",
+  "@balance_creditedPaidLeaveValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_manualAdjustmentsValue": "{value} manual adjustments",
+  "@balance_manualAdjustmentsValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_fullYearTargetValue": "Full year target: {value}",
+  "@balance_fullYearTargetValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_creditedHoursValue": "Credited Hours: {value}",
+  "@balance_creditedHoursValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "balance_includesAdjustmentsValue": "Includes adjustments: {value}",
+  "@balance_includesAdjustmentsValue": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
 
   "locations_errorLoading": "Error loading data",
   "locations_distribution": "Location Distribution",

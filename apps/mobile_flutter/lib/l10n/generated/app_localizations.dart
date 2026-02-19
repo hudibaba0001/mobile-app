@@ -3530,6 +3530,42 @@ abstract class AppLocalizations {
   /// **'Adjustments'**
   String get balance_adjustments;
 
+  /// No description provided for @balance_fullMonthTargetValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Full month target: {value}'**
+  String balance_fullMonthTargetValue(String value);
+
+  /// No description provided for @balance_creditedPaidLeaveValue.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {value} credited (paid leave)'**
+  String balance_creditedPaidLeaveValue(String value);
+
+  /// No description provided for @balance_manualAdjustmentsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} manual adjustments'**
+  String balance_manualAdjustmentsValue(String value);
+
+  /// No description provided for @balance_fullYearTargetValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Full year target: {value}'**
+  String balance_fullYearTargetValue(String value);
+
+  /// No description provided for @balance_creditedHoursValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Credited Hours: {value}'**
+  String balance_creditedHoursValue(String value);
+
+  /// No description provided for @balance_includesAdjustmentsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes adjustments: {value}'**
+  String balance_includesAdjustmentsValue(String value);
+
   /// No description provided for @locations_errorLoading.
   ///
   /// In en, this message translates to:

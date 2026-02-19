@@ -4,6 +4,7 @@ import 'package:myapp/calendar/sweden_holidays.dart';
 import 'package:myapp/models/absence.dart';
 import 'package:myapp/models/entry.dart';
 import 'package:myapp/reporting/leave_minutes.dart';
+import 'package:myapp/reporting/period_summary.dart';
 import 'package:myapp/reporting/period_summary_calculator.dart';
 import 'package:myapp/reporting/time_range.dart';
 import 'package:myapp/reports/report_aggregator.dart';
@@ -463,10 +464,9 @@ void main() {
       expect(sections[2].sheetName, 'Balance Events');
 
       final reportRows = sections[0].rows;
-      expect(reportRows.first[_colType], 'NOTE');
       expect(
-        reportRows.first[_colEntryNotes],
-        'TOTAL (tracked only) excludes Leave and Balance events. See Summary (Easy).',
+        reportRows.where((row) => row[_colType].toString() == 'NOTE'),
+        isEmpty,
       );
 
       final paidLeaveRows = reportRows
@@ -509,6 +509,130 @@ void main() {
         summaryByMetric['Your balance after this period']?[1],
         periodSummary.endBalanceMinutes,
       );
+    });
+
+    test('xlsx report workbook uses Report/Summary/Balance names and Hh Mm labels', () {
+      final labels = _testReportLabels();
+      final rangeStart = DateTime(2026, 2, 1);
+      final rangeEnd = DateTime(2026, 2, 19);
+      final entries = <Entry>[
+        Entry.makeWorkAtomicFromShift(
+          userId: 'user-2',
+          date: DateTime(2026, 2, 3),
+          shift: Shift(
+            start: DateTime(2026, 2, 3, 8, 0),
+            end: DateTime(2026, 2, 3, 16, 0),
+          ),
+        ),
+        Entry.makeTravelAtomicFromLeg(
+          userId: 'user-2',
+          date: DateTime(2026, 2, 3),
+          from: 'Home',
+          to: 'Site',
+          minutes: 45,
+        ),
+      ];
+
+      final reportSummary = ReportSummary(
+        filteredEntries: entries,
+        workMinutes: 480,
+        travelMinutes: 45,
+        totalTrackedMinutes: 525,
+        workInsights: const WorkInsights(
+          longestShift: null,
+          averageWorkedMinutesPerDay: 0,
+          totalBreakMinutes: 0,
+          averageBreakMinutesPerShift: 0,
+          shiftCount: 0,
+          activeWorkDays: 0,
+        ),
+        travelInsights: const TravelInsights(
+          tripCount: 0,
+          averageMinutesPerTrip: 0,
+          topRoutes: [],
+        ),
+        leavesSummary: _buildLeavesSummaryForTest(const []),
+        balanceOffsets: const BalanceOffsetSummary(
+          openingEvent: null,
+          adjustmentsInRange: [],
+          eventsBeforeStart: [],
+          eventsInRange: [],
+          startingBalanceMinutes: 0,
+          closingBalanceMinutes: 0,
+        ),
+      );
+
+      final periodSummary = PeriodSummary.fromInputs(
+        workMinutes: 6500,
+        travelMinutes: 535,
+        paidLeaveMinutes: 0,
+        targetMinutes: 6720,
+        startBalanceMinutes: 0,
+        manualAdjustmentMinutes: 0,
+      );
+
+      final bytes = ExportService.buildReportSummaryWorkbookBytes(
+        summary: reportSummary,
+        periodSummary: periodSummary,
+        rangeStart: rangeStart,
+        rangeEnd: rangeEnd,
+        labels: labels,
+      );
+
+      expect(bytes, isNotNull);
+      final excel = Excel.decodeBytes(bytes!);
+      expect(
+        excel.tables.keys.toList(),
+        equals(['Report', 'Summary (Easy)', 'Balance Events']),
+      );
+
+      String readCell(Sheet sheet, int columnIndex, int rowIndex) {
+        final value = sheet
+            .cell(
+              CellIndex.indexByColumnRow(
+                columnIndex: columnIndex,
+                rowIndex: rowIndex,
+              ),
+            )
+            .value;
+        return value?.toString() ?? '';
+      }
+
+      int findRowByFirstColumn(Sheet sheet, String target) {
+        for (var rowIndex = 0; rowIndex < sheet.maxRows; rowIndex++) {
+          if (readCell(sheet, 0, rowIndex) == target) {
+            return rowIndex;
+          }
+        }
+        return -1;
+      }
+
+      final summarySheet = excel['Summary (Easy)'];
+      expect(readCell(summarySheet, 2, 0), 'Hh Mm');
+
+      final totalLoggedRow = findRowByFirstColumn(summarySheet, 'Total logged time');
+      expect(totalLoggedRow, greaterThanOrEqualTo(0));
+      expect(readCell(summarySheet, 1, totalLoggedRow), '7035');
+      expect(readCell(summarySheet, 2, totalLoggedRow), '117h 15m');
+
+      final diffRow = findRowByFirstColumn(summarySheet, 'Difference vs plan');
+      expect(diffRow, greaterThanOrEqualTo(0));
+      expect(readCell(summarySheet, 1, diffRow), '315');
+      expect(readCell(summarySheet, 2, diffRow), '+5h 15m');
+
+      final balanceSheet = excel['Balance Events'];
+      expect(readCell(balanceSheet, 3, 0), 'Hh Mm');
+      final periodEndRow = findRowByFirstColumn(balanceSheet, 'Balance at period end');
+      expect(periodEndRow, greaterThanOrEqualTo(0));
+      expect(readCell(balanceSheet, 3, periodEndRow), '+5h 15m');
+
+      final reportSheet = excel['Report'];
+      expect(readCell(reportSheet, 0, 3), 'Work');
+      expect(readCell(reportSheet, 0, 4), 'Travel');
+      for (var rowIndex = 0; rowIndex < reportSheet.maxRows; rowIndex++) {
+        final type = readCell(reportSheet, 0, rowIndex);
+        expect(type == 'work' || type == 'travel', isFalse);
+      }
     });
 
     test('should generate filename correctly', () {

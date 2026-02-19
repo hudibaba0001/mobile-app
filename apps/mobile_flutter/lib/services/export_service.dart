@@ -3,11 +3,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:excel/excel.dart';
 import '../models/absence.dart';
 import '../models/entry.dart';
 import '../models/export_data.dart';
 import '../reporting/leave_minutes.dart';
 import '../reporting/period_summary.dart';
+import '../reporting/time_format.dart';
 import '../reports/report_aggregator.dart';
 import 'csv_exporter.dart';
 import 'xlsx_exporter.dart';
@@ -127,6 +129,8 @@ class ExportService {
   static const int _colUpdatedAt = 17;
   static const int _colHolidayWork = 18;
   static const int _colHolidayName = 19;
+  static const String _hhMmHeader = 'Hh Mm';
+  static const String _payrollNoteTitle = 'Payroll note';
 
   static ExportData prepareExportData(
     List<Entry> entries, {
@@ -277,10 +281,28 @@ class ExportService {
     return hours.toStringAsFixed(2);
   }
 
+  static String _formatEntryTypeForReport(
+    String rawType, {
+    required bool titleCaseType,
+  }) {
+    if (!titleCaseType) {
+      return rawType;
+    }
+
+    final normalized = rawType.trim().toLowerCase();
+    if (normalized == EntryType.work.name) {
+      return 'Work';
+    }
+    if (normalized == EntryType.travel.name) {
+      return 'Travel';
+    }
+    return rawType;
+  }
+
   static ExportData _prepareReportEntriesExportData({
     required ReportSummary summary,
     required String sheetName,
-    required String trackedTotalsNote,
+    bool titleCaseType = false,
   }) {
     final base = prepareExportData(
       summary.filteredEntries,
@@ -303,6 +325,10 @@ class ExportService {
       if (_isEntryExportBlankRow(row)) {
         continue;
       }
+      row[_colType] = _formatEntryTypeForReport(
+        row[_colType].toString(),
+        titleCaseType: titleCaseType,
+      );
       rows.add(row);
     }
 
@@ -322,11 +348,6 @@ class ExportService {
       row[_colHolidayWork] = 'No';
       rows.add(_normalizeEntryExportRow(row));
     }
-
-    final noteRow = List<dynamic>.filled(_entryExportHeaders.length, '');
-    noteRow[_colType] = 'NOTE';
-    noteRow[_colEntryNotes] = trackedTotalsNote;
-    rows.insert(0, _normalizeEntryExportRow(noteRow));
 
     if (rows.isNotEmpty) {
       rows.add(List<dynamic>.filled(_entryExportHeaders.length, ''));
@@ -354,14 +375,11 @@ class ExportService {
     required DateTime rangeStart,
     required DateTime rangeEnd,
     required ReportExportLabels labels,
+    String? sheetNameOverride,
+    bool useHhMm = false,
   }) {
     final dateFormat = DateFormat('yyyy-MM-dd');
     final summaryRows = <List<dynamic>>[
-      [
-        labels.quickReadRow,
-        '${dateFormat.format(rangeStart)} - ${dateFormat.format(rangeEnd)}',
-        '',
-      ],
       [
         labels.periodRow,
         '${dateFormat.format(rangeStart)} - ${dateFormat.format(rangeEnd)}',
@@ -370,41 +388,53 @@ class ExportService {
       [
         labels.totalLoggedTimeRow,
         periodSummary.trackedTotalMinutes,
-        _formatUnsignedHours(periodSummary.trackedTotalMinutes),
+        useHhMm
+            ? formatMinutes(periodSummary.trackedTotalMinutes)
+            : _formatUnsignedHours(periodSummary.trackedTotalMinutes),
       ],
       [
         labels.paidLeaveRow,
         periodSummary.paidLeaveMinutes,
-        _formatUnsignedHours(periodSummary.paidLeaveMinutes),
+        useHhMm
+            ? formatMinutes(periodSummary.paidLeaveMinutes)
+            : _formatUnsignedHours(periodSummary.paidLeaveMinutes),
       ],
       [
         labels.accountedTimeRow,
         periodSummary.accountedMinutes,
-        _formatUnsignedHours(periodSummary.accountedMinutes),
+        useHhMm
+            ? formatMinutes(periodSummary.accountedMinutes)
+            : _formatUnsignedHours(periodSummary.accountedMinutes),
       ],
       [
         labels.plannedTimeRow,
         periodSummary.targetMinutes,
-        _formatUnsignedHours(periodSummary.targetMinutes),
+        useHhMm
+            ? formatMinutes(periodSummary.targetMinutes)
+            : _formatUnsignedHours(periodSummary.targetMinutes),
       ],
       [
         labels.differenceVsPlanRow,
         periodSummary.differenceMinutes,
-        _formatSignedHours(periodSummary.differenceMinutes),
+        useHhMm
+            ? formatMinutes(periodSummary.differenceMinutes, signed: true)
+            : _formatSignedHours(periodSummary.differenceMinutes),
       ],
       [
         labels.balanceAfterPeriodRow,
         periodSummary.endBalanceMinutes,
-        _formatSignedHours(periodSummary.endBalanceMinutes),
+        useHhMm
+            ? formatMinutes(periodSummary.endBalanceMinutes, signed: true)
+            : _formatSignedHours(periodSummary.endBalanceMinutes),
       ],
     ];
 
     return ExportData(
-      sheetName: labels.summarySheetName,
+      sheetName: sheetNameOverride ?? labels.summarySheetName,
       headers: [
         labels.metricHeader,
         labels.minutesHeader,
-        labels.hoursHeader,
+        useHhMm ? _hhMmHeader : labels.hoursHeader,
       ],
       rows: summaryRows,
     );
@@ -416,17 +446,23 @@ class ExportService {
     required DateTime rangeStart,
     required DateTime rangeEnd,
     required ReportExportLabels labels,
+    String? sheetNameOverride,
+    bool useHhMm = false,
+    bool fillFriendlyNotes = false,
   }) {
     final dateFormat = DateFormat('yyyy-MM-dd');
     final adjustmentRows = <List<dynamic>>[];
     final opening = summary.balanceOffsets.openingEvent;
     if (opening != null) {
+      final openingNote = fillFriendlyNotes ? 'Carry-over from earlier' : '';
       adjustmentRows.add([
         labels.openingBalanceRow,
         dateFormat.format(opening.effectiveDate),
         opening.minutes,
-        _formatSignedHours(opening.minutes),
-        '',
+        useHhMm
+            ? formatMinutes(opening.minutes, signed: true)
+            : _formatSignedHours(opening.minutes),
+        openingNote,
       ]);
     }
 
@@ -435,40 +471,54 @@ class ExportService {
         labels.timeAdjustmentRow,
         dateFormat.format(adjustment.effectiveDate),
         adjustment.minutes,
-        _formatSignedHours(adjustment.minutes),
+        useHhMm
+            ? formatMinutes(adjustment.minutes, signed: true)
+            : _formatSignedHours(adjustment.minutes),
         adjustment.note ?? '',
       ]);
     }
 
+    final adjustmentsTotalNote =
+        fillFriendlyNotes ? 'Manual corrections in this period' : '';
     adjustmentRows.add([
       labels.timeAdjustmentsTotalRow,
       '',
       periodSummary.manualAdjustmentMinutes,
-      _formatSignedHours(periodSummary.manualAdjustmentMinutes),
-      '',
+      useHhMm
+          ? formatMinutes(periodSummary.manualAdjustmentMinutes, signed: true)
+          : _formatSignedHours(periodSummary.manualAdjustmentMinutes),
+      adjustmentsTotalNote,
     ]);
+    final startBalanceNote =
+        fillFriendlyNotes ? 'Balance at start of selected period' : '';
     adjustmentRows.add([
       labels.periodStartBalanceRow,
       dateFormat.format(rangeStart),
       periodSummary.startBalanceMinutes,
-      _formatSignedHours(periodSummary.startBalanceMinutes),
-      '',
+      useHhMm
+          ? formatMinutes(periodSummary.startBalanceMinutes, signed: true)
+          : _formatSignedHours(periodSummary.startBalanceMinutes),
+      startBalanceNote,
     ]);
+    final endBalanceNote =
+        fillFriendlyNotes ? 'Balance after this period' : '';
     adjustmentRows.add([
       labels.periodEndBalanceRow,
       dateFormat.format(rangeEnd),
       periodSummary.endBalanceMinutes,
-      _formatSignedHours(periodSummary.endBalanceMinutes),
-      '',
+      useHhMm
+          ? formatMinutes(periodSummary.endBalanceMinutes, signed: true)
+          : _formatSignedHours(periodSummary.endBalanceMinutes),
+      endBalanceNote,
     ]);
 
     return ExportData(
-      sheetName: labels.balanceEventsSheetName,
+      sheetName: sheetNameOverride ?? labels.balanceEventsSheetName,
       headers: [
         labels.colType,
         labels.colDate,
         labels.colMinutes,
-        labels.colHours,
+        useHhMm ? _hhMmHeader : labels.colHours,
         labels.colNote,
       ],
       rows: adjustmentRows,
@@ -481,17 +531,27 @@ class ExportService {
     required DateTime rangeStart,
     required DateTime rangeEnd,
     required ReportExportLabels labels,
+    bool forXlsxPresentation = false,
   }) {
+    final entriesSheetName =
+        forXlsxPresentation ? 'Report' : labels.entriesSheetName;
+    final summarySheetName =
+        forXlsxPresentation ? 'Summary (Easy)' : labels.summarySheetName;
+    final balanceEventsSheetName =
+        forXlsxPresentation ? 'Balance Events' : labels.balanceEventsSheetName;
+
     final entriesSheet = _prepareReportEntriesExportData(
       summary: summary,
-      sheetName: labels.entriesSheetName,
-      trackedTotalsNote: labels.trackedTotalsNote,
+      sheetName: entriesSheetName,
+      titleCaseType: forXlsxPresentation,
     );
     final summarySheet = _prepareSummarySheet(
       periodSummary: periodSummary,
       rangeStart: rangeStart,
       rangeEnd: rangeEnd,
       labels: labels,
+      sheetNameOverride: summarySheetName,
+      useHhMm: forXlsxPresentation,
     );
     final balanceEventsSheet = _prepareBalanceEventsSheet(
       summary: summary,
@@ -499,9 +559,392 @@ class ExportService {
       rangeStart: rangeStart,
       rangeEnd: rangeEnd,
       labels: labels,
+      sheetNameOverride: balanceEventsSheetName,
+      useHhMm: forXlsxPresentation,
+      fillFriendlyNotes: forXlsxPresentation,
     );
 
     return [entriesSheet, summarySheet, balanceEventsSheet];
+  }
+
+  @visibleForTesting
+  static List<int>? buildReportSummaryWorkbookBytes({
+    required ReportSummary summary,
+    required PeriodSummary periodSummary,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required ReportExportLabels labels,
+  }) {
+    final sections = prepareReportExportData(
+      summary: summary,
+      periodSummary: periodSummary,
+      rangeStart: rangeStart,
+      rangeEnd: rangeEnd,
+      labels: labels,
+      forXlsxPresentation: true,
+    );
+    return _buildStyledReportWorkbook(
+      sections: sections,
+      labels: labels,
+    );
+  }
+
+  static List<int>? _buildStyledReportWorkbook({
+    required List<ExportData> sections,
+    required ReportExportLabels labels,
+  }) {
+    final excel = Excel.createExcel();
+    if (sections.isEmpty) {
+      return excel.save();
+    }
+
+    final defaultSheet = excel.getDefaultSheet()!;
+    final safeSheetNames = <String>[];
+
+    for (var i = 0; i < sections.length; i++) {
+      final safeName = _safeSheetName(sections[i].sheetName, i);
+      safeSheetNames.add(safeName);
+      if (i == 0 && safeName != defaultSheet) {
+        excel.rename(defaultSheet, safeName);
+      } else if (i > 0) {
+        excel[safeName];
+      }
+    }
+
+    for (var i = 0; i < sections.length; i++) {
+      final section = sections[i];
+      final sheet = excel[safeSheetNames[i]];
+      if (i == 0) {
+        _writeStyledReportSheet(
+          sheet: sheet,
+          section: section,
+        );
+      } else if (i == 1) {
+        _writeStyledSummarySheet(
+          sheet: sheet,
+          section: section,
+          labels: labels,
+        );
+      } else if (i == 2) {
+        _writeStyledBalanceEventsSheet(
+          sheet: sheet,
+          section: section,
+        );
+      } else {
+        _writeSimpleSheet(sheet: sheet, section: section);
+      }
+    }
+
+    return excel.save();
+  }
+
+  static String _safeSheetName(String rawName, int index) {
+    final cleaned = rawName.replaceAll(RegExp(r'[\[\]\*\/\\\?\:]'), '').trim();
+    if (cleaned.isEmpty) {
+      return 'Sheet${index + 1}';
+    }
+    if (cleaned.length > 31) {
+      return cleaned.substring(0, 31);
+    }
+    return cleaned;
+  }
+
+  static void _writeSimpleSheet({
+    required Sheet sheet,
+    required ExportData section,
+  }) {
+    _writeRow(sheet: sheet, rowIndex: 0, row: section.headers);
+    for (var i = 0; i < section.rows.length; i++) {
+      _writeRow(sheet: sheet, rowIndex: i + 1, row: section.rows[i]);
+    }
+  }
+
+  static void _writeStyledReportSheet({
+    required Sheet sheet,
+    required ExportData section,
+  }) {
+    final titleStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.lightBlue100,
+      horizontalAlign: HorizontalAlign.Left,
+      verticalAlign: VerticalAlign.Center,
+    );
+    final noteStyle = CellStyle(
+      backgroundColorHex: ExcelColor.lightBlue50,
+      horizontalAlign: HorizontalAlign.Left,
+      verticalAlign: VerticalAlign.Center,
+      textWrapping: TextWrapping.WrapText,
+    );
+    final headerStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.grey200,
+      horizontalAlign: HorizontalAlign.Center,
+      verticalAlign: VerticalAlign.Center,
+      textWrapping: TextWrapping.WrapText,
+    );
+    final totalsStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.grey100,
+      horizontalAlign: HorizontalAlign.Left,
+      verticalAlign: VerticalAlign.Center,
+    );
+
+    final payrollNote =
+        'Work/Travel = logged time. Leave rows = credited leave (not worked). '
+        'TOTAL (tracked only) excludes Leave and Balance events. See Summary (Easy).';
+
+    final startTitle = CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0);
+    final endTitle = CellIndex.indexByColumnRow(
+      columnIndex: _entryExportHeaders.length - 1,
+      rowIndex: 0,
+    );
+    sheet.merge(startTitle, endTitle);
+    final titleCell = sheet.cell(startTitle);
+    titleCell.value = TextCellValue(_payrollNoteTitle);
+    titleCell.cellStyle = titleStyle;
+    sheet.setMergedCellStyle(startTitle, titleStyle);
+
+    final startNote = CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1);
+    final endNote = CellIndex.indexByColumnRow(
+      columnIndex: _entryExportHeaders.length - 1,
+      rowIndex: 1,
+    );
+    sheet.merge(startNote, endNote);
+    final noteCell = sheet.cell(startNote);
+    noteCell.value = TextCellValue(payrollNote);
+    noteCell.cellStyle = noteStyle;
+    sheet.setMergedCellStyle(startNote, noteStyle);
+
+    _writeRow(sheet: sheet, rowIndex: 2, row: section.headers);
+    for (var col = 0; col < section.headers.length; col++) {
+      final headerCell = sheet.cell(
+        CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 2),
+      );
+      headerCell.cellStyle = headerStyle;
+    }
+
+    for (var i = 0; i < section.rows.length; i++) {
+      final rowIndex = i + 3;
+      final row = section.rows[i];
+      _writeRow(sheet: sheet, rowIndex: rowIndex, row: row);
+      final isTotalRow =
+          row.length > _colType && row[_colType] == 'TOTAL (tracked only)';
+      if (!isTotalRow) {
+        continue;
+      }
+      for (var col = 0; col < _entryExportHeaders.length; col++) {
+        final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: col, rowIndex: rowIndex),
+        );
+        cell.cellStyle = totalsStyle;
+      }
+    }
+
+    sheet.setColumnWidth(0, 22);
+    sheet.setColumnWidth(1, 12);
+    sheet.setColumnWidth(2, 16);
+    sheet.setColumnWidth(3, 16);
+    sheet.setColumnWidth(4, 14);
+    sheet.setColumnWidth(5, 18);
+    sheet.setColumnWidth(9, 14);
+    sheet.setColumnWidth(10, 18);
+    sheet.setColumnWidth(11, 14);
+    sheet.setColumnWidth(12, 12);
+    sheet.setColumnWidth(15, 48);
+  }
+
+  static void _writeStyledSummarySheet({
+    required Sheet sheet,
+    required ExportData section,
+    required ReportExportLabels labels,
+  }) {
+    final headerStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.grey200,
+      horizontalAlign: HorizontalAlign.Center,
+      verticalAlign: VerticalAlign.Center,
+      textWrapping: TextWrapping.WrapText,
+    );
+    final highlightStyle = CellStyle(
+      backgroundColorHex: ExcelColor.yellow100,
+      verticalAlign: VerticalAlign.Center,
+    );
+    final positiveStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.green100,
+      verticalAlign: VerticalAlign.Center,
+    );
+    final negativeStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.red100,
+      verticalAlign: VerticalAlign.Center,
+    );
+    final quickReadTitleStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.lightBlue100,
+      horizontalAlign: HorizontalAlign.Left,
+      verticalAlign: VerticalAlign.Center,
+    );
+    final quickReadItemStyle = CellStyle(
+      backgroundColorHex: ExcelColor.lightBlue50,
+      verticalAlign: VerticalAlign.Center,
+    );
+
+    _writeRow(sheet: sheet, rowIndex: 0, row: section.headers);
+    for (var col = 0; col < section.headers.length; col++) {
+      final headerCell = sheet.cell(
+        CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0),
+      );
+      headerCell.cellStyle = headerStyle;
+    }
+
+    final highlightedMetrics = <String>{
+      labels.totalLoggedTimeRow,
+      labels.paidLeaveRow,
+      labels.accountedTimeRow,
+      labels.plannedTimeRow,
+      labels.differenceVsPlanRow,
+      labels.balanceAfterPeriodRow,
+    };
+
+    final rowByMetric = <String, List<dynamic>>{};
+
+    for (var i = 0; i < section.rows.length; i++) {
+      final rowIndex = i + 1;
+      final row = section.rows[i];
+      _writeRow(sheet: sheet, rowIndex: rowIndex, row: row);
+      if (row.isEmpty) {
+        continue;
+      }
+      final metric = row.first.toString();
+      rowByMetric[metric] = row;
+      if (highlightedMetrics.contains(metric)) {
+        for (var col = 0; col < section.headers.length; col++) {
+          sheet
+              .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: rowIndex))
+              .cellStyle = highlightStyle;
+        }
+      }
+
+      final isSignedMetric =
+          metric == labels.differenceVsPlanRow ||
+          metric == labels.balanceAfterPeriodRow;
+      if (!isSignedMetric || row.length < 2) {
+        continue;
+      }
+      final minutes = row[1] is int
+          ? row[1] as int
+          : int.tryParse(row[1].toString()) ?? 0;
+      final signStyle = minutes < 0 ? negativeStyle : positiveStyle;
+      for (var col = 0; col < section.headers.length; col++) {
+        sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: rowIndex))
+            .cellStyle = signStyle;
+      }
+    }
+
+    final quickReadStart = CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 0);
+    final quickReadEnd = CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 0);
+    sheet.merge(quickReadStart, quickReadEnd);
+    final quickReadTitleCell = sheet.cell(quickReadStart);
+    quickReadTitleCell.value = TextCellValue(labels.quickReadRow);
+    quickReadTitleCell.cellStyle = quickReadTitleStyle;
+    sheet.setMergedCellStyle(quickReadStart, quickReadTitleStyle);
+
+    final quickReadRows = <List<String>>[
+      [labels.totalLoggedTimeRow, rowByMetric[labels.totalLoggedTimeRow]?[2].toString() ?? ''],
+      [labels.paidLeaveRow, rowByMetric[labels.paidLeaveRow]?[2].toString() ?? ''],
+      [labels.differenceVsPlanRow, rowByMetric[labels.differenceVsPlanRow]?[2].toString() ?? ''],
+      [
+        labels.balanceAfterPeriodRow,
+        rowByMetric[labels.balanceAfterPeriodRow]?[2].toString() ?? '',
+      ],
+    ];
+
+    for (var i = 0; i < quickReadRows.length; i++) {
+      final rowIndex = i + 1;
+      _writeRow(
+        sheet: sheet,
+        rowIndex: rowIndex,
+        startColumn: 4,
+        row: quickReadRows[i],
+      );
+      for (var col = 4; col <= 5; col++) {
+        sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: rowIndex))
+            .cellStyle = quickReadItemStyle;
+      }
+    }
+
+    sheet.setColumnWidth(0, 30);
+    sheet.setColumnWidth(1, 12);
+    sheet.setColumnWidth(2, 14);
+    sheet.setColumnWidth(4, 28);
+    sheet.setColumnWidth(5, 16);
+  }
+
+  static void _writeStyledBalanceEventsSheet({
+    required Sheet sheet,
+    required ExportData section,
+  }) {
+    final headerStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.grey200,
+      horizontalAlign: HorizontalAlign.Center,
+      verticalAlign: VerticalAlign.Center,
+      textWrapping: TextWrapping.WrapText,
+    );
+
+    _writeRow(sheet: sheet, rowIndex: 0, row: section.headers);
+    for (var col = 0; col < section.headers.length; col++) {
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0))
+          .cellStyle = headerStyle;
+    }
+
+    for (var i = 0; i < section.rows.length; i++) {
+      _writeRow(sheet: sheet, rowIndex: i + 1, row: section.rows[i]);
+    }
+
+    sheet.setColumnWidth(0, 32);
+    sheet.setColumnWidth(1, 14);
+    sheet.setColumnWidth(2, 12);
+    sheet.setColumnWidth(3, 14);
+    sheet.setColumnWidth(4, 42);
+  }
+
+  static void _writeRow({
+    required Sheet sheet,
+    required int rowIndex,
+    required List<dynamic> row,
+    int startColumn = 0,
+  }) {
+    for (var i = 0; i < row.length; i++) {
+      final value = row[i];
+      final cell = sheet.cell(
+        CellIndex.indexByColumnRow(
+          columnIndex: startColumn + i,
+          rowIndex: rowIndex,
+        ),
+      );
+      cell.value = _toCellValue(value);
+    }
+  }
+
+  static CellValue _toCellValue(dynamic value) {
+    if (value is CellValue) {
+      return value;
+    }
+    if (value is int) {
+      return IntCellValue(value);
+    }
+    if (value is double) {
+      return DoubleCellValue(value);
+    }
+    if (value is bool) {
+      return BoolCellValue(value);
+    }
+    return TextCellValue(value.toString());
   }
 
   static String _formatSignedHours(int minutes) {
@@ -581,14 +1024,13 @@ class ExportService {
           );
       final fullFileName = '${baseName}_$timestamp$_excelFileExtension';
 
-      final sections = prepareReportExportData(
+      final excelData = buildReportSummaryWorkbookBytes(
         summary: summary,
         periodSummary: periodSummary,
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
         labels: labels,
       );
-      final excelData = XlsxExporter.exportMultiple(sections);
 
       if (excelData == null || excelData.isEmpty) {
         throw Exception('Generated Excel data is empty');

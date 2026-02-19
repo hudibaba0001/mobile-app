@@ -700,28 +700,41 @@ class TimeProvider extends ChangeNotifier {
   ///
   /// [year] The year
   /// [month] The month (1-12)
-  double monthlyTargetHours({required int year, required int month}) {
+  int monthlyTargetMinutes({required int year, required int month}) {
     final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
-    final scheduledMinutes = TargetHoursCalculator.monthlyScheduledMinutes(
+    return TargetHoursCalculator.monthlyScheduledMinutes(
       year: year,
       month: month,
       weeklyTargetMinutes: weeklyTargetMinutes,
       holidays: _holidays,
     );
-    return scheduledMinutes / 60.0;
+  }
+
+  /// Get current monthly scheduled hours for a specific month (holiday-aware)
+  ///
+  /// [year] The year
+  /// [month] The month (1-12)
+  double monthlyTargetHours({required int year, required int month}) {
+    return monthlyTargetMinutes(year: year, month: month) / 60.0;
+  }
+
+  /// Get current yearly scheduled hours (sum of all monthly scheduled, holiday-aware)
+  ///
+  /// [year] The year
+  int yearlyTargetMinutes({required int year}) {
+    final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
+    return TargetHoursCalculator.yearlyScheduledMinutes(
+      year: year,
+      weeklyTargetMinutes: weeklyTargetMinutes,
+      holidays: _holidays,
+    );
   }
 
   /// Get current yearly scheduled hours (sum of all monthly scheduled, holiday-aware)
   ///
   /// [year] The year
   double yearlyTargetHours({required int year}) {
-    final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
-    final scheduledMinutes = TargetHoursCalculator.yearlyScheduledMinutes(
-      year: year,
-      weeklyTargetMinutes: weeklyTargetMinutes,
-      holidays: _holidays,
-    );
-    return scheduledMinutes / 60.0;
+    return yearlyTargetMinutes(year: year) / 60.0;
   }
 
   /// Get monthly credit hours (paid absences) for a specific month
@@ -740,10 +753,18 @@ class TimeProvider extends ChangeNotifier {
   /// [year] The year
   /// [month] The month (1-12)
   /// Returns adjustment hours (0 if no adjustments or not calculated yet)
-  double monthlyAdjustmentHours({required int year, required int month}) {
+  int monthlyAdjustmentMinutes({required int year, required int month}) {
     final key = '$year-$month';
-    final adjustmentMinutes = _monthlyAdjustmentMinutes[key] ?? 0;
-    return adjustmentMinutes / 60.0;
+    return _monthlyAdjustmentMinutes[key] ?? 0;
+  }
+
+  /// Get monthly adjustment hours for a specific month
+  ///
+  /// [year] The year
+  /// [month] The month (1-12)
+  /// Returns adjustment hours (0 if no adjustments or not calculated yet)
+  double monthlyAdjustmentHours({required int year, required int month}) {
+    return monthlyAdjustmentMinutes(year: year, month: month) / 60.0;
   }
 
   /// Get total adjustment minutes for a specific year
