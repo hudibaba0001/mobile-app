@@ -133,10 +133,7 @@ class _TrendsTabState extends State<TrendsTab> {
       final monthlyBreakdown = viewModel.monthlyBreakdown;
       final leaveSummaries =
           _buildMonthlyLeaveSummaries(monthlyBreakdown, absenceProvider);
-      final visibleMonths = monthlyBreakdown.where((month) {
-        final leaves = leaveSummaries[_monthKey(month.month)];
-        return month.totalMinutes > 0 || (leaves?.hasAny ?? false);
-      }).toList(growable: false);
+      final visibleMonths = monthlyBreakdown;
 
       return ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
