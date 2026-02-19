@@ -45,7 +45,9 @@ import 'models/user_red_day.dart';
 import 'models/absence_entry_adapter.dart';
 import 'models/balance_adjustment_adapter.dart';
 import 'models/user_red_day_adapter.dart';
+import 'models/user_red_day_adapter.dart';
 import 'utils/constants.dart';
+import 'screens/splash_screen.dart'; // Import the new screen
 
 void _configureReleaseLogging() {
   if (!kReleaseMode) return;
@@ -55,126 +57,193 @@ void _configureReleaseLogging() {
 const _startupNetworkTimeout = Duration(seconds: 15);
 const _startupMigrationTimeout = Duration(seconds: 20);
 
-void main() async {
+void main() {
   // Add this line to use "clean" URLs
   usePathUrlStrategy();
 
   WidgetsFlutterBinding.ensureInitialized();
   _configureReleaseLogging();
 
-  await CrashReportingService.initialize(entrypoint: 'main');
-
-  try {
-    await _bootstrapAndRunApp();
-  } catch (error, stackTrace) {
-    await CrashReportingService.recordFatal(
-      error,
-      stackTrace,
-      reason: 'main_bootstrap_failed',
-    );
-    rethrow;
-  }
+  // Instant UI: Run a temporary BootstrapApp that shows the Splash Screen
+  runApp(const BootstrapApp());
 }
 
-Future<void> _bootstrapAndRunApp() async {
-  await CrashReportingService.log('startup:bootstrap_begin');
+/// A temporary widget that shows the Splash Screen while initializing the app.
+class BootstrapApp extends StatefulWidget {
+  const BootstrapApp({super.key});
 
-  // Initialize Hive for local storage
-  await Hive.initFlutter();
-  Hive.registerAdapter(TravelLegAdapter());
-  Hive.registerAdapter(ShiftAdapter());
-  Hive.registerAdapter(EntryAdapter());
-  Hive.registerAdapter(EntryTypeAdapter());
-  Hive.registerAdapter(LocationAdapter());
-  Hive.registerAdapter(AbsenceEntryAdapter());
-  Hive.registerAdapter(BalanceAdjustmentAdapter());
-  Hive.registerAdapter(UserRedDayAdapter());
+  @override
+  State<BootstrapApp> createState() => _BootstrapAppState();
+}
 
-  const locationBoxResetKey = 'locations_box_typeid_reset_v1';
-  final prefs = await SharedPreferences.getInstance();
-  final didResetLocationBox = prefs.getBool(locationBoxResetKey) ?? false;
-  if (!didResetLocationBox) {
-    try {
-      await Hive.deleteBoxFromDisk(AppConstants.locationsBox);
-    } catch (e) {
-      debugPrint('Location box reset skipped: $e');
-    }
-    await prefs.setBool(locationBoxResetKey, true);
+class _BootstrapAppState extends State<BootstrapApp> {
+  // The initialized MyApp widget, ready to be mounted
+  Widget? _initializedApp;
+  Object? _initError;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start initialization immediately
+    _initializeApp();
   }
 
-  // Open Hive boxes for cached data
-  final locationBoxFuture = Hive.openBox<Location>(AppConstants.locationsBox);
-  final absenceBoxFuture = Hive.openBox<AbsenceEntry>('absences_cache');
-  final adjustmentBoxFuture =
-      Hive.openBox<BalanceAdjustment>('balance_adjustments_cache');
-  final redDayBoxFuture = Hive.openBox<UserRedDay>('user_red_days_cache');
-
-  final locationBox = await locationBoxFuture;
-  final locationRepository = LocationRepository(locationBox);
-  final absenceBox = await absenceBoxFuture;
-  final adjustmentBox = await adjustmentBoxFuture;
-  final redDayBox = await redDayBoxFuture;
-
-  // Initialize Supabase
-  await SupabaseConfig.initialize();
-
-  // Initialize SupabaseAuthService first
-  final authService = SupabaseAuthService();
-  await authService.initialize();
-
-  // Run legacy Hive migration before EntryProvider loads data
-  final migrationService = LegacyHiveMigrationService();
-  final userId = authService.currentUser?.id;
-  if (userId != null) {
+  Future<void> _initializeApp() async {
     try {
-      await migrationService
-          .migrateIfNeeded(userId)
-          .timeout(_startupMigrationTimeout);
-    } catch (error, stackTrace) {
-      await CrashReportingService.recordNonFatal(
-        error,
-        stackTrace,
-        reason: 'startup_legacy_migration_failed',
+      await CrashReportingService.initialize(entrypoint: 'main');
+      await CrashReportingService.log('startup:bootstrap_begin');
+
+      // Initialize Hive for local storage
+      await Hive.initFlutter();
+      Hive.registerAdapter(TravelLegAdapter());
+      Hive.registerAdapter(ShiftAdapter());
+      Hive.registerAdapter(EntryAdapter());
+      Hive.registerAdapter(EntryTypeAdapter());
+      Hive.registerAdapter(LocationAdapter());
+      Hive.registerAdapter(AbsenceEntryAdapter());
+      Hive.registerAdapter(BalanceAdjustmentAdapter());
+      Hive.registerAdapter(UserRedDayAdapter());
+
+      const locationBoxResetKey = 'locations_box_typeid_reset_v1';
+      final prefs = await SharedPreferences.getInstance();
+      final didResetLocationBox = prefs.getBool(locationBoxResetKey) ?? false;
+      if (!didResetLocationBox) {
+        try {
+          await Hive.deleteBoxFromDisk(AppConstants.locationsBox);
+        } catch (e) {
+          debugPrint('Location box reset skipped: $e');
+        }
+        await prefs.setBool(locationBoxResetKey, true);
+      }
+
+      // Open Hive boxes for cached data
+      final locationBoxFuture =
+          Hive.openBox<Location>(AppConstants.locationsBox);
+      final absenceBoxFuture = Hive.openBox<AbsenceEntry>('absences_cache');
+      final adjustmentBoxFuture =
+          Hive.openBox<BalanceAdjustment>('balance_adjustments_cache');
+      final redDayBoxFuture = Hive.openBox<UserRedDay>('user_red_days_cache');
+
+      final locationBox = await locationBoxFuture;
+      final locationRepository = LocationRepository(locationBox);
+      final absenceBox = await absenceBoxFuture;
+      final adjustmentBox = await adjustmentBoxFuture;
+      final redDayBox = await redDayBoxFuture;
+
+      // Initialize Supabase
+      await SupabaseConfig.initialize();
+
+      // Initialize SupabaseAuthService first
+      final authService = SupabaseAuthService();
+      await authService.initialize();
+
+      // Run legacy Hive migration in background (don't block UI for too long, but wait for critical)
+      final migrationService = LegacyHiveMigrationService();
+      final userId = authService.currentUser?.id;
+      if (userId != null) {
+        try {
+          await migrationService
+              .migrateIfNeeded(userId)
+              .timeout(_startupMigrationTimeout);
+        } catch (error, stackTrace) {
+          debugPrint('Migration error (non-fatal): $error');
+          await CrashReportingService.recordNonFatal(
+            error,
+            stackTrace,
+            reason: 'startup_legacy_migration_failed',
+          );
+        }
+      }
+
+      // Initialize independent providers
+      final localeProvider = LocaleProvider();
+      final contractProvider = ContractProvider();
+      final settingsProvider = SettingsProvider();
+
+      // We can run these in parallel
+      await Future.wait([
+        localeProvider.init(),
+        contractProvider.init(),
+        settingsProvider.init(),
+      ]);
+
+      // Set up Supabase dependencies for settings
+      final supabase = SupabaseConfig.client;
+      settingsProvider.setSupabaseDeps(supabase, userId);
+
+      final reminderService = ReminderService();
+
+      // Create Supabase repository for locations
+      final supabaseLocationRepo = SupabaseLocationRepository(supabase);
+
+      await CrashReportingService.log('startup:initialization_complete');
+
+      // Create the main app widget
+      final app = MyApp(
+        authService: authService,
+        localeProvider: localeProvider,
+        contractProvider: contractProvider,
+        settingsProvider: settingsProvider,
+        reminderService: reminderService,
+        locationRepository: locationRepository,
+        supabaseLocationRepo: supabaseLocationRepo,
+        absenceBox: absenceBox,
+        adjustmentBox: adjustmentBox,
+        redDayBox: redDayBox,
+      );
+
+      // Artificial delay to let the Splash Animation finish its cycle if it was instant
+      // (Optional, but prevents a 50ms flicker if init is fast)
+      await Future.delayed(const Duration(milliseconds: 1500));
+
+      if (mounted) {
+        setState(() {
+          _initializedApp = app;
+        });
+      }
+    } catch (e, stack) {
+      debugPrint('Bootstrap failed: $e');
+      if (mounted) {
+        setState(() {
+          _initError = e;
+        });
+      }
+      await CrashReportingService.recordFatal(
+        e,
+        stack,
+        reason: 'main_bootstrap_failed',
       );
     }
   }
 
-  // Initialize independent providers in parallel.
-  final localeProvider = LocaleProvider();
-  final contractProvider = ContractProvider();
-  final settingsProvider = SettingsProvider();
-  await Future.wait([
-    localeProvider.init(),
-    contractProvider.init(),
-    settingsProvider.init(),
-  ]);
+  @override
+  Widget build(BuildContext context) {
+    // If initialization failed, show error
+    if (_initError != null) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text(
+              'Failed to initialize app. Please restart.\nError: $_initError',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    }
 
-  // Set up Supabase dependencies for settings (pull-before-push)
-  final supabase = SupabaseConfig.client;
-  settingsProvider.setSupabaseDeps(supabase, userId);
+    // If fully initialized, show the main app
+    if (_initializedApp != null) {
+      return _initializedApp!;
+    }
 
-  final reminderService = ReminderService();
-
-  // Create Supabase repository for locations
-  final supabaseLocationRepo = SupabaseLocationRepository(supabase);
-
-  // Start the app immediately so the first frame is not blocked by cloud calls.
-  // Contract/settings cloud sync and reminder apply are deferred in _NetworkSyncSetup.
-  await CrashReportingService.log('startup:run_app');
-  runApp(
-    MyApp(
-      authService: authService,
-      localeProvider: localeProvider,
-      contractProvider: contractProvider,
-      settingsProvider: settingsProvider,
-      reminderService: reminderService,
-      locationRepository: locationRepository,
-      supabaseLocationRepo: supabaseLocationRepo,
-      absenceBox: absenceBox,
-      adjustmentBox: adjustmentBox,
-      redDayBox: redDayBox,
-    ),
-  );
+    // Otherwise, show our premium Splash Screen
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: SplashScreen(),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {

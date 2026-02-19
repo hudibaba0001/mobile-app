@@ -12,8 +12,13 @@ Future<bool?> showAbsenceEntryDialog(
   required int year,
   AbsenceEntry? absence,
 }) {
-  return showDialog<bool>(
+  return showModalBottomSheet<bool>(
     context: context,
+    isScrollControlled: true,
+    backgroundColor: Theme.of(context).colorScheme.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+    ),
     builder: (dialogContext) => _AbsenceEntryDialog(
       year: year,
       absence: absence,
@@ -55,13 +60,38 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
 
-    return AlertDialog(
-      title: Text(_isEditing ? t.absence_editAbsence : t.absence_addAbsence),
-      content: SingleChildScrollView(
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: AppSpacing.lg,
+          right: AppSpacing.lg,
+          top: AppSpacing.lg,
+          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _isEditing ? t.absence_editAbsence : t.absence_addAbsence,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
             ListTile(
+              contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today),
               title: Text(t.absence_date),
               subtitle: Text(
@@ -71,18 +101,20 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
             ),
             const Divider(),
             ListTile(
+              contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.category),
               title: Text(t.absence_type),
               subtitle: Text(_getTypeLabel(context, _selectedType)),
               onTap: () => _showTypeSelector(context),
             ),
             const Divider(),
-            CheckboxListTile(
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
               title: Text(t.absence_fullDay),
               value: _isFullDay,
               onChanged: (value) {
                 setState(() {
-                  _isFullDay = value ?? true;
+                  _isFullDay = value;
                   if (_isFullDay) {
                     _selectedMinutes = 0;
                   } else {
@@ -93,7 +125,10 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
             ),
             if (!_isFullDay) ...[
               const SizedBox(height: AppSpacing.sm),
-              Text('${(_selectedMinutes / 60.0).toStringAsFixed(1)} h'),
+              Text(
+                '${(_selectedMinutes / 60.0).toStringAsFixed(1)} h',
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
               Slider(
                 value: _selectedMinutes.toDouble().clamp(60, 480),
                 min: 60,
@@ -106,20 +141,57 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
                   });
                 },
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _selectedMinutes > 60
+                        ? () {
+                            setState(() {
+                              _selectedMinutes =
+                                  (_selectedMinutes - 60).clamp(60, 480);
+                            });
+                          }
+                        : null,
+                    icon: const Icon(Icons.remove),
+                    label: const Text('-1h'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: _selectedMinutes < 480
+                        ? () {
+                            setState(() {
+                              _selectedMinutes =
+                                  (_selectedMinutes + 60).clamp(60, 480);
+                            });
+                          }
+                        : null,
+                    icon: const Icon(Icons.add),
+                    label: const Text('+1h'),
+                  ),
+                ],
+              ),
             ],
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(t.common_cancel),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _saveAbsence,
+                    child: Text(_isEditing ? t.common_save : t.common_add),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(t.common_cancel),
-        ),
-        ElevatedButton(
-          onPressed: _saveAbsence,
-          child: Text(_isEditing ? t.common_save : t.common_add),
-        ),
-      ],
     );
   }
 

@@ -102,7 +102,7 @@ class EntryCompactTile extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           subtitle,
                           maxLines: 1,
@@ -113,7 +113,7 @@ class EntryCompactTile extends StatelessWidget {
                           ),
                         ),
                         if (meta != null) ...[
-                          const SizedBox(height: 3),
+                          const SizedBox(height: AppSpacing.xs / 2),
                           Text(
                             meta,
                             maxLines: 1,
@@ -227,7 +227,10 @@ class _DurationPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm + 2,
+        vertical: AppSpacing.xs / 2,
+      ),
       decoration: BoxDecoration(
         color: tint.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.xl),

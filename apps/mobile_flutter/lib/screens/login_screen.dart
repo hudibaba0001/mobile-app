@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart'; // Ensure this is available, or use Theme
 import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../design/app_theme.dart';
@@ -28,13 +30,8 @@ class _LoginScreenState extends State<LoginScreen>
   bool _obscurePassword = true;
   String _errorMessage = '';
 
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  // Gradient colors from theme
-  static const _gradientStart = AppColors.gradientStart;
-  static const _gradientEnd = AppColors.gradientEnd;
+  // Aurora Animation Controller
+  late AnimationController _auroraController;
 
   @override
   void initState() {
@@ -43,37 +40,17 @@ class _LoginScreenState extends State<LoginScreen>
       _emailController.text = widget.initialEmail!;
     }
 
-    // Setup animations
-    _animationController = AnimationController(
+    _auroraController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    _animationController.forward();
+      duration: const Duration(seconds: 10),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _animationController.dispose();
+    _auroraController.dispose();
     super.dispose();
   }
 
@@ -154,67 +131,121 @@ class _LoginScreenState extends State<LoginScreen>
     final localeProvider = context.watch<LocaleProvider>();
     final t = AppLocalizations.of(context);
 
+    // Stagger delays
+    const int startDelay = 200;
+    const int step = 100;
+
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [_gradientStart, _gradientEnd],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl,
-                AppSpacing.xxl,
-                AppSpacing.xl,
-                AppSpacing.lg,
-              ),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Logo Card with glassmorphism
-                      _buildLogoCard(),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Form Card with glassmorphism
-                      _buildFormCard(),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Divider with text
-                      _buildDividerWithText(t.auth_newToKvikTime),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Create Account Button
-                      _buildCreateAccountButton(),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Disclaimer text
-                      Text(
-                        t.auth_redirectNote,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color:
-                                  AppColors.neutral50.withValues(alpha: 0.65),
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Language selector at bottom
-                      _buildLanguageSwitcher(t, localeProvider),
-                    ],
+      body: Stack(
+        children: [
+          // 1. Alive Aurora Background
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _auroraController,
+              builder: (context, child) {
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: const [
+                        AppColors.gradientStart,
+                        Color(0xFF4A148C), // Deep Purple
+                        AppColors.gradientEnd,
+                        Color(0xFF311B92), // Deep Indigo
+                      ],
+                      stops: [
+                        0.0,
+                        0.3 + (_auroraController.value * 0.1),
+                        0.7 - (_auroraController.value * 0.1),
+                        1.0,
+                      ],
+                    ),
                   ),
+                );
+              },
+            ),
+          ),
+          
+          // 2. Content
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl,
+                  AppSpacing.xxl,
+                  AppSpacing.xl,
+                  AppSpacing.lg,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // A. Logo Card (Drops in first)
+                    _buildLogoCard()
+                        .animate()
+                        .slideY(
+                            begin: -0.5,
+                            end: 0,
+                            duration: 800.ms,
+                            curve: Curves.easeOutBack)
+                        .fadeIn(duration: 800.ms),
+
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // B. Form Card (Slides up)
+                    _buildFormCard()
+                        .animate()
+                        .slideY(
+                            begin: 0.3,
+                            end: 0,
+                            delay: (startDelay + step).ms,
+                            duration: 600.ms,
+                            curve: Curves.easeOutCubic)
+                        .fadeIn(delay: (startDelay + step).ms, duration: 600.ms),
+
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // C. Divider (Fades in)
+                    _buildDividerWithText(t.auth_newToKvikTime)
+                        .animate()
+                        .fadeIn(delay: (startDelay + step * 2).ms),
+
+                    const SizedBox(height: AppSpacing.md),
+
+                    // D. Create Account Button (Pops in)
+                    _buildCreateAccountButton()
+                        .animate()
+                        .scale(
+                            delay: (startDelay + step * 3).ms,
+                            duration: 400.ms,
+                            curve: Curves.easeOutBack)
+                        .fadeIn(delay: (startDelay + step * 3).ms),
+
+                    const SizedBox(height: AppSpacing.md),
+
+                    // E. Disclaimer (Fades in last)
+                    Text(
+                      t.auth_redirectNote,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.neutral50.withValues(alpha: 0.65),
+                          ),
+                      textAlign: TextAlign.center,
+                    ).animate().fadeIn(delay: (startDelay + step * 4).ms),
+
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // F. Language (Slide up from bottom)
+                    _buildLanguageSwitcher(t, localeProvider)
+                        .animate()
+                        .slideY(
+                            begin: 1, end: 0, delay: (startDelay + step * 5).ms)
+                        .fadeIn(delay: (startDelay + step * 5).ms),
+                  ],
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -318,7 +349,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
       child: Column(
         children: [
-          // Clock icon with glow effect
+          // Clock icon with glow effect & pulse
           Container(
             width: 64,
             height: 64,
@@ -338,7 +369,14 @@ class _LoginScreenState extends State<LoginScreen>
               size: AppIconSize.xl,
               color: AppColors.neutral50,
             ),
-          ),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                  begin: const Offset(1, 1),
+                  end: const Offset(1.05, 1.05),
+                  duration: 2.seconds,
+                  curve: Curves.easeInOut), // Subtle breathing
+
           const SizedBox(height: AppSpacing.md),
           Text(
             'KvikTime',
@@ -417,7 +455,7 @@ class _LoginScreenState extends State<LoginScreen>
                       ?.copyWith(color: AppColors.neutral50),
                   textAlign: TextAlign.center,
                 ),
-              ),
+              ).animate().fadeIn().shake(), // Error shakes
               const SizedBox(height: AppSpacing.lg),
             ],
 
@@ -455,7 +493,7 @@ class _LoginScreenState extends State<LoginScreen>
         onPressed: _isLoading ? null : _signIn,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.neutral50,
-          foregroundColor: _gradientStart,
+          foregroundColor: AppColors.gradientStart,
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
@@ -468,7 +506,7 @@ class _LoginScreenState extends State<LoginScreen>
                 width: AppIconSize.sm,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: _gradientStart,
+                  color: AppColors.gradientStart,
                 ),
               )
             : Text(
@@ -476,7 +514,7 @@ class _LoginScreenState extends State<LoginScreen>
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
-                  color: _gradientStart,
+                  color: AppColors.gradientStart,
                 ),
               ),
       ),
@@ -599,3 +637,4 @@ class _GlassCard extends StatelessWidget {
     );
   }
 }
+

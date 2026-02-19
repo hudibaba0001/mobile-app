@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 const List<FontFeature> _tabularFigures = [FontFeature.tabularFigures()];
+final String? _headerFontFamily = GoogleFonts.dmSans().fontFamily;
 
 /// Design System - Single Source of Truth
 ///
@@ -193,6 +195,7 @@ class AppTypography {
         color: color,
         height: 1.15,
         fontFeatures: _tabularFigures,
+        fontFamily: _headerFontFamily,
       );
 
   /// Section titles
@@ -202,6 +205,7 @@ class AppTypography {
         letterSpacing: 0,
         color: color,
         height: 1.3,
+        fontFamily: _headerFontFamily,
       );
 
   /// Card titles
@@ -211,6 +215,7 @@ class AppTypography {
         letterSpacing: 0.1,
         color: color,
         height: 1.35,
+        fontFamily: _headerFontFamily,
       );
 
   /// Body text
@@ -248,6 +253,7 @@ class AppTypography {
         color: color,
         height: 1.2,
         fontFeatures: _tabularFigures,
+        fontFamily: _headerFontFamily,
       );
 
   /// Metric label (description under metric)
@@ -394,6 +400,7 @@ class AppThemeData {
       required FontWeight weight,
       required double height,
       double letterSpacing = 0,
+      String? fontFamily,
     }) {
       return TextStyle(
         fontSize: size,
@@ -402,24 +409,61 @@ class AppThemeData {
         letterSpacing: letterSpacing,
         color: onSurface,
         fontFeatures: _tabularFigures,
+        fontFamily: fontFamily,
       );
     }
 
     return TextTheme(
       displayLarge: style(
-          size: 34, weight: FontWeight.w700, height: 1.1, letterSpacing: -0.2),
+          size: 34,
+          weight: FontWeight.w700,
+          height: 1.1,
+          letterSpacing: -0.2,
+          fontFamily: _headerFontFamily),
       displayMedium: style(
-          size: 28, weight: FontWeight.w700, height: 1.15, letterSpacing: -0.1),
+          size: 28,
+          weight: FontWeight.w700,
+          height: 1.15,
+          letterSpacing: -0.1,
+          fontFamily: _headerFontFamily),
       displaySmall: style(
-          size: 24, weight: FontWeight.w600, height: 1.2, letterSpacing: -0.1),
-      headlineLarge: style(size: 22, weight: FontWeight.w600, height: 1.2),
-      headlineMedium: style(size: 20, weight: FontWeight.w600, height: 1.25),
-      headlineSmall: style(size: 18, weight: FontWeight.w600, height: 1.3),
-      titleLarge: style(size: 17, weight: FontWeight.w600, height: 1.35),
+          size: 24,
+          weight: FontWeight.w600,
+          height: 1.2,
+          letterSpacing: -0.1,
+          fontFamily: _headerFontFamily),
+      headlineLarge: style(
+          size: 22,
+          weight: FontWeight.w600,
+          height: 1.2,
+          fontFamily: _headerFontFamily),
+      headlineMedium: style(
+          size: 20,
+          weight: FontWeight.w600,
+          height: 1.25,
+          fontFamily: _headerFontFamily),
+      headlineSmall: style(
+          size: 18,
+          weight: FontWeight.w600,
+          height: 1.3,
+          fontFamily: _headerFontFamily),
+      titleLarge: style(
+          size: 17,
+          weight: FontWeight.w600,
+          height: 1.35,
+          fontFamily: _headerFontFamily),
       titleMedium: style(
-          size: 15, weight: FontWeight.w600, height: 1.35, letterSpacing: 0.1),
+          size: 15,
+          weight: FontWeight.w600,
+          height: 1.35,
+          letterSpacing: 0.1,
+          fontFamily: _headerFontFamily),
       titleSmall: style(
-          size: 13, weight: FontWeight.w600, height: 1.35, letterSpacing: 0.1),
+          size: 13,
+          weight: FontWeight.w600,
+          height: 1.35,
+          letterSpacing: 0.1,
+          fontFamily: _headerFontFamily),
       bodyLarge: style(
           size: 15, weight: FontWeight.w400, height: 1.5, letterSpacing: 0.2),
       bodyMedium: style(

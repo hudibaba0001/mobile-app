@@ -45,10 +45,12 @@ class ContractProvider extends ChangeNotifier {
   /// Full-time hours per week
   int get fullTimeHours => _fullTimeHours;
 
+  static DateTime _dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+
   /// Date from which to start tracking balances
-  /// Defaults to Jan 1 of current year if not set.
-  DateTime get trackingStartDate =>
-      _trackingStartDate ?? DateTime(DateTime.now().year, 1, 1);
+  /// Defaults to today if not set.
+  DateTime get trackingStartDate => _trackingStartDate ?? _dateOnly(DateTime.now());
 
   /// Whether a custom tracking start date has been set
   bool get hasCustomTrackingStartDate => _trackingStartDate != null;
@@ -210,7 +212,7 @@ class ContractProvider extends ChangeNotifier {
 
   /// Set the tracking start date and persist
   Future<void> setTrackingStartDate(DateTime date) async {
-    final normalized = DateTime(date.year, date.month, date.day);
+    final normalized = _dateOnly(date);
 
     final maxDate = DateTime.now().add(const Duration(days: 365));
     if (normalized.isAfter(maxDate)) {
@@ -223,6 +225,57 @@ class ContractProvider extends ChangeNotifier {
       await _saveTrackingStartDate();
       notifyListeners();
     }
+  }
+
+  /// Derives an initial tracking start date when no custom value is stored.
+  ///
+  /// Rule:
+  /// - earliest activity date (entries + absences), date-only
+  /// - if no activity exists, fallback to today (date-only)
+  @visibleForTesting
+  static DateTime deriveInitialTrackingStartDate({
+    required Iterable<DateTime> entryDates,
+    required Iterable<DateTime> absenceDates,
+    DateTime? now,
+  }) {
+    DateTime? earliest;
+
+    void consider(DateTime value) {
+      final normalized = _dateOnly(value);
+      if (earliest == null || normalized.isBefore(earliest!)) {
+        earliest = normalized;
+      }
+    }
+
+    for (final date in entryDates) {
+      consider(date);
+    }
+    for (final date in absenceDates) {
+      consider(date);
+    }
+
+    return earliest ?? _dateOnly(now ?? DateTime.now());
+  }
+
+  /// Initializes tracking start date exactly once when unset.
+  ///
+  /// Idempotent:
+  /// - does nothing if a custom tracking start date is already stored.
+  Future<void> ensureTrackingStartDateInitialized({
+    required Iterable<DateTime> entryDates,
+    required Iterable<DateTime> absenceDates,
+    DateTime? now,
+  }) async {
+    if (_trackingStartDate != null) {
+      return;
+    }
+
+    final derived = deriveInitialTrackingStartDate(
+      entryDates: entryDates,
+      absenceDates: absenceDates,
+      now: now,
+    );
+    await setTrackingStartDate(derived);
   }
 
   /// Set the opening flex balance in minutes (signed)

@@ -19,26 +19,24 @@ class PeriodSummaryCalculator {
     required int startBalanceMinutes,
     required int manualAdjustmentMinutes,
   }) {
-    final tracked = TrackedTimeCalculator.computeTrackedSummary(
-      entries: entries,
-      range: range,
-      travelEnabled: travelEnabled,
-    );
-
-    final paidLeaveMinutes = summarizeLeaveMinutes(
-      absences.where((absence) => range.contains(absence.date)),
-    ).paidMinutes;
-
     final normalizedTrackingStart = DateTime(
       trackingStartDate.year,
       trackingStartDate.month,
       trackingStartDate.day,
     );
-    final targetStart = range.startInclusive.isBefore(normalizedTrackingStart)
-        ? normalizedTrackingStart
-        : range.startInclusive;
+    final effectiveRange = range.clipStart(normalizedTrackingStart);
+    final tracked = TrackedTimeCalculator.computeTrackedSummary(
+      entries: entries,
+      range: effectiveRange,
+      travelEnabled: travelEnabled,
+    );
+    final effectivePaidLeaveMinutes = summarizeLeaveMinutes(
+      absences.where((absence) => effectiveRange.contains(absence.date)),
+    ).paidMinutes;
+
+    final targetStart = effectiveRange.startInclusive;
     final targetEndInclusive =
-        range.endExclusive.subtract(const Duration(days: 1));
+        effectiveRange.endExclusive.subtract(const Duration(days: 1));
 
     final targetMinutes = targetEndInclusive.isBefore(targetStart)
         ? 0
@@ -52,7 +50,7 @@ class PeriodSummaryCalculator {
     return PeriodSummary.fromInputs(
       workMinutes: tracked.workMinutes,
       travelMinutes: tracked.travelMinutes,
-      paidLeaveMinutes: paidLeaveMinutes,
+      paidLeaveMinutes: effectivePaidLeaveMinutes,
       targetMinutes: targetMinutes,
       startBalanceMinutes: startBalanceMinutes,
       manualAdjustmentMinutes: manualAdjustmentMinutes,

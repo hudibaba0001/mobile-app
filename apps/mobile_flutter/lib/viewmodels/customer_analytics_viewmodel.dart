@@ -140,8 +140,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
       'weeklyMinutes':
           _calculateWeeklyMinutes(filteredWorkEntries, filteredTravelEntries),
       'monthlyComparison': _calculateMonthlyComparison(comparisonEntries),
-      'dailyTrends':
-          _calculateDailyTrends(filteredWorkEntries, filteredTravelEntries),
+      'dailyTrends': _calculateDailyTrends(),
     };
   }
 
@@ -551,21 +550,50 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     };
   }
 
-  List<Map<String, dynamic>> _calculateDailyTrends(
-      List<Entry> workEntries, List<Entry> travelEntries) {
+  List<Entry> _getDailyTrendEntriesInWindow(
+    EntryType type, {
+    required DateTime windowStart,
+    required DateTime windowEnd,
+  }) {
+    if (type == EntryType.work && _trendsEntryTypeFilter == EntryType.travel) {
+      return const <Entry>[];
+    }
+    if (type == EntryType.travel) {
+      if (!_travelEnabled || _trendsEntryTypeFilter == EntryType.work) {
+        return const <Entry>[];
+      }
+    }
+
+    return _entries.where((entry) {
+      if (entry.type != type) return false;
+      final entryDate =
+          DateTime(entry.date.year, entry.date.month, entry.date.day);
+      if (entryDate.isBefore(windowStart)) {
+        return false;
+      }
+      if (entryDate.isAfter(windowEnd)) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _calculateDailyTrends() {
     final dailyData = <Map<String, dynamic>>[];
     final now = DateTime.now();
     final normalizedToday = DateTime(now.year, now.month, now.day);
-    final start =
-        _startDate ?? normalizedToday.subtract(const Duration(days: 6));
     final end = _endDate ?? normalizedToday;
-    if (end.isBefore(start)) {
-      return dailyData;
-    }
-
-    final trailingWeekStart = end.subtract(const Duration(days: 6));
-    final windowStart =
-        start.isAfter(trailingWeekStart) ? start : trailingWeekStart;
+    final windowStart = end.subtract(const Duration(days: 6));
+    final workEntries = _getDailyTrendEntriesInWindow(
+      EntryType.work,
+      windowStart: windowStart,
+      windowEnd: end,
+    );
+    final travelEntries = _getDailyTrendEntriesInWindow(
+      EntryType.travel,
+      windowStart: windowStart,
+      windowEnd: end,
+    );
 
     for (var date = windowStart;
         !date.isAfter(end);

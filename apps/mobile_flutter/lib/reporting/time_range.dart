@@ -88,4 +88,21 @@ class TimeRange {
   bool contains(DateTime value) {
     return !value.isBefore(startInclusive) && value.isBefore(endExclusive);
   }
+
+  /// Returns a range with start clipped to [minimumStartInclusive].
+  ///
+  /// If the clipped start is on/after `endExclusive`, returns an empty range
+  /// anchored at the clipped start day.
+  TimeRange clipStart(DateTime minimumStartInclusive) {
+    final minStart = _dateOnly(minimumStartInclusive);
+    final clippedStart =
+        startInclusive.isBefore(minStart) ? minStart : startInclusive;
+    if (!endExclusive.isAfter(clippedStart)) {
+      return TimeRange.empty(clippedStart);
+    }
+    return TimeRange(
+      startInclusive: clippedStart,
+      endExclusive: endExclusive,
+    );
+  }
 }

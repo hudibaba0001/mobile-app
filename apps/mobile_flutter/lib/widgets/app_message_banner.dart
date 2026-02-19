@@ -87,7 +87,8 @@ class _AppMessageBannerState extends State<AppMessageBanner> {
   int _compareVersions(String a, String b) {
     final aParts = a.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final bParts = b.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-    final length = aParts.length > bParts.length ? aParts.length : bParts.length;
+    final length =
+        aParts.length > bParts.length ? aParts.length : bParts.length;
 
     for (var i = 0; i < length; i++) {
       final aVal = i < aParts.length ? aParts[i] : 0;
@@ -100,11 +101,11 @@ class _AppMessageBannerState extends State<AppMessageBanner> {
   Color _bannerColor(String type, ThemeData theme) {
     switch (type) {
       case 'warning':
-        return Colors.orange.shade700;
+        return AppColors.warning;
       case 'update':
         return theme.colorScheme.primary;
       case 'maintenance':
-        return Colors.red.shade700;
+        return theme.colorScheme.error;
       default:
         return theme.colorScheme.secondary;
     }
@@ -162,7 +163,7 @@ class _AppMessageBannerState extends State<AppMessageBanner> {
                   color: color,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: AppSpacing.xs / 2),
               Text(body, style: theme.textTheme.bodySmall),
             ],
           ),

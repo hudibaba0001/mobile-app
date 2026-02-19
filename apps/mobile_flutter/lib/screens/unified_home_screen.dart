@@ -26,6 +26,7 @@ import '../providers/absence_provider.dart';
 import '../providers/location_provider.dart';
 import '../providers/network_status_provider.dart';
 import '../providers/settings_provider.dart';
+import '../providers/contract_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../widgets/app_message_banner.dart';
@@ -54,6 +55,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   Timer? _recentLoadDebounce;
   EntryProvider? _entryProvider;
   AbsenceProvider? _absenceProvider;
+  bool _trackingStartInitialized = false;
+  bool _trackingStartInitInProgress = false;
 
   @override
   void dispose() {
@@ -86,25 +89,73 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   void initState() {
     super.initState();
     // Start loading data immediately; provider listeners keep recents in sync.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final entryProvider = context.read<EntryProvider>();
       final absenceProvider = context.read<AbsenceProvider>();
 
       // Load absences for current year
-      absenceProvider.loadAbsences(year: DateTime.now().year);
+      await absenceProvider.loadAbsences(year: DateTime.now().year);
 
       if (!entryProvider.isLoading) {
         // Kick off load/sync without blocking the initial render.
-        entryProvider.loadEntries();
+        await entryProvider.loadEntries();
       }
 
+      await _ensureTrackingStartDateInitialized();
       _loadRecentEntries();
     });
   }
 
   void _onProviderDataChanged() {
     if (!mounted) return;
+    _ensureTrackingStartDateInitialized();
     _loadRecentEntries();
+  }
+
+  Future<void> _ensureTrackingStartDateInitialized() async {
+    if (!mounted || _trackingStartInitialized || _trackingStartInitInProgress) {
+      return;
+    }
+
+    final contractProvider = context.read<ContractProvider>();
+    if (contractProvider.hasCustomTrackingStartDate) {
+      _trackingStartInitialized = true;
+      return;
+    }
+
+    _trackingStartInitInProgress = true;
+    try {
+      final now = DateTime.now();
+      final currentYear = now.year;
+      final entryProvider = context.read<EntryProvider>();
+      final absenceProvider = context.read<AbsenceProvider>();
+
+      if (!entryProvider.isLoading && entryProvider.entries.isEmpty) {
+        await entryProvider.loadEntries();
+      }
+
+      final entries = List<Entry>.from(entryProvider.entries);
+      final years = <int>{currentYear, ...entries.map((entry) => entry.date.year)}
+        ..removeWhere((year) => year < 2000 || year > (currentYear + 1));
+
+      for (final year in (years.toList()..sort())) {
+        await absenceProvider.loadAbsences(year: year);
+      }
+
+      final absences = <AbsenceEntry>[
+        for (final year in years) ...absenceProvider.absencesForYear(year),
+      ];
+
+      await contractProvider.ensureTrackingStartDateInitialized(
+        entryDates: entries.map((entry) => entry.date),
+        absenceDates: absences.map((absence) => absence.date),
+        now: now,
+      );
+
+      _trackingStartInitialized = contractProvider.hasCustomTrackingStartDate;
+    } finally {
+      _trackingStartInitInProgress = false;
+    }
   }
 
   void _loadRecentEntries() {
@@ -982,8 +1033,22 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ),
             )
           else
-            ...(_recentEntries.take(5).map((entry) =>
-                _buildRecentEntryCard(theme, entry, entryProvider.entries))),
+            ...() {
+              final items = _recentEntries.take(5).toList();
+              return List.generate(
+                items.length,
+                (index) {
+                  final entry = items[index];
+                  return _buildRecentEntryTimelineItem(
+                    theme: theme,
+                    entry: entry,
+                    fullEntries: entryProvider.entries,
+                    isFirst: index == 0,
+                    isLast: index == items.length - 1,
+                  );
+                },
+              );
+            }(),
         ],
       ),
     );
@@ -996,164 +1061,193 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   ) {
     final fullEntry = _findEntryById(fullEntries, entry.id);
     if ((entry.type == 'work' || entry.type == 'travel') && fullEntry != null) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: EntryCompactTile(
-          entry: fullEntry,
-          onTap: () => _openQuickView(entry),
-          showDate: true,
-          showNote: true,
-          dense: true,
-        ),
+      return EntryCompactTile(
+        entry: fullEntry,
+        onTap: () => _openQuickView(entry),
+        showDate: true,
+        showNote: true,
+        dense: true,
       );
     }
 
     Color lightColor;
-    Color darkColor;
 
     switch (entry.type) {
       case 'travel':
         lightColor = AppColors.primaryLight;
-        darkColor = AppColors.primaryDark;
         break;
       case 'work':
         lightColor = AppColors.success;
-        darkColor = FlexsaldoColors.positiveDark;
         break;
       case 'absence':
         lightColor = AppColors.accent;
-        darkColor = AppColors.accentDark;
         break;
       default:
         lightColor = AppColors.secondaryLight;
-        darkColor = AppColors.secondaryDark;
     }
-    final Color durationTextColor = theme.brightness == Brightness.dark
-        ? AppColors.neutral50.withValues(alpha: 0.95)
-        : darkColor;
-
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            lightColor.withValues(alpha: 0.08),
-            darkColor.withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: AppRadius.buttonRadius,
+        color:
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
-          color: lightColor.withValues(alpha: 0.15),
-          width: 1,
+          color: lightColor.withValues(alpha: 0.18),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: lightColor.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: AppRadius.buttonRadius,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: InkWell(
           onTap: () => _openQuickView(entry),
-          borderRadius: AppRadius.buttonRadius,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md, vertical: 14),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [lightColor, darkColor],
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 68),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: 10,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: lightColor.withValues(alpha: 0.12),
                     ),
-                    borderRadius: AppRadius.chipRadius,
-                    boxShadow: [
-                      BoxShadow(
-                        color: lightColor.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    child: Icon(entry.icon, color: lightColor, size: 18),
                   ),
-                  child: Icon(entry.icon, color: AppColors.neutral50, size: 24),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _entryTypeLabel(
-                            entry.type, AppLocalizations.of(context)),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: theme.colorScheme.onSurface,
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _entryTypeLabel(
+                                    entry.type, AppLocalizations.of(context)),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            _buildDurationPill(
+                              theme,
+                              text: entry.duration,
+                              tint: lightColor,
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs / 2),
-                      Text(
-                        entry.title,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          entry.title,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.xs / 2),
-                      Text(
-                        entry.subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                        const SizedBox(height: AppSpacing.xs / 2),
+                        Text(
+                          entry.subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm - 2,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        lightColor.withValues(alpha: 0.2),
-                        darkColor.withValues(alpha: 0.15),
                       ],
                     ),
-                    borderRadius:
-                        BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
-                    border: Border.all(
-                      color: lightColor.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
                   ),
-                  child: Text(
-                    entry.duration,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: durationTextColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentEntryTimelineItem({
+    required ThemeData theme,
+    required _EntryData entry,
+    required List<Entry> fullEntries,
+    required bool isFirst,
+    required bool isLast,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: AppSpacing.lg,
+          child: Column(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    margin: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.xs,
+                    ),
+                    color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            children: [
+              if (!isFirst) const SizedBox(height: AppSpacing.xs),
+              _buildRecentEntryCard(theme, entry, fullEntries),
+              if (!isLast) const SizedBox(height: AppSpacing.sm),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDurationPill(
+    ThemeData theme, {
+    required String text,
+    required Color tint,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm + 2,
+        vertical: AppSpacing.xs / 2,
+      ),
+      decoration: BoxDecoration(
+        color: tint.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: tint.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: tint,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

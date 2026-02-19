@@ -17,6 +17,47 @@ import '../reporting/time_format.dart';
 import '../reporting/time_range.dart';
 import '../l10n/generated/app_localizations.dart';
 
+class HomeTrackingRangeText extends StatelessWidget {
+  const HomeTrackingRangeText({
+    super.key,
+    required this.trackingStartDate,
+    required this.today,
+    required this.monthEffectiveStart,
+  });
+
+  final DateTime trackingStartDate;
+  final DateTime today;
+  final DateTime monthEffectiveStart;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dateFormat = DateFormat('yyyy-MM-dd');
+    final trackingDateText = dateFormat.format(trackingStartDate);
+    final todayDateText = dateFormat.format(today);
+    final monthStartText = dateFormat.format(monthEffectiveStart);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tracking: $trackingDateText -> $todayDateText',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'This month (from $monthStartText -> $todayDateText)',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 @visibleForTesting
 int computeHomeMonthlyStatusMinutes({
   required int monthActualMinutes,
@@ -55,15 +96,16 @@ int computeHomeYearlyBalanceMinutes({
   required bool travelEnabled,
 }) {
   final yearRange = TimeRange.thisYear(now: now);
+  final effectiveYearRange = yearRange.clipStart(trackingStartDate);
   final adjustmentMinutesYear = _sumAdjustmentsInRangeMinutes(
     adjustments: adjustments,
-    range: yearRange,
+    range: effectiveYearRange,
   );
 
   final periodSummaryYear = PeriodSummaryCalculator.compute(
     entries: entries,
     absences: absences,
-    range: yearRange,
+    range: effectiveYearRange,
     travelEnabled: travelEnabled,
     weeklyTargetMinutes: weeklyTargetMinutes,
     holidays: SwedenHolidayCalendar(),
@@ -102,6 +144,16 @@ class FlexsaldoCard extends StatelessWidget {
         final now = DateTime.now();
         final year = now.year;
         final month = now.month;
+        final todayDateOnly = DateTime(now.year, now.month, now.day);
+        final trackingStartDateOnly = DateTime(
+          contractProvider.trackingStartDate.year,
+          contractProvider.trackingStartDate.month,
+          contractProvider.trackingStartDate.day,
+        );
+        final monthStart = DateTime(year, month, 1);
+        final monthEffectiveStart = monthStart.isBefore(trackingStartDateOnly)
+            ? trackingStartDateOnly
+            : monthStart;
         final localeCode = Localizations.localeOf(context).toLanguageTag();
         final monthName =
             DateFormat.MMMM(Localizations.localeOf(context).toString())
@@ -238,6 +290,12 @@ class FlexsaldoCard extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              HomeTrackingRangeText(
+                trackingStartDate: trackingStartDateOnly,
+                today: todayDateOnly,
+                monthEffectiveStart: monthEffectiveStart,
               ),
 
               const SizedBox(height: AppSpacing.lg),

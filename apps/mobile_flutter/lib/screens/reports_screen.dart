@@ -15,6 +15,7 @@ import '../models/entry.dart';
 import '../services/supabase_auth_service.dart';
 import '../providers/entry_provider.dart';
 import '../providers/settings_provider.dart';
+import '../providers/contract_provider.dart';
 import '../reporting/time_range.dart';
 import 'reports/overview_tab.dart';
 import 'reports/trends_tab.dart';
@@ -30,6 +31,64 @@ enum ReportsPeriodPreset {
   lastMonth,
   thisYear,
   custom,
+}
+
+class OverviewTrackingRangeText extends StatelessWidget {
+  const OverviewTrackingRangeText({
+    super.key,
+    required this.selectedStart,
+    required this.selectedEnd,
+    required this.trackingStartDate,
+  });
+
+  final DateTime selectedStart;
+  final DateTime selectedEnd;
+  final DateTime trackingStartDate;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dateFormat = DateFormat('yyyy-MM-dd');
+    final selectedStartOnly = DateTime(
+      selectedStart.year,
+      selectedStart.month,
+      selectedStart.day,
+    );
+    final selectedEndOnly = DateTime(
+      selectedEnd.year,
+      selectedEnd.month,
+      selectedEnd.day,
+    );
+    final trackingStartOnly = DateTime(
+      trackingStartDate.year,
+      trackingStartDate.month,
+      trackingStartDate.day,
+    );
+    final effectiveStart = selectedStartOnly.isBefore(trackingStartOnly)
+        ? trackingStartOnly
+        : selectedStartOnly;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tracking start: ${dateFormat.format(trackingStartOnly)}',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        if (selectedStartOnly.isBefore(trackingStartOnly)) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Effective range: ${dateFormat.format(effectiveStart)} -> ${dateFormat.format(selectedEndOnly)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 class ReportsScreen extends StatefulWidget {
@@ -155,6 +214,7 @@ class _ReportsScreenState extends State<ReportsScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final t = AppLocalizations.of(context);
+    final contractProvider = context.watch<ContractProvider>();
     final range = _currentRange();
     final dateFormat = DateFormat('yyyy-MM-dd');
     final rangeText =
@@ -227,6 +287,12 @@ class _ReportsScreenState extends State<ReportsScreen>
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          OverviewTrackingRangeText(
+            selectedStart: range.start,
+            selectedEnd: range.end,
+            trackingStartDate: contractProvider.trackingStartDate,
           ),
         ],
       ),

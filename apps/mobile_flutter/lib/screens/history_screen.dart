@@ -397,7 +397,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           controller: _scrollController,
           padding: const EdgeInsets.all(AppSpacing.lg),
           itemCount: entries.length + (_isLoadingMore ? 1 : 0),
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          separatorBuilder: (_, __) =>
+              const SizedBox(height: AppSpacing.sm + 2),
           itemBuilder: (context, index) {
             if (index == entries.length) {
               return _buildLoadingIndicator(context);

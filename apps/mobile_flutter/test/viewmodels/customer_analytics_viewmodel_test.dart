@@ -240,7 +240,9 @@ void main() {
         0,
         (sum, day) => sum + (day['totalMinutes'] as int? ?? 0),
       );
-      expect(dailyWithTravel, hasLength(3));
+      expect(dailyWithTravel, hasLength(7));
+      expect(dailyWithTravel.first['date'], DateTime(2026, 1, 6));
+      expect(dailyWithTravel.last['date'], DateTime(2026, 1, 12));
       expect(dailyTotalWithTravel, 150);
 
       viewModel.setTravelEnabled(false);
@@ -260,6 +262,59 @@ void main() {
         (sum, day) => sum + (day['totalMinutes'] as int? ?? 0),
       );
       expect(dailyTotalWithoutTravel, 120);
+    });
+
+    test('daily trends use trailing 7-day window ending at selected end date',
+        () {
+      AppConfig.setApiBase('');
+      final scopedEntries = <Entry>[
+        _workEntry(
+          id: 'w-before-selected-start',
+          date: DateTime(2026, 1, 6),
+          workedMinutes: 30,
+        ),
+        _workEntry(
+          id: 'w-selected-start',
+          date: DateTime(2026, 1, 10),
+          workedMinutes: 60,
+        ),
+        _travelEntry(
+          id: 't-selected-end',
+          date: DateTime(2026, 1, 12),
+          travelMinutes: 15,
+        ),
+        _workEntry(
+          id: 'w-after-window',
+          date: DateTime(2026, 1, 13),
+          workedMinutes: 90,
+        ),
+      ];
+
+      viewModel.bindEntries(scopedEntries, userId: 'user_1');
+      viewModel.setDateRange(DateTime(2026, 1, 10), DateTime(2026, 1, 12));
+      viewModel.setTravelEnabled(true);
+      viewModel.setTrendsEntryTypeFilter(null);
+
+      final daily =
+          viewModel.trendsData['dailyTrends'] as List<Map<String, dynamic>>;
+      expect(daily, hasLength(7));
+      expect(daily.first['date'], DateTime(2026, 1, 6));
+      expect(daily.last['date'], DateTime(2026, 1, 12));
+
+      final jan6 = daily.firstWhere(
+        (day) => day['date'] == DateTime(2026, 1, 6),
+      );
+      final jan12 = daily.firstWhere(
+        (day) => day['date'] == DateTime(2026, 1, 12),
+      );
+      expect(jan6['totalMinutes'], 30);
+      expect(jan12['totalMinutes'], 15);
+
+      final total = daily.fold<int>(
+        0,
+        (sum, day) => sum + (day['totalMinutes'] as int? ?? 0),
+      );
+      expect(total, 105);
     });
 
     test('trends apply inclusive date boundaries for selected range', () {

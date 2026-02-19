@@ -126,10 +126,6 @@ class MonthlyStatusCard extends StatelessWidget {
     final targetForVariance = targetMinutesToDate ?? targetMinutes;
     final varianceMinutes = effectiveMinutes - targetForVariance;
     final isOverTarget = varianceMinutes >= 0;
-    // Use full month target for progress bar.
-    final progress =
-        targetMinutes > 0 ? (effectiveMinutes / targetMinutes) : 0.0;
-    final clampedProgress = progress.clamp(0.0, 1.0);
 
     // Theme-aware colors
     final positiveColor =
@@ -274,25 +270,6 @@ class MonthlyStatusCard extends StatelessWidget {
           ],
 
           const SizedBox(height: AppSpacing.lg),
-
-          // Progress bar for month
-          ClipRRect(
-            borderRadius: AppRadius.pillRadius,
-            child: LinearProgressIndicator(
-              value: clampedProgress,
-              minHeight: 12,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isOverTarget ? positiveColor : negativeColor,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            l10n.balance_percentFullMonthTarget(
-                (progress * 100).toStringAsFixed(0)),
-            style: AppTypography.caption(theme.colorScheme.onSurfaceVariant),
-          ),
         ],
       ),
     );
@@ -402,16 +379,12 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
 
     // Use target-to-date for display and progress when available
     final targetForDisplay = widget.targetMinutesToDate ?? widget.targetMinutes;
-    final progress =
-        targetForDisplay > 0 ? (widget.workedMinutes / targetForDisplay) : 0.0;
-    final clampedProgress = progress.clamp(0.0, 1.0);
 
     // Theme-aware colors
     final positiveColor =
         isDark ? FlexsaldoColors.positive : FlexsaldoColors.positiveDark;
     final negativeColor =
         isDark ? FlexsaldoColors.negative : FlexsaldoColors.negativeDark;
-    final warningColor = isDark ? AppColors.warning : AppColors.accentDark;
     final cardBgColor = isDark
         ? (isPositive
             ? positiveColor.withValues(alpha: 0.06)
@@ -595,26 +568,6 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
                 ).copyWith(fontWeight: FontWeight.w500),
               ),
             ],
-          ),
-
-          const SizedBox(height: AppSpacing.md),
-
-          // Progress bar
-          ClipRRect(
-            borderRadius: AppRadius.pillRadius,
-            child: LinearProgressIndicator(
-              value: clampedProgress,
-              minHeight: 12,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isOverTarget ? positiveColor : warningColor,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            l10n.balance_percentOfTarget((progress * 100).toStringAsFixed(1)),
-            style: AppTypography.caption(theme.colorScheme.onSurfaceVariant),
           ),
 
           const SizedBox(height: AppSpacing.lg),
