@@ -114,8 +114,8 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
 
         // Get to-date targets (for variance/balance calculations)
         final monthlyTargetToDateMinutes = timeProvider.monthTargetMinutesToDate(
-          year: currentDate.year,
-          month: currentDate.month,
+          currentDate.year,
+          currentDate.month,
         );
         final yearlyTargetToDateMinutes =
             timeProvider.yearTargetMinutesToDate(currentDate.year);
