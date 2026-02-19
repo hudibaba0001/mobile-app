@@ -49,6 +49,25 @@ Entry _travelEntry({
   );
 }
 
+int _sumWeeklyMinutes(Map<String, dynamic> trendsData) {
+  final weekly = trendsData['weeklyMinutes'] as List<int>? ?? const <int>[];
+  return weekly.fold<int>(0, (sum, minutes) => sum + minutes);
+}
+
+int _sumMonthlyTotalMinutes(List<MonthlyBreakdown> months) {
+  return months.fold<int>(0, (sum, month) => sum + month.totalMinutes);
+}
+
+MonthlyBreakdown _monthBreakdownFor(
+  List<MonthlyBreakdown> months, {
+  required int year,
+  required int month,
+}) {
+  return months.firstWhere(
+    (value) => value.month.year == year && value.month.month == month,
+  );
+}
+
 @GenerateMocks([AnalyticsApi])
 void main() {
   group('CustomerAnalyticsViewModel', () {
@@ -208,9 +227,11 @@ void main() {
 
       final monthsWithTravel = viewModel.monthlyBreakdown;
       expect(monthsWithTravel, hasLength(1));
-      expect(monthsWithTravel.first.workMinutes, 120);
-      expect(monthsWithTravel.first.travelMinutes, 30);
-      expect(monthsWithTravel.first.totalMinutes, 150);
+      final januaryWithTravel =
+          _monthBreakdownFor(monthsWithTravel, year: 2026, month: 1);
+      expect(januaryWithTravel.workMinutes, 120);
+      expect(januaryWithTravel.travelMinutes, 30);
+      expect(januaryWithTravel.totalMinutes, 150);
 
       final trendsWithTravel = viewModel.trendsData;
       final dailyWithTravel =
@@ -224,9 +245,12 @@ void main() {
 
       viewModel.setTravelEnabled(false);
       final monthsWithoutTravel = viewModel.monthlyBreakdown;
-      expect(monthsWithoutTravel.first.workMinutes, 120);
-      expect(monthsWithoutTravel.first.travelMinutes, 0);
-      expect(monthsWithoutTravel.first.totalMinutes, 120);
+      expect(monthsWithoutTravel, hasLength(1));
+      final januaryWithoutTravel =
+          _monthBreakdownFor(monthsWithoutTravel, year: 2026, month: 1);
+      expect(januaryWithoutTravel.workMinutes, 120);
+      expect(januaryWithoutTravel.travelMinutes, 0);
+      expect(januaryWithoutTravel.totalMinutes, 120);
 
       final trendsWithoutTravel = viewModel.trendsData;
       final dailyWithoutTravel =
@@ -236,6 +260,197 @@ void main() {
         (sum, day) => sum + (day['totalMinutes'] as int? ?? 0),
       );
       expect(dailyTotalWithoutTravel, 120);
+    });
+
+    test('trends apply inclusive date boundaries for selected range', () {
+      AppConfig.setApiBase('');
+      final scopedEntries = <Entry>[
+        _workEntry(
+          id: 'w-start-day',
+          date: DateTime(2026, 1, 1),
+          workedMinutes: 60,
+        ),
+        _travelEntry(
+          id: 't-end-day',
+          date: DateTime(2026, 1, 31),
+          travelMinutes: 30,
+        ),
+        _workEntry(
+          id: 'w-outside',
+          date: DateTime(2026, 2, 1),
+          workedMinutes: 90,
+        ),
+      ];
+
+      viewModel.bindEntries(scopedEntries, userId: 'user_1');
+      viewModel.setDateRange(DateTime(2026, 1, 1), DateTime(2026, 1, 31));
+      viewModel.setTravelEnabled(true);
+      viewModel.setTrendsEntryTypeFilter(null);
+
+      final months = viewModel.monthlyBreakdown;
+      expect(months, hasLength(1));
+      final january = _monthBreakdownFor(months, year: 2026, month: 1);
+      expect(january.workMinutes, 60);
+      expect(january.travelMinutes, 30);
+      expect(january.totalMinutes, 90);
+      expect(_sumWeeklyMinutes(viewModel.trendsData), 90);
+    });
+
+    test('trends segment filter controls bucketing and bucket sums', () {
+      AppConfig.setApiBase('');
+      final scopedEntries = <Entry>[
+        _workEntry(
+          id: 'w1',
+          date: DateTime(2026, 1, 5),
+          workedMinutes: 120,
+        ),
+        _workEntry(
+          id: 'w2',
+          date: DateTime(2026, 1, 6),
+          workedMinutes: 180,
+        ),
+        _travelEntry(
+          id: 't1',
+          date: DateTime(2026, 1, 5),
+          travelMinutes: 30,
+        ),
+        _travelEntry(
+          id: 't2',
+          date: DateTime(2026, 1, 7),
+          travelMinutes: 60,
+        ),
+      ];
+
+      viewModel.bindEntries(scopedEntries, userId: 'user_1');
+      viewModel.setDateRange(DateTime(2026, 1, 1), DateTime(2026, 1, 31));
+      viewModel.setTravelEnabled(true);
+
+      viewModel.setTrendsEntryTypeFilter(null);
+      final allMonths = viewModel.monthlyBreakdown;
+      expect(allMonths, hasLength(1));
+      final januaryAll = _monthBreakdownFor(allMonths, year: 2026, month: 1);
+      expect(januaryAll.workMinutes, 300);
+      expect(januaryAll.travelMinutes, 90);
+      expect(januaryAll.totalMinutes, 390);
+      expect(_sumWeeklyMinutes(viewModel.trendsData), 390);
+      expect(_sumWeeklyMinutes(viewModel.trendsData),
+          _sumMonthlyTotalMinutes(allMonths));
+
+      viewModel.setTrendsEntryTypeFilter(EntryType.work);
+      final workMonths = viewModel.monthlyBreakdown;
+      expect(workMonths, hasLength(1));
+      final januaryWork = _monthBreakdownFor(workMonths, year: 2026, month: 1);
+      expect(januaryWork.workMinutes, 300);
+      expect(januaryWork.travelMinutes, 0);
+      expect(januaryWork.totalMinutes, 300);
+      expect(_sumWeeklyMinutes(viewModel.trendsData), 300);
+      expect(_sumWeeklyMinutes(viewModel.trendsData),
+          _sumMonthlyTotalMinutes(workMonths));
+
+      viewModel.setTrendsEntryTypeFilter(EntryType.travel);
+      final travelMonths = viewModel.monthlyBreakdown;
+      expect(travelMonths, hasLength(1));
+      final januaryTravel =
+          _monthBreakdownFor(travelMonths, year: 2026, month: 1);
+      expect(januaryTravel.workMinutes, 0);
+      expect(januaryTravel.travelMinutes, 90);
+      expect(januaryTravel.totalMinutes, 90);
+      expect(_sumWeeklyMinutes(viewModel.trendsData), 90);
+      expect(_sumWeeklyMinutes(viewModel.trendsData),
+          _sumMonthlyTotalMinutes(travelMonths));
+
+      viewModel.setTravelEnabled(false);
+      viewModel.setTrendsEntryTypeFilter(null);
+      final allWithoutTravel = viewModel.monthlyBreakdown;
+      viewModel.setTrendsEntryTypeFilter(EntryType.work);
+      final workWithoutTravel = viewModel.monthlyBreakdown;
+      final januaryAllWithoutTravel =
+          _monthBreakdownFor(allWithoutTravel, year: 2026, month: 1);
+      final januaryWorkWithoutTravel =
+          _monthBreakdownFor(workWithoutTravel, year: 2026, month: 1);
+
+      expect(januaryAllWithoutTravel.travelMinutes, 0);
+      expect(januaryAllWithoutTravel.totalMinutes,
+          januaryWorkWithoutTravel.totalMinutes);
+      expect(_sumWeeklyMinutes(viewModel.trendsData),
+          _sumMonthlyTotalMinutes(workWithoutTravel));
+    });
+
+    test(
+        'monthly breakdown includes previous month context for single-month range',
+        () {
+      AppConfig.setApiBase('');
+      final scopedEntries = <Entry>[
+        _workEntry(
+          id: 'jan-work',
+          date: DateTime(2026, 1, 20),
+          workedMinutes: 90,
+        ),
+        _workEntry(
+          id: 'feb-work',
+          date: DateTime(2026, 2, 18),
+          workedMinutes: 120,
+        ),
+      ];
+
+      viewModel.bindEntries(scopedEntries, userId: 'user_1');
+      viewModel.setDateRange(DateTime(2026, 2, 1), DateTime(2026, 2, 19));
+      viewModel.setTravelEnabled(true);
+      viewModel.setTrendsEntryTypeFilter(null);
+
+      final months = viewModel.monthlyBreakdown;
+      expect(months, hasLength(2));
+      expect(months.first.month.year, 2026);
+      expect(months.first.month.month, 1);
+      expect(months.first.totalMinutes, 90);
+      expect(months.last.month.year, 2026);
+      expect(months.last.month.month, 2);
+      expect(months.last.totalMinutes, 120);
+
+      // Daily/weekly buckets must still respect selected range (February only).
+      final trendsData = viewModel.trendsData;
+      expect(_sumWeeklyMinutes(trendsData), 120);
+      final daily = trendsData['dailyTrends'] as List<Map<String, dynamic>>;
+      final dailyTotal = daily.fold<int>(
+        0,
+        (sum, day) => sum + (day['totalMinutes'] as int? ?? 0),
+      );
+      expect(dailyTotal, 120);
+    });
+
+    test(
+        'monthly breakdown for single-month selection includes Jan to selected month',
+        () {
+      AppConfig.setApiBase('');
+      final scopedEntries = <Entry>[
+        _workEntry(
+          id: 'jan-work',
+          date: DateTime(2026, 1, 5),
+          workedMinutes: 60,
+        ),
+        _workEntry(
+          id: 'mar-work',
+          date: DateTime(2026, 3, 10),
+          workedMinutes: 120,
+        ),
+      ];
+
+      viewModel.bindEntries(scopedEntries, userId: 'user_1');
+      viewModel.setDateRange(DateTime(2026, 3, 1), DateTime(2026, 3, 31));
+      viewModel.setTravelEnabled(true);
+      viewModel.setTrendsEntryTypeFilter(null);
+
+      final months = viewModel.monthlyBreakdown;
+      expect(months, hasLength(3));
+      expect(months[0].month.year, 2026);
+      expect(months[0].month.month, 1);
+      expect(months[0].totalMinutes, 60);
+      expect(months[1].month.year, 2026);
+      expect(months[1].month.month, 2);
+      expect(months[1].totalMinutes, 0);
+      expect(months[2].month.year, 2026);
+      expect(months[2].month.month, 3);
+      expect(months[2].totalMinutes, 120);
     });
   });
 }

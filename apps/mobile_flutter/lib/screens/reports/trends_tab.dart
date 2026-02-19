@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import '../../calendar/sweden_holidays.dart';
 import '../../design/app_theme.dart';
 import '../../models/absence.dart';
 import '../../providers/absence_provider.dart';
-import '../../providers/time_provider.dart';
 import '../../providers/contract_provider.dart';
+import '../../reporting/accounted_time_calculator.dart';
+import '../../reporting/leave_minutes.dart';
 import '../../reporting/time_format.dart';
 import '../../reporting/time_range.dart';
+import '../../utils/target_hours_calculator.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
 import '../../l10n/generated/app_localizations.dart';
 
@@ -26,6 +29,7 @@ class TrendsTab extends StatefulWidget {
 
 class _TrendsTabState extends State<TrendsTab> {
   bool _absencesLoading = false;
+  final SwedenHolidayCalendar _holidays = SwedenHolidayCalendar();
 
   String _formatTrackedMinutes(
     BuildContext context,
@@ -48,7 +52,7 @@ class _TrendsTabState extends State<TrendsTab> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _syncRangeToViewModel();
-      _loadAbsences();
+      _loadAbsencesForRange();
     });
   }
 
@@ -60,6 +64,7 @@ class _TrendsTabState extends State<TrendsTab> {
             oldWidget.range.endExclusive != widget.range.endExclusive;
     if (rangeChanged) {
       _syncRangeToViewModel();
+      _loadAbsencesForRange();
     }
   }
 
@@ -71,14 +76,22 @@ class _TrendsTabState extends State<TrendsTab> {
         .setDateRange(widget.range.startInclusive, endInclusive);
   }
 
-  Future<void> _loadAbsences() async {
+  Set<int> _rangeYears() {
+    final startYear = widget.range.startInclusive.year;
+    final endInclusive =
+        widget.range.endExclusive.subtract(const Duration(days: 1));
+    final endYear = endInclusive.year;
+    return {for (int year = startYear; year <= endYear; year++) year};
+  }
+
+  Future<void> _loadAbsencesForRange() async {
     if (_absencesLoading) return;
     setState(() => _absencesLoading = true);
-    final now = DateTime.now();
     try {
       final absenceProvider = context.read<AbsenceProvider>();
-      await absenceProvider.loadAbsences(year: now.year);
-      await absenceProvider.loadAbsences(year: now.year - 1);
+      for (final year in _rangeYears()) {
+        await absenceProvider.loadAbsences(year: year);
+      }
     } finally {
       if (mounted) {
         setState(() => _absencesLoading = false);
@@ -93,7 +106,6 @@ class _TrendsTabState extends State<TrendsTab> {
     final t = AppLocalizations.of(context);
     final viewModel = context.watch<CustomerAnalyticsViewModel>();
     final absenceProvider = context.watch<AbsenceProvider>();
-    final timeProvider = context.watch<TimeProvider>();
     final contractProvider = context.watch<ContractProvider>();
 
     if (viewModel.isLoading) {
@@ -188,7 +200,6 @@ class _TrendsTabState extends State<TrendsTab> {
                         theme,
                         month,
                         leaves,
-                        timeProvider,
                         contractProvider,
                       ),
                       if (!isLast)
@@ -282,34 +293,47 @@ class _TrendsTabState extends State<TrendsTab> {
 
     for (final month in months) {
       final absences = absencesByYear[month.month.year] ?? [];
-      var paidVacation = 0;
-      var sickLeave = 0;
-      var vab = 0;
-      var unpaid = 0;
+      var paidVacationCount = 0;
+      var paidVacationMinutes = 0;
+      var sickLeaveCount = 0;
+      var sickLeaveMinutes = 0;
+      var vabCount = 0;
+      var vabMinutes = 0;
+      var unpaidCount = 0;
+      var unpaidMinutes = 0;
 
       for (final absence in absences) {
         if (absence.date.month != month.month.month) continue;
+        final minutes = normalizedLeaveMinutes(absence);
         switch (absence.type) {
           case AbsenceType.vacationPaid:
-            paidVacation += 1;
+            paidVacationCount += 1;
+            paidVacationMinutes += minutes;
             break;
           case AbsenceType.sickPaid:
-            sickLeave += 1;
+            sickLeaveCount += 1;
+            sickLeaveMinutes += minutes;
             break;
           case AbsenceType.vabPaid:
-            vab += 1;
+            vabCount += 1;
+            vabMinutes += minutes;
             break;
           case AbsenceType.unpaid:
-            unpaid += 1;
+            unpaidCount += 1;
+            unpaidMinutes += minutes;
             break;
         }
       }
 
       summaries[_monthKey(month.month)] = _MonthlyLeaveSummary(
-        paidVacation: paidVacation,
-        sickLeave: sickLeave,
-        vab: vab,
-        unpaid: unpaid,
+        paidVacationCount: paidVacationCount,
+        paidVacationMinutes: paidVacationMinutes,
+        sickLeaveCount: sickLeaveCount,
+        sickLeaveMinutes: sickLeaveMinutes,
+        vabCount: vabCount,
+        vabMinutes: vabMinutes,
+        unpaidCount: unpaidCount,
+        unpaidMinutes: unpaidMinutes,
       );
     }
 
@@ -321,23 +345,23 @@ class _TrendsTabState extends State<TrendsTab> {
     ThemeData theme,
     MonthlyBreakdown month,
     _MonthlyLeaveSummary leaves,
-    TimeProvider timeProvider,
     ContractProvider contractProvider,
   ) {
     final t = AppLocalizations.of(context);
     final colorScheme = theme.colorScheme;
     final monthLabel = DateFormat('MMM').format(month.month);
-
-    // Calculate monthly target hours
-    final monthlyTargetHours = timeProvider.monthlyTargetHours(
+    final monthlyTargetMinutes = TargetHoursCalculator.monthlyScheduledMinutes(
       year: month.month.year,
       month: month.month.month,
+      weeklyTargetMinutes: contractProvider.weeklyTargetMinutes,
+      holidays: _holidays,
     );
-    final monthlyTargetMinutes = (monthlyTargetHours * 60).round();
-
-    // Calculate variance (actual - target)
-    final varianceMinutes = month.totalMinutes - monthlyTargetMinutes;
-    final isAhead = varianceMinutes >= 0;
+    final accounted = AccountedTimeCalculator.compute(
+      trackedMinutes: month.totalMinutes,
+      leaveMinutes: leaves.creditedMinutes,
+      targetMinutes: monthlyTargetMinutes,
+    );
+    final isAhead = accounted.deltaMinutes >= 0;
     final statusColor =
         isAhead ? FlexsaldoColors.positive : FlexsaldoColors.negative;
 
@@ -349,143 +373,135 @@ class _TrendsTabState extends State<TrendsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Main row: Month | Work | Travel | Total | vs Target | Diff
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Month label
-              SizedBox(
-                width: 36,
-                child: Text(
-                  monthLabel,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.primary,
+              Text(
+                monthLabel,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    _formatTrackedMinutes(
+                      context,
+                      accounted.deltaMinutes,
+                      signed: true,
+                      showPlusForZero: true,
+                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: statusColor,
+                    ),
                   ),
-                ),
-              ),
-              // Work
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      _formatTrackedMinutes(context, month.workMinutes),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    t.reportsMetric_delta,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
-                    Text(
-                      t.trends_work,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Travel
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      _formatTrackedMinutes(context, month.travelMinutes),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      t.trends_travel,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Total
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      _formatTrackedMinutes(context, month.totalMinutes),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      t.trends_total,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Target
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      _formatTrackedMinutes(context, monthlyTargetMinutes),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      t.trends_target,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Difference
-              SizedBox(
-                width: 90,
-                child: Text(
-                  _formatTrackedMinutes(
-                    context,
-                    varianceMinutes,
-                    signed: true,
-                    showPlusForZero: true,
                   ),
-                  textAlign: TextAlign.right,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: statusColor,
-                  ),
-                ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.lg,
+            runSpacing: AppSpacing.sm,
+            children: [
+              _buildMonthlyMetric(
+                theme,
+                value: _formatTrackedMinutes(context, month.workMinutes),
+                label: t.trends_work,
+              ),
+              _buildMonthlyMetric(
+                theme,
+                value: _formatTrackedMinutes(context, month.travelMinutes),
+                label: t.trends_travel,
+              ),
+              _buildMonthlyMetric(
+                theme,
+                value: _formatTrackedMinutes(context, accounted.leaveMinutes),
+                label: t.reportsMetric_leave,
+              ),
+              _buildMonthlyMetric(
+                theme,
+                value:
+                    _formatTrackedMinutes(context, accounted.accountedMinutes),
+                label: t.reportsMetric_accounted,
+              ),
+              _buildMonthlyMetric(
+                theme,
+                value: _formatTrackedMinutes(context, accounted.targetMinutes),
+                label: t.trends_target,
               ),
             ],
           ),
           if (leaves.hasAny) ...[
             const SizedBox(height: AppSpacing.sm),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: AppSpacing.xl + AppSpacing.md,
-              ),
-              child: Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.xs,
-                children: [
-                  if (leaves.paidVacation > 0)
-                    _buildLeaveLabel(theme,
-                        '${leaves.paidVacation} ${t.leave_paidVacation}'),
-                  if (leaves.sickLeave > 0)
-                    _buildLeaveLabel(
-                        theme, '${leaves.sickLeave} ${t.leave_sickLeave}'),
-                  if (leaves.vab > 0)
-                    _buildLeaveLabel(theme, '${leaves.vab} ${t.leave_vab}'),
-                  if (leaves.unpaid > 0)
-                    _buildLeaveLabel(
-                        theme, '${leaves.unpaid} ${t.leave_unpaid}'),
-                ],
-              ),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
+              children: [
+                if (leaves.paidVacationCount > 0)
+                  _buildLeaveLabel(
+                    theme,
+                    '${_formatTrackedMinutes(context, leaves.paidVacationMinutes)} ${t.leave_paidVacation}',
+                  ),
+                if (leaves.sickLeaveCount > 0)
+                  _buildLeaveLabel(
+                    theme,
+                    '${_formatTrackedMinutes(context, leaves.sickLeaveMinutes)} ${t.leave_sickLeave}',
+                  ),
+                if (leaves.vabCount > 0)
+                  _buildLeaveLabel(
+                    theme,
+                    '${_formatTrackedMinutes(context, leaves.vabMinutes)} ${t.leave_vab}',
+                  ),
+                if (leaves.unpaidCount > 0)
+                  _buildLeaveLabel(
+                    theme,
+                    '${_formatTrackedMinutes(context, leaves.unpaidMinutes)} ${t.leave_unpaid}',
+                  ),
+              ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthlyMetric(
+    ThemeData theme, {
+    required String value,
+    required String label,
+  }) {
+    final colorScheme = theme.colorScheme;
+    return SizedBox(
+      width: 92,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -496,7 +512,6 @@ class _TrendsTabState extends State<TrendsTab> {
       text,
       style: theme.textTheme.labelSmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
-        fontStyle: FontStyle.italic,
       ),
     );
   }
@@ -736,24 +751,43 @@ class _TrendsTabState extends State<TrendsTab> {
 }
 
 class _MonthlyLeaveSummary {
-  final int paidVacation;
-  final int sickLeave;
-  final int vab;
-  final int unpaid;
+  final int paidVacationCount;
+  final int paidVacationMinutes;
+  final int sickLeaveCount;
+  final int sickLeaveMinutes;
+  final int vabCount;
+  final int vabMinutes;
+  final int unpaidCount;
+  final int unpaidMinutes;
 
   const _MonthlyLeaveSummary({
-    required this.paidVacation,
-    required this.sickLeave,
-    required this.vab,
-    required this.unpaid,
+    required this.paidVacationCount,
+    required this.paidVacationMinutes,
+    required this.sickLeaveCount,
+    required this.sickLeaveMinutes,
+    required this.vabCount,
+    required this.vabMinutes,
+    required this.unpaidCount,
+    required this.unpaidMinutes,
   });
 
   static const empty = _MonthlyLeaveSummary(
-    paidVacation: 0,
-    sickLeave: 0,
-    vab: 0,
-    unpaid: 0,
+    paidVacationCount: 0,
+    paidVacationMinutes: 0,
+    sickLeaveCount: 0,
+    sickLeaveMinutes: 0,
+    vabCount: 0,
+    vabMinutes: 0,
+    unpaidCount: 0,
+    unpaidMinutes: 0,
   );
 
-  bool get hasAny => paidVacation > 0 || sickLeave > 0 || vab > 0 || unpaid > 0;
+  int get creditedMinutes =>
+      paidVacationMinutes + sickLeaveMinutes + vabMinutes;
+
+  bool get hasAny =>
+      paidVacationCount > 0 ||
+      sickLeaveCount > 0 ||
+      vabCount > 0 ||
+      unpaidCount > 0;
 }

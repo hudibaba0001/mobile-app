@@ -3,18 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../config/supabase_config.dart';
+import '../../calendar/sweden_holidays.dart';
 import '../../design/app_theme.dart';
 import '../../models/absence.dart';
 import '../../models/entry.dart';
+import '../../providers/contract_provider.dart';
 import '../../repositories/balance_adjustment_repository.dart';
 import '../../reports/report_aggregator.dart';
 import '../../reports/report_query_service.dart';
+import '../../reporting/accounted_time_calculator.dart';
 import '../../reporting/time_format.dart';
 import '../../reporting/time_range.dart';
 import '../../reporting/tracked_time_calculator.dart';
 import '../../reporting/tracked_time_summary.dart';
 import '../../services/export_service.dart';
 import '../../services/supabase_auth_service.dart';
+import '../../utils/target_hours_calculator.dart';
 import '../../providers/settings_provider.dart';
 import '../../widgets/export_share_dialog.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -40,6 +44,7 @@ class OverviewTab extends StatefulWidget {
 class _OverviewTabState extends State<OverviewTab> {
   late Future<ReportSummary> _summaryFuture;
   final ScrollController _scrollController = ScrollController();
+  final SwedenHolidayCalendar _holidays = SwedenHolidayCalendar();
 
   @override
   void initState() {
@@ -125,6 +130,32 @@ class _OverviewTabState extends State<OverviewTab> {
       entries: summary.filteredEntries,
       range: selectedRange,
       travelEnabled: travelEnabled,
+    );
+  }
+
+  int _targetMinutesForSelectedRange(ContractProvider contractProvider) {
+    final selectedRange =
+        TimeRange.custom(widget.range.start, widget.range.end);
+    final trackingStartDate = DateTime(
+      contractProvider.trackingStartDate.year,
+      contractProvider.trackingStartDate.month,
+      contractProvider.trackingStartDate.day,
+    );
+    final start = selectedRange.startInclusive.isBefore(trackingStartDate)
+        ? trackingStartDate
+        : selectedRange.startInclusive;
+    final endInclusive =
+        selectedRange.endExclusive.subtract(const Duration(days: 1));
+
+    if (endInclusive.isBefore(start)) {
+      return 0;
+    }
+
+    return TargetHoursCalculator.scheduledMinutesInRange(
+      start: start,
+      endInclusive: endInclusive,
+      weeklyTargetMinutes: contractProvider.weeklyTargetMinutes,
+      holidays: _holidays,
     );
   }
 
@@ -299,31 +330,15 @@ class _OverviewTabState extends State<OverviewTab> {
   List<Widget> _buildAllCards(BuildContext context, ReportSummary summary) {
     final t = AppLocalizations.of(context);
     final tracked = _buildTrackedSummary(summary);
+    final contractProvider = context.read<ContractProvider>();
+    final targetMinutes = _targetMinutesForSelectedRange(contractProvider);
+    final accounted = AccountedTimeCalculator.compute(
+      trackedMinutes: tracked.totalMinutes,
+      leaveMinutes: summary.leavesSummary.creditedMinutes,
+      targetMinutes: targetMinutes,
+    );
+
     return [
-      Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              context,
-              icon: Icons.timer_rounded,
-              title: t.overview_totalHours,
-              value: _formatMinutes(tracked.totalMinutes),
-              subtitle: t.overview_allActivities,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: _buildStatCard(
-              context,
-              icon: Icons.assignment_rounded,
-              title: t.overview_totalEntries,
-              value: '${tracked.entryCount}',
-              subtitle: t.overview_thisPeriod,
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: AppSpacing.md),
       Row(
         children: [
           Expanded(
@@ -343,6 +358,81 @@ class _OverviewTabState extends State<OverviewTab> {
               title: t.overview_travelTime,
               value: _formatMinutes(tracked.travelMinutes),
               subtitle: t.overview_totalCommute,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.md),
+      Row(
+        children: [
+          Expanded(
+            child: _buildStatCard(
+              context,
+              icon: Icons.timer_rounded,
+              title: t.reportsMetric_tracked,
+              value: _formatMinutes(accounted.trackedMinutes),
+              subtitle: t.overview_allActivities,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: _buildStatCard(
+              context,
+              icon: Icons.event_note_rounded,
+              title: t.reportsMetric_leave,
+              value: _formatMinutes(accounted.leaveMinutes),
+              subtitle: t.reportsCustom_paidLeaveTypes,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.md),
+      Row(
+        children: [
+          Expanded(
+            child: _buildStatCard(
+              context,
+              icon: Icons.account_balance_wallet_rounded,
+              title: t.reportsMetric_accounted,
+              value: _formatMinutes(accounted.accountedMinutes),
+              subtitle: t.reportsMetric_trackedPlusLeave,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: _buildStatCard(
+              context,
+              icon: Icons.flag_rounded,
+              title: t.trends_target,
+              value: _formatMinutes(accounted.targetMinutes),
+              subtitle: t.reportsCustom_totalInPeriod,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.md),
+      Row(
+        children: [
+          Expanded(
+            child: _buildStatCard(
+              context,
+              icon: Icons.show_chart_rounded,
+              title: t.reportsMetric_delta,
+              value: _formatMinutes(
+                accounted.deltaMinutes,
+                signed: true,
+              ),
+              subtitle: t.reportsMetric_accountedMinusTarget,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: _buildStatCard(
+              context,
+              icon: Icons.assignment_rounded,
+              title: t.overview_totalEntries,
+              value: '${tracked.entryCount}',
+              subtitle: t.overview_thisPeriod,
             ),
           ),
         ],
@@ -505,8 +595,8 @@ class _OverviewTabState extends State<OverviewTab> {
   List<Widget> _buildLeaveCards(BuildContext context, ReportSummary summary) {
     final t = AppLocalizations.of(context);
     final leaves = summary.leavesSummary;
-    final unpaid = leaves.byType[AbsenceType.unpaid]?.totalMinutes ?? 0;
-    final paid = leaves.totalMinutes - unpaid;
+    final unpaid = leaves.unpaidMinutes;
+    final paid = leaves.creditedMinutes;
 
     return [
       Row(

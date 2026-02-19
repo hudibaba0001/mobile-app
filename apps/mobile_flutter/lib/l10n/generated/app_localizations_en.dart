@@ -3086,6 +3086,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportsExport_fileName => 'report_export';
 
   @override
+  String get reportsMetric_tracked => 'Tracked';
+
+  @override
+  String get reportsMetric_leave => 'Leave';
+
+  @override
+  String get reportsMetric_accounted => 'Accounted';
+
+  @override
+  String get reportsMetric_delta => 'Delta';
+
+  @override
+  String get reportsMetric_trackedPlusLeave => 'Tracked + leave';
+
+  @override
+  String get reportsMetric_accountedMinusTarget => 'Accounted - target';
+
+  @override
   String get session_expiredTitle => 'Session Expired';
 
   @override

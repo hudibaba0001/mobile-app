@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "sv",
   "@@last_modified": "2026-01-14",
   
@@ -1244,7 +1244,14 @@
   "reportsExport_colHours": "Timmar",
   "reportsExport_colNote": "Anteckning",
   "reportsExport_fileName": "rapport_export",
+  "reportsMetric_tracked": "Sp\u00e5rad tid",
+  "reportsMetric_leave": "Ledighet",
+  "reportsMetric_accounted": "Redovisad tid",
+  "reportsMetric_delta": "Differens",
+  "reportsMetric_trackedPlusLeave": "Sp\u00e5rad + ledighet",
+  "reportsMetric_accountedMinusTarget": "Redovisad - m\u00e5l",
   "session_expiredTitle": "Sessionen har gått ut",
   "session_expiredBody": "Din session har gått ut. Vänligen logga in igen för att fortsätta.",
   "session_signInAgain": "Logga in igen"
 }
+

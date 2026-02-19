@@ -60,6 +60,18 @@ class _ReportsScreenState extends State<ReportsScreen>
 
   DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
+  EntryType? _entryTypeForSegment(ReportSegment segment) {
+    switch (segment) {
+      case ReportSegment.all:
+      case ReportSegment.leave:
+        return null;
+      case ReportSegment.work:
+        return EntryType.work;
+      case ReportSegment.travel:
+        return EntryType.travel;
+    }
+  }
+
   DateTimeRange _currentRange() {
     final now = DateTime.now();
     final today = _dateOnly(now);
@@ -427,6 +439,7 @@ class _ReportsScreenState extends State<ReportsScreen>
         final range = _currentRange();
         model.setDateRange(range.start, range.end);
         model.setTravelEnabled(settingsProvider.isTravelLoggingEnabled);
+        model.setTrendsEntryTypeFilter(_entryTypeForSegment(_selectedSegment));
         model.bindEntries(
           entryProvider.entries,
           userId: userId,

@@ -35,6 +35,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   DateTime? _startDate;
   DateTime? _endDate;
   bool _travelEnabled = true;
+  EntryType? _trendsEntryTypeFilter;
 
   // Loading states
   bool _isLoading = false;
@@ -128,25 +129,35 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
 
   // Trends Tab Data
   Map<String, dynamic> get trendsData {
-    final filteredWorkEntries = _getFilteredWorkEntries();
-    final filteredTravelEntries =
-        _travelEnabled ? _getFilteredTravelEntries() : const <Entry>[];
+    final filteredWorkEntries = _getTrendWorkEntries();
+    final filteredTravelEntries = _getTrendTravelEntries();
+    final comparisonEntries = <Entry>[
+      ...filteredWorkEntries,
+      ...filteredTravelEntries,
+    ];
 
     return {
       'weeklyMinutes':
           _calculateWeeklyMinutes(filteredWorkEntries, filteredTravelEntries),
-      'monthlyComparison': _calculateMonthlyComparison(filteredWorkEntries),
+      'monthlyComparison': _calculateMonthlyComparison(comparisonEntries),
       'dailyTrends':
           _calculateDailyTrends(filteredWorkEntries, filteredTravelEntries),
     };
   }
 
   List<MonthlyBreakdown> get monthlyBreakdown {
-    final filteredWorkEntries = _getFilteredWorkEntries();
+    final comparisonRange = _buildMonthlyComparisonRange();
+    final comparisonEndInclusive =
+        comparisonRange.endExclusive.subtract(const Duration(days: 1));
+    final filteredWorkEntries = _getTrendWorkEntriesInRange(comparisonRange);
     final filteredTravelEntries =
-        _travelEnabled ? _getFilteredTravelEntries() : const <Entry>[];
+        _getTrendTravelEntriesInRange(comparisonRange);
     return _calculateMonthlyBreakdown(
-        filteredWorkEntries, filteredTravelEntries);
+      filteredWorkEntries,
+      filteredTravelEntries,
+      monthRangeStart: comparisonRange.startInclusive,
+      monthRangeEnd: comparisonEndInclusive,
+    );
   }
 
   // Locations Tab Data
@@ -184,6 +195,14 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
       return;
     }
     _travelEnabled = enabled;
+    notifyListeners();
+  }
+
+  void setTrendsEntryTypeFilter(EntryType? type) {
+    if (_trendsEntryTypeFilter == type) {
+      return;
+    }
+    _trendsEntryTypeFilter = type;
     notifyListeners();
   }
 
@@ -238,7 +257,9 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
         return false;
       }
       if (timeRange != null) {
-        return timeRange.contains(entry.date);
+        final entryDate =
+            DateTime(entry.date.year, entry.date.month, entry.date.day);
+        return timeRange.contains(entryDate);
       }
       final entryDate =
           DateTime(entry.date.year, entry.date.month, entry.date.day);
@@ -257,6 +278,45 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   List<Entry> _getFilteredTravelEntries() =>
       _getFilteredEntries(type: EntryType.travel);
 
+  List<Entry> _getTrendWorkEntries() {
+    if (_trendsEntryTypeFilter == EntryType.travel) {
+      return const <Entry>[];
+    }
+    return _getFilteredWorkEntries();
+  }
+
+  List<Entry> _getTrendTravelEntries() {
+    if (!_travelEnabled || _trendsEntryTypeFilter == EntryType.work) {
+      return const <Entry>[];
+    }
+    return _getFilteredTravelEntries();
+  }
+
+  List<Entry> _getEntriesByTypeInRange(EntryType type, TimeRange range) {
+    return _entries.where((entry) {
+      if (entry.type != type) {
+        return false;
+      }
+      final entryDate =
+          DateTime(entry.date.year, entry.date.month, entry.date.day);
+      return range.contains(entryDate);
+    }).toList();
+  }
+
+  List<Entry> _getTrendWorkEntriesInRange(TimeRange range) {
+    if (_trendsEntryTypeFilter == EntryType.travel) {
+      return const <Entry>[];
+    }
+    return _getEntriesByTypeInRange(EntryType.work, range);
+  }
+
+  List<Entry> _getTrendTravelEntriesInRange(TimeRange range) {
+    if (!_travelEnabled || _trendsEntryTypeFilter == EntryType.work) {
+      return const <Entry>[];
+    }
+    return _getEntriesByTypeInRange(EntryType.travel, range);
+  }
+
   int _workMinutesForEntry(Entry entry) {
     if (entry.type != EntryType.work) return 0;
     return entry.workDuration.inMinutes;
@@ -265,6 +325,16 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   int _travelMinutesForEntry(Entry entry) {
     if (entry.type != EntryType.travel) return 0;
     return entry.travelDuration.inMinutes;
+  }
+
+  int _trackedMinutesForEntry(Entry entry) {
+    if (entry.type == EntryType.work) {
+      return _workMinutesForEntry(entry);
+    }
+    if (entry.type == EntryType.travel) {
+      return _travelMinutesForEntry(entry);
+    }
+    return 0;
   }
 
   List<Map<String, dynamic>> _generateQuickInsights(
@@ -364,13 +434,20 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   }
 
   List<MonthlyBreakdown> _calculateMonthlyBreakdown(
-      List<Entry> workEntries, List<Entry> travelEntries) {
+    List<Entry> workEntries,
+    List<Entry> travelEntries, {
+    DateTime? monthRangeStart,
+    DateTime? monthRangeEnd,
+  }) {
     final now = DateTime.now();
 
     DateTime startMonth;
     DateTime endMonth;
 
-    if (_startDate != null && _endDate != null) {
+    if (monthRangeStart != null && monthRangeEnd != null) {
+      startMonth = DateTime(monthRangeStart.year, monthRangeStart.month);
+      endMonth = DateTime(monthRangeEnd.year, monthRangeEnd.month);
+    } else if (_startDate != null && _endDate != null) {
       startMonth = DateTime(_startDate!.year, _startDate!.month);
       endMonth = DateTime(_endDate!.year, _endDate!.month);
     } else if (_startDate != null) {
@@ -422,6 +499,24 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     }).toList(growable: false);
   }
 
+  TimeRange _buildMonthlyComparisonRange() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedStart = _startDate ?? DateTime(today.year, today.month, 1);
+    final selectedEnd = _endDate ?? today;
+
+    final startMonth = DateTime(selectedStart.year, selectedStart.month, 1);
+    final endMonth = DateTime(selectedEnd.year, selectedEnd.month, 1);
+    final isSingleMonthSelection =
+        startMonth.year == endMonth.year && startMonth.month == endMonth.month;
+    final comparisonStartMonth =
+        isSingleMonthSelection ? DateTime(endMonth.year, 1, 1) : startMonth;
+    final comparisonEndInclusive =
+        DateTime(endMonth.year, endMonth.month + 1, 0);
+
+    return TimeRange.custom(comparisonStartMonth, comparisonEndInclusive);
+  }
+
   Map<String, dynamic> _calculateMonthlyComparison(List<Entry> entries) {
     final now = DateTime.now();
     final currentMonth = DateTime(now.year, now.month);
@@ -439,9 +534,9 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
         .toList();
 
     final currentMonthMinutes = currentMonthEntries.fold<int>(
-        0, (sum, entry) => sum + _workMinutesForEntry(entry));
+        0, (sum, entry) => sum + _trackedMinutesForEntry(entry));
     final previousMonthMinutes = previousMonthEntries.fold<int>(
-        0, (sum, entry) => sum + _workMinutesForEntry(entry));
+        0, (sum, entry) => sum + _trackedMinutesForEntry(entry));
 
     final percentageChange = previousMonthMinutes > 0
         ? ((currentMonthMinutes - previousMonthMinutes) /

@@ -5601,6 +5601,42 @@ abstract class AppLocalizations {
   /// **'report_export'**
   String get reportsExport_fileName;
 
+  /// No description provided for @reportsMetric_tracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked'**
+  String get reportsMetric_tracked;
+
+  /// No description provided for @reportsMetric_leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get reportsMetric_leave;
+
+  /// No description provided for @reportsMetric_accounted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounted'**
+  String get reportsMetric_accounted;
+
+  /// No description provided for @reportsMetric_delta.
+  ///
+  /// In en, this message translates to:
+  /// **'Delta'**
+  String get reportsMetric_delta;
+
+  /// No description provided for @reportsMetric_trackedPlusLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked + leave'**
+  String get reportsMetric_trackedPlusLeave;
+
+  /// No description provided for @reportsMetric_accountedMinusTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounted - target'**
+  String get reportsMetric_accountedMinusTarget;
+
   /// No description provided for @session_expiredTitle.
   ///
   /// In en, this message translates to:

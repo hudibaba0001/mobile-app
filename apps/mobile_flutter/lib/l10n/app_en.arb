@@ -1679,6 +1679,12 @@
   "reportsExport_colHours": "Hours",
   "reportsExport_colNote": "Note",
   "reportsExport_fileName": "report_export",
+  "reportsMetric_tracked": "Tracked",
+  "reportsMetric_leave": "Leave",
+  "reportsMetric_accounted": "Accounted",
+  "reportsMetric_delta": "Delta",
+  "reportsMetric_trackedPlusLeave": "Tracked + leave",
+  "reportsMetric_accountedMinusTarget": "Accounted - target",
   "session_expiredTitle": "Session Expired",
   "session_expiredBody": "Your session has expired. Please sign in again to continue.",
   "session_signInAgain": "Sign In Again"

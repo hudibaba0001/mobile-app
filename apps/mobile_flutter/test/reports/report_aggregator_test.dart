@@ -3,6 +3,7 @@ import 'package:myapp/models/absence.dart';
 import 'package:myapp/models/balance_adjustment.dart';
 import 'package:myapp/models/entry.dart';
 import 'package:myapp/models/user_profile.dart';
+import 'package:myapp/reporting/accounted_time_calculator.dart';
 import 'package:myapp/reports/report_aggregator.dart';
 import 'package:myapp/reports/report_query_service.dart';
 
@@ -214,8 +215,7 @@ void main() {
       expect(summary.balanceAdjustmentMinutesInRange, 0);
     });
 
-    test(
-        'adjustment on start date is included in starting balance only',
+    test('adjustment on start date is included in starting balance only',
         () async {
       final queryService = _queryService(
         entries: const [],
@@ -284,6 +284,53 @@ void main() {
       expect(summary.travelInsights.topRoutes, hasLength(1));
       expect(summary.travelInsights.topRoutes.first.tripCount, 2);
       expect(summary.travelInsights.topRoutes.first.totalMinutes, 70);
+    });
+
+    test('paid leave is credited and unpaid leave is excluded from tracked',
+        () async {
+      final queryService = _queryService(
+        entries: [
+          _workEntry(id: 'w1', date: DateTime(2026, 2, 3)),
+        ],
+        leavesByYear: {
+          2026: [
+            _leave(
+              DateTime(2026, 2, 10),
+              minutes: 60,
+              type: AbsenceType.vacationPaid,
+            ),
+            _leave(
+              DateTime(2026, 2, 11),
+              minutes: 30,
+              type: AbsenceType.unpaid,
+            ),
+          ],
+        },
+        profile: UserProfile(
+          id: 'user-1',
+          trackingStartDate: DateTime(2025, 1, 1),
+          openingFlexMinutes: 0,
+        ),
+        adjustments: const [],
+      );
+
+      final aggregator = ReportAggregator(queryService: queryService);
+      final summary = await aggregator.buildSummary(
+        start: DateTime(2026, 2, 1),
+        end: DateTime(2026, 2, 28),
+      );
+
+      final accounted = AccountedTimeCalculator.compute(
+        trackedMinutes: summary.trackedMinutes,
+        leaveMinutes: summary.leavesSummary.creditedMinutes,
+        targetMinutes: 540,
+      );
+
+      expect(summary.trackedMinutes, 480);
+      expect(summary.leavesSummary.creditedMinutes, 60);
+      expect(summary.leavesSummary.unpaidMinutes, 30);
+      expect(accounted.accountedMinutes, 540);
+      expect(accounted.deltaMinutes, 0);
     });
   });
 }

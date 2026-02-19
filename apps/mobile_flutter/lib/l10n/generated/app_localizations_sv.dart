@@ -3080,6 +3080,24 @@ class AppLocalizationsSv extends AppLocalizations {
   String get reportsExport_fileName => 'rapport_export';
 
   @override
+  String get reportsMetric_tracked => 'Spårad tid';
+
+  @override
+  String get reportsMetric_leave => 'Ledighet';
+
+  @override
+  String get reportsMetric_accounted => 'Redovisad tid';
+
+  @override
+  String get reportsMetric_delta => 'Differens';
+
+  @override
+  String get reportsMetric_trackedPlusLeave => 'Spårad + ledighet';
+
+  @override
+  String get reportsMetric_accountedMinusTarget => 'Redovisad - mål';
+
+  @override
   String get session_expiredTitle => 'Sessionen har gått ut';
 
   @override

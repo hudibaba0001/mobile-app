@@ -1,8 +1,7 @@
 import '../models/absence.dart';
 import '../models/entry.dart';
+import '../reporting/leave_minutes.dart';
 import 'report_query_service.dart';
-
-const int _minutesPerFullLeaveDay = 480;
 
 class ReportSummary {
   final List<Entry> filteredEntries;
@@ -120,6 +119,12 @@ class LeavesSummary {
     required this.totalMinutes,
     required this.totalDays,
   });
+
+  int get unpaidMinutes => byType[AbsenceType.unpaid]?.totalMinutes ?? 0;
+
+  int get paidMinutes => totalMinutes - unpaidMinutes;
+
+  int get creditedMinutes => paidMinutes;
 }
 
 class LeaveTypeSummary {
@@ -250,19 +255,21 @@ class ReportAggregator {
     // Period-start semantics:
     // - effective date <= startDate => already applied at period start
     // - effective date > startDate && <= endDate => change during period
-    final adjustmentsOnOrBeforeStart = queryData.adjustmentsUpToEnd.where((adj) {
+    final adjustmentsOnOrBeforeStart =
+        queryData.adjustmentsUpToEnd.where((adj) {
       final date = _dateOnly(adj.effectiveDate);
       return !date.isBefore(openingConfig.trackingStartDate) &&
           _isOnOrBefore(date, startDate);
     }).toList()
-      ..sort((a, b) => a.effectiveDate.compareTo(b.effectiveDate));
-    final adjustmentsAfterStartInRange = queryData.adjustmentsUpToEnd.where((adj) {
+          ..sort((a, b) => a.effectiveDate.compareTo(b.effectiveDate));
+    final adjustmentsAfterStartInRange =
+        queryData.adjustmentsUpToEnd.where((adj) {
       final date = _dateOnly(adj.effectiveDate);
       return !date.isBefore(openingConfig.trackingStartDate) &&
           _isAfter(date, startDate) &&
           _isOnOrBefore(date, endDate);
     }).toList()
-      ..sort((a, b) => a.effectiveDate.compareTo(b.effectiveDate));
+          ..sort((a, b) => a.effectiveDate.compareTo(b.effectiveDate));
 
     final sortedEntries = List<Entry>.from(filteredEntries)
       ..sort((a, b) {
@@ -488,8 +495,8 @@ class ReportAggregator {
 
     for (final absence in sortedAbsences) {
       final isFullDay = absence.minutes == 0;
-      final minutes = isFullDay ? _minutesPerFullLeaveDay : absence.minutes;
-      final days = isFullDay ? 1.0 : minutes / _minutesPerFullLeaveDay;
+      final minutes = normalizedLeaveMinutes(absence);
+      final days = isFullDay ? 1.0 : minutes / kDefaultFullLeaveDayMinutes;
 
       totalMinutes += minutes;
       totalDays += days;
