@@ -3,8 +3,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import '../models/absence.dart';
 import '../models/entry.dart';
 import '../models/export_data.dart';
+import '../reporting/leave_minutes.dart';
+import '../reporting/period_summary.dart';
 import '../reports/report_aggregator.dart';
 import 'csv_exporter.dart';
 import 'xlsx_exporter.dart';
@@ -18,12 +21,24 @@ import 'web_download_stub.dart' if (dart.library.html) 'web_download_web.dart'
 
 class ReportExportLabels {
   final String entriesSheetName;
-  final String adjustmentsSheetName;
+  final String summarySheetName;
+  final String balanceEventsSheetName;
   final String openingBalanceRow;
   final String timeAdjustmentRow;
   final String timeAdjustmentsTotalRow;
   final String periodStartBalanceRow;
   final String periodEndBalanceRow;
+  final String metricHeader;
+  final String minutesHeader;
+  final String hoursHeader;
+  final String periodRow;
+  final String quickReadRow;
+  final String totalLoggedTimeRow;
+  final String paidLeaveRow;
+  final String accountedTimeRow;
+  final String plannedTimeRow;
+  final String differenceVsPlanRow;
+  final String balanceAfterPeriodRow;
   final String colType;
   final String colDate;
   final String colMinutes;
@@ -32,12 +47,24 @@ class ReportExportLabels {
 
   const ReportExportLabels({
     required this.entriesSheetName,
-    required this.adjustmentsSheetName,
+    required this.summarySheetName,
+    required this.balanceEventsSheetName,
     required this.openingBalanceRow,
     required this.timeAdjustmentRow,
     required this.timeAdjustmentsTotalRow,
     required this.periodStartBalanceRow,
     required this.periodEndBalanceRow,
+    required this.metricHeader,
+    required this.minutesHeader,
+    required this.hoursHeader,
+    required this.periodRow,
+    required this.quickReadRow,
+    required this.totalLoggedTimeRow,
+    required this.paidLeaveRow,
+    required this.accountedTimeRow,
+    required this.plannedTimeRow,
+    required this.differenceVsPlanRow,
+    required this.balanceAfterPeriodRow,
     required this.colType,
     required this.colDate,
     required this.colMinutes,
@@ -221,18 +248,168 @@ class ExportService {
     return DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(value);
   }
 
-  static List<ExportData> prepareReportExportData({
+  static bool _isEntryExportBlankRow(List<dynamic> row) {
+    return row.every((cell) => cell.toString().isEmpty);
+  }
+
+  static bool _isEntryExportTotalsRow(List<dynamic> row) {
+    return row.length > _colType &&
+        row[_colType].toString().trim().toUpperCase() == 'TOTAL';
+  }
+
+  static String _leaveTypeForExport(AbsenceType type) {
+    switch (type) {
+      case AbsenceType.sickPaid:
+        return 'Leave (Sick)';
+      case AbsenceType.vabPaid:
+        return 'Leave (VAB)';
+      case AbsenceType.vacationPaid:
+        return 'Leave (Paid Vacation)';
+      case AbsenceType.unpaid:
+        return 'Leave (Unpaid)';
+    }
+  }
+
+  static String _formatUnsignedHours(int minutes) {
+    final hours = minutes / 60.0;
+    return hours.toStringAsFixed(2);
+  }
+
+  static ExportData _prepareReportEntriesExportData({
     required ReportSummary summary,
+    required String sheetName,
+  }) {
+    final base = prepareExportData(
+      summary.filteredEntries,
+      summary: summary,
+    );
+    final rows = <List<dynamic>>[];
+    var trackedTravelDistanceKm = 0.0;
+
+    for (final sourceRow in base.rows) {
+      final row = List<dynamic>.from(sourceRow);
+      if (_isEntryExportTotalsRow(row)) {
+        final value = row[_colTravelDistanceKm];
+        if (value is num) {
+          trackedTravelDistanceKm = value.toDouble();
+        } else {
+          trackedTravelDistanceKm = double.tryParse(value.toString()) ?? 0.0;
+        }
+        continue;
+      }
+      if (_isEntryExportBlankRow(row)) {
+        continue;
+      }
+      rows.add(row);
+    }
+
+    final paidLeaves = summary.leavesSummary.absences
+        .where((absence) => absence.isPaid)
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    for (final leave in paidLeaves) {
+      final leaveMinutes = normalizedLeaveMinutes(leave);
+      final row = List<dynamic>.filled(_entryExportHeaders.length, '');
+      row[_colType] = _leaveTypeForExport(leave.type);
+      row[_colDate] = DateFormat('yyyy-MM-dd').format(leave.date);
+      row[_colSpanMinutes] = leaveMinutes;
+      row[_colEntryNotes] =
+          'Paid leave credit: ${_formatUnsignedHours(leaveMinutes)}h (not worked)';
+      row[_colHolidayWork] = 'No';
+      rows.add(_normalizeEntryExportRow(row));
+    }
+
+    if (rows.isNotEmpty) {
+      rows.add(List<dynamic>.filled(_entryExportHeaders.length, ''));
+    }
+
+    final totalsRow = List<dynamic>.filled(_entryExportHeaders.length, '');
+    totalsRow[_colType] = 'TOTAL (tracked only)';
+    totalsRow[_colTravelMinutes] = summary.travelMinutes;
+    totalsRow[_colTravelDistanceKm] =
+        double.parse(trackedTravelDistanceKm.toStringAsFixed(2));
+    totalsRow[_colWorkedMinutes] = summary.workMinutes;
+    totalsRow[_colWorkedHours] = _formatUnsignedHours(summary.workMinutes);
+    totalsRow[_colEntryNotes] = 'TOTAL (tracked only)';
+    rows.add(_normalizeEntryExportRow(totalsRow));
+
+    return ExportData(
+      sheetName: sheetName,
+      headers: List<String>.from(_entryExportHeaders),
+      rows: rows,
+    );
+  }
+
+  static ExportData _prepareSummarySheet({
+    required PeriodSummary periodSummary,
     required DateTime rangeStart,
     required DateTime rangeEnd,
     required ReportExportLabels labels,
   }) {
-    final entriesSheet = prepareExportData(
-      summary.filteredEntries,
-      summary: summary,
-    );
     final dateFormat = DateFormat('yyyy-MM-dd');
+    final summaryRows = <List<dynamic>>[
+      [
+        labels.quickReadRow,
+        '${dateFormat.format(rangeStart)} - ${dateFormat.format(rangeEnd)}',
+        '',
+      ],
+      [
+        labels.periodRow,
+        '${dateFormat.format(rangeStart)} - ${dateFormat.format(rangeEnd)}',
+        '',
+      ],
+      [
+        labels.totalLoggedTimeRow,
+        periodSummary.trackedTotalMinutes,
+        _formatUnsignedHours(periodSummary.trackedTotalMinutes),
+      ],
+      [
+        labels.paidLeaveRow,
+        periodSummary.paidLeaveMinutes,
+        _formatUnsignedHours(periodSummary.paidLeaveMinutes),
+      ],
+      [
+        labels.accountedTimeRow,
+        periodSummary.accountedMinutes,
+        _formatUnsignedHours(periodSummary.accountedMinutes),
+      ],
+      [
+        labels.plannedTimeRow,
+        periodSummary.targetMinutes,
+        _formatUnsignedHours(periodSummary.targetMinutes),
+      ],
+      [
+        labels.differenceVsPlanRow,
+        periodSummary.differenceMinutes,
+        _formatSignedHours(periodSummary.differenceMinutes),
+      ],
+      [
+        labels.balanceAfterPeriodRow,
+        periodSummary.endBalanceMinutes,
+        _formatSignedHours(periodSummary.endBalanceMinutes),
+      ],
+    ];
 
+    return ExportData(
+      sheetName: labels.summarySheetName,
+      headers: [
+        labels.metricHeader,
+        labels.minutesHeader,
+        labels.hoursHeader,
+      ],
+      rows: summaryRows,
+    );
+  }
+
+  static ExportData _prepareBalanceEventsSheet({
+    required ReportSummary summary,
+    required PeriodSummary periodSummary,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required ReportExportLabels labels,
+  }) {
+    final dateFormat = DateFormat('yyyy-MM-dd');
     final adjustmentRows = <List<dynamic>>[];
     final opening = summary.balanceOffsets.openingEvent;
     if (opening != null) {
@@ -255,32 +432,30 @@ class ExportService {
       ]);
     }
 
-    final adjustmentsTotal = summary.balanceAdjustmentMinutesInRange;
     adjustmentRows.add([
       labels.timeAdjustmentsTotalRow,
       '',
-      adjustmentsTotal,
-      _formatSignedHours(adjustmentsTotal),
+      periodSummary.manualAdjustmentMinutes,
+      _formatSignedHours(periodSummary.manualAdjustmentMinutes),
       '',
     ]);
-
     adjustmentRows.add([
       labels.periodStartBalanceRow,
       dateFormat.format(rangeStart),
-      summary.startingBalanceMinutes,
-      _formatSignedHours(summary.startingBalanceMinutes),
+      periodSummary.startBalanceMinutes,
+      _formatSignedHours(periodSummary.startBalanceMinutes),
       '',
     ]);
     adjustmentRows.add([
       labels.periodEndBalanceRow,
       dateFormat.format(rangeEnd),
-      summary.closingBalanceMinutes,
-      _formatSignedHours(summary.closingBalanceMinutes),
+      periodSummary.endBalanceMinutes,
+      _formatSignedHours(periodSummary.endBalanceMinutes),
       '',
     ]);
 
-    final adjustmentsSheet = ExportData(
-      sheetName: labels.adjustmentsSheetName,
+    return ExportData(
+      sheetName: labels.balanceEventsSheetName,
       headers: [
         labels.colType,
         labels.colDate,
@@ -290,8 +465,34 @@ class ExportService {
       ],
       rows: adjustmentRows,
     );
+  }
 
-    return [entriesSheet, adjustmentsSheet];
+  static List<ExportData> prepareReportExportData({
+    required ReportSummary summary,
+    required PeriodSummary periodSummary,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required ReportExportLabels labels,
+  }) {
+    final entriesSheet = _prepareReportEntriesExportData(
+      summary: summary,
+      sheetName: labels.entriesSheetName,
+    );
+    final summarySheet = _prepareSummarySheet(
+      periodSummary: periodSummary,
+      rangeStart: rangeStart,
+      rangeEnd: rangeEnd,
+      labels: labels,
+    );
+    final balanceEventsSheet = _prepareBalanceEventsSheet(
+      summary: summary,
+      periodSummary: periodSummary,
+      rangeStart: rangeStart,
+      rangeEnd: rangeEnd,
+      labels: labels,
+    );
+
+    return [entriesSheet, summarySheet, balanceEventsSheet];
   }
 
   static String _formatSignedHours(int minutes) {
@@ -302,6 +503,7 @@ class ExportService {
 
   static Future<String> exportReportSummaryToCSV({
     required ReportSummary summary,
+    required PeriodSummary periodSummary,
     required DateTime rangeStart,
     required DateTime rangeEnd,
     required ReportExportLabels labels,
@@ -319,14 +521,10 @@ class ExportService {
 
       final sections = prepareReportExportData(
         summary: summary,
+        periodSummary: periodSummary,
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
         labels: labels,
-      );
-      sections[0] = ExportData(
-        sheetName: labels.entriesSheetName,
-        headers: sections[0].headers,
-        rows: sections[0].rows,
       );
       final csvData = CsvExporter.exportMultiple(sections);
 
@@ -358,6 +556,7 @@ class ExportService {
 
   static Future<String> exportReportSummaryToExcel({
     required ReportSummary summary,
+    required PeriodSummary periodSummary,
     required DateTime rangeStart,
     required DateTime rangeEnd,
     required ReportExportLabels labels,
@@ -375,14 +574,10 @@ class ExportService {
 
       final sections = prepareReportExportData(
         summary: summary,
+        periodSummary: periodSummary,
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
         labels: labels,
-      );
-      sections[0] = ExportData(
-        sheetName: labels.entriesSheetName,
-        headers: sections[0].headers,
-        rows: sections[0].rows,
       );
       final excelData = XlsxExporter.exportMultiple(sections);
 

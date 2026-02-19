@@ -1,6 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:excel/excel.dart';
+import 'package:myapp/calendar/sweden_holidays.dart';
+import 'package:myapp/models/absence.dart';
 import 'package:myapp/models/entry.dart';
+import 'package:myapp/reporting/leave_minutes.dart';
+import 'package:myapp/reporting/period_summary_calculator.dart';
+import 'package:myapp/reporting/time_range.dart';
+import 'package:myapp/reports/report_aggregator.dart';
 import 'package:myapp/services/export_service.dart';
 import 'package:myapp/services/xlsx_exporter.dart';
 
@@ -47,6 +53,73 @@ const _colCreatedAt = 16;
 const _colUpdatedAt = 17;
 const _colHolidayWork = 18;
 const _colHolidayName = 19;
+
+ReportExportLabels _testReportLabels() {
+  return const ReportExportLabels(
+    entriesSheetName: 'Report',
+    summarySheetName: 'Summary (Easy)',
+    balanceEventsSheetName: 'Balance Events',
+    openingBalanceRow: 'Opening balance',
+    timeAdjustmentRow: 'Manual adjustment',
+    timeAdjustmentsTotalRow: 'Manual adjustments total',
+    periodStartBalanceRow: 'Balance at period start',
+    periodEndBalanceRow: 'Balance at period end',
+    metricHeader: 'Metric',
+    minutesHeader: 'Minutes',
+    hoursHeader: 'Hours',
+    periodRow: 'Period',
+    quickReadRow: 'Quick read',
+    totalLoggedTimeRow: 'Total logged time',
+    paidLeaveRow: 'Paid leave',
+    accountedTimeRow: 'Accounted time',
+    plannedTimeRow: 'Planned time',
+    differenceVsPlanRow: 'Difference vs plan',
+    balanceAfterPeriodRow: 'Your balance after this period',
+    colType: 'Type',
+    colDate: 'Date',
+    colMinutes: 'Minutes',
+    colHours: 'Hours',
+    colNote: 'Note',
+  );
+}
+
+LeavesSummary _buildLeavesSummaryForTest(List<AbsenceEntry> absences) {
+  final byType = <AbsenceType, LeaveTypeSummary>{
+    for (final type in AbsenceType.values)
+      type: const LeaveTypeSummary(
+        entryCount: 0,
+        fullDayCount: 0,
+        totalMinutes: 0,
+        totalDays: 0,
+      ),
+  };
+
+  var totalMinutes = 0;
+  var totalDays = 0.0;
+  for (final absence in absences) {
+    final minutes = normalizedLeaveMinutes(absence);
+    final fullDay = absence.minutes == 0;
+    final days = fullDay ? 1.0 : minutes / kDefaultFullLeaveDayMinutes;
+    totalMinutes += minutes;
+    totalDays += days;
+
+    final current = byType[absence.type]!;
+    byType[absence.type] = LeaveTypeSummary(
+      entryCount: current.entryCount + 1,
+      fullDayCount: current.fullDayCount + (fullDay ? 1 : 0),
+      totalMinutes: current.totalMinutes + minutes,
+      totalDays: current.totalDays + days,
+    );
+  }
+
+  return LeavesSummary(
+    absences: absences,
+    byType: byType,
+    totalEntries: absences.length,
+    totalMinutes: totalMinutes,
+    totalDays: totalDays,
+  );
+}
 
 void main() {
   group('ExportService Tests', () {
@@ -285,6 +358,149 @@ void main() {
       expect(totalsType, 'TOTAL');
       expect(totalsTravelMinutes, '40');
       expect(totalsWorkedMinutes, '450');
+    });
+
+    test(
+        'report export summary matches PeriodSummaryCalculator and leave rows do not affect tracked totals',
+        () {
+      final rangeStart = DateTime(2026, 2, 1);
+      final rangeEnd = DateTime(2026, 2, 28);
+      final range = TimeRange.custom(rangeStart, rangeEnd);
+
+      final entries = <Entry>[
+        Entry.makeWorkAtomicFromShift(
+          userId: 'user-1',
+          date: DateTime(2026, 2, 10),
+          shift: Shift(
+            start: DateTime(2026, 2, 10, 8, 0),
+            end: DateTime(2026, 2, 10, 16, 0),
+          ),
+        ),
+        Entry.makeTravelAtomicFromLeg(
+          userId: 'user-1',
+          date: DateTime(2026, 2, 10),
+          from: 'A',
+          to: 'B',
+          minutes: 60,
+        ),
+      ];
+
+      final absences = <AbsenceEntry>[
+        AbsenceEntry(
+          date: DateTime(2026, 2, 11),
+          minutes: 120,
+          type: AbsenceType.sickPaid,
+        ),
+        AbsenceEntry(
+          date: DateTime(2026, 2, 12),
+          minutes: 60,
+          type: AbsenceType.unpaid,
+        ),
+      ];
+
+      final periodSummary = PeriodSummaryCalculator.compute(
+        entries: entries,
+        absences: absences,
+        range: range,
+        travelEnabled: true,
+        weeklyTargetMinutes: 0,
+        holidays: SwedenHolidayCalendar(),
+        trackingStartDate: DateTime(2026, 1, 1),
+        startBalanceMinutes: 30,
+        manualAdjustmentMinutes: -15,
+      );
+
+      final reportSummary = ReportSummary(
+        filteredEntries: entries,
+        workMinutes: 480,
+        travelMinutes: 60,
+        totalTrackedMinutes: 540,
+        workInsights: const WorkInsights(
+          longestShift: null,
+          averageWorkedMinutesPerDay: 0,
+          totalBreakMinutes: 0,
+          averageBreakMinutesPerShift: 0,
+          shiftCount: 0,
+          activeWorkDays: 0,
+        ),
+        travelInsights: const TravelInsights(
+          tripCount: 0,
+          averageMinutesPerTrip: 0,
+          topRoutes: [],
+        ),
+        leavesSummary: _buildLeavesSummaryForTest(absences),
+        balanceOffsets: BalanceOffsetSummary(
+          openingEvent: BalanceOffsetEvent.opening(
+            effectiveDate: DateTime(2026, 1, 1),
+            minutes: 30,
+          ),
+          adjustmentsInRange: [
+            BalanceOffsetEvent.adjustment(
+              effectiveDate: DateTime(2026, 2, 20),
+              minutes: -15,
+            ),
+          ],
+          eventsBeforeStart: const [],
+          eventsInRange: const [],
+          startingBalanceMinutes: 30,
+          closingBalanceMinutes: 15,
+        ),
+      );
+
+      final sections = ExportService.prepareReportExportData(
+        summary: reportSummary,
+        periodSummary: periodSummary,
+        rangeStart: rangeStart,
+        rangeEnd: rangeEnd,
+        labels: _testReportLabels(),
+      );
+
+      expect(sections, hasLength(3));
+      expect(sections[0].sheetName, 'Report');
+      expect(sections[1].sheetName, 'Summary (Easy)');
+      expect(sections[2].sheetName, 'Balance Events');
+
+      final reportRows = sections[0].rows;
+      final paidLeaveRows = reportRows
+          .where((row) => row[_colType].toString().startsWith('Leave ('))
+          .toList();
+      expect(paidLeaveRows, hasLength(1));
+      expect(paidLeaveRows.first[_colType], 'Leave (Sick)');
+      expect(paidLeaveRows.first[_colSpanMinutes], 120);
+      expect(paidLeaveRows.first[_colWorkedMinutes], '');
+
+      final unpaidLeaveRows = reportRows
+          .where((row) => row[_colType].toString() == 'Leave (Unpaid)')
+          .toList();
+      expect(unpaidLeaveRows, isEmpty);
+
+      final totalsRow = reportRows.last;
+      expect(totalsRow[_colType], 'TOTAL (tracked only)');
+      expect(totalsRow[_colWorkedMinutes], 480);
+      expect(totalsRow[_colTravelMinutes], 60);
+
+      final summaryRows = sections[1].rows;
+      final summaryByMetric = <String, List<dynamic>>{
+        for (final row in summaryRows) row.first.toString(): row,
+      };
+      expect(
+        summaryByMetric['Total logged time']?[1],
+        periodSummary.trackedTotalMinutes,
+      );
+      expect(summaryByMetric['Paid leave']?[1], periodSummary.paidLeaveMinutes);
+      expect(
+        summaryByMetric['Accounted time']?[1],
+        periodSummary.accountedMinutes,
+      );
+      expect(summaryByMetric['Planned time']?[1], periodSummary.targetMinutes);
+      expect(
+        summaryByMetric['Difference vs plan']?[1],
+        periodSummary.differenceMinutes,
+      );
+      expect(
+        summaryByMetric['Your balance after this period']?[1],
+        periodSummary.endBalanceMinutes,
+      );
     });
 
     test('should generate filename correctly', () {

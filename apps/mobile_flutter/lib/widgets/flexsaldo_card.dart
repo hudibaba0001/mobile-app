@@ -14,7 +14,6 @@ import '../l10n/generated/app_localizations.dart';
 /// - Balance Today (year-to-date + opening balance) as headline
 /// - This month balance as secondary
 /// - Starting balance (if != 0)
-/// - Progress bar for current month
 class FlexsaldoCard extends StatelessWidget {
   const FlexsaldoCard({super.key});
 
@@ -69,11 +68,6 @@ class FlexsaldoCard extends StatelessWidget {
         // === BALANCE TODAY (year-to-date + opening balance) ===
         final openingMinutes = contractProvider.openingFlexMinutes;
         final balanceTodayMinutes = yearNetMinutes + openingMinutes;
-
-        // Progress for month (use full month target for meaningful progress display)
-        final monthProgress = fullMonthTargetMinutes > 0
-            ? (monthWorkedPlusCredited / fullMonthTargetMinutes).clamp(0.0, 1.5)
-            : 0.0;
 
         // Colors based on balance today (headline)
         final isPositive = balanceTodayMinutes >= 0;
@@ -298,36 +292,7 @@ class FlexsaldoCard extends StatelessWidget {
                 ),
               ],
 
-              const SizedBox(height: AppSpacing.lg),
-
-              // Progress bar for month
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: Container(
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: (isMonthPositive
-                                ? FlexsaldoColors.positive
-                                : FlexsaldoColors.negative)
-                            .withValues(alpha: 0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: LinearProgressIndicator(
-                    value: monthProgress.clamp(0.0, 1.0),
-                    minHeight: 10,
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      isMonthPositive
-                          ? FlexsaldoColors.positive
-                          : FlexsaldoColors.negative,
-                    ),
-                  ),
-                ),
-              ),
+              const SizedBox(height: AppSpacing.xs),
             ],
           ),
         );

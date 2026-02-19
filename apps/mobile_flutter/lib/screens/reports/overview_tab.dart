@@ -11,14 +11,12 @@ import '../../providers/contract_provider.dart';
 import '../../repositories/balance_adjustment_repository.dart';
 import '../../reports/report_aggregator.dart';
 import '../../reports/report_query_service.dart';
-import '../../reporting/accounted_time_calculator.dart';
+import '../../reporting/period_summary.dart';
+import '../../reporting/period_summary_calculator.dart';
 import '../../reporting/time_format.dart';
 import '../../reporting/time_range.dart';
-import '../../reporting/tracked_time_calculator.dart';
-import '../../reporting/tracked_time_summary.dart';
 import '../../services/export_service.dart';
 import '../../services/supabase_auth_service.dart';
-import '../../utils/target_hours_calculator.dart';
 import '../../providers/settings_provider.dart';
 import '../../widgets/export_share_dialog.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -121,41 +119,23 @@ class _OverviewTabState extends State<OverviewTab> {
     );
   }
 
-  TrackedTimeSummary _buildTrackedSummary(ReportSummary summary) {
-    final selectedRange =
-        TimeRange.custom(widget.range.start, widget.range.end);
+  PeriodSummary _buildPeriodSummary(ReportSummary summary) {
+    final contractProvider = context.read<ContractProvider>();
     final travelEnabled =
         context.read<SettingsProvider>().isTravelLoggingEnabled;
-    return TrackedTimeCalculator.computeTrackedSummary(
-      entries: summary.filteredEntries,
-      range: selectedRange,
-      travelEnabled: travelEnabled,
-    );
-  }
-
-  int _targetMinutesForSelectedRange(ContractProvider contractProvider) {
     final selectedRange =
         TimeRange.custom(widget.range.start, widget.range.end);
-    final trackingStartDate = DateTime(
-      contractProvider.trackingStartDate.year,
-      contractProvider.trackingStartDate.month,
-      contractProvider.trackingStartDate.day,
-    );
-    final start = selectedRange.startInclusive.isBefore(trackingStartDate)
-        ? trackingStartDate
-        : selectedRange.startInclusive;
-    final endInclusive =
-        selectedRange.endExclusive.subtract(const Duration(days: 1));
 
-    if (endInclusive.isBefore(start)) {
-      return 0;
-    }
-
-    return TargetHoursCalculator.scheduledMinutesInRange(
-      start: start,
-      endInclusive: endInclusive,
+    return PeriodSummaryCalculator.compute(
+      entries: summary.filteredEntries,
+      absences: summary.leavesSummary.absences,
+      range: selectedRange,
+      travelEnabled: travelEnabled,
       weeklyTargetMinutes: contractProvider.weeklyTargetMinutes,
       holidays: _holidays,
+      trackingStartDate: contractProvider.trackingStartDate,
+      startBalanceMinutes: summary.startingBalanceMinutes,
+      manualAdjustmentMinutes: summary.balanceAdjustmentMinutesInRange,
     );
   }
 
@@ -271,6 +251,7 @@ class _OverviewTabState extends State<OverviewTab> {
 
   Widget _buildSummaryContent(BuildContext context, ReportSummary summary) {
     final mediaQuery = MediaQuery.of(context);
+    final periodSummary = _buildPeriodSummary(summary);
 
     return CustomScrollView(
       controller: _scrollController,
@@ -286,9 +267,13 @@ class _OverviewTabState extends State<OverviewTab> {
           sliver: SliverToBoxAdapter(
             child: Column(
               children: [
-                ..._buildSegmentCards(context, summary),
+                ..._buildSegmentCards(context, summary, periodSummary),
                 const SizedBox(height: AppSpacing.lg),
-                _buildBalanceAdjustmentsSection(context, summary),
+                _buildBalanceAdjustmentsSection(
+                  context,
+                  summary,
+                  periodSummary,
+                ),
               ],
             ),
           ),
@@ -314,30 +299,25 @@ class _OverviewTabState extends State<OverviewTab> {
     );
   }
 
-  List<Widget> _buildSegmentCards(BuildContext context, ReportSummary summary) {
+  List<Widget> _buildSegmentCards(
+    BuildContext context,
+    ReportSummary summary,
+    PeriodSummary periodSummary,
+  ) {
     switch (widget.segment) {
       case ReportSegment.all:
-        return _buildAllCards(context, summary);
+        return _buildAllCards(context, periodSummary);
       case ReportSegment.work:
-        return _buildWorkCards(context, summary);
+        return _buildWorkCards(context, summary, periodSummary);
       case ReportSegment.travel:
-        return _buildTravelCards(context, summary);
+        return _buildTravelCards(context, summary, periodSummary);
       case ReportSegment.leave:
         return _buildLeaveCards(context, summary);
     }
   }
 
-  List<Widget> _buildAllCards(BuildContext context, ReportSummary summary) {
-    final t = AppLocalizations.of(context);
-    final tracked = _buildTrackedSummary(summary);
-    final contractProvider = context.read<ContractProvider>();
-    final targetMinutes = _targetMinutesForSelectedRange(contractProvider);
-    final accounted = AccountedTimeCalculator.compute(
-      trackedMinutes: tracked.totalMinutes,
-      leaveMinutes: summary.leavesSummary.creditedMinutes,
-      targetMinutes: targetMinutes,
-    );
-
+  List<Widget> _buildAllCards(
+      BuildContext context, PeriodSummary periodSummary) {
     return [
       Row(
         children: [
@@ -345,9 +325,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.work_rounded,
-              title: t.overview_workTime,
-              value: _formatMinutes(tracked.workMinutes),
-              subtitle: t.overview_totalWork,
+              title: 'Work time',
+              value: _formatMinutes(periodSummary.workMinutes),
+              subtitle: 'Tracked work',
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -355,9 +335,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.directions_car_rounded,
-              title: t.overview_travelTime,
-              value: _formatMinutes(tracked.travelMinutes),
-              subtitle: t.overview_totalCommute,
+              title: 'Travel time',
+              value: _formatMinutes(periodSummary.travelMinutes),
+              subtitle: 'Tracked travel',
             ),
           ),
         ],
@@ -369,9 +349,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.timer_rounded,
-              title: t.reportsMetric_tracked,
-              value: _formatMinutes(accounted.trackedMinutes),
-              subtitle: t.overview_allActivities,
+              title: 'Total logged time',
+              value: _formatMinutes(periodSummary.trackedTotalMinutes),
+              subtitle: 'Work + travel',
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -379,9 +359,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.event_note_rounded,
-              title: t.reportsMetric_leave,
-              value: _formatMinutes(accounted.leaveMinutes),
-              subtitle: t.reportsCustom_paidLeaveTypes,
+              title: 'Paid leave',
+              value: _formatMinutes(periodSummary.paidLeaveMinutes),
+              subtitle: 'Credited leave',
             ),
           ),
         ],
@@ -393,9 +373,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.account_balance_wallet_rounded,
-              title: t.reportsMetric_accounted,
-              value: _formatMinutes(accounted.accountedMinutes),
-              subtitle: t.reportsMetric_trackedPlusLeave,
+              title: 'Accounted time',
+              value: _formatMinutes(periodSummary.accountedMinutes),
+              subtitle: 'Logged + paid leave',
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -403,9 +383,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.flag_rounded,
-              title: t.trends_target,
-              value: _formatMinutes(accounted.targetMinutes),
-              subtitle: t.reportsCustom_totalInPeriod,
+              title: 'Planned time',
+              value: _formatMinutes(periodSummary.targetMinutes),
+              subtitle: 'Scheduled target',
             ),
           ),
         ],
@@ -417,22 +397,25 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.show_chart_rounded,
-              title: t.reportsMetric_delta,
+              title: 'Difference vs plan',
               value: _formatMinutes(
-                accounted.deltaMinutes,
+                periodSummary.differenceMinutes,
                 signed: true,
               ),
-              subtitle: t.reportsMetric_accountedMinusTarget,
+              subtitle: 'Accounted - planned',
             ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: _buildStatCard(
               context,
-              icon: Icons.assignment_rounded,
-              title: t.overview_totalEntries,
-              value: '${tracked.entryCount}',
-              subtitle: t.overview_thisPeriod,
+              icon: Icons.balance_rounded,
+              title: 'Your balance after this period',
+              value: _formatMinutes(
+                periodSummary.endBalanceMinutes,
+                signed: true,
+              ),
+              subtitle: 'Start + adjustments + difference',
             ),
           ),
         ],
@@ -440,10 +423,13 @@ class _OverviewTabState extends State<OverviewTab> {
     ];
   }
 
-  List<Widget> _buildWorkCards(BuildContext context, ReportSummary summary) {
+  List<Widget> _buildWorkCards(
+    BuildContext context,
+    ReportSummary summary,
+    PeriodSummary periodSummary,
+  ) {
     final t = AppLocalizations.of(context);
     final longest = summary.workInsights.longestShift;
-    final tracked = _buildTrackedSummary(summary);
 
     return [
       Row(
@@ -453,7 +439,7 @@ class _OverviewTabState extends State<OverviewTab> {
               context,
               icon: Icons.work_rounded,
               title: t.overview_workTime,
-              value: _formatMinutes(tracked.workMinutes),
+              value: _formatMinutes(periodSummary.workMinutes),
               subtitle: t.overview_totalWork,
             ),
           ),
@@ -512,10 +498,13 @@ class _OverviewTabState extends State<OverviewTab> {
     ];
   }
 
-  List<Widget> _buildTravelCards(BuildContext context, ReportSummary summary) {
+  List<Widget> _buildTravelCards(
+    BuildContext context,
+    ReportSummary summary,
+    PeriodSummary periodSummary,
+  ) {
     final t = AppLocalizations.of(context);
     final topRoutes = summary.travelInsights.topRoutes.take(3).toList();
-    final tracked = _buildTrackedSummary(summary);
     return [
       Row(
         children: [
@@ -524,7 +513,7 @@ class _OverviewTabState extends State<OverviewTab> {
               context,
               icon: Icons.directions_car_rounded,
               title: t.reportsCustom_travelTime,
-              value: _formatMinutes(tracked.travelMinutes),
+              value: _formatMinutes(periodSummary.travelMinutes),
               subtitle: t.reportsCustom_totalTravelTime,
             ),
           ),
@@ -650,12 +639,15 @@ class _OverviewTabState extends State<OverviewTab> {
   }
 
   Widget _buildBalanceAdjustmentsSection(
-      BuildContext context, ReportSummary summary) {
+    BuildContext context,
+    ReportSummary summary,
+    PeriodSummary periodSummary,
+  ) {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
     final opening = summary.balanceOffsets.openingEvent;
     final adjustments = summary.balanceOffsets.adjustmentsInRange;
-    final totalAdjustments = summary.balanceAdjustmentMinutesInRange;
+    final totalAdjustments = periodSummary.manualAdjustmentMinutes;
     final dateFormat = DateFormat('yyyy-MM-dd');
 
     return Card(
@@ -724,7 +716,7 @@ class _OverviewTabState extends State<OverviewTab> {
             Text(
               t.reportsCustom_balanceAtPeriodStart(
                 _formatMinutes(
-                  summary.startingBalanceMinutes,
+                  periodSummary.startBalanceMinutes,
                   signed: true,
                 ),
               ),
@@ -741,7 +733,7 @@ class _OverviewTabState extends State<OverviewTab> {
             Text(
               t.reportsCustom_balanceAtPeriodEnd(
                 _formatMinutes(
-                  summary.closingBalanceMinutes,
+                  periodSummary.endBalanceMinutes,
                   signed: true,
                 ),
               ),
@@ -757,7 +749,11 @@ class _OverviewTabState extends State<OverviewTab> {
 
   List<Widget> _buildEntrySlivers(BuildContext context, ReportSummary summary) {
     final t = AppLocalizations.of(context);
-    final entries = summary.filteredEntries;
+    final includeLeaves = widget.segment == ReportSegment.all;
+    final items = _buildCombinedPeriodItems(
+      entries: summary.filteredEntries,
+      absences: includeLeaves ? summary.leavesSummary.absences : const [],
+    );
 
     return [
       SliverPadding(
@@ -765,12 +761,12 @@ class _OverviewTabState extends State<OverviewTab> {
         sliver: SliverToBoxAdapter(
           child: _buildListSectionHeader(
             context,
-            '${t.reportsCustom_entriesInPeriod} (${entries.length})',
+            '${t.reportsCustom_entriesInPeriod} (${items.length})',
           ),
         ),
       ),
       const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sm)),
-      if (entries.isEmpty)
+      if (items.isEmpty)
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           sliver: SliverToBoxAdapter(
@@ -783,16 +779,19 @@ class _OverviewTabState extends State<OverviewTab> {
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                final entry = entries[index];
+                final item = items[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: _buildListRowCard(
                     context,
-                    child: _buildEntryRow(context, entry),
+                    child: item.when(
+                      entry: (entry) => _buildEntryRow(context, entry),
+                      absence: (absence) => _buildAbsenceRow(context, absence),
+                    ),
                   ),
                 );
               },
-              childCount: entries.length,
+              childCount: items.length,
             ),
           ),
         ),
@@ -943,12 +942,24 @@ class _OverviewTabState extends State<OverviewTab> {
   ReportExportLabels _reportExportLabels(AppLocalizations t) {
     return ReportExportLabels(
       entriesSheetName: t.reportsExport_entriesSheetName,
-      adjustmentsSheetName: t.reportsExport_adjustmentsSheetName,
+      summarySheetName: 'Summary (Easy)',
+      balanceEventsSheetName: 'Balance Events',
       openingBalanceRow: t.reportsExport_openingBalanceRow,
       timeAdjustmentRow: t.reportsExport_timeAdjustmentRow,
       timeAdjustmentsTotalRow: t.reportsExport_timeAdjustmentsTotalRow,
       periodStartBalanceRow: t.reportsExport_periodStartBalanceRow,
       periodEndBalanceRow: t.reportsExport_periodEndBalanceRow,
+      metricHeader: 'Metric',
+      minutesHeader: 'Minutes',
+      hoursHeader: 'Hours',
+      periodRow: 'Period',
+      quickReadRow: 'Quick read',
+      totalLoggedTimeRow: 'Total logged time',
+      paidLeaveRow: 'Paid leave',
+      accountedTimeRow: 'Accounted time',
+      plannedTimeRow: 'Planned time',
+      differenceVsPlanRow: 'Difference vs plan',
+      balanceAfterPeriodRow: 'Your balance after this period',
       colType: t.reportsExport_colType,
       colDate: t.reportsExport_colDate,
       colMinutes: t.reportsExport_colMinutes,
@@ -966,6 +977,7 @@ class _OverviewTabState extends State<OverviewTab> {
 
     final t = AppLocalizations.of(context);
     final labels = _reportExportLabels(t);
+    final periodSummary = _buildPeriodSummary(summary);
     final navigator = Navigator.of(context, rootNavigator: true);
     final scaffold = ScaffoldMessenger.of(context);
     final errorColor = Theme.of(context).colorScheme.error;
@@ -987,6 +999,7 @@ class _OverviewTabState extends State<OverviewTab> {
       if (format == _ExportFormat.csv) {
         filePath = await ExportService.exportReportSummaryToCSV(
           summary: summary,
+          periodSummary: periodSummary,
           rangeStart: start,
           rangeEnd: end,
           labels: labels,
@@ -995,6 +1008,7 @@ class _OverviewTabState extends State<OverviewTab> {
       } else {
         filePath = await ExportService.exportReportSummaryToExcel(
           summary: summary,
+          periodSummary: periodSummary,
           rangeStart: start,
           rangeEnd: end,
           labels: labels,
@@ -1034,6 +1048,36 @@ class _OverviewTabState extends State<OverviewTab> {
         ),
       );
     }
+  }
+
+  List<_OverviewPeriodItem> _buildCombinedPeriodItems({
+    required List<Entry> entries,
+    required List<AbsenceEntry> absences,
+  }) {
+    final items = <_OverviewPeriodItem>[
+      ...entries.map(_OverviewPeriodItem.entry),
+      ...absences.map(_OverviewPeriodItem.absence),
+    ];
+
+    items.sort((a, b) {
+      final byDate = b.date.compareTo(a.date);
+      if (byDate != 0) {
+        return byDate;
+      }
+
+      if (a.entry != null && b.entry != null) {
+        final aTime = a.entry!.updatedAt ?? a.entry!.createdAt;
+        final bTime = b.entry!.updatedAt ?? b.entry!.createdAt;
+        return bTime.compareTo(aTime);
+      }
+
+      // Keep tracked entries first when date ties, then absences.
+      if (a.entry != null && b.absence != null) return -1;
+      if (a.absence != null && b.entry != null) return 1;
+      return 0;
+    });
+
+    return items;
   }
 
   Widget _buildAbsenceRow(BuildContext context, AbsenceEntry absence) {
@@ -1257,6 +1301,51 @@ class _OverviewTabState extends State<OverviewTab> {
       return '${entry.from} \u2192 ${entry.to}';
     }
     return null;
+  }
+}
+
+class _OverviewPeriodItem {
+  final Entry? entry;
+  final AbsenceEntry? absence;
+  final DateTime date;
+
+  const _OverviewPeriodItem._({
+    required this.entry,
+    required this.absence,
+    required this.date,
+  });
+
+  factory _OverviewPeriodItem.entry(Entry entry) {
+    final date = DateTime(entry.date.year, entry.date.month, entry.date.day);
+    return _OverviewPeriodItem._(
+      entry: entry,
+      absence: null,
+      date: date,
+    );
+  }
+
+  factory _OverviewPeriodItem.absence(AbsenceEntry absence) {
+    final date = DateTime(
+      absence.date.year,
+      absence.date.month,
+      absence.date.day,
+    );
+    return _OverviewPeriodItem._(
+      entry: null,
+      absence: absence,
+      date: date,
+    );
+  }
+
+  T when<T>({
+    required T Function(Entry entry) entry,
+    required T Function(AbsenceEntry absence) absence,
+  }) {
+    final currentEntry = this.entry;
+    if (currentEntry != null) {
+      return entry(currentEntry);
+    }
+    return absence(this.absence!);
   }
 }
 
