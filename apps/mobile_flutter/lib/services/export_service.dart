@@ -500,8 +500,7 @@ class ExportService {
           : _formatSignedHours(periodSummary.startBalanceMinutes),
       startBalanceNote,
     ]);
-    final endBalanceNote =
-        fillFriendlyNotes ? 'Balance after this period' : '';
+    final endBalanceNote = fillFriendlyNotes ? 'Balance after this period' : '';
     adjustmentRows.add([
       labels.periodEndBalanceRow,
       dateFormat.format(rangeEnd),
@@ -574,6 +573,8 @@ class ExportService {
     required DateTime rangeStart,
     required DateTime rangeEnd,
     required ReportExportLabels labels,
+    DateTime? trackingStartDate,
+    DateTime? effectiveRangeStart,
   }) {
     final sections = prepareReportExportData(
       summary: summary,
@@ -586,12 +587,20 @@ class ExportService {
     return _buildStyledReportWorkbook(
       sections: sections,
       labels: labels,
+      rangeStart: rangeStart,
+      rangeEnd: rangeEnd,
+      effectiveRangeStart: effectiveRangeStart,
+      trackingStartDate: trackingStartDate,
     );
   }
 
   static List<int>? _buildStyledReportWorkbook({
     required List<ExportData> sections,
     required ReportExportLabels labels,
+    DateTime? rangeStart,
+    DateTime? rangeEnd,
+    DateTime? effectiveRangeStart,
+    DateTime? trackingStartDate,
   }) {
     final excel = Excel.createExcel();
     if (sections.isEmpty) {
@@ -624,11 +633,15 @@ class ExportService {
           sheet: sheet,
           section: section,
           labels: labels,
+          rangeStart: rangeStart,
+          rangeEnd: rangeEnd,
+          effectiveRangeStart: effectiveRangeStart,
         );
       } else if (i == 2) {
         _writeStyledBalanceEventsSheet(
           sheet: sheet,
           section: section,
+          trackingStartDate: trackingStartDate,
         );
       } else {
         _writeSimpleSheet(sheet: sheet, section: section);
@@ -757,11 +770,23 @@ class ExportService {
     required Sheet sheet,
     required ExportData section,
     required ReportExportLabels labels,
+    DateTime? rangeStart,
+    DateTime? rangeEnd,
+    DateTime? effectiveRangeStart,
   }) {
+    var headerRowIndex = 0;
+
     final headerStyle = CellStyle(
       bold: true,
       backgroundColorHex: ExcelColor.grey200,
       horizontalAlign: HorizontalAlign.Center,
+      verticalAlign: VerticalAlign.Center,
+      textWrapping: TextWrapping.WrapText,
+    );
+    final metadataStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.lightBlue50,
+      horizontalAlign: HorizontalAlign.Left,
       verticalAlign: VerticalAlign.Center,
       textWrapping: TextWrapping.WrapText,
     );
@@ -790,10 +815,54 @@ class ExportService {
       verticalAlign: VerticalAlign.Center,
     );
 
-    _writeRow(sheet: sheet, rowIndex: 0, row: section.headers);
+    if (rangeStart != null && rangeEnd != null && effectiveRangeStart != null) {
+      final dateFormat = DateFormat('yyyy-MM-dd');
+      final selectedStart = rangeStart;
+      final selectedEnd = rangeEnd;
+      final effectiveStartValue = effectiveRangeStart;
+      final reportPeriodRow =
+          'Report period: ${dateFormat.format(selectedStart)} -> ${dateFormat.format(selectedEnd)}';
+      final effectiveRangeRow =
+          'Calculated from: ${dateFormat.format(effectiveStartValue)} -> ${dateFormat.format(selectedEnd)}';
+
+      final metadataStartRow = 0;
+      final metadataEndColumn = section.headers.length - 1;
+
+      final periodStart = CellIndex.indexByColumnRow(
+        columnIndex: 0,
+        rowIndex: metadataStartRow,
+      );
+      final periodEnd = CellIndex.indexByColumnRow(
+        columnIndex: metadataEndColumn,
+        rowIndex: metadataStartRow,
+      );
+      sheet.merge(periodStart, periodEnd);
+      final periodCell = sheet.cell(periodStart);
+      periodCell.value = TextCellValue(reportPeriodRow);
+      periodCell.cellStyle = metadataStyle;
+      sheet.setMergedCellStyle(periodStart, metadataStyle);
+
+      final effectiveStart = CellIndex.indexByColumnRow(
+        columnIndex: 0,
+        rowIndex: metadataStartRow + 1,
+      );
+      final effectiveEnd = CellIndex.indexByColumnRow(
+        columnIndex: metadataEndColumn,
+        rowIndex: metadataStartRow + 1,
+      );
+      sheet.merge(effectiveStart, effectiveEnd);
+      final effectiveCell = sheet.cell(effectiveStart);
+      effectiveCell.value = TextCellValue(effectiveRangeRow);
+      effectiveCell.cellStyle = metadataStyle;
+      sheet.setMergedCellStyle(effectiveStart, metadataStyle);
+
+      headerRowIndex = 3;
+    }
+
+    _writeRow(sheet: sheet, rowIndex: headerRowIndex, row: section.headers);
     for (var col = 0; col < section.headers.length; col++) {
       final headerCell = sheet.cell(
-        CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0),
+        CellIndex.indexByColumnRow(columnIndex: col, rowIndex: headerRowIndex),
       );
       headerCell.cellStyle = headerStyle;
     }
@@ -810,7 +879,7 @@ class ExportService {
     final rowByMetric = <String, List<dynamic>>{};
 
     for (var i = 0; i < section.rows.length; i++) {
-      final rowIndex = i + 1;
+      final rowIndex = headerRowIndex + i + 1;
       final row = section.rows[i];
       _writeRow(sheet: sheet, rowIndex: rowIndex, row: row);
       if (row.isEmpty) {
@@ -821,30 +890,36 @@ class ExportService {
       if (highlightedMetrics.contains(metric)) {
         for (var col = 0; col < section.headers.length; col++) {
           sheet
-              .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: rowIndex))
+              .cell(CellIndex.indexByColumnRow(
+                  columnIndex: col, rowIndex: rowIndex))
               .cellStyle = highlightStyle;
         }
       }
 
-      final isSignedMetric =
-          metric == labels.differenceVsPlanRow ||
+      final isSignedMetric = metric == labels.differenceVsPlanRow ||
           metric == labels.balanceAfterPeriodRow;
       if (!isSignedMetric || row.length < 2) {
         continue;
       }
-      final minutes = row[1] is int
-          ? row[1] as int
-          : int.tryParse(row[1].toString()) ?? 0;
+      final minutes =
+          row[1] is int ? row[1] as int : int.tryParse(row[1].toString()) ?? 0;
       final signStyle = minutes < 0 ? negativeStyle : positiveStyle;
       for (var col = 0; col < section.headers.length; col++) {
         sheet
-            .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: rowIndex))
+            .cell(CellIndex.indexByColumnRow(
+                columnIndex: col, rowIndex: rowIndex))
             .cellStyle = signStyle;
       }
     }
 
-    final quickReadStart = CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: 0);
-    final quickReadEnd = CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 0);
+    final quickReadStart = CellIndex.indexByColumnRow(
+      columnIndex: 4,
+      rowIndex: headerRowIndex,
+    );
+    final quickReadEnd = CellIndex.indexByColumnRow(
+      columnIndex: 5,
+      rowIndex: headerRowIndex,
+    );
     sheet.merge(quickReadStart, quickReadEnd);
     final quickReadTitleCell = sheet.cell(quickReadStart);
     quickReadTitleCell.value = TextCellValue(labels.quickReadRow);
@@ -852,9 +927,18 @@ class ExportService {
     sheet.setMergedCellStyle(quickReadStart, quickReadTitleStyle);
 
     final quickReadRows = <List<String>>[
-      [labels.totalLoggedTimeRow, rowByMetric[labels.totalLoggedTimeRow]?[2].toString() ?? ''],
-      [labels.paidLeaveRow, rowByMetric[labels.paidLeaveRow]?[2].toString() ?? ''],
-      [labels.differenceVsPlanRow, rowByMetric[labels.differenceVsPlanRow]?[2].toString() ?? ''],
+      [
+        labels.totalLoggedTimeRow,
+        rowByMetric[labels.totalLoggedTimeRow]?[2].toString() ?? ''
+      ],
+      [
+        labels.paidLeaveRow,
+        rowByMetric[labels.paidLeaveRow]?[2].toString() ?? ''
+      ],
+      [
+        labels.differenceVsPlanRow,
+        rowByMetric[labels.differenceVsPlanRow]?[2].toString() ?? ''
+      ],
       [
         labels.balanceAfterPeriodRow,
         rowByMetric[labels.balanceAfterPeriodRow]?[2].toString() ?? '',
@@ -862,7 +946,7 @@ class ExportService {
     ];
 
     for (var i = 0; i < quickReadRows.length; i++) {
-      final rowIndex = i + 1;
+      final rowIndex = headerRowIndex + i + 1;
       _writeRow(
         sheet: sheet,
         rowIndex: rowIndex,
@@ -871,7 +955,8 @@ class ExportService {
       );
       for (var col = 4; col <= 5; col++) {
         sheet
-            .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: rowIndex))
+            .cell(CellIndex.indexByColumnRow(
+                columnIndex: col, rowIndex: rowIndex))
             .cellStyle = quickReadItemStyle;
       }
     }
@@ -886,7 +971,10 @@ class ExportService {
   static void _writeStyledBalanceEventsSheet({
     required Sheet sheet,
     required ExportData section,
+    DateTime? trackingStartDate,
   }) {
+    var headerRowIndex = 0;
+
     final headerStyle = CellStyle(
       bold: true,
       backgroundColorHex: ExcelColor.grey200,
@@ -894,16 +982,48 @@ class ExportService {
       verticalAlign: VerticalAlign.Center,
       textWrapping: TextWrapping.WrapText,
     );
+    final noteStyle = CellStyle(
+      backgroundColorHex: ExcelColor.lightBlue50,
+      horizontalAlign: HorizontalAlign.Left,
+      verticalAlign: VerticalAlign.Center,
+      textWrapping: TextWrapping.WrapText,
+    );
 
-    _writeRow(sheet: sheet, rowIndex: 0, row: section.headers);
+    if (trackingStartDate != null) {
+      final dateFormat = DateFormat('yyyy-MM-dd');
+      final noteText =
+          'Baseline date: ${dateFormat.format(trackingStartDate)}';
+      final noteStart = CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0);
+      final noteEnd = CellIndex.indexByColumnRow(
+        columnIndex: section.headers.length - 1,
+        rowIndex: 0,
+      );
+      sheet.merge(noteStart, noteEnd);
+      final noteCell = sheet.cell(noteStart);
+      noteCell.value = TextCellValue(noteText);
+      noteCell.cellStyle = noteStyle;
+      sheet.setMergedCellStyle(noteStart, noteStyle);
+      headerRowIndex = 1;
+    }
+
+    _writeRow(sheet: sheet, rowIndex: headerRowIndex, row: section.headers);
     for (var col = 0; col < section.headers.length; col++) {
       sheet
-          .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0))
+          .cell(
+            CellIndex.indexByColumnRow(
+              columnIndex: col,
+              rowIndex: headerRowIndex,
+            ),
+          )
           .cellStyle = headerStyle;
     }
 
     for (var i = 0; i < section.rows.length; i++) {
-      _writeRow(sheet: sheet, rowIndex: i + 1, row: section.rows[i]);
+      _writeRow(
+        sheet: sheet,
+        rowIndex: headerRowIndex + i + 1,
+        row: section.rows[i],
+      );
     }
 
     sheet.setColumnWidth(0, 32);
@@ -960,6 +1080,8 @@ class ExportService {
     required DateTime rangeEnd,
     required ReportExportLabels labels,
     String? fileName,
+    DateTime? trackingStartDate,
+    DateTime? effectiveRangeStart,
   }) async {
     try {
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
@@ -1013,6 +1135,8 @@ class ExportService {
     required DateTime rangeEnd,
     required ReportExportLabels labels,
     String? fileName,
+    DateTime? trackingStartDate,
+    DateTime? effectiveRangeStart,
   }) async {
     try {
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
@@ -1030,6 +1154,8 @@ class ExportService {
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
         labels: labels,
+        trackingStartDate: trackingStartDate,
+        effectiveRangeStart: effectiveRangeStart,
       );
 
       if (excelData == null || excelData.isEmpty) {

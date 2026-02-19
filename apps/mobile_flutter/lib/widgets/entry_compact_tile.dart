@@ -1,25 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../design/app_theme.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/entry.dart';
 
-class EntryCompactTile extends StatelessWidget {
+class EntryCompactTile extends StatefulWidget {
   const EntryCompactTile({
     super.key,
     required this.entry,
     this.onTap,
+    this.onLongPress,
     this.showDate = true,
     this.showNote = true,
     this.dense = true,
+    this.heroTag,
   });
 
   final Entry entry;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final bool showDate;
   final bool showNote;
   final bool dense;
+  final String? heroTag;
+
+  @override
+  State<EntryCompactTile> createState() => _EntryCompactTileState();
+}
+
+class _EntryCompactTileState extends State<EntryCompactTile> {
+  bool _pressed = false;
+
+  void _handleLongPress() {
+    HapticFeedback.lightImpact();
+    widget.onLongPress?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,117 +44,143 @@ class EntryCompactTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final t = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toString();
-    final isWork = entry.type == EntryType.work;
+    final isWork = widget.entry.type == EntryType.work;
     final leadingTintBase = isWork ? AppColors.success : colorScheme.primary;
     final leadingIcon =
         isWork ? Icons.work_outline_rounded : Icons.directions_car_rounded;
     final titleLabel = isWork ? t.entry_work : t.entry_travel;
     final subtitle = _buildSubtitle(t, locale);
     final meta = _buildMeta(locale);
-    final horizontalPadding = dense ? AppSpacing.md : AppSpacing.lg;
-    final verticalPadding = dense ? 10.0 : 12.0;
+    final horizontalPadding = widget.dense ? AppSpacing.md : AppSpacing.lg;
+    final verticalPadding = widget.dense ? 10.0 : 12.0;
+    final heroTag = widget.heroTag;
 
-    return Material(
+    Widget tile = Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: Ink(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.22),
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: leadingTintBase.withValues(alpha: 0.18),
+      child: AnimatedScale(
+        scale: _pressed ? 0.98 : 1,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.22),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(
+              color: leadingTintBase.withValues(alpha: 0.18),
+            ),
           ),
-        ),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: dense ? 68 : 76),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
-                vertical: verticalPadding,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: leadingTintBase.withValues(alpha: 0.1),
+          child: InkWell(
+            onTap: widget.onTap,
+            onLongPress: widget.onLongPress == null ? null : _handleLongPress,
+            onHighlightChanged: (value) {
+              if (_pressed == value) return;
+              setState(() => _pressed = value);
+            },
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: widget.dense ? 68 : 76),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: verticalPadding,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: leadingTintBase.withValues(alpha: 0.1),
+                      ),
+                      child: Icon(
+                        leadingIcon,
+                        size: 18,
+                        color: leadingTintBase,
+                      ),
                     ),
-                    child: Icon(
-                      leadingIcon,
-                      size: 18,
-                      color: leadingTintBase,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                titleLabel,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: colorScheme.onSurface,
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  titleLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: colorScheme.onSurface,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            _DurationPill(
-                              text: _formatDurationMinutes(
-                                entry.totalDuration.inMinutes,
+                              const SizedBox(width: AppSpacing.sm),
+                              _DurationPill(
+                                text: _formatDurationMinutes(
+                                  widget.entry.totalDuration.inMinutes,
+                                ),
+                                tint: leadingTintBase,
                               ),
-                              tint: leadingTintBase,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
+                            ],
                           ),
-                        ),
-                        if (meta != null) ...[
-                          const SizedBox(height: AppSpacing.xs / 2),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
-                            meta,
+                            subtitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.85),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
+                          if (meta != null) ...[
+                            const SizedBox(height: AppSpacing.xs / 2),
+                            Text(
+                              meta,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.85),
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
     );
+
+    if (heroTag != null) {
+      tile = Hero(
+        tag: heroTag,
+        flightShuttleBuilder: (context, animation, direction, from, to) {
+          return ScaleTransition(
+            scale: Tween<double>(begin: 1, end: 1).animate(animation),
+            child: to.widget,
+          );
+        },
+        child: tile,
+      );
+    }
+
+    return tile;
   }
 
   String _buildSubtitle(AppLocalizations t, String locale) {
-    if (entry.type == EntryType.work) {
+    if (widget.entry.type == EntryType.work) {
       final timeRange = _formatTimeRange(locale);
       if (timeRange.isEmpty) return t.history_work;
       final breakMinutes = _totalBreakMinutes();
@@ -154,11 +197,11 @@ class EntryCompactTile extends StatelessWidget {
 
   String? _buildMeta(String locale) {
     final parts = <String>[];
-    if (showDate) {
-      parts.add(_formatDate(entry.date, locale));
+    if (widget.showDate) {
+      parts.add(_formatDate(widget.entry.date, locale));
     }
-    if (showNote) {
-      final note = entry.notes?.trim();
+    if (widget.showNote) {
+      final note = widget.entry.notes?.trim();
       if (note != null && note.isNotEmpty) {
         parts.add(note);
       }
@@ -178,7 +221,7 @@ class EntryCompactTile extends StatelessWidget {
   }
 
   String _formatTimeRange(String locale) {
-    final shifts = entry.shifts;
+    final shifts = widget.entry.shifts;
     if (shifts == null || shifts.isEmpty) return '';
     final first = shifts.first;
     final last = shifts.last;
@@ -191,16 +234,17 @@ class EntryCompactTile extends StatelessWidget {
   }
 
   String? _travelRoute() {
-    if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
-      final first = entry.travelLegs!.first;
-      final last = entry.travelLegs!.last;
+    if (widget.entry.travelLegs != null &&
+        widget.entry.travelLegs!.isNotEmpty) {
+      final first = widget.entry.travelLegs!.first;
+      final last = widget.entry.travelLegs!.last;
       if (first.fromText.trim().isNotEmpty && last.toText.trim().isNotEmpty) {
         return '${first.fromText} \u2192 ${last.toText}';
       }
     }
 
-    final from = entry.from?.trim() ?? '';
-    final to = entry.to?.trim() ?? '';
+    final from = widget.entry.from?.trim() ?? '';
+    final to = widget.entry.to?.trim() ?? '';
     if (from.isNotEmpty && to.isNotEmpty) {
       return '$from \u2192 $to';
     }
@@ -208,7 +252,7 @@ class EntryCompactTile extends StatelessWidget {
   }
 
   int _totalBreakMinutes() {
-    final shifts = entry.shifts;
+    final shifts = widget.entry.shifts;
     if (shifts == null || shifts.isEmpty) return 0;
     return shifts.fold<int>(0, (sum, shift) => sum + shift.unpaidBreakMinutes);
   }

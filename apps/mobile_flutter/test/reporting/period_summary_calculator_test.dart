@@ -5,6 +5,7 @@ import 'package:myapp/models/entry.dart';
 import 'package:myapp/reporting/period_summary.dart';
 import 'package:myapp/reporting/period_summary_calculator.dart';
 import 'package:myapp/reporting/time_range.dart';
+import 'package:myapp/utils/target_hours_calculator.dart';
 
 Entry _workEntry({
   required String id,
@@ -165,6 +166,65 @@ void main() {
       expect(summary.trackedTotalMinutes, 8 * 60);
       expect(summary.paidLeaveMinutes, 120);
       expect(summary.accountedMinutes, (8 * 60) + 120);
+    });
+
+    test('clips selected range start to tracking start date', () {
+      final selectedRange =
+          TimeRange.custom(DateTime(2026, 2, 1), DateTime(2026, 2, 10));
+      final trackingStartDate = DateTime(2026, 2, 5);
+      final holidays = SwedenHolidayCalendar();
+
+      final summary = PeriodSummaryCalculator.compute(
+        entries: [
+          _workEntry(
+            id: 'w-before-tracking-start',
+            date: DateTime(2026, 2, 2),
+            workedMinutes: 120,
+          ),
+          _workEntry(
+            id: 'w-after-tracking-start',
+            date: DateTime(2026, 2, 6),
+            workedMinutes: 240,
+          ),
+          _travelEntry(
+            id: 't-after-tracking-start',
+            date: DateTime(2026, 2, 7),
+            minutes: 60,
+          ),
+        ],
+        absences: [
+          _absence(
+            date: DateTime(2026, 2, 3),
+            minutes: 120,
+            type: AbsenceType.sickPaid,
+          ),
+          _absence(
+            date: DateTime(2026, 2, 8),
+            minutes: 60,
+            type: AbsenceType.vabPaid,
+          ),
+        ],
+        range: selectedRange,
+        travelEnabled: true,
+        weeklyTargetMinutes: 2400,
+        holidays: holidays,
+        trackingStartDate: trackingStartDate,
+        startBalanceMinutes: 0,
+        manualAdjustmentMinutes: 0,
+      );
+
+      final expectedTarget = TargetHoursCalculator.scheduledMinutesInRange(
+        start: DateTime(2026, 2, 5),
+        endInclusive: DateTime(2026, 2, 10),
+        weeklyTargetMinutes: 2400,
+        holidays: holidays,
+      );
+
+      expect(summary.workMinutes, 240);
+      expect(summary.travelMinutes, 60);
+      expect(summary.paidLeaveMinutes, 60);
+      expect(summary.trackedTotalMinutes, 300);
+      expect(summary.targetMinutes, expectedTarget);
     });
   });
 }

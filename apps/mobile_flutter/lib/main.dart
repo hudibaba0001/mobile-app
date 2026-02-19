@@ -192,10 +192,6 @@ class _BootstrapAppState extends State<BootstrapApp> {
         redDayBox: redDayBox,
       );
 
-      // Artificial delay to let the Splash Animation finish its cycle if it was instant
-      // (Optional, but prevents a 50ms flicker if init is fast)
-      await Future.delayed(const Duration(milliseconds: 1500));
-
       if (mounted) {
         setState(() {
           _initializedApp = app;
@@ -233,15 +229,28 @@ class _BootstrapAppState extends State<BootstrapApp> {
       );
     }
 
-    // If fully initialized, show the main app
-    if (_initializedApp != null) {
-      return _initializedApp!;
-    }
+    final appChild = _initializedApp != null
+        ? KeyedSubtree(
+            key: const ValueKey('app'),
+            child: _initializedApp!,
+          )
+        : const MaterialApp(
+            key: ValueKey('splash'),
+            debugShowCheckedModeBanner: false,
+            home: SplashScreen(),
+          );
 
-    // Otherwise, show our premium Splash Screen
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 500),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+      child: appChild,
     );
   }
 }

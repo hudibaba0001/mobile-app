@@ -20,35 +20,42 @@ import '../l10n/generated/app_localizations.dart';
 class HomeTrackingRangeText extends StatelessWidget {
   const HomeTrackingRangeText({
     super.key,
-    required this.trackingStartDate,
+    required this.baselineDate,
+    required this.baselineMinutes,
     required this.today,
-    required this.monthEffectiveStart,
+    required this.localeCode,
   });
 
-  final DateTime trackingStartDate;
+  final DateTime baselineDate;
+  final int baselineMinutes;
   final DateTime today;
-  final DateTime monthEffectiveStart;
+  final String localeCode;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('yyyy-MM-dd');
-    final trackingDateText = dateFormat.format(trackingStartDate);
+    final baselineDateText = dateFormat.format(baselineDate);
     final todayDateText = dateFormat.format(today);
-    final monthStartText = dateFormat.format(monthEffectiveStart);
+    final baselineText = formatMinutes(
+      baselineMinutes,
+      localeCode: localeCode,
+      signed: true,
+      showPlusForZero: true,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tracking: $trackingDateText -> $todayDateText',
+          'Baseline: $baselineText (as of $baselineDateText)',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'This month (from $monthStartText -> $todayDateText)',
+          'Calculated from: $baselineDateText -> $todayDateText',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -77,7 +84,8 @@ int _sumAdjustmentsInRangeMinutes({
       adjustment.effectiveDate.month,
       adjustment.effectiveDate.day,
     );
-    if (!date.isBefore(range.startInclusive) && date.isBefore(range.endExclusive)) {
+    if (!date.isBefore(range.startInclusive) &&
+        date.isBefore(range.endExclusive)) {
       return sum + adjustment.deltaMinutes;
     }
     return sum;
@@ -150,10 +158,6 @@ class FlexsaldoCard extends StatelessWidget {
           contractProvider.trackingStartDate.month,
           contractProvider.trackingStartDate.day,
         );
-        final monthStart = DateTime(year, month, 1);
-        final monthEffectiveStart = monthStart.isBefore(trackingStartDateOnly)
-            ? trackingStartDateOnly
-            : monthStart;
         final localeCode = Localizations.localeOf(context).toLanguageTag();
         final monthName =
             DateFormat.MMMM(Localizations.localeOf(context).toString())
@@ -182,10 +186,10 @@ class FlexsaldoCard extends StatelessWidget {
         final yearActualMinutes = timeProvider.yearActualMinutesToDate(year);
         final yearCreditMinutes = timeProvider.yearCreditMinutesToDate(year);
         final yearTargetMinutes = timeProvider.yearTargetMinutesToDate(year);
-        final yearAbsences = absenceProvider?.absencesForYear(year) ??
-            const <AbsenceEntry>[];
-        final yearAdjustments = adjustmentProvider?.allAdjustments ??
-            const <BalanceAdjustment>[];
+        final yearAbsences =
+            absenceProvider?.absencesForYear(year) ?? const <AbsenceEntry>[];
+        final yearAdjustments =
+            adjustmentProvider?.allAdjustments ?? const <BalanceAdjustment>[];
         final travelEnabled = settingsProvider?.isTravelLoggingEnabled ?? true;
 
         // === BALANCE TODAY (year-to-date + opening balance + year adjustments) ===
@@ -293,9 +297,10 @@ class FlexsaldoCard extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               HomeTrackingRangeText(
-                trackingStartDate: trackingStartDateOnly,
+                baselineDate: trackingStartDateOnly,
+                baselineMinutes: contractProvider.openingFlexMinutes,
                 today: todayDateOnly,
-                monthEffectiveStart: monthEffectiveStart,
+                localeCode: localeCode,
               ),
 
               const SizedBox(height: AppSpacing.lg),

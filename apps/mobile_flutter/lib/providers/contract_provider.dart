@@ -50,7 +50,8 @@ class ContractProvider extends ChangeNotifier {
 
   /// Date from which to start tracking balances
   /// Defaults to today if not set.
-  DateTime get trackingStartDate => _trackingStartDate ?? _dateOnly(DateTime.now());
+  DateTime get trackingStartDate =>
+      _trackingStartDate ?? _dateOnly(DateTime.now());
 
   /// Whether a custom tracking start date has been set
   bool get hasCustomTrackingStartDate => _trackingStartDate != null;

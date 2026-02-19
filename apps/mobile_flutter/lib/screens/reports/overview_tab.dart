@@ -945,6 +945,13 @@ class _OverviewTabState extends State<OverviewTab> {
         TimeRange.custom(widget.range.start, widget.range.end);
     final start = selectedRange.startInclusive;
     final end = selectedRange.endExclusive.subtract(const Duration(days: 1));
+    final trackingStartDate = DateTime(
+      context.read<ContractProvider>().trackingStartDate.year,
+      context.read<ContractProvider>().trackingStartDate.month,
+      context.read<ContractProvider>().trackingStartDate.day,
+    );
+    final effectiveStart =
+        start.isBefore(trackingStartDate) ? trackingStartDate : start;
 
     showDialog(
       context: context,
@@ -964,6 +971,8 @@ class _OverviewTabState extends State<OverviewTab> {
           rangeEnd: end,
           labels: labels,
           fileName: t.reportsExport_fileName,
+          trackingStartDate: trackingStartDate,
+          effectiveRangeStart: effectiveStart,
         );
       } else {
         filePath = await ExportService.exportReportSummaryToExcel(
@@ -973,6 +982,8 @@ class _OverviewTabState extends State<OverviewTab> {
           rangeEnd: end,
           labels: labels,
           fileName: t.reportsExport_fileName,
+          trackingStartDate: trackingStartDate,
+          effectiveRangeStart: effectiveStart,
         );
       }
 

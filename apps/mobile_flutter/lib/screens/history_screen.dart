@@ -416,9 +416,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return EntryCompactTile(
       entry: entry,
       onTap: () => _openQuickView(entry),
+      onLongPress: () => _openQuickView(entry),
       showDate: true,
       showNote: true,
       dense: true,
+      heroTag: 'entry-${entry.id}',
     );
   }
 
@@ -426,7 +428,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
@@ -439,6 +441,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             entry: entry,
             onEdit: () => _openEditForm(entry),
             onDelete: () => _showDeleteConfirmation(context, entry),
+            heroTag: 'entry-${entry.id}',
           ),
         );
       },

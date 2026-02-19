@@ -511,7 +511,9 @@ void main() {
       );
     });
 
-    test('xlsx report workbook uses Report/Summary/Balance names and Hh Mm labels', () {
+    test(
+        'xlsx report workbook uses Report/Summary/Balance names and Hh Mm labels',
+        () {
       final labels = _testReportLabels();
       final rangeStart = DateTime(2026, 2, 1);
       final rangeEnd = DateTime(2026, 2, 19);
@@ -610,7 +612,8 @@ void main() {
       final summarySheet = excel['Summary (Easy)'];
       expect(readCell(summarySheet, 2, 0), 'Hh Mm');
 
-      final totalLoggedRow = findRowByFirstColumn(summarySheet, 'Total logged time');
+      final totalLoggedRow =
+          findRowByFirstColumn(summarySheet, 'Total logged time');
       expect(totalLoggedRow, greaterThanOrEqualTo(0));
       expect(readCell(summarySheet, 1, totalLoggedRow), '7035');
       expect(readCell(summarySheet, 2, totalLoggedRow), '117h 15m');
@@ -622,7 +625,8 @@ void main() {
 
       final balanceSheet = excel['Balance Events'];
       expect(readCell(balanceSheet, 3, 0), 'Hh Mm');
-      final periodEndRow = findRowByFirstColumn(balanceSheet, 'Balance at period end');
+      final periodEndRow =
+          findRowByFirstColumn(balanceSheet, 'Balance at period end');
       expect(periodEndRow, greaterThanOrEqualTo(0));
       expect(readCell(balanceSheet, 3, periodEndRow), '+5h 15m');
 
@@ -634,6 +638,153 @@ void main() {
         expect(type == 'work' || type == 'travel', isFalse);
       }
     });
+
+    test(
+      'xlsx summary uses effective tracking range metadata and keeps minute parity',
+      () {
+        final labels = _testReportLabels();
+        final selectedStart = DateTime(2026, 1, 1);
+        final selectedEnd = DateTime(2026, 1, 31);
+        final selectedRange = TimeRange.custom(selectedStart, selectedEnd);
+        final trackingStartDate = DateTime(2026, 1, 10);
+        final effectiveStart = DateTime(2026, 1, 10);
+
+        final entries = <Entry>[
+          Entry.makeWorkAtomicFromShift(
+            userId: 'user-3',
+            date: DateTime(2026, 1, 5),
+            shift: Shift(
+              start: DateTime(2026, 1, 5, 8, 0),
+              end: DateTime(2026, 1, 5, 10, 0),
+            ),
+          ),
+          Entry.makeWorkAtomicFromShift(
+            userId: 'user-3',
+            date: DateTime(2026, 1, 12),
+            shift: Shift(
+              start: DateTime(2026, 1, 12, 8, 0),
+              end: DateTime(2026, 1, 12, 13, 15),
+            ),
+          ),
+        ];
+        final absences = <AbsenceEntry>[
+          AbsenceEntry(
+            date: DateTime(2026, 1, 8),
+            minutes: 120,
+            type: AbsenceType.sickPaid,
+          ),
+          AbsenceEntry(
+            date: DateTime(2026, 1, 20),
+            minutes: 60,
+            type: AbsenceType.vabPaid,
+          ),
+        ];
+
+        final periodSummary = PeriodSummaryCalculator.compute(
+          entries: entries,
+          absences: absences,
+          range: selectedRange,
+          travelEnabled: true,
+          weeklyTargetMinutes: 0,
+          holidays: SwedenHolidayCalendar(),
+          trackingStartDate: trackingStartDate,
+          startBalanceMinutes: 0,
+          manualAdjustmentMinutes: 0,
+        );
+
+        final reportSummary = ReportSummary(
+          filteredEntries: entries,
+          workMinutes: 435,
+          travelMinutes: 0,
+          totalTrackedMinutes: 435,
+          workInsights: const WorkInsights(
+            longestShift: null,
+            averageWorkedMinutesPerDay: 0,
+            totalBreakMinutes: 0,
+            averageBreakMinutesPerShift: 0,
+            shiftCount: 0,
+            activeWorkDays: 0,
+          ),
+          travelInsights: const TravelInsights(
+            tripCount: 0,
+            averageMinutesPerTrip: 0,
+            topRoutes: [],
+          ),
+          leavesSummary: _buildLeavesSummaryForTest(absences),
+          balanceOffsets: const BalanceOffsetSummary(
+            openingEvent: null,
+            adjustmentsInRange: [],
+            eventsBeforeStart: [],
+            eventsInRange: [],
+            startingBalanceMinutes: 0,
+            closingBalanceMinutes: 0,
+          ),
+        );
+
+        final bytes = ExportService.buildReportSummaryWorkbookBytes(
+          summary: reportSummary,
+          periodSummary: periodSummary,
+          rangeStart: selectedStart,
+          rangeEnd: selectedEnd,
+          labels: labels,
+          trackingStartDate: trackingStartDate,
+          effectiveRangeStart: effectiveStart,
+        );
+
+        expect(bytes, isNotNull);
+        final excel = Excel.decodeBytes(bytes!);
+        final summarySheet = excel['Summary (Easy)'];
+        final balanceSheet = excel['Balance Events'];
+
+        String readCell(Sheet sheet, int columnIndex, int rowIndex) {
+          final value = sheet
+              .cell(
+                CellIndex.indexByColumnRow(
+                  columnIndex: columnIndex,
+                  rowIndex: rowIndex,
+                ),
+              )
+              .value;
+          return value?.toString() ?? '';
+        }
+
+        int findRowByFirstColumn(Sheet sheet, String target) {
+          for (var rowIndex = 0; rowIndex < sheet.maxRows; rowIndex++) {
+            if (readCell(sheet, 0, rowIndex) == target) {
+              return rowIndex;
+            }
+          }
+          return -1;
+        }
+
+        expect(
+          readCell(summarySheet, 0, 0),
+          'Report period: 2026-01-01 -> 2026-01-31',
+        );
+        expect(
+          readCell(summarySheet, 0, 1),
+          'Effective tracking range: 2026-01-10 -> 2026-01-31',
+        );
+        expect(readCell(summarySheet, 2, 3), 'Hh Mm');
+
+        final totalLoggedRow =
+            findRowByFirstColumn(summarySheet, 'Total logged time');
+        expect(totalLoggedRow, greaterThanOrEqualTo(0));
+        expect(
+          readCell(summarySheet, 1, totalLoggedRow),
+          periodSummary.trackedTotalMinutes.toString(),
+        );
+        expect(
+          readCell(summarySheet, 2, totalLoggedRow),
+          '5h 15m',
+        );
+
+        expect(
+          readCell(balanceSheet, 0, 0),
+          'Tracking start date: 2026-01-10',
+        );
+      },
+    );
 
     test('should generate filename correctly', () {
       final startDate = DateTime(2024, 1, 1);

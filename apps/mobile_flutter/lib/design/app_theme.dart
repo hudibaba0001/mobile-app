@@ -126,6 +126,9 @@ class EntryColors {
 class AppColors {
   AppColors._();
 
+  // Light surface base (Warm cream for light mode background)
+  static const Color lightSurface = Color(0xFFFAF8F5);
+
   // Primary (Blue)
   static const Color primary = Color(0xFF2563EB);
   static const Color primaryLight = Color(0xFF3B82F6);
@@ -147,7 +150,8 @@ class AppColors {
   // Semantic
   static const Color success = Color(0xFF10B981);
   static const Color successContainer = Color(0xFFD1FAE5);
-  static const Color error = Color(0xFFEF4444);
+  // Slightly darker red for AA contrast on light surfaces.
+  static const Color error = Color(0xFFDC2626);
   static const Color errorContainer = Color(0xFFFEE2E2);
   static const Color warning = Color(0xFFF59E0B);
   static const Color warningContainer = Color(0xFFFEF3C7);
@@ -282,7 +286,7 @@ class AppThemeData {
       secondaryContainer: AppColors.secondaryContainer,
       tertiary: AppColors.accent,
       tertiaryContainer: AppColors.accentContainer,
-      surface: Colors.white,
+      surface: AppColors.lightSurface,
       error: AppColors.error,
       errorContainer: AppColors.errorContainer,
       onPrimary: Colors.white,
@@ -308,7 +312,7 @@ class AppThemeData {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: scheme,
-      scaffoldBackgroundColor: AppColors.neutral50,
+      scaffoldBackgroundColor: AppColors.lightSurface,
       visualDensity: VisualDensity.standard,
       textTheme: _buildTextTheme(AppColors.neutral900),
       elevatedButtonTheme: _buildElevatedButtonTheme(),

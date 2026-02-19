@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../config/app_router.dart';
@@ -165,6 +166,7 @@ class _AppScaffoldState extends State<AppScaffold> {
   }
 
   void _onItemTapped(int index, BuildContext context) {
+    HapticFeedback.lightImpact();
     switch (index) {
       case 0:
         context.go(AppRouter.homePath);

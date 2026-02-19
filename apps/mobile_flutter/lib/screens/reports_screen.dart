@@ -3,6 +3,7 @@
 // ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../design/app_theme.dart';
@@ -36,56 +37,54 @@ enum ReportsPeriodPreset {
 class OverviewTrackingRangeText extends StatelessWidget {
   const OverviewTrackingRangeText({
     super.key,
-    required this.selectedStart,
-    required this.selectedEnd,
+    required this.reportStart,
+    required this.reportEnd,
     required this.trackingStartDate,
   });
 
-  final DateTime selectedStart;
-  final DateTime selectedEnd;
+  final DateTime reportStart;
+  final DateTime reportEnd;
   final DateTime trackingStartDate;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('yyyy-MM-dd');
-    final selectedStartOnly = DateTime(
-      selectedStart.year,
-      selectedStart.month,
-      selectedStart.day,
+    final reportStartOnly = DateTime(
+      reportStart.year,
+      reportStart.month,
+      reportStart.day,
     );
-    final selectedEndOnly = DateTime(
-      selectedEnd.year,
-      selectedEnd.month,
-      selectedEnd.day,
+    final reportEndOnly = DateTime(
+      reportEnd.year,
+      reportEnd.month,
+      reportEnd.day,
     );
     final trackingStartOnly = DateTime(
       trackingStartDate.year,
       trackingStartDate.month,
       trackingStartDate.day,
     );
-    final effectiveStart = selectedStartOnly.isBefore(trackingStartOnly)
+    final effectiveStart = reportStartOnly.isBefore(trackingStartOnly)
         ? trackingStartOnly
-        : selectedStartOnly;
+        : reportStartOnly;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tracking start: ${dateFormat.format(trackingStartOnly)}',
+          'Report period: ${dateFormat.format(reportStartOnly)} -> ${dateFormat.format(reportEndOnly)}',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        if (selectedStartOnly.isBefore(trackingStartOnly)) ...[
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            'Effective range: ${dateFormat.format(effectiveStart)} -> ${dateFormat.format(selectedEndOnly)}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'Calculated from: ${dateFormat.format(effectiveStart)} -> ${dateFormat.format(reportEndOnly)}',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
-        ],
+        ),
       ],
     );
   }
@@ -290,8 +289,8 @@ class _ReportsScreenState extends State<ReportsScreen>
           ),
           const SizedBox(height: AppSpacing.xs),
           OverviewTrackingRangeText(
-            selectedStart: range.start,
-            selectedEnd: range.end,
+            reportStart: range.start,
+            reportEnd: range.end,
             trackingStartDate: contractProvider.trackingStartDate,
           ),
         ],
@@ -584,6 +583,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                   controller: _tabController,
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
+                  onTap: (_) => HapticFeedback.lightImpact(),
                   labelColor: Theme.of(context).colorScheme.primary,
                   unselectedLabelColor: Theme.of(context)
                       .colorScheme

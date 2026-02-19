@@ -52,7 +52,13 @@ class SplashScreen extends StatelessWidget {
                   color: AppColors.neutral50.withValues(alpha: 0.95),
                 ),
               )
-              .animate(onPlay: (controller) => controller.repeat())
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(
+                begin: const Offset(1, 1),
+                end: const Offset(1.04, 1.04),
+                duration: 2.seconds,
+                curve: Curves.easeInOut,
+              )
               .shimmer(duration: 2000.ms, color: Colors.white24) // Subtle shimmer
               .animate() // Separate animation for entrance
               .fadeIn(duration: 600.ms)
@@ -71,8 +77,7 @@ class SplashScreen extends StatelessWidget {
                 ),
               )
               .animate()
-              .fadeIn(delay: 400.ms, duration: 600.ms)
-              .slideY(begin: 0.3, end: 0, curve: Curves.easeOut),
+              .typewriter(duration: 900.ms, curve: Curves.easeOut),
 
               const SizedBox(height: AppSpacing.sm),
 

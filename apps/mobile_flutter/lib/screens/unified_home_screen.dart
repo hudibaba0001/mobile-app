@@ -2,6 +2,7 @@
 // ignore_for_file: avoid_print
 // ignore_for_file: unused_element
 
+import 'dart:ui';
 import 'package:intl/intl.dart';
 import '../design/design.dart';
 import '../widgets/unified_entry_form.dart';
@@ -14,6 +15,7 @@ import '../models/entry.dart';
 import '../models/absence.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../config/app_router.dart';
 import '../models/autocomplete_suggestion.dart';
@@ -135,8 +137,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       }
 
       final entries = List<Entry>.from(entryProvider.entries);
-      final years = <int>{currentYear, ...entries.map((entry) => entry.date.year)}
-        ..removeWhere((year) => year < 2000 || year > (currentYear + 1));
+      final years = <int>{
+        currentYear,
+        ...entries.map((entry) => entry.date.year)
+      }..removeWhere((year) => year < 2000 || year > (currentYear + 1));
 
       for (final year in (years.toList()..sort())) {
         await absenceProvider.loadAbsences(year: year);
@@ -346,6 +350,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     final t = AppLocalizations.of(context);
     final travelEnabled =
         context.watch<SettingsProvider>().isTravelLoggingEnabled;
+    final timeBalanceEnabled =
+        context.watch<SettingsProvider>().isTimeBalanceEnabled;
 
     return Scaffold(
       key: const Key('screen_home'),
@@ -429,41 +435,75 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         children: [
           const AppMessageBanner(),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.md,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Flexsaldo / Simple summary
-                  if (context
-                      .watch<SettingsProvider>()
-                      .isTimeBalanceEnabled) ...[
-                    const FlexsaldoCard(),
-                    const SizedBox(height: AppSpacing.lg),
-                  ],
-
-                  // Today's Total Card
-                  Consumer<EntryProvider>(
-                    builder: (context, entryProvider, _) =>
-                        _buildTotalCard(theme, entryProvider, t, travelEnabled),
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.md,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // Flexsaldo / Simple summary
+                      if (timeBalanceEnabled) ...[
+                        FlexsaldoCard()
+                            .animate()
+                            .fadeIn(duration: 400.ms)
+                            .slideY(begin: 0.08, end: 0),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
 
-                  // Stats Section
-                  Consumer<EntryProvider>(
-                    builder: (context, entryProvider, _) => _buildStatsSection(
-                        theme, entryProvider, t, travelEnabled),
+                      // Today's Total Card
+                      Consumer<EntryProvider>(
+                        builder: (context, entryProvider, _) =>
+                            _buildTotalCard(
+                              theme,
+                              entryProvider,
+                              t,
+                              travelEnabled,
+                            ).animate().fadeIn(delay: 50.ms).slideY(
+                                  begin: 0.08,
+                                  end: 0,
+                                  curve: Curves.easeOut,
+                                ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // Stats Section
+                      Consumer<EntryProvider>(
+                        builder: (context, entryProvider, _) =>
+                            _buildStatsSection(
+                              theme,
+                              entryProvider,
+                              t,
+                              travelEnabled,
+                            ).animate().fadeIn(delay: 100.ms).slideY(
+                                  begin: 0.08,
+                                  end: 0,
+                                  curve: Curves.easeOut,
+                                ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ]),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
+                ),
 
-                  // Recent Entries
-                  _buildRecentEntries(theme, t),
-                  const SizedBox(height: AppSpacing.xxxl + AppSpacing.xxl),
-                ],
-              ),
+                _buildRecentEntriesHeaderSliver(theme, t),
+
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                  ),
+                  sliver: _buildRecentEntriesSliver(theme, t),
+                ),
+
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: AppSpacing.xxxl + AppSpacing.xxl),
+                ),
+              ],
             ),
           ),
         ],
@@ -473,21 +513,42 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           borderRadius: BorderRadius.circular(AppRadius.lg + AppSpacing.xs),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.primary.withValues(alpha: 0.3),
+              color: colorScheme.primary.withValues(alpha: 0.35),
               blurRadius: AppSpacing.xxl - AppSpacing.xs,
               offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: FloatingActionButton(
-          onPressed: _showQuickEntry,
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg + AppSpacing.xs),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.lg + AppSpacing.xs),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface.withValues(alpha: 0.55),
+                borderRadius:
+                    BorderRadius.circular(AppRadius.lg + AppSpacing.xs),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.2),
+                ),
+              ),
+              child: FloatingActionButton(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _showQuickEntry();
+                },
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(AppRadius.lg + AppSpacing.xs),
+                ),
+                child:
+                    const Icon(Icons.add, size: AppIconSize.lg - AppSpacing.xs),
+              ),
+            ),
           ),
-          child: const Icon(Icons.add, size: AppIconSize.lg - AppSpacing.xs),
         ),
       ),
       // bottomNavigationBar removed; global nav from AppScaffold is used
@@ -518,7 +579,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     final workText =
         formatMinutes(todaySummary.workMinutes, localeCode: localeCode);
 
-    return Container(
+    final card = Container(
       width: double.infinity,
       padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
@@ -533,9 +594,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         borderRadius: AppRadius.cardRadius,
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: theme.colorScheme.primary.withValues(alpha: 0.28),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           )
         ],
       ),
@@ -613,6 +674,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         ],
       ),
     );
+
+    return card
+        .animate(onPlay: (controller) => controller.repeat(period: 5.seconds))
+        .shimmer(duration: 1800.ms, color: Colors.white24);
   }
 
   Widget _buildStatsSection(
@@ -830,137 +895,162 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     );
   }
 
-  Widget _buildRecentEntries(ThemeData theme, AppLocalizations t) {
+  Widget _buildRecentEntriesHeaderSliver(ThemeData theme, AppLocalizations t) {
     final entryProvider = context.watch<EntryProvider>();
     final networkStatus = context.watch<NetworkStatusProvider>();
     final hasPendingSync = entryProvider.pendingSyncCount > 0;
     final showCachedBadge = networkStatus.isOffline || hasPendingSync;
-    final showLoadingState = entryProvider.isLoading && _recentEntries.isEmpty;
+    const headerHeight = 64.0;
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primary.withValues(alpha: 0.15),
-                      theme.colorScheme.primary.withValues(alpha: 0.08),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: Icon(
-                  Icons.history_rounded,
-                  size: 16,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                t.home_recentEntries,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              if (showCachedBadge) ...[
-                const SizedBox(width: AppSpacing.sm),
+    final header = ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          color: theme.colorScheme.surface.withValues(alpha: 0.85),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.sm,
+          ),
+          child: SizedBox(
+            height: headerHeight - (AppSpacing.sm * 2),
+            child: Row(
+              children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.tertiaryContainer
-                        .withValues(alpha: 0.55),
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary.withValues(alpha: 0.15),
+                        theme.colorScheme.primary.withValues(alpha: 0.08),
+                      ],
+                    ),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
-                    border: Border.all(
-                      color: theme.colorScheme.tertiary.withValues(alpha: 0.45),
+                  ),
+                  child: Icon(
+                    Icons.history_rounded,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    t.home_recentEntries,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.cloud_off_rounded,
-                        size: 13,
-                        color: theme.colorScheme.onTertiaryContainer,
+                ),
+                if (showCachedBadge) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.tertiaryContainer
+                          .withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      border: Border.all(
+                        color:
+                            theme.colorScheme.tertiary.withValues(alpha: 0.45),
                       ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        networkStatus.isOffline
-                            ? t.network_offlineTooltip
-                            : t.network_pendingTooltip(
-                                entryProvider.pendingSyncCount),
-                        style: theme.textTheme.labelSmall?.copyWith(
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.cloud_off_rounded,
+                          size: 13,
                           color: theme.colorScheme.onTertiaryContainer,
-                          fontWeight: FontWeight.w700,
                         ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          networkStatus.isOffline
+                              ? t.network_offlineTooltip
+                              : t.network_pendingTooltip(
+                                  entryProvider.pendingSyncCount),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onTertiaryContainer,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(width: AppSpacing.sm),
+                GestureDetector(
+                  onTap: () => AppRouter.goToHistory(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm - 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius:
+                          BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.2),
                       ),
-                    ],
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          t.home_viewAllArrow,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 14,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
-              const Spacer(),
-              GestureDetector(
-                onTap: () => AppRouter.goToHistory(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm - 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius:
-                        BorderRadius.circular(AppRadius.xl - AppSpacing.xs),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        t.home_viewAllArrow,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 14,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          if (showLoadingState)
-            ...List.generate(
-              3,
-              (_) => Container(
-                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+        ),
+      ),
+    );
+
+    final animatedHeader = header
+        .animate()
+        .fadeIn(delay: 150.ms, duration: 350.ms)
+        .slideY(begin: 0.08, end: 0, curve: Curves.easeOut);
+
+    return SliverPersistentHeader(
+      pinned: true,
+      delegate: _PinnedHeaderDelegate(
+        height: headerHeight,
+        child: animatedHeader,
+      ),
+    );
+  }
+
+  Widget _buildRecentEntriesSliver(ThemeData theme, AppLocalizations t) {
+    final entryProvider = context.watch<EntryProvider>();
+    final showLoadingState = entryProvider.isLoading && _recentEntries.isEmpty;
+
+    if (showLoadingState) {
+      return SliverList(
+        delegate: SliverChildListDelegate(
+          List.generate(
+            3,
+            (index) => Padding(
+              padding: EdgeInsets.only(bottom: index == 2 ? 0 : AppSpacing.sm),
+              child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
                   vertical: 14,
@@ -991,65 +1081,73 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ],
                 ),
               ),
-            )
-          else if (_recentEntries.isEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.xxl, horizontal: AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withValues(alpha: 0.1),
-                  width: 2,
-                  strokeAlign: BorderSide.strokeAlignInside,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_recentEntries.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+              vertical: AppSpacing.xxl, horizontal: AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(
+              color: theme.colorScheme.outline.withValues(alpha: 0.1),
+              width: 2,
+              strokeAlign: BorderSide.strokeAlignInside,
+            ),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer
+                      .withValues(alpha: 0.3),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.history_rounded,
+                  size: 48,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.5),
                 ),
               ),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer
-                          .withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.history_rounded,
-                      size: 48,
-                      color: theme.colorScheme.primary.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    t.home_noEntriesYet,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                t.home_noEntriesYet,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            )
-          else
-            ...() {
-              final items = _recentEntries.take(5).toList();
-              return List.generate(
-                items.length,
-                (index) {
-                  final entry = items[index];
-                  return _buildRecentEntryTimelineItem(
-                    theme: theme,
-                    entry: entry,
-                    fullEntries: entryProvider.entries,
-                    isFirst: index == 0,
-                    isLast: index == items.length - 1,
-                  );
-                },
-              );
-            }(),
-        ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    final items = _recentEntries.take(5).toList();
+    return SliverList(
+      delegate: SliverChildListDelegate(
+        List.generate(
+          items.length,
+          (index) => Padding(
+            padding:
+                EdgeInsets.only(bottom: index == items.length - 1 ? 0 : 10),
+            child: _buildRecentEntryTimelineItem(
+              theme: theme,
+              entry: items[index],
+              fullEntries: entryProvider.entries,
+              isFirst: index == 0,
+              isLast: index == items.length - 1,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1064,9 +1162,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       return EntryCompactTile(
         entry: fullEntry,
         onTap: () => _openQuickView(entry),
+        onLongPress: () => _openQuickView(entry),
         showDate: true,
         showNote: true,
         dense: true,
+        heroTag: 'entry-${fullEntry.id}',
       );
     }
 
@@ -1099,6 +1199,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: InkWell(
           onTap: () => _openQuickView(entry),
+          onLongPress: () {
+            HapticFeedback.lightImpact();
+            _openQuickView(entry);
+          },
           borderRadius: BorderRadius.circular(AppRadius.lg),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 68),
@@ -1288,7 +1392,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius:
               BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
@@ -1301,6 +1405,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               entry: full!,
               onEdit: () => _editEntry(summary),
               onDelete: () => _deleteEntry(context, summary),
+              heroTag: 'entry-${full!.id}',
             ),
           );
         },
@@ -1576,6 +1681,36 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         );
       },
     );
+  }
+
+  // Pinned header with blur for Recent Entries.
+  // Keeps height constant so the scroll physics stay stable.
+}
+
+class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double height;
+  final Widget child;
+
+  const _PinnedHeaderDelegate({
+    required this.height,
+    required this.child,
+  });
+
+  @override
+  double get minExtent => height;
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(covariant _PinnedHeaderDelegate oldDelegate) {
+    return height != oldDelegate.height || child != oldDelegate.child;
   }
 }
 
@@ -2341,6 +2476,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                       onPressed: _isValid()
                           ? () async {
                               if (!mounted) return;
+                              HapticFeedback.lightImpact();
                               try {
                                 // Use EntryProvider instead of legacy repository
                                 final entryProvider =
@@ -3386,6 +3522,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                       onPressed: _isValid()
                           ? () async {
                               if (!mounted) return;
+                              HapticFeedback.lightImpact();
                               try {
                                 debugPrint('=== WORK ENTRY SAVE ATTEMPT ===');
 

@@ -625,6 +625,8 @@ class _TrendsTabState extends State<TrendsTab> {
           },
         ),
       ),
+      swapAnimationDuration: const Duration(milliseconds: 800),
+      swapAnimationCurve: Curves.easeOutCubic,
     );
   }
 

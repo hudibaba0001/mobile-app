@@ -7,12 +7,14 @@ class EntryDetailSheet extends StatelessWidget {
   final Entry entry;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final String? heroTag;
 
   const EntryDetailSheet({
     super.key,
     required this.entry,
     required this.onEdit,
     required this.onDelete,
+    this.heroTag,
   });
 
   @override
@@ -20,7 +22,7 @@ class EntryDetailSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return SafeArea(
+    Widget sheet = SafeArea(
       top: false,
       child: Padding(
         padding: EdgeInsets.only(
@@ -107,6 +109,20 @@ class EntryDetailSheet extends StatelessWidget {
         ),
       ),
     );
+
+    if (heroTag != null) {
+      sheet = Hero(
+        tag: heroTag!,
+        child: Material(
+          color: theme.colorScheme.surface,
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+          child: sheet,
+        ),
+      );
+    }
+
+    return sheet;
   }
 
   String _titleFor(BuildContext context, Entry e) {

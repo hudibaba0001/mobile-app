@@ -13,7 +13,10 @@ class SettingsProvider extends ChangeNotifier {
   bool _isDarkMode = false;
   bool _isFirstLaunch = true;
   bool _isTravelLoggingEnabled = true;
+  bool _isPaidLeaveTrackingEnabled = true;
   bool _isTimeBalanceEnabled = true;
+  bool _isSetupCompleted = false;
+  DateTime? _baselineDate;
   bool _isDailyReminderEnabled = false;
   int _dailyReminderHour = 17;
   int _dailyReminderMinute = 0;
@@ -22,7 +25,10 @@ class SettingsProvider extends ChangeNotifier {
   static const String _darkModeKey = 'isDarkMode';
   static const String _firstLaunchKey = 'isFirstLaunch';
   static const String _travelLoggingEnabledKey = 'enableTravelLogging';
+  static const String _paidLeaveTrackingEnabledKey = 'enablePaidLeaveTracking';
   static const String _timeBalanceEnabledKey = 'enableTimeBalance';
+  static const String _setupCompletedKey = 'setupCompleted';
+  static const String _baselineDateKey = 'baselineDate';
   static const String _dailyReminderEnabledKey = 'dailyReminderEnabled';
   static const String _dailyReminderHourKey = 'dailyReminderHour';
   static const String _dailyReminderMinuteKey = 'dailyReminderMinute';
@@ -31,7 +37,10 @@ class SettingsProvider extends ChangeNotifier {
   bool get isDarkMode => _isDarkMode;
   bool get isFirstLaunch => _isFirstLaunch;
   bool get isTravelLoggingEnabled => _isTravelLoggingEnabled;
+  bool get isPaidLeaveTrackingEnabled => _isPaidLeaveTrackingEnabled;
   bool get isTimeBalanceEnabled => _isTimeBalanceEnabled;
+  bool get isSetupCompleted => _isSetupCompleted;
+  DateTime? get baselineDate => _baselineDate;
   bool get isDailyReminderEnabled => _isDailyReminderEnabled;
   int get dailyReminderHour => _dailyReminderHour;
   int get dailyReminderMinute => _dailyReminderMinute;
@@ -59,7 +68,10 @@ class SettingsProvider extends ChangeNotifier {
   void _resetToDefaults() {
     _isDarkMode = false;
     _isTravelLoggingEnabled = true;
+    _isPaidLeaveTrackingEnabled = true;
     _isTimeBalanceEnabled = true;
+    _isSetupCompleted = false;
+    _baselineDate = null;
     _isDailyReminderEnabled = false;
     _dailyReminderHour = 17;
     _dailyReminderMinute = 0;
@@ -76,10 +88,28 @@ class SettingsProvider extends ChangeNotifier {
       _scopedKey(_travelLoggingEnabledKey),
       defaultValue: _isTravelLoggingEnabled,
     );
+    _isPaidLeaveTrackingEnabled = _settingsBox!.get(
+      _scopedKey(_paidLeaveTrackingEnabledKey),
+      defaultValue: _isPaidLeaveTrackingEnabled,
+    );
     _isTimeBalanceEnabled = _settingsBox!.get(
       _scopedKey(_timeBalanceEnabledKey),
       defaultValue: _isTimeBalanceEnabled,
     );
+    _isSetupCompleted = _settingsBox!.get(
+      _scopedKey(_setupCompletedKey),
+      defaultValue: _isSetupCompleted,
+    );
+    final baselineDateRaw = _settingsBox!.get(_scopedKey(_baselineDateKey));
+    if (baselineDateRaw is String && baselineDateRaw.isNotEmpty) {
+      _baselineDate = DateTime.tryParse(baselineDateRaw);
+      if (_baselineDate != null) {
+        _baselineDate =
+            DateTime(_baselineDate!.year, _baselineDate!.month, _baselineDate!.day);
+      }
+    } else {
+      _baselineDate = null;
+    }
     _isDailyReminderEnabled = _settingsBox!.get(
       _scopedKey(_dailyReminderEnabledKey),
       defaultValue: _isDailyReminderEnabled,
@@ -214,12 +244,42 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setPaidLeaveTrackingEnabled(bool value) async {
+    _isPaidLeaveTrackingEnabled = value;
+    if (_settingsBox != null) {
+      await _settingsBox!.put(_scopedKey(_paidLeaveTrackingEnabledKey), value);
+    }
+    notifyListeners();
+  }
+
   Future<void> setTimeBalanceEnabled(bool value) async {
     _isTimeBalanceEnabled = value;
     if (_settingsBox != null) {
       await _settingsBox!.put(_scopedKey(_timeBalanceEnabledKey), value);
     }
     _syncToCloud();
+    notifyListeners();
+  }
+
+  Future<void> setSetupCompleted(bool value) async {
+    _isSetupCompleted = value;
+    if (_settingsBox != null) {
+      await _settingsBox!.put(_scopedKey(_setupCompletedKey), value);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setBaselineDate(DateTime? date) async {
+    _baselineDate = date == null ? null : DateTime(date.year, date.month, date.day);
+    if (_settingsBox != null) {
+      if (_baselineDate == null) {
+        await _settingsBox!.delete(_scopedKey(_baselineDateKey));
+      } else {
+        final value =
+            '${_baselineDate!.year.toString().padLeft(4, '0')}-${_baselineDate!.month.toString().padLeft(2, '0')}-${_baselineDate!.day.toString().padLeft(2, '0')}';
+        await _settingsBox!.put(_scopedKey(_baselineDateKey), value);
+      }
+    }
     notifyListeners();
   }
 

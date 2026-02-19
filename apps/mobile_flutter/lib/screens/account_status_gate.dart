@@ -8,11 +8,13 @@ import '../services/profile_service.dart';
 import '../models/user_profile.dart';
 import '../models/user_entitlement.dart';
 import '../providers/contract_provider.dart';
+import '../providers/settings_provider.dart';
 import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../design/app_theme.dart';
 import '../widgets/legal_document_dialog.dart';
 import 'paywall_screen.dart';
+import 'welcome_setup_screen.dart';
 
 /// Gate screen that checks legal acceptance and subscription status
 /// Blocks access to app if requirements are not met
@@ -385,6 +387,16 @@ class _AccountStatusGateState extends State<AccountStatusGate>
       return PaywallScreen(
         onUnlocked: _loadProfile,
         showSignOut: true,
+      );
+    }
+
+    final settingsProvider = context.watch<SettingsProvider>();
+    if (!settingsProvider.isSetupCompleted) {
+      return WelcomeSetupScreen(
+        onCompleted: () {
+          if (!mounted) return;
+          context.goNamed(AppRouter.homeName);
+        },
       );
     }
 
