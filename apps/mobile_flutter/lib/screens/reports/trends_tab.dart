@@ -7,11 +7,18 @@ import '../../models/absence.dart';
 import '../../providers/absence_provider.dart';
 import '../../providers/time_provider.dart';
 import '../../providers/contract_provider.dart';
+import '../../reporting/time_format.dart';
+import '../../reporting/time_range.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 class TrendsTab extends StatefulWidget {
-  const TrendsTab({super.key});
+  final TimeRange range;
+
+  const TrendsTab({
+    super.key,
+    required this.range,
+  });
 
   @override
   State<TrendsTab> createState() => _TrendsTabState();
@@ -20,12 +27,48 @@ class TrendsTab extends StatefulWidget {
 class _TrendsTabState extends State<TrendsTab> {
   bool _absencesLoading = false;
 
+  String _formatTrackedMinutes(
+    BuildContext context,
+    int minutes, {
+    bool signed = false,
+    bool showPlusForZero = false,
+  }) {
+    final localeCode = Localizations.localeOf(context).toLanguageTag();
+    return formatMinutes(
+      minutes,
+      localeCode: localeCode,
+      signed: signed,
+      showPlusForZero: showPlusForZero,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncRangeToViewModel();
       _loadAbsences();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant TrendsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final rangeChanged =
+        oldWidget.range.startInclusive != widget.range.startInclusive ||
+            oldWidget.range.endExclusive != widget.range.endExclusive;
+    if (rangeChanged) {
+      _syncRangeToViewModel();
+    }
+  }
+
+  void _syncRangeToViewModel() {
+    final endInclusive =
+        widget.range.endExclusive.subtract(const Duration(days: 1));
+    context
+        .read<CustomerAnalyticsViewModel>()
+        .setDateRange(widget.range.startInclusive, endInclusive);
   }
 
   Future<void> _loadAbsences() async {
@@ -92,7 +135,7 @@ class _TrendsTabState extends State<TrendsTab> {
           _buildMonthlyLeaveSummaries(monthlyBreakdown, absenceProvider);
       final visibleMonths = monthlyBreakdown.where((month) {
         final leaves = leaveSummaries[_monthKey(month.month)];
-        return month.totalHours > 0 || (leaves?.hasAny ?? false);
+        return month.totalMinutes > 0 || (leaves?.hasAny ?? false);
       }).toList(growable: false);
 
       return ListView(
@@ -182,8 +225,8 @@ class _TrendsTabState extends State<TrendsTab> {
               ),
               child: _buildWeeklyHoursChart(
                   theme,
-                  trendsData['weeklyHours'] as List<double>? ??
-                      List.filled(7, 0.0)),
+                  trendsData['weeklyMinutes'] as List<int>? ??
+                      List.filled(7, 0)),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -293,10 +336,11 @@ class _TrendsTabState extends State<TrendsTab> {
       year: month.month.year,
       month: month.month.month,
     );
+    final monthlyTargetMinutes = (monthlyTargetHours * 60).round();
 
     // Calculate variance (actual - target)
-    final varianceHours = month.totalHours - monthlyTargetHours;
-    final isAhead = varianceHours >= 0;
+    final varianceMinutes = month.totalMinutes - monthlyTargetMinutes;
+    final isAhead = varianceMinutes >= 0;
     final statusColor =
         isAhead ? FlexsaldoColors.positive : FlexsaldoColors.negative;
 
@@ -327,7 +371,7 @@ class _TrendsTabState extends State<TrendsTab> {
                 child: Column(
                   children: [
                     Text(
-                      '${month.workHours.toStringAsFixed(0)}h',
+                      _formatTrackedMinutes(context, month.workMinutes),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface,
@@ -347,7 +391,7 @@ class _TrendsTabState extends State<TrendsTab> {
                 child: Column(
                   children: [
                     Text(
-                      '${month.travelHours.toStringAsFixed(0)}h',
+                      _formatTrackedMinutes(context, month.travelMinutes),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface,
@@ -367,7 +411,7 @@ class _TrendsTabState extends State<TrendsTab> {
                 child: Column(
                   children: [
                     Text(
-                      '${month.totalHours.toStringAsFixed(0)}h',
+                      _formatTrackedMinutes(context, month.totalMinutes),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: colorScheme.onSurface,
@@ -387,7 +431,7 @@ class _TrendsTabState extends State<TrendsTab> {
                 child: Column(
                   children: [
                     Text(
-                      '${monthlyTargetHours.toStringAsFixed(0)}h',
+                      _formatTrackedMinutes(context, monthlyTargetMinutes),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -403,9 +447,14 @@ class _TrendsTabState extends State<TrendsTab> {
               ),
               // Difference
               SizedBox(
-                width: 50,
+                width: 90,
                 child: Text(
-                  '${isAhead ? '+' : ''}${varianceHours.toStringAsFixed(0)}h',
+                  _formatTrackedMinutes(
+                    context,
+                    varianceMinutes,
+                    signed: true,
+                    showPlusForZero: true,
+                  ),
                   textAlign: TextAlign.right,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -460,10 +509,12 @@ class _TrendsTabState extends State<TrendsTab> {
     return '${date.year}-$month';
   }
 
-  Widget _buildWeeklyHoursChart(ThemeData theme, List<double> weeklyHours) {
+  Widget _buildWeeklyHoursChart(ThemeData theme, List<int> weeklyMinutes) {
     final t = AppLocalizations.of(context);
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final colorScheme = theme.colorScheme;
+    final weeklyHours =
+        weeklyMinutes.map((minutes) => minutes / 60.0).toList(growable: false);
 
     if (weeklyHours.isEmpty) {
       return Center(
@@ -520,10 +571,13 @@ class _TrendsTabState extends State<TrendsTab> {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 40,
+              reservedSize: 68,
               getTitlesWidget: (value, meta) {
                 return Text(
-                  '${value.toInt()}h',
+                  formatMinutes(
+                    (value * 60).round(),
+                    localeCode: localeTag,
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -588,9 +642,9 @@ class _TrendsTabState extends State<TrendsTab> {
     }
 
     final date = dayData['date'] as DateTime? ?? DateTime.now();
-    final workHours = (dayData['workHours'] as double?) ?? 0.0;
-    final travelHours = (dayData['travelHours'] as double?) ?? 0.0;
-    final totalHours = (dayData['totalHours'] as double?) ?? 0.0;
+    final workMinutes = (dayData['workMinutes'] as int?) ?? 0;
+    final travelMinutes = (dayData['travelMinutes'] as int?) ?? 0;
+    final totalMinutes = (dayData['totalMinutes'] as int?) ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -632,7 +686,7 @@ class _TrendsTabState extends State<TrendsTab> {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  '${totalHours.toStringAsFixed(1)}h ${AppLocalizations.of(context).trends_total}',
+                  '${_formatTrackedMinutes(context, totalMinutes)} ${AppLocalizations.of(context).trends_total}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -644,14 +698,14 @@ class _TrendsTabState extends State<TrendsTab> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${workHours.toStringAsFixed(1)}h ${AppLocalizations.of(context).trends_work}',
+                '${_formatTrackedMinutes(context, workMinutes)} ${AppLocalizations.of(context).trends_work}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.error,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
-                '${travelHours.toStringAsFixed(1)}h ${AppLocalizations.of(context).trends_travel}',
+                '${_formatTrackedMinutes(context, travelMinutes)} ${AppLocalizations.of(context).trends_travel}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.tertiary,
                   fontWeight: FontWeight.w500,

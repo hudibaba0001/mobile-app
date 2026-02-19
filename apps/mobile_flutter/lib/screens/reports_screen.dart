@@ -14,6 +14,8 @@ import '../services/export_service.dart';
 import '../models/entry.dart';
 import '../services/supabase_auth_service.dart';
 import '../providers/entry_provider.dart';
+import '../providers/settings_provider.dart';
+import '../reporting/time_range.dart';
 import 'reports/overview_tab.dart';
 import 'reports/trends_tab.dart';
 import 'reports/time_balance_tab.dart';
@@ -413,6 +415,7 @@ class _ReportsScreenState extends State<ReportsScreen>
       create: (context) => CustomerAnalyticsViewModel(),
       update: (context, entryProvider, viewModel) {
         final authService = context.read<SupabaseAuthService>();
+        final settingsProvider = context.read<SettingsProvider>();
         final userId = authService.currentUser?.id;
 
         // Ensure entries are loaded
@@ -421,6 +424,9 @@ class _ReportsScreenState extends State<ReportsScreen>
         }
 
         final model = viewModel ?? CustomerAnalyticsViewModel();
+        final range = _currentRange();
+        model.setDateRange(range.start, range.end);
+        model.setTravelEnabled(settingsProvider.isTravelLoggingEnabled);
         model.bindEntries(
           entryProvider.entries,
           userId: userId,
@@ -431,6 +437,9 @@ class _ReportsScreenState extends State<ReportsScreen>
       },
       builder: (context, child) {
         final viewModel = context.watch<CustomerAnalyticsViewModel>();
+        final currentRange = _currentRange();
+        final trendsRange =
+            TimeRange.custom(currentRange.start, currentRange.end);
 
         return Scaffold(
           appBar: StandardAppBar(
@@ -520,7 +529,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                         _buildPeriodBar(context),
                         Expanded(
                           child: OverviewTab(
-                            range: _currentRange(),
+                            range: currentRange,
                             segment: _selectedSegment,
                             onSegmentChanged: (segment) {
                               setState(() {
@@ -531,7 +540,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                         ),
                       ],
                     ),
-                    TrendsTab(),
+                    TrendsTab(range: trendsRange),
                     TimeBalanceTab(),
                     LeavesTab(),
                   ],

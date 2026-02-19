@@ -2,25 +2,26 @@ import 'package:flutter/foundation.dart';
 import '../models/entry.dart';
 import '../config/app_config.dart';
 import '../features/reports/analytics_models.dart';
+import '../reporting/time_range.dart';
 import '../services/analytics_api.dart';
 
 class MonthlyBreakdown {
   final DateTime month;
-  final double workHours;
-  final double travelHours;
-  final double totalHours;
+  final int workMinutes;
+  final int travelMinutes;
+  final int totalMinutes;
 
   const MonthlyBreakdown({
     required this.month,
-    required this.workHours,
-    required this.travelHours,
-    required this.totalHours,
+    required this.workMinutes,
+    required this.travelMinutes,
+    required this.totalMinutes,
   });
 }
 
 class _MonthlyAccumulator {
-  double workHours = 0.0;
-  double travelHours = 0.0;
+  int workMinutes = 0;
+  int travelMinutes = 0;
 }
 
 class CustomerAnalyticsViewModel extends ChangeNotifier {
@@ -33,6 +34,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   // Date range filtering
   DateTime? _startDate;
   DateTime? _endDate;
+  bool _travelEnabled = true;
 
   // Loading states
   bool _isLoading = false;
@@ -127,47 +129,12 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
   // Trends Tab Data
   Map<String, dynamic> get trendsData {
     final filteredWorkEntries = _getFilteredWorkEntries();
-    final filteredTravelEntries = _getFilteredTravelEntries();
+    final filteredTravelEntries =
+        _travelEnabled ? _getFilteredTravelEntries() : const <Entry>[];
 
-    // If server analytics available, map daily trends and weekly hours from it.
-    if (_usingServer && _server != null) {
-      // Weekly hours: sum per weekday from server daily trends if we have data points.
-      List<double> weeklyHours;
-      if (_server!.dailyTrends.isNotEmpty) {
-        // Initialize Mon..Sun
-        weeklyHours = List<double>.filled(7, 0.0);
-        for (final t in _server!.dailyTrends) {
-          final wd = t.date.weekday - 1; // 0..6
-          if (wd >= 0 && wd < 7) {
-            weeklyHours[wd] += t.totalHours;
-          }
-        }
-      } else {
-        weeklyHours =
-            _calculateWeeklyHours(filteredWorkEntries, filteredTravelEntries);
-      }
-
-      final dailyTrends = _server!.dailyTrends
-          .map((t) => {
-                'date': t.date,
-                'workHours': t.workHours,
-                'travelHours': t.travelHours,
-                'totalHours': t.totalHours,
-              })
-          .toList(growable: false);
-
-      return {
-        'weeklyHours': weeklyHours,
-        // Monthly comparison still derived locally to avoid overreach.
-        'monthlyComparison': _calculateMonthlyComparison(filteredWorkEntries),
-        'dailyTrends': dailyTrends,
-      };
-    }
-
-    // Fallback to local-only analytics
     return {
-      'weeklyHours':
-          _calculateWeeklyHours(filteredWorkEntries, filteredTravelEntries),
+      'weeklyMinutes':
+          _calculateWeeklyMinutes(filteredWorkEntries, filteredTravelEntries),
       'monthlyComparison': _calculateMonthlyComparison(filteredWorkEntries),
       'dailyTrends':
           _calculateDailyTrends(filteredWorkEntries, filteredTravelEntries),
@@ -176,7 +143,8 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
 
   List<MonthlyBreakdown> get monthlyBreakdown {
     final filteredWorkEntries = _getFilteredWorkEntries();
-    final filteredTravelEntries = _getFilteredTravelEntries();
+    final filteredTravelEntries =
+        _travelEnabled ? _getFilteredTravelEntries() : const <Entry>[];
     return _calculateMonthlyBreakdown(
         filteredWorkEntries, filteredTravelEntries);
   }
@@ -191,13 +159,32 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
 
   // Set date range filter
   void setDateRange(DateTime? start, DateTime? end) {
-    _startDate = start;
-    _endDate = end;
+    final normalizedStart =
+        start == null ? null : DateTime(start.year, start.month, start.day);
+    final normalizedEnd =
+        end == null ? null : DateTime(end.year, end.month, end.day);
+
+    final unchanged =
+        _startDate == normalizedStart && _endDate == normalizedEnd;
+    if (unchanged) {
+      return;
+    }
+
+    _startDate = normalizedStart;
+    _endDate = normalizedEnd;
     notifyListeners();
     // Refresh server analytics for the new range without blocking UI
     if (AppConfig.apiBase.trim().isNotEmpty) {
       _loadServerIfConfigured();
     }
+  }
+
+  void setTravelEnabled(bool enabled) {
+    if (_travelEnabled == enabled) {
+      return;
+    }
+    _travelEnabled = enabled;
+    notifyListeners();
   }
 
   // Refresh data
@@ -241,14 +228,24 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
       return _entries.where((entry) => entry.type == type).toList();
     }
 
+    TimeRange? timeRange;
+    if (_startDate != null && _endDate != null) {
+      timeRange = TimeRange.custom(_startDate!, _endDate!);
+    }
+
     return _entries.where((entry) {
       if (type != null && entry.type != type) {
         return false;
       }
-      if (_startDate != null && entry.date.isBefore(_startDate!)) {
+      if (timeRange != null) {
+        return timeRange.contains(entry.date);
+      }
+      final entryDate =
+          DateTime(entry.date.year, entry.date.month, entry.date.day);
+      if (_startDate != null && entryDate.isBefore(_startDate!)) {
         return false;
       }
-      if (_endDate != null && entry.date.isAfter(_endDate!)) {
+      if (_endDate != null && entryDate.isAfter(_endDate!)) {
         return false;
       }
       return true;
@@ -262,7 +259,7 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
 
   int _workMinutesForEntry(Entry entry) {
     if (entry.type != EntryType.work) return 0;
-    return entry.totalWorkDuration?.inMinutes ?? 0;
+    return entry.workDuration.inMinutes;
   }
 
   int _travelMinutesForEntry(Entry entry) {
@@ -345,25 +342,25 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     return insights;
   }
 
-  List<double> _calculateWeeklyHours(
+  List<int> _calculateWeeklyMinutes(
       List<Entry> workEntries, List<Entry> travelEntries) {
-    final weeklyHours = List<double>.filled(7, 0.0);
+    final weeklyMinutes = List<int>.filled(7, 0);
 
     for (final entry in workEntries) {
       final weekDay = entry.date.weekday - 1;
       if (weekDay >= 0 && weekDay < 7) {
-        weeklyHours[weekDay] += _workMinutesForEntry(entry) / 60.0;
+        weeklyMinutes[weekDay] += _workMinutesForEntry(entry);
       }
     }
 
     for (final entry in travelEntries) {
       final weekDay = entry.date.weekday - 1;
       if (weekDay >= 0 && weekDay < 7) {
-        weeklyHours[weekDay] += _travelMinutesForEntry(entry) / 60.0;
+        weeklyMinutes[weekDay] += _travelMinutesForEntry(entry);
       }
     }
 
-    return weeklyHours;
+    return weeklyMinutes;
   }
 
   List<MonthlyBreakdown> _calculateMonthlyBreakdown(
@@ -402,25 +399,25 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
     for (final entry in workEntries) {
       final bucket = buckets[_monthKey(entry.date)];
       if (bucket != null) {
-        bucket.workHours += _workMinutesForEntry(entry) / 60.0;
+        bucket.workMinutes += _workMinutesForEntry(entry);
       }
     }
 
     for (final entry in travelEntries) {
       final bucket = buckets[_monthKey(entry.date)];
       if (bucket != null) {
-        bucket.travelHours += _travelMinutesForEntry(entry) / 60.0;
+        bucket.travelMinutes += _travelMinutesForEntry(entry);
       }
     }
 
     return months.map((month) {
       final bucket = buckets[_monthKey(month)]!;
-      final total = bucket.workHours + bucket.travelHours;
+      final total = bucket.workMinutes + bucket.travelMinutes;
       return MonthlyBreakdown(
         month: month,
-        workHours: bucket.workHours,
-        travelHours: bucket.travelHours,
-        totalHours: total,
+        workMinutes: bucket.workMinutes,
+        travelMinutes: bucket.travelMinutes,
+        totalMinutes: total,
       );
     }).toList(growable: false);
   }
@@ -441,20 +438,20 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
             entry.date.month == previousMonth.month)
         .toList();
 
-    final currentMonthHours = currentMonthEntries.fold<int>(
-            0, (sum, entry) => sum + _workMinutesForEntry(entry)) /
-        60.0;
-    final previousMonthHours = previousMonthEntries.fold<int>(
-            0, (sum, entry) => sum + _workMinutesForEntry(entry)) /
-        60.0;
+    final currentMonthMinutes = currentMonthEntries.fold<int>(
+        0, (sum, entry) => sum + _workMinutesForEntry(entry));
+    final previousMonthMinutes = previousMonthEntries.fold<int>(
+        0, (sum, entry) => sum + _workMinutesForEntry(entry));
 
-    final percentageChange = previousMonthHours > 0
-        ? ((currentMonthHours - previousMonthHours) / previousMonthHours) * 100
+    final percentageChange = previousMonthMinutes > 0
+        ? ((currentMonthMinutes - previousMonthMinutes) /
+                previousMonthMinutes) *
+            100
         : 0.0;
 
     return {
-      'currentMonth': currentMonthHours,
-      'previousMonth': previousMonthHours,
+      'currentMonthMinutes': currentMonthMinutes,
+      'previousMonthMinutes': previousMonthMinutes,
       'percentageChange': percentageChange,
     };
   }
@@ -463,10 +460,21 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
       List<Entry> workEntries, List<Entry> travelEntries) {
     final dailyData = <Map<String, dynamic>>[];
     final now = DateTime.now();
+    final normalizedToday = DateTime(now.year, now.month, now.day);
+    final start =
+        _startDate ?? normalizedToday.subtract(const Duration(days: 6));
+    final end = _endDate ?? normalizedToday;
+    if (end.isBefore(start)) {
+      return dailyData;
+    }
 
-    // Get last 7 days
-    for (int i = 6; i >= 0; i--) {
-      final date = now.subtract(Duration(days: i));
+    final trailingWeekStart = end.subtract(const Duration(days: 6));
+    final windowStart =
+        start.isAfter(trailingWeekStart) ? start : trailingWeekStart;
+
+    for (var date = windowStart;
+        !date.isAfter(end);
+        date = date.add(const Duration(days: 1))) {
       final dayEntries = workEntries
           .where((entry) =>
               entry.date.year == date.year &&
@@ -481,18 +489,16 @@ class CustomerAnalyticsViewModel extends ChangeNotifier {
               entry.date.day == date.day)
           .toList();
 
-      final workHours = dayEntries.fold<int>(
-              0, (sum, entry) => sum + _workMinutesForEntry(entry)) /
-          60.0;
-      final travelHours = dayTravelEntries.fold<int>(
-              0, (sum, entry) => sum + _travelMinutesForEntry(entry)) /
-          60.0;
+      final workMinutes = dayEntries.fold<int>(
+          0, (sum, entry) => sum + _workMinutesForEntry(entry));
+      final travelMinutes = dayTravelEntries.fold<int>(
+          0, (sum, entry) => sum + _travelMinutesForEntry(entry));
 
       dailyData.add({
         'date': date,
-        'workHours': workHours,
-        'travelHours': travelHours,
-        'totalHours': workHours + travelHours,
+        'workMinutes': workMinutes,
+        'travelMinutes': travelMinutes,
+        'totalMinutes': workMinutes + travelMinutes,
       });
     }
 
