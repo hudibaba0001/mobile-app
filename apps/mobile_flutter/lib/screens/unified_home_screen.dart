@@ -17,6 +17,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../config/app_router.dart';
 import '../models/autocomplete_suggestion.dart';
+import '../reporting/time_format.dart';
+import '../reporting/time_range.dart';
+import '../reporting/tracked_time_calculator.dart';
 // EntryProvider is the only write path
 import '../providers/entry_provider.dart';
 import '../providers/absence_provider.dart';
@@ -450,46 +453,19 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       return _buildLoadingTotalCard(theme);
     }
 
-    // Calculate today's totals
-    final today = DateTime.now();
-    final todayStart = DateTime(today.year, today.month, today.day);
-    final todayEnd = todayStart.add(const Duration(days: 1));
+    final localeCode = Localizations.localeOf(context).toLanguageTag();
+    final todaySummary = TrackedTimeCalculator.computeTrackedSummary(
+      entries: entryProvider.entries,
+      range: TimeRange.today(),
+      travelEnabled: travelEnabled,
+    );
 
-    final todayEntries = entryProvider.entries.where((entry) {
-      return entry.date
-              .isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
-          entry.date.isBefore(todayEnd);
-    }).toList();
-
-    // Calculate totals
-    Duration totalDuration = Duration.zero;
-    Duration travelDuration = Duration.zero;
-    Duration workDuration = Duration.zero;
-
-    for (final entry in todayEntries) {
-      if (entry.type == EntryType.work) {
-        workDuration += entry.totalDuration;
-        totalDuration += entry.totalDuration;
-      } else if (entry.type == EntryType.travel && travelEnabled) {
-        travelDuration += entry.totalDuration;
-        totalDuration += entry.totalDuration;
-      }
-    }
-
-    // Format durations
-    String formatDuration(Duration duration) {
-      if (duration.inMinutes == 0) return '0m';
-      final hours = duration.inHours;
-      final minutes = duration.inMinutes % 60;
-      if (hours > 0) {
-        return minutes > 0 ? '${hours}h ${minutes}m' : '${hours}h';
-      }
-      return '${minutes}m';
-    }
-
-    final totalText = formatDuration(totalDuration);
-    final travelText = formatDuration(travelDuration);
-    final workText = formatDuration(workDuration);
+    final totalText =
+        formatMinutes(todaySummary.totalMinutes, localeCode: localeCode);
+    final travelText =
+        formatMinutes(todaySummary.travelMinutes, localeCode: localeCode);
+    final workText =
+        formatMinutes(todaySummary.workMinutes, localeCode: localeCode);
 
     return Container(
       width: double.infinity,
@@ -598,48 +574,19 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       return _buildLoadingStatsCard(theme);
     }
 
-    // Calculate this week's totals
-    final now = DateTime.now();
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final weekStartDate =
-        DateTime(weekStart.year, weekStart.month, weekStart.day);
-    final weekEndDate = weekStartDate.add(const Duration(days: 7));
+    final localeCode = Localizations.localeOf(context).toLanguageTag();
+    final weekSummary = TrackedTimeCalculator.computeTrackedSummary(
+      entries: entryProvider.entries,
+      range: TimeRange.thisWeek(),
+      travelEnabled: travelEnabled,
+    );
 
-    final weekEntries = entryProvider.entries.where((entry) {
-      return entry.date
-              .isAfter(weekStartDate.subtract(const Duration(seconds: 1))) &&
-          entry.date.isBefore(weekEndDate);
-    }).toList();
-
-    // Calculate totals
-    Duration totalDuration = Duration.zero;
-    Duration travelDuration = Duration.zero;
-    Duration workDuration = Duration.zero;
-
-    for (final entry in weekEntries) {
-      if (entry.type == EntryType.travel && travelEnabled) {
-        travelDuration += entry.totalDuration;
-        totalDuration += entry.totalDuration;
-      } else if (entry.type == EntryType.work) {
-        workDuration += entry.totalDuration;
-        totalDuration += entry.totalDuration;
-      }
-    }
-
-    // Format durations (match Today card formatting exactly)
-    String formatDuration(Duration duration) {
-      if (duration.inMinutes == 0) return '0m';
-      final hours = duration.inHours;
-      final minutes = duration.inMinutes % 60;
-      if (hours > 0) {
-        return minutes > 0 ? '${hours}h ${minutes}m' : '${hours}h';
-      }
-      return '${minutes}m';
-    }
-
-    final totalText = formatDuration(totalDuration);
-    final travelText = formatDuration(travelDuration);
-    final workText = formatDuration(workDuration);
+    final totalText =
+        formatMinutes(weekSummary.totalMinutes, localeCode: localeCode);
+    final travelText =
+        formatMinutes(weekSummary.travelMinutes, localeCode: localeCode);
+    final workText =
+        formatMinutes(weekSummary.workMinutes, localeCode: localeCode);
 
     return Container(
       width: double.infinity,

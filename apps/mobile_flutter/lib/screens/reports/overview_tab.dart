@@ -9,8 +9,13 @@ import '../../models/entry.dart';
 import '../../repositories/balance_adjustment_repository.dart';
 import '../../reports/report_aggregator.dart';
 import '../../reports/report_query_service.dart';
+import '../../reporting/time_format.dart';
+import '../../reporting/time_range.dart';
+import '../../reporting/tracked_time_calculator.dart';
+import '../../reporting/tracked_time_summary.dart';
 import '../../services/export_service.dart';
 import '../../services/supabase_auth_service.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/export_share_dialog.dart';
 import '../../l10n/generated/app_localizations.dart';
 
@@ -77,6 +82,10 @@ class _OverviewTabState extends State<OverviewTab> {
   }
 
   Future<ReportSummary> _loadSummary() async {
+    final selectedRange =
+        TimeRange.custom(widget.range.start, widget.range.end);
+    final endInclusive =
+        selectedRange.endExclusive.subtract(const Duration(days: 1));
     final queryService = ReportQueryService(
       authService: context.read<SupabaseAuthService>(),
       adjustmentRepository: BalanceAdjustmentRepository(SupabaseConfig.client),
@@ -85,8 +94,8 @@ class _OverviewTabState extends State<OverviewTab> {
     final aggregator = ReportAggregator(queryService: queryService);
 
     final summary = await aggregator.buildSummary(
-      start: widget.range.start,
-      end: widget.range.end,
+      start: selectedRange.startInclusive,
+      end: endInclusive,
       selectedType: _entryTypeForSegment(widget.segment),
     );
 
@@ -104,6 +113,18 @@ class _OverviewTabState extends State<OverviewTab> {
       travelInsights: summary.travelInsights,
       leavesSummary: summary.leavesSummary,
       balanceOffsets: summary.balanceOffsets,
+    );
+  }
+
+  TrackedTimeSummary _buildTrackedSummary(ReportSummary summary) {
+    final selectedRange =
+        TimeRange.custom(widget.range.start, widget.range.end);
+    final travelEnabled =
+        context.read<SettingsProvider>().isTravelLoggingEnabled;
+    return TrackedTimeCalculator.computeTrackedSummary(
+      entries: summary.filteredEntries,
+      range: selectedRange,
+      travelEnabled: travelEnabled,
     );
   }
 
@@ -277,6 +298,7 @@ class _OverviewTabState extends State<OverviewTab> {
 
   List<Widget> _buildAllCards(BuildContext context, ReportSummary summary) {
     final t = AppLocalizations.of(context);
+    final tracked = _buildTrackedSummary(summary);
     return [
       Row(
         children: [
@@ -285,7 +307,7 @@ class _OverviewTabState extends State<OverviewTab> {
               context,
               icon: Icons.timer_rounded,
               title: t.overview_totalHours,
-              value: _formatMinutes(summary.totalTrackedMinutes),
+              value: _formatMinutes(tracked.totalMinutes),
               subtitle: t.overview_allActivities,
             ),
           ),
@@ -295,7 +317,7 @@ class _OverviewTabState extends State<OverviewTab> {
               context,
               icon: Icons.assignment_rounded,
               title: t.overview_totalEntries,
-              value: '${summary.filteredEntries.length}',
+              value: '${tracked.entryCount}',
               subtitle: t.overview_thisPeriod,
             ),
           ),
@@ -309,7 +331,7 @@ class _OverviewTabState extends State<OverviewTab> {
               context,
               icon: Icons.work_rounded,
               title: t.overview_workTime,
-              value: _formatMinutes(summary.workMinutes),
+              value: _formatMinutes(tracked.workMinutes),
               subtitle: t.overview_totalWork,
             ),
           ),
@@ -319,7 +341,7 @@ class _OverviewTabState extends State<OverviewTab> {
               context,
               icon: Icons.directions_car_rounded,
               title: t.overview_travelTime,
-              value: _formatMinutes(summary.travelMinutes),
+              value: _formatMinutes(tracked.travelMinutes),
               subtitle: t.overview_totalCommute,
             ),
           ),
@@ -331,6 +353,7 @@ class _OverviewTabState extends State<OverviewTab> {
   List<Widget> _buildWorkCards(BuildContext context, ReportSummary summary) {
     final t = AppLocalizations.of(context);
     final longest = summary.workInsights.longestShift;
+    final tracked = _buildTrackedSummary(summary);
 
     return [
       Row(
@@ -340,7 +363,7 @@ class _OverviewTabState extends State<OverviewTab> {
               context,
               icon: Icons.work_rounded,
               title: t.overview_workTime,
-              value: _formatMinutes(summary.workMinutes),
+              value: _formatMinutes(tracked.workMinutes),
               subtitle: t.overview_totalWork,
             ),
           ),
@@ -402,6 +425,7 @@ class _OverviewTabState extends State<OverviewTab> {
   List<Widget> _buildTravelCards(BuildContext context, ReportSummary summary) {
     final t = AppLocalizations.of(context);
     final topRoutes = summary.travelInsights.topRoutes.take(3).toList();
+    final tracked = _buildTrackedSummary(summary);
     return [
       Row(
         children: [
@@ -410,7 +434,7 @@ class _OverviewTabState extends State<OverviewTab> {
               context,
               icon: Icons.directions_car_rounded,
               title: t.reportsCustom_travelTime,
-              value: _formatMinutes(summary.travelMinutes),
+              value: _formatMinutes(tracked.travelMinutes),
               subtitle: t.reportsCustom_totalTravelTime,
             ),
           ),
@@ -855,16 +879,10 @@ class _OverviewTabState extends State<OverviewTab> {
     final navigator = Navigator.of(context, rootNavigator: true);
     final scaffold = ScaffoldMessenger.of(context);
     final errorColor = Theme.of(context).colorScheme.error;
-    final start = DateTime(
-      widget.range.start.year,
-      widget.range.start.month,
-      widget.range.start.day,
-    );
-    final end = DateTime(
-      widget.range.end.year,
-      widget.range.end.month,
-      widget.range.end.day,
-    );
+    final selectedRange =
+        TimeRange.custom(widget.range.start, widget.range.end);
+    final start = selectedRange.startInclusive;
+    final end = selectedRange.endExclusive.subtract(const Duration(days: 1));
 
     showDialog(
       context: context,
@@ -1129,14 +1147,13 @@ class _OverviewTabState extends State<OverviewTab> {
   }
 
   String _formatMinutes(int minutes, {bool signed = false}) {
-    final absMinutes = minutes.abs();
-    final h = absMinutes ~/ 60;
-    final m = absMinutes % 60;
-    final base = m == 0 ? '${h}h' : '${h}h ${m}m';
-
-    if (!signed) return base;
-    final sign = minutes < 0 ? '-' : '+';
-    return '$sign$base';
+    final localeCode = Localizations.localeOf(context).toLanguageTag();
+    return formatMinutes(
+      minutes,
+      localeCode: localeCode,
+      signed: signed,
+      showPlusForZero: signed,
+    );
   }
 
   String? _travelRouteText(Entry entry) {
