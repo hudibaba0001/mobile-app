@@ -11,7 +11,10 @@ import '../providers/settings_provider.dart';
 /// Schedules one recurring daily notification at the user-selected time.
 class ReminderService {
   static const int _dailyReminderNotificationId = 1001;
-  static const String _channelId = 'daily_reminders';
+  static const int _testNotificationId = 1002;
+
+  // v2 channel with high importance (old 'daily_reminders' channel was default importance)
+  static const String _channelId = 'daily_reminders_v2';
   static const String _channelName = 'Daily reminders';
   static const String _channelDescription =
       'User-configured daily reminders to log time';
@@ -41,6 +44,23 @@ class ReminderService {
     );
 
     await _notifications.initialize(initSettings);
+
+    // Explicitly create the notification channel with high importance
+    final android = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android != null) {
+      await android.createNotificationChannel(
+        const AndroidNotificationChannel(
+          _channelId,
+          _channelName,
+          description: _channelDescription,
+          importance: Importance.high,
+          playSound: true,
+          enableVibration: true,
+        ),
+      );
+    }
+
     _initialized = true;
   }
 
@@ -50,7 +70,6 @@ class ReminderService {
       tz.setLocalLocation(tz.getLocation(name));
     } catch (e) {
       debugPrint('ReminderService: Failed to set local timezone: $e');
-      // Keep default timezone if lookup fails.
     }
   }
 
@@ -63,9 +82,13 @@ class ReminderService {
     try {
       final android = _notifications.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
-      final androidGranted = await android?.requestNotificationsPermission();
-      if (androidGranted == false) {
-        granted = false;
+      if (android != null) {
+        final androidGranted = await android.requestNotificationsPermission();
+        if (androidGranted == false) {
+          granted = false;
+        }
+        // Request exact alarm permission for Android 12+
+        await android.requestExactAlarmsPermission();
       }
 
       final ios = _notifications.resolvePlatformSpecificImplementation<
@@ -92,6 +115,43 @@ class ReminderService {
     }
 
     return granted;
+  }
+
+  /// Send an immediate test notification to verify the notification system works.
+  Future<void> showTestNotification() async {
+    if (!_supportsNotifications) return;
+    await initialize();
+
+    const androidDetails = AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      channelDescription: _channelDescription,
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+    );
+    const darwinDetails = DarwinNotificationDetails();
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: darwinDetails,
+      macOS: darwinDetails,
+    );
+
+    try {
+      await _notifications.show(
+        _testNotificationId,
+        'KvikTime',
+        'Reminders are working! You will be notified daily.',
+        details,
+        payload: 'test_reminder',
+      );
+      debugPrint('ReminderService: Test notification sent');
+    } catch (e) {
+      debugPrint('ReminderService: Failed to show test notification: $e');
+      rethrow;
+    }
   }
 
   Future<void> applySettings(SettingsProvider settings) async {
@@ -140,8 +200,10 @@ class ReminderService {
       _channelId,
       _channelName,
       channelDescription: _channelDescription,
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
     );
     const darwinDetails = DarwinNotificationDetails();
 
@@ -151,18 +213,36 @@ class ReminderService {
       macOS: darwinDetails,
     );
 
-    await _notifications.zonedSchedule(
-      _dailyReminderNotificationId,
-      'KvikTime',
-      message,
-      scheduled,
-      details,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-      payload: 'daily_reminder',
-    );
+    try {
+      await _notifications.zonedSchedule(
+        _dailyReminderNotificationId,
+        'KvikTime',
+        message,
+        scheduled,
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+        payload: 'daily_reminder',
+      );
+      debugPrint(
+        'ReminderService: Scheduled daily reminder at $hour:${minute.toString().padLeft(2, '0')} '
+        '(next fire: $scheduled)',
+      );
+    } on PlatformException catch (e) {
+      if (e.message?.contains(_typeTokenCrashHint) == true) {
+        debugPrint(
+          'ReminderService: TypeToken crash during schedule – skipping.',
+        );
+        return;
+      }
+      debugPrint('ReminderService: Failed to schedule reminder: $e');
+      rethrow;
+    } catch (e) {
+      debugPrint('ReminderService: Failed to schedule reminder: $e');
+      rethrow;
+    }
   }
 
   Future<void> cancelDailyReminder() async {
@@ -175,7 +255,6 @@ class ReminderService {
     try {
       await _notifications.cancel(_dailyReminderNotificationId);
     } on PlatformException catch (e) {
-      // Guard against known R8/Gson signature stripping crash in release builds.
       if (e.message?.contains(_typeTokenCrashHint) == true) {
         debugPrint(
           'ReminderService: Ignoring known TypeToken cancel crash. '

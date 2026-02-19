@@ -1576,6 +1576,109 @@
   "legal_acceptBody": "To continue using KvikTime, please review and accept our Terms of Service and Privacy Policy.",
   "legal_acceptButton": "I Accept",
 
+
+  "reportsCustom_periodToday": "Today",
+  "reportsCustom_periodThisWeek": "This week",
+  "reportsCustom_periodLast7Days": "Last 7 days",
+  "reportsCustom_periodThisMonth": "This month",
+  "reportsCustom_periodLastMonth": "Last month",
+  "reportsCustom_periodThisYear": "This year",
+  "reportsCustom_periodCustom": "Custom...",
+  "reportsCustom_filterAll": "All",
+  "reportsCustom_filterWork": "Work",
+  "reportsCustom_filterTravel": "Travel",
+  "reportsCustom_filterLeave": "Leaves",
+  "reportsCustom_workDays": "Work days",
+  "reportsCustom_daysWithWork": "Days with work",
+  "reportsCustom_averagePerDay": "Average per day",
+  "reportsCustom_workedTime": "Worked time",
+  "reportsCustom_breaks": "Breaks",
+  "reportsCustom_breakAveragePerShift": "{value} / shift",
+  "@reportsCustom_breakAveragePerShift": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "reportsCustom_longestShift": "Longest shift",
+  "reportsCustom_noLocationProvided": "No location provided",
+  "reportsCustom_travelTime": "Travel time",
+  "reportsCustom_totalTravelTime": "Total travel time",
+  "reportsCustom_trips": "Trips",
+  "reportsCustom_tripCount": "Number of trips",
+  "reportsCustom_averagePerTrip": "Average per trip",
+  "reportsCustom_averageTravelTime": "Average travel time",
+  "reportsCustom_topRoutes": "Top routes",
+  "reportsCustom_topRouteLine": "{route} - {count} trips - {duration}",
+  "@reportsCustom_topRouteLine": {
+    "placeholders": {
+      "route": {"type": "String"},
+      "count": {"type": "int"},
+      "duration": {"type": "String"}
+    }
+  },
+  "reportsCustom_leaveDays": "Leave days",
+  "reportsCustom_totalInPeriod": "Total in period",
+  "reportsCustom_leaveEntries": "Leave entries",
+  "reportsCustom_registeredEntries": "Registered entries",
+  "reportsCustom_paidLeave": "Paid leave",
+  "reportsCustom_paidLeaveTypes": "Vacation/Sick/VAB",
+  "reportsCustom_unpaidLeave": "Unpaid leave",
+  "reportsCustom_unpaidLeaveType": "Unpaid leave",
+  "reportsCustom_balanceAdjustments": "Balance adjustments",
+  "reportsCustom_openingBalanceEffectiveFrom": "Opening balance: {value} (effective from {date})",
+  "@reportsCustom_openingBalanceEffectiveFrom": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "reportsCustom_timeAdjustmentsTotal": "Time adjustments: {value}",
+  "@reportsCustom_timeAdjustmentsTotal": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "reportsCustom_timeAdjustmentsInPeriod": "Time adjustments in period",
+  "reportsCustom_noNote": "No note",
+  "reportsCustom_balanceAtPeriodStart": "Balance at period start: {value}",
+  "@reportsCustom_balanceAtPeriodStart": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "reportsCustom_balanceAtPeriodEnd": "Balance at period end: {value}",
+  "@reportsCustom_balanceAtPeriodEnd": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "reportsCustom_periodStartIncludesStartDateAdjustmentsHint": "Adjustments on the start date are included in the period start balance.",
+  "reportsCustom_entriesInPeriod": "Entries in period",
+  "reportsCustom_emptyTitle": "No entries in this period",
+  "reportsCustom_emptySubtitle": "Change period or filter",
+  "reportsCustom_exportCsv": "Export CSV",
+  "reportsCustom_exportExcel": "Export Excel",
+  "reportsCustom_exportCsvDone": "Export CSV: done",
+  "reportsCustom_exportExcelDone": "Export Excel: done",
+  "reportsCustom_exportFailed": "Export failed: {error}",
+  "@reportsCustom_exportFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "reportsExport_entriesSheetName": "Entries",
+  "reportsExport_adjustmentsSheetName": "Balance adjustments",
+  "reportsExport_openingBalanceRow": "Opening balance",
+  "reportsExport_timeAdjustmentRow": "Time adjustment",
+  "reportsExport_timeAdjustmentsTotalRow": "Time adjustments total",
+  "reportsExport_periodStartBalanceRow": "Balance at period start",
+  "reportsExport_periodEndBalanceRow": "Balance at period end",
+  "reportsExport_colType": "Type",
+  "reportsExport_colDate": "Date",
+  "reportsExport_colMinutes": "Minutes",
+  "reportsExport_colHours": "Hours",
+  "reportsExport_colNote": "Note",
+  "reportsExport_fileName": "report_export",
   "session_expiredTitle": "Session Expired",
   "session_expiredBody": "Your session has expired. Please sign in again to continue.",
   "session_signInAgain": "Sign In Again"

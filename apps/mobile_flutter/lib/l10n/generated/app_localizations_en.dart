@@ -2878,6 +2878,214 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legal_acceptButton => 'I Accept';
 
   @override
+  String get reportsCustom_periodToday => 'Today';
+
+  @override
+  String get reportsCustom_periodThisWeek => 'This week';
+
+  @override
+  String get reportsCustom_periodLast7Days => 'Last 7 days';
+
+  @override
+  String get reportsCustom_periodThisMonth => 'This month';
+
+  @override
+  String get reportsCustom_periodLastMonth => 'Last month';
+
+  @override
+  String get reportsCustom_periodThisYear => 'This year';
+
+  @override
+  String get reportsCustom_periodCustom => 'Custom...';
+
+  @override
+  String get reportsCustom_filterAll => 'All';
+
+  @override
+  String get reportsCustom_filterWork => 'Work';
+
+  @override
+  String get reportsCustom_filterTravel => 'Travel';
+
+  @override
+  String get reportsCustom_filterLeave => 'Leaves';
+
+  @override
+  String get reportsCustom_workDays => 'Work days';
+
+  @override
+  String get reportsCustom_daysWithWork => 'Days with work';
+
+  @override
+  String get reportsCustom_averagePerDay => 'Average per day';
+
+  @override
+  String get reportsCustom_workedTime => 'Worked time';
+
+  @override
+  String get reportsCustom_breaks => 'Breaks';
+
+  @override
+  String reportsCustom_breakAveragePerShift(String value) {
+    return '$value / shift';
+  }
+
+  @override
+  String get reportsCustom_longestShift => 'Longest shift';
+
+  @override
+  String get reportsCustom_noLocationProvided => 'No location provided';
+
+  @override
+  String get reportsCustom_travelTime => 'Travel time';
+
+  @override
+  String get reportsCustom_totalTravelTime => 'Total travel time';
+
+  @override
+  String get reportsCustom_trips => 'Trips';
+
+  @override
+  String get reportsCustom_tripCount => 'Number of trips';
+
+  @override
+  String get reportsCustom_averagePerTrip => 'Average per trip';
+
+  @override
+  String get reportsCustom_averageTravelTime => 'Average travel time';
+
+  @override
+  String get reportsCustom_topRoutes => 'Top routes';
+
+  @override
+  String reportsCustom_topRouteLine(String route, int count, String duration) {
+    return '$route - $count trips - $duration';
+  }
+
+  @override
+  String get reportsCustom_leaveDays => 'Leave days';
+
+  @override
+  String get reportsCustom_totalInPeriod => 'Total in period';
+
+  @override
+  String get reportsCustom_leaveEntries => 'Leave entries';
+
+  @override
+  String get reportsCustom_registeredEntries => 'Registered entries';
+
+  @override
+  String get reportsCustom_paidLeave => 'Paid leave';
+
+  @override
+  String get reportsCustom_paidLeaveTypes => 'Vacation/Sick/VAB';
+
+  @override
+  String get reportsCustom_unpaidLeave => 'Unpaid leave';
+
+  @override
+  String get reportsCustom_unpaidLeaveType => 'Unpaid leave';
+
+  @override
+  String get reportsCustom_balanceAdjustments => 'Balance adjustments';
+
+  @override
+  String reportsCustom_openingBalanceEffectiveFrom(String value, String date) {
+    return 'Opening balance: $value (effective from $date)';
+  }
+
+  @override
+  String reportsCustom_timeAdjustmentsTotal(String value) {
+    return 'Time adjustments: $value';
+  }
+
+  @override
+  String get reportsCustom_timeAdjustmentsInPeriod =>
+      'Time adjustments in period';
+
+  @override
+  String get reportsCustom_noNote => 'No note';
+
+  @override
+  String reportsCustom_balanceAtPeriodStart(String value) {
+    return 'Balance at period start: $value';
+  }
+
+  @override
+  String reportsCustom_balanceAtPeriodEnd(String value) {
+    return 'Balance at period end: $value';
+  }
+
+  @override
+  String get reportsCustom_periodStartIncludesStartDateAdjustmentsHint =>
+      'Adjustments on the start date are included in the period start balance.';
+
+  @override
+  String get reportsCustom_entriesInPeriod => 'Entries in period';
+
+  @override
+  String get reportsCustom_emptyTitle => 'No entries in this period';
+
+  @override
+  String get reportsCustom_emptySubtitle => 'Change period or filter';
+
+  @override
+  String get reportsCustom_exportCsv => 'Export CSV';
+
+  @override
+  String get reportsCustom_exportExcel => 'Export Excel';
+
+  @override
+  String get reportsCustom_exportCsvDone => 'Export CSV: done';
+
+  @override
+  String get reportsCustom_exportExcelDone => 'Export Excel: done';
+
+  @override
+  String reportsCustom_exportFailed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
+  String get reportsExport_entriesSheetName => 'Entries';
+
+  @override
+  String get reportsExport_adjustmentsSheetName => 'Balance adjustments';
+
+  @override
+  String get reportsExport_openingBalanceRow => 'Opening balance';
+
+  @override
+  String get reportsExport_timeAdjustmentRow => 'Time adjustment';
+
+  @override
+  String get reportsExport_timeAdjustmentsTotalRow => 'Time adjustments total';
+
+  @override
+  String get reportsExport_periodStartBalanceRow => 'Balance at period start';
+
+  @override
+  String get reportsExport_periodEndBalanceRow => 'Balance at period end';
+
+  @override
+  String get reportsExport_colType => 'Type';
+
+  @override
+  String get reportsExport_colDate => 'Date';
+
+  @override
+  String get reportsExport_colMinutes => 'Minutes';
+
+  @override
+  String get reportsExport_colHours => 'Hours';
+
+  @override
+  String get reportsExport_colNote => 'Note';
+
+  @override
+  String get reportsExport_fileName => 'report_export';
+
+  @override
   String get session_expiredTitle => 'Session Expired';
 
   @override

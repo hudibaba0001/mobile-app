@@ -5,6 +5,8 @@ import '../models/entry.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/supabase_entry_service.dart';
 import '../services/sync_queue_service.dart';
+import '../utils/entry_filter.dart' as entry_filter_utils;
+import '../utils/entry_filter_spec.dart';
 import '../utils/retry_helper.dart';
 
 /// Conflict resolution strategy when server and local have different versions
@@ -573,36 +575,16 @@ class EntryProvider extends ChangeNotifier {
   }
 
   void _applyFilters() {
-    _filteredEntries = _entries.where((entry) {
-      // Type filter
-      if (_selectedType != null && entry.type != _selectedType) {
-        return false;
-      }
-
-      // Date range filter
-      if (_startDate != null && entry.date.isBefore(_startDate!)) {
-        return false;
-      }
-      if (_endDate != null && entry.date.isAfter(_endDate!)) {
-        return false;
-      }
-
-      // Search filter
-      if (_searchQuery.isNotEmpty) {
-        final query = _searchQuery.toLowerCase();
-        final matchesSearch =
-            entry.notes?.toLowerCase().contains(query) == true ||
-                (entry.type == EntryType.travel &&
-                    ((entry.from?.toLowerCase().contains(query) == true) ||
-                        (entry.to?.toLowerCase().contains(query) == true)));
-
-        if (!matchesSearch) {
-          return false;
-        }
-      }
-
-      return true;
-    }).toList();
+    final spec = EntryFilterSpec(
+      startDate: _startDate,
+      endDate: _endDate,
+      selectedType: _selectedType,
+      searchQuery: _searchQuery,
+    );
+    _filteredEntries = entry_filter_utils.EntryFilter.filterEntries(
+      _entries,
+      spec,
+    );
   }
 
   void clearFilters() {

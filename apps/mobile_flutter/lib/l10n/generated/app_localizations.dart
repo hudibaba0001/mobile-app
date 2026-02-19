@@ -5217,6 +5217,390 @@ abstract class AppLocalizations {
   /// **'I Accept'**
   String get legal_acceptButton;
 
+  /// No description provided for @reportsCustom_periodToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get reportsCustom_periodToday;
+
+  /// No description provided for @reportsCustom_periodThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get reportsCustom_periodThisWeek;
+
+  /// No description provided for @reportsCustom_periodLast7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get reportsCustom_periodLast7Days;
+
+  /// No description provided for @reportsCustom_periodThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get reportsCustom_periodThisMonth;
+
+  /// No description provided for @reportsCustom_periodLastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Last month'**
+  String get reportsCustom_periodLastMonth;
+
+  /// No description provided for @reportsCustom_periodThisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get reportsCustom_periodThisYear;
+
+  /// No description provided for @reportsCustom_periodCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom...'**
+  String get reportsCustom_periodCustom;
+
+  /// No description provided for @reportsCustom_filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get reportsCustom_filterAll;
+
+  /// No description provided for @reportsCustom_filterWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get reportsCustom_filterWork;
+
+  /// No description provided for @reportsCustom_filterTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get reportsCustom_filterTravel;
+
+  /// No description provided for @reportsCustom_filterLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaves'**
+  String get reportsCustom_filterLeave;
+
+  /// No description provided for @reportsCustom_workDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Work days'**
+  String get reportsCustom_workDays;
+
+  /// No description provided for @reportsCustom_daysWithWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Days with work'**
+  String get reportsCustom_daysWithWork;
+
+  /// No description provided for @reportsCustom_averagePerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Average per day'**
+  String get reportsCustom_averagePerDay;
+
+  /// No description provided for @reportsCustom_workedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked time'**
+  String get reportsCustom_workedTime;
+
+  /// No description provided for @reportsCustom_breaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Breaks'**
+  String get reportsCustom_breaks;
+
+  /// No description provided for @reportsCustom_breakAveragePerShift.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} / shift'**
+  String reportsCustom_breakAveragePerShift(String value);
+
+  /// No description provided for @reportsCustom_longestShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest shift'**
+  String get reportsCustom_longestShift;
+
+  /// No description provided for @reportsCustom_noLocationProvided.
+  ///
+  /// In en, this message translates to:
+  /// **'No location provided'**
+  String get reportsCustom_noLocationProvided;
+
+  /// No description provided for @reportsCustom_travelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel time'**
+  String get reportsCustom_travelTime;
+
+  /// No description provided for @reportsCustom_totalTravelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total travel time'**
+  String get reportsCustom_totalTravelTime;
+
+  /// No description provided for @reportsCustom_trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get reportsCustom_trips;
+
+  /// No description provided for @reportsCustom_tripCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of trips'**
+  String get reportsCustom_tripCount;
+
+  /// No description provided for @reportsCustom_averagePerTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Average per trip'**
+  String get reportsCustom_averagePerTrip;
+
+  /// No description provided for @reportsCustom_averageTravelTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Average travel time'**
+  String get reportsCustom_averageTravelTime;
+
+  /// No description provided for @reportsCustom_topRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Top routes'**
+  String get reportsCustom_topRoutes;
+
+  /// No description provided for @reportsCustom_topRouteLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{route} - {count} trips - {duration}'**
+  String reportsCustom_topRouteLine(String route, int count, String duration);
+
+  /// No description provided for @reportsCustom_leaveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave days'**
+  String get reportsCustom_leaveDays;
+
+  /// No description provided for @reportsCustom_totalInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Total in period'**
+  String get reportsCustom_totalInPeriod;
+
+  /// No description provided for @reportsCustom_leaveEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave entries'**
+  String get reportsCustom_leaveEntries;
+
+  /// No description provided for @reportsCustom_registeredEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered entries'**
+  String get reportsCustom_registeredEntries;
+
+  /// No description provided for @reportsCustom_paidLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid leave'**
+  String get reportsCustom_paidLeave;
+
+  /// No description provided for @reportsCustom_paidLeaveTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacation/Sick/VAB'**
+  String get reportsCustom_paidLeaveTypes;
+
+  /// No description provided for @reportsCustom_unpaidLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid leave'**
+  String get reportsCustom_unpaidLeave;
+
+  /// No description provided for @reportsCustom_unpaidLeaveType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid leave'**
+  String get reportsCustom_unpaidLeaveType;
+
+  /// No description provided for @reportsCustom_balanceAdjustments.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance adjustments'**
+  String get reportsCustom_balanceAdjustments;
+
+  /// No description provided for @reportsCustom_openingBalanceEffectiveFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening balance: {value} (effective from {date})'**
+  String reportsCustom_openingBalanceEffectiveFrom(String value, String date);
+
+  /// No description provided for @reportsCustom_timeAdjustmentsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Time adjustments: {value}'**
+  String reportsCustom_timeAdjustmentsTotal(String value);
+
+  /// No description provided for @reportsCustom_timeAdjustmentsInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Time adjustments in period'**
+  String get reportsCustom_timeAdjustmentsInPeriod;
+
+  /// No description provided for @reportsCustom_noNote.
+  ///
+  /// In en, this message translates to:
+  /// **'No note'**
+  String get reportsCustom_noNote;
+
+  /// No description provided for @reportsCustom_balanceAtPeriodStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance at period start: {value}'**
+  String reportsCustom_balanceAtPeriodStart(String value);
+
+  /// No description provided for @reportsCustom_balanceAtPeriodEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance at period end: {value}'**
+  String reportsCustom_balanceAtPeriodEnd(String value);
+
+  /// No description provided for @reportsCustom_periodStartIncludesStartDateAdjustmentsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustments on the start date are included in the period start balance.'**
+  String get reportsCustom_periodStartIncludesStartDateAdjustmentsHint;
+
+  /// No description provided for @reportsCustom_entriesInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries in period'**
+  String get reportsCustom_entriesInPeriod;
+
+  /// No description provided for @reportsCustom_emptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries in this period'**
+  String get reportsCustom_emptyTitle;
+
+  /// No description provided for @reportsCustom_emptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change period or filter'**
+  String get reportsCustom_emptySubtitle;
+
+  /// No description provided for @reportsCustom_exportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get reportsCustom_exportCsv;
+
+  /// No description provided for @reportsCustom_exportExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Excel'**
+  String get reportsCustom_exportExcel;
+
+  /// No description provided for @reportsCustom_exportCsvDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV: done'**
+  String get reportsCustom_exportCsvDone;
+
+  /// No description provided for @reportsCustom_exportExcelDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Excel: done'**
+  String get reportsCustom_exportExcelDone;
+
+  /// No description provided for @reportsCustom_exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String reportsCustom_exportFailed(String error);
+
+  /// No description provided for @reportsExport_entriesSheetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get reportsExport_entriesSheetName;
+
+  /// No description provided for @reportsExport_adjustmentsSheetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance adjustments'**
+  String get reportsExport_adjustmentsSheetName;
+
+  /// No description provided for @reportsExport_openingBalanceRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening balance'**
+  String get reportsExport_openingBalanceRow;
+
+  /// No description provided for @reportsExport_timeAdjustmentRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Time adjustment'**
+  String get reportsExport_timeAdjustmentRow;
+
+  /// No description provided for @reportsExport_timeAdjustmentsTotalRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Time adjustments total'**
+  String get reportsExport_timeAdjustmentsTotalRow;
+
+  /// No description provided for @reportsExport_periodStartBalanceRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance at period start'**
+  String get reportsExport_periodStartBalanceRow;
+
+  /// No description provided for @reportsExport_periodEndBalanceRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance at period end'**
+  String get reportsExport_periodEndBalanceRow;
+
+  /// No description provided for @reportsExport_colType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get reportsExport_colType;
+
+  /// No description provided for @reportsExport_colDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get reportsExport_colDate;
+
+  /// No description provided for @reportsExport_colMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get reportsExport_colMinutes;
+
+  /// No description provided for @reportsExport_colHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get reportsExport_colHours;
+
+  /// No description provided for @reportsExport_colNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get reportsExport_colNote;
+
+  /// No description provided for @reportsExport_fileName.
+  ///
+  /// In en, this message translates to:
+  /// **'report_export'**
+  String get reportsExport_fileName;
+
   /// No description provided for @session_expiredTitle.
   ///
   /// In en, this message translates to:

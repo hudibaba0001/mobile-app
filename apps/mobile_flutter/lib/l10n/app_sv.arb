@@ -1141,13 +1141,110 @@
   "legal_acceptBody": "För att fortsätta använda KvikTime, vänligen granska och godkänn våra användarvillkor och integritetspolicy.",
   "legal_acceptButton": "Jag accepterar",
 
+
+  "reportsCustom_periodToday": "Idag",
+  "reportsCustom_periodThisWeek": "Denna vecka",
+  "reportsCustom_periodLast7Days": "Senaste 7 dagar",
+  "reportsCustom_periodThisMonth": "Denna m\u00e5nad",
+  "reportsCustom_periodLastMonth": "F\u00f6rra m\u00e5naden",
+  "reportsCustom_periodThisYear": "I \u00e5r",
+  "reportsCustom_periodCustom": "Eget val...",
+  "reportsCustom_filterAll": "Alla",
+  "reportsCustom_filterWork": "Arbete",
+  "reportsCustom_filterTravel": "Resor",
+  "reportsCustom_filterLeave": "Ledighet",
+  "reportsCustom_workDays": "Arbetsdagar",
+  "reportsCustom_daysWithWork": "Dagar med arbete",
+  "reportsCustom_averagePerDay": "Snitt per dag",
+  "reportsCustom_workedTime": "Arbetad tid",
+  "reportsCustom_breaks": "Raster",
+  "reportsCustom_breakAveragePerShift": "{value} / pass",
+  "@reportsCustom_breakAveragePerShift": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "reportsCustom_longestShift": "L\u00e4ngsta arbetspass",
+  "reportsCustom_noLocationProvided": "Ingen plats angiven",
+  "reportsCustom_travelTime": "Restid",
+  "reportsCustom_totalTravelTime": "Total restid",
+  "reportsCustom_trips": "Resor",
+  "reportsCustom_tripCount": "Antal resor",
+  "reportsCustom_averagePerTrip": "Snitt per resa",
+  "reportsCustom_averageTravelTime": "Genomsnittlig restid",
+  "reportsCustom_topRoutes": "Topprutter",
+  "reportsCustom_topRouteLine": "{route} - {count} resor - {duration}",
+  "@reportsCustom_topRouteLine": {
+    "placeholders": {
+      "route": {"type": "String"},
+      "count": {"type": "int"},
+      "duration": {"type": "String"}
+    }
+  },
+  "reportsCustom_leaveDays": "Ledighetsdagar",
+  "reportsCustom_totalInPeriod": "Totalt i perioden",
+  "reportsCustom_leaveEntries": "Ledighetsposter",
+  "reportsCustom_registeredEntries": "Registrerade poster",
+  "reportsCustom_paidLeave": "Betald ledighet",
+  "reportsCustom_paidLeaveTypes": "Semester/Sjuk/VAB",
+  "reportsCustom_unpaidLeave": "Obetald ledighet",
+  "reportsCustom_unpaidLeaveType": "Tj\u00e4nstledighet",
+  "reportsCustom_balanceAdjustments": "Saldojusteringar",
+  "reportsCustom_openingBalanceEffectiveFrom": "\u00d6ppningssaldo: {value} (g\u00e4ller fr\u00e5n {date})",
+  "@reportsCustom_openingBalanceEffectiveFrom": {
+    "placeholders": {
+      "value": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "reportsCustom_timeAdjustmentsTotal": "Tidsjusteringar: {value}",
+  "@reportsCustom_timeAdjustmentsTotal": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "reportsCustom_timeAdjustmentsInPeriod": "Tidsjusteringar i perioden",
+  "reportsCustom_noNote": "Ingen anteckning",
+  "reportsCustom_balanceAtPeriodStart": "Saldo vid periodstart: {value}",
+  "@reportsCustom_balanceAtPeriodStart": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "reportsCustom_balanceAtPeriodEnd": "Saldo vid periodslut: {value}",
+  "@reportsCustom_balanceAtPeriodEnd": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "reportsCustom_periodStartIncludesStartDateAdjustmentsHint": "Justeringar p\u00e5 startdatumet ing\u00e5r i saldo vid periodstart.",
+  "reportsCustom_entriesInPeriod": "Poster i perioden",
+  "reportsCustom_emptyTitle": "Inga poster i denna period",
+  "reportsCustom_emptySubtitle": "\u00c4ndra period eller filter",
+  "reportsCustom_exportCsv": "Exportera CSV",
+  "reportsCustom_exportExcel": "Exportera Excel",
+  "reportsCustom_exportCsvDone": "Exportera CSV: klar",
+  "reportsCustom_exportExcelDone": "Exportera Excel: klar",
+  "reportsCustom_exportFailed": "Export misslyckades: {error}",
+  "@reportsCustom_exportFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "reportsExport_entriesSheetName": "Poster",
+  "reportsExport_adjustmentsSheetName": "Saldojusteringar",
+  "reportsExport_openingBalanceRow": "\u00d6ppningssaldo",
+  "reportsExport_timeAdjustmentRow": "Tidsjustering",
+  "reportsExport_timeAdjustmentsTotalRow": "Tidsjusteringar totalt",
+  "reportsExport_periodStartBalanceRow": "Saldo vid periodstart",
+  "reportsExport_periodEndBalanceRow": "Saldo vid periodslut",
+  "reportsExport_colType": "Typ",
+  "reportsExport_colDate": "Datum",
+  "reportsExport_colMinutes": "Minuter",
+  "reportsExport_colHours": "Timmar",
+  "reportsExport_colNote": "Anteckning",
+  "reportsExport_fileName": "rapport_export",
   "session_expiredTitle": "Sessionen har gått ut",
   "session_expiredBody": "Din session har gått ut. Vänligen logga in igen för att fortsätta.",
   "session_signInAgain": "Logga in igen"
 }
-
-
-
-
-
-

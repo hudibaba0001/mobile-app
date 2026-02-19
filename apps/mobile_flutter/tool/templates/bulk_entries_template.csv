@@ -1,0 +1,5 @@
+type,date,start_time,end_time,unpaid_break_minutes,location,from_location,to_location,travel_minutes,notes
+work,2026-01-02,08:00,16:30,30,Office,,,,Test work shift
+work,2026-01-03,09:00,17:00,45,HQ,,,,Second work shift
+travel,2026-01-04,,,,,Stockholm,Uppsala,50,Client visit travel
+travel,2026-01-05,,,,,Uppsala,Stockholm,55,Return trip

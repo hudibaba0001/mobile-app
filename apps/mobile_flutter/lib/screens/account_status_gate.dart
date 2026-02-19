@@ -36,6 +36,7 @@ class _AccountStatusGateState extends State<AccountStatusGate>
   UserEntitlement? _entitlement;
   LegalVersions? _requiredLegalVersions;
   bool _isLoading = true;
+  bool _hasLoadedOnce = false;
   String? _error;
 
   @override
@@ -55,15 +56,18 @@ class _AccountStatusGateState extends State<AccountStatusGate>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       // Refresh profile when app resumes (e.g., after returning from payment portal)
-      _loadProfile();
+      // Do it silently in background if we've already loaded once
+      _loadProfile(silent: _hasLoadedOnce);
     }
   }
 
-  Future<void> _loadProfile() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _loadProfile({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final authService = context.read<SupabaseAuthService>();
@@ -105,10 +109,16 @@ class _AccountStatusGateState extends State<AccountStatusGate>
           _entitlement = entitlement;
           _requiredLegalVersions = requiredLegalVersions;
           _isLoading = false;
+          _hasLoadedOnce = true;
         });
       }
     } catch (e) {
       if (mounted) {
+        // On silent refresh, don't show error if we already have data
+        if (silent && _hasLoadedOnce) {
+          debugPrint('AccountStatusGate: Silent refresh failed: $e');
+          return;
+        }
         setState(() {
           _error = 'Failed to load profile: $e';
           _isLoading = false;

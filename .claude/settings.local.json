@@ -28,7 +28,10 @@
       "Bash(del \"c:\\\\Users\\\\sanlo\\\\Documents\\\\GitHub\\\\mobile-app\\\\apps\\\\mobile_flutter\\\\lib\\\\screens\\\\admin_content_screen.dart\")",
       "Bash(git -C c:UserssanloDocumentsGitHubmobile-app log --all --pretty=format:\"%h %s\" --grep=\"legal_documents\\\\|app_messages\")",
       "Bash(git -C c:UserssanloDocumentsGitHubmobile-app log --all -p --source -- \"*legal_documents*\" \"*app_messages*\")",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git push:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter pub get:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

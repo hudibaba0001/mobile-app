@@ -3,12 +3,13 @@
 // ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../design/app_theme.dart';
 import '../viewmodels/customer_analytics_viewmodel.dart';
 import '../widgets/standard_app_bar.dart';
 import '../widgets/export_dialog.dart';
+import '../widgets/export_share_dialog.dart';
 import '../services/export_service.dart';
 import '../models/entry.dart';
 import '../services/supabase_auth_service.dart';
@@ -18,6 +19,16 @@ import 'reports/trends_tab.dart';
 import 'reports/time_balance_tab.dart';
 import 'reports/leaves_tab.dart';
 import '../l10n/generated/app_localizations.dart';
+
+enum ReportsPeriodPreset {
+  today,
+  thisWeek,
+  last7Days,
+  thisMonth,
+  lastMonth,
+  thisYear,
+  custom,
+}
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -29,6 +40,9 @@ class ReportsScreen extends StatefulWidget {
 class _ReportsScreenState extends State<ReportsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  ReportsPeriodPreset _selectedPeriod = ReportsPeriodPreset.thisMonth;
+  DateTimeRange? _customRange;
+  ReportSegment _selectedSegment = ReportSegment.all;
 
   @override
   void initState() {
@@ -40,6 +54,169 @@ class _ReportsScreenState extends State<ReportsScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  DateTimeRange _currentRange() {
+    final now = DateTime.now();
+    final today = _dateOnly(now);
+
+    switch (_selectedPeriod) {
+      case ReportsPeriodPreset.today:
+        return DateTimeRange(start: today, end: today);
+      case ReportsPeriodPreset.thisWeek:
+        final daysSinceMonday = today.weekday - DateTime.monday;
+        final start = today.subtract(Duration(days: daysSinceMonday));
+        return DateTimeRange(start: start, end: today);
+      case ReportsPeriodPreset.last7Days:
+        return DateTimeRange(
+          start: today.subtract(const Duration(days: 6)),
+          end: today,
+        );
+      case ReportsPeriodPreset.thisMonth:
+        return DateTimeRange(
+            start: DateTime(now.year, now.month, 1), end: today);
+      case ReportsPeriodPreset.lastMonth:
+        final thisMonthStart = DateTime(now.year, now.month, 1);
+        final lastMonthEnd = thisMonthStart.subtract(const Duration(days: 1));
+        final lastMonthStart =
+            DateTime(lastMonthEnd.year, lastMonthEnd.month, 1);
+        return DateTimeRange(
+            start: lastMonthStart, end: _dateOnly(lastMonthEnd));
+      case ReportsPeriodPreset.thisYear:
+        return DateTimeRange(start: DateTime(now.year, 1, 1), end: today);
+      case ReportsPeriodPreset.custom:
+        return _customRange ??
+            DateTimeRange(start: DateTime(now.year, now.month, 1), end: today);
+    }
+  }
+
+  String _periodLabel(AppLocalizations t, ReportsPeriodPreset preset) {
+    switch (preset) {
+      case ReportsPeriodPreset.today:
+        return t.reportsCustom_periodToday;
+      case ReportsPeriodPreset.thisWeek:
+        return t.reportsCustom_periodThisWeek;
+      case ReportsPeriodPreset.last7Days:
+        return t.reportsCustom_periodLast7Days;
+      case ReportsPeriodPreset.thisMonth:
+        return t.reportsCustom_periodThisMonth;
+      case ReportsPeriodPreset.lastMonth:
+        return t.reportsCustom_periodLastMonth;
+      case ReportsPeriodPreset.thisYear:
+        return t.reportsCustom_periodThisYear;
+      case ReportsPeriodPreset.custom:
+        return t.reportsCustom_periodCustom;
+    }
+  }
+
+  Future<void> _onPeriodSelected(ReportsPeriodPreset preset) async {
+    if (preset == ReportsPeriodPreset.custom) {
+      final now = DateTime.now();
+      final picked = await showDateRangePicker(
+        context: context,
+        firstDate: DateTime(now.year - 5, 1, 1),
+        lastDate: DateTime(now.year + 1, 12, 31),
+        initialDateRange: _customRange ?? _currentRange(),
+      );
+
+      if (!mounted || picked == null) return;
+      setState(() {
+        _selectedPeriod = ReportsPeriodPreset.custom;
+        _customRange = DateTimeRange(
+          start: _dateOnly(picked.start),
+          end: _dateOnly(picked.end),
+        );
+      });
+      return;
+    }
+
+    setState(() {
+      _selectedPeriod = preset;
+    });
+  }
+
+  Widget _buildPeriodBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context);
+    final range = _currentRange();
+    final dateFormat = DateFormat('yyyy-MM-dd');
+    final rangeText =
+        '${dateFormat.format(range.start)} \u2013 ${dateFormat.format(range.end)}';
+
+    final presets = <ReportsPeriodPreset>[
+      ReportsPeriodPreset.today,
+      ReportsPeriodPreset.thisWeek,
+      ReportsPeriodPreset.last7Days,
+      ReportsPeriodPreset.thisMonth,
+      ReportsPeriodPreset.lastMonth,
+      ReportsPeriodPreset.thisYear,
+      ReportsPeriodPreset.custom,
+    ];
+
+    return Container(
+      width: double.infinity,
+      color: colorScheme.surface,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: presets.map((preset) {
+                final isSelected = _selectedPeriod == preset;
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: ChoiceChip(
+                    label: Text(_periodLabel(t, preset)),
+                    selected: isSelected,
+                    onSelected: (_) => _onPeriodSelected(preset),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color:
+                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.date_range_rounded,
+                    size: 18, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    rangeText,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _showExportDialog(BuildContext context) async {
@@ -198,7 +375,12 @@ class _ReportsScreenState extends State<ReportsScreen>
 
       // On mobile/desktop, show share options dialog
       if (!kIsWeb && filePath.isNotEmpty && mounted) {
-        await _showShareOptionsDialog(context, filePath, fileName, format);
+        await showExportShareDialog(
+          context,
+          filePath: filePath,
+          fileName: fileName,
+          format: format,
+        );
       } else if (mounted) {
         // Web: just show download success
         scaffoldMessenger.showSnackBar(
@@ -220,78 +402,6 @@ class _ReportsScreenState extends State<ReportsScreen>
         ),
       );
     }
-  }
-
-  Future<void> _showShareOptionsDialog(
-    BuildContext context,
-    String filePath,
-    String fileName,
-    String format,
-  ) async {
-    if (!mounted) return;
-
-    final theme = Theme.of(context);
-    final t = AppLocalizations.of(context);
-
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.check_circle, color: AppColors.success, size: 28),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(child: Text(t.export_complete)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              t.export_savedSuccess(format.toUpperCase()),
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              t.export_sharePrompt,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(t.common_done),
-          ),
-          FilledButton.icon(
-            onPressed: () async {
-              Navigator.of(dialogContext).pop();
-              try {
-                await Share.shareXFiles(
-                  [XFile(filePath)],
-                  subject: t.export_shareSubject(fileName),
-                  text: t.export_shareText,
-                );
-              } catch (e) {
-                debugPrint('Share error: $e');
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(t.error_shareFile(e.toString())),
-                      backgroundColor: AppColors.accent,
-                    ),
-                  );
-                }
-              }
-            },
-            icon: const Icon(Icons.share),
-            label: Text(t.common_share),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -404,8 +514,23 @@ class _ReportsScreenState extends State<ReportsScreen>
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
-                  children: const [
-                    OverviewTab(),
+                  children: [
+                    Column(
+                      children: [
+                        _buildPeriodBar(context),
+                        Expanded(
+                          child: OverviewTab(
+                            range: _currentRange(),
+                            segment: _selectedSegment,
+                            onSegmentChanged: (segment) {
+                              setState(() {
+                                _selectedSegment = segment;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                     TrendsTab(),
                     TimeBalanceTab(),
                     LeavesTab(),
@@ -419,4 +544,3 @@ class _ReportsScreenState extends State<ReportsScreen>
     );
   }
 }
-

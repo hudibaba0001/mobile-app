@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../design/design.dart';
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
+import '../widgets/entry_compact_tile.dart';
 import '../widgets/flexsaldo_card.dart';
 import '../widgets/absence_entry_dialog.dart';
 import 'dart:async';
@@ -611,25 +612,34 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     }).toList();
 
     // Calculate totals
+    Duration totalDuration = Duration.zero;
     Duration travelDuration = Duration.zero;
     Duration workDuration = Duration.zero;
 
     for (final entry in weekEntries) {
       if (entry.type == EntryType.travel && travelEnabled) {
         travelDuration += entry.totalDuration;
+        totalDuration += entry.totalDuration;
       } else if (entry.type == EntryType.work) {
         workDuration += entry.totalDuration;
+        totalDuration += entry.totalDuration;
       }
     }
 
-    // Format hours
-    String formatHours(Duration duration) {
+    // Format durations (match Today card formatting exactly)
+    String formatDuration(Duration duration) {
+      if (duration.inMinutes == 0) return '0m';
       final hours = duration.inHours;
-      final mins = duration.inMinutes % 60;
-      if (hours > 0 && mins > 0) return '${hours}h ${mins}m';
-      if (hours > 0) return '${hours}h';
-      return '${mins}m';
+      final minutes = duration.inMinutes % 60;
+      if (hours > 0) {
+        return minutes > 0 ? '${hours}h ${minutes}m' : '${hours}h';
+      }
+      return '${minutes}m';
     }
+
+    final totalText = formatDuration(totalDuration);
+    final travelText = formatDuration(travelDuration);
+    final workText = formatDuration(workDuration);
 
     return Container(
       width: double.infinity,
@@ -652,93 +662,73 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
           )
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today_rounded,
-                size: AppIconSize.sm,
-                color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   t.common_thisWeek,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onPrimary,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Text(
-                  formatHours(travelDuration + workDuration),
-                  style: theme.textTheme.titleMedium?.copyWith(
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  totalText,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.onPrimary,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerRight,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onPrimary.withValues(alpha: 0.15),
-                  borderRadius: AppRadius.buttonRadius,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (travelEnabled) ...[
-                      Icon(
-                        Icons.directions_car_rounded,
-                        color:
-                            theme.colorScheme.onPrimary.withValues(alpha: 0.9),
-                        size: AppIconSize.sm,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        formatHours(travelDuration),
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                    ],
-                    Icon(
-                      Icons.work_rounded,
-                      color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
-                      size: AppIconSize.sm,
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.15),
+              borderRadius: AppRadius.buttonRadius,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (travelEnabled) ...[
+                  Icon(
+                    Icons.directions_car_rounded,
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
+                    size: AppIconSize.sm,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    travelText,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      formatHours(workDuration),
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.onPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
+                Icon(
+                  Icons.work_rounded,
+                  color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
+                  size: AppIconSize.sm,
                 ),
-              ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  workText,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -801,38 +791,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Widget _buildLoadingStatsCard(ThemeData theme) {
-    return Container(
-      width: double.infinity,
-      padding: AppSpacing.cardPadding,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withValues(alpha: 0.85),
-          ],
-        ),
-        borderRadius: AppRadius.cardRadius,
-      ),
-      child: const Row(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                _ShimmerBox(width: 18, height: 18),
-                SizedBox(width: AppSpacing.sm),
-                Expanded(child: _ShimmerBox(height: 14)),
-                SizedBox(width: AppSpacing.sm),
-                _ShimmerBox(width: 56, height: 16),
-              ],
-            ),
-          ),
-          SizedBox(width: AppSpacing.md),
-          _ShimmerBox(width: 120, height: 36),
-        ],
-      ),
-    );
+    // Keep the loading layout identical to the Today/This week card shell.
+    return _buildLoadingTotalCard(theme);
   }
 
   Widget _buildCompactStat(
@@ -1075,15 +1035,32 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ),
             )
           else
-            ...(_recentEntries
-                .take(5)
-                .map((entry) => _buildRecentEntryCard(theme, entry))),
+            ...(_recentEntries.take(5).map((entry) =>
+                _buildRecentEntryCard(theme, entry, entryProvider.entries))),
         ],
       ),
     );
   }
 
-  Widget _buildRecentEntryCard(ThemeData theme, _EntryData entry) {
+  Widget _buildRecentEntryCard(
+    ThemeData theme,
+    _EntryData entry,
+    List<Entry> fullEntries,
+  ) {
+    final fullEntry = _findEntryById(fullEntries, entry.id);
+    if ((entry.type == 'work' || entry.type == 'travel') && fullEntry != null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: EntryCompactTile(
+          entry: fullEntry,
+          onTap: () => _openQuickView(entry),
+          showDate: true,
+          showNote: true,
+          dense: true,
+        ),
+      );
+    }
+
     Color lightColor;
     Color darkColor;
 
@@ -1233,6 +1210,13 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         ),
       ),
     );
+  }
+
+  Entry? _findEntryById(List<Entry> entries, String id) {
+    for (final entry in entries) {
+      if (entry.id == id) return entry;
+    }
+    return null;
   }
 
   String _entryTypeLabel(String type, AppLocalizations t) {

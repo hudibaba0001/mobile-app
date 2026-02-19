@@ -231,7 +231,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String name,
     required String email,
   }) {
-    final firstGlyph = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
+    final firstGlyph =
+        name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
 
     return Column(
       children: [

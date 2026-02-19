@@ -1,14 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../design/app_theme.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
-import '../services/holiday_service.dart';
 import '../widgets/standard_app_bar.dart';
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
+import '../widgets/entry_compact_tile.dart';
 import '../l10n/generated/app_localizations.dart';
 
 enum DateRange { today, yesterday, lastWeek, custom }
@@ -365,316 +364,60 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            colorScheme.primaryContainer.withValues(alpha: 0.08),
-            colorScheme.surfaceContainerHighest.withValues(alpha: 0.12),
-            colorScheme.secondaryContainer.withValues(alpha: 0.06),
-          ],
-          stops: const [0.0, 0.5, 1.0],
-        ),
-      ),
-      child: Consumer<EntryProvider>(
-        builder: (context, entryProvider, child) {
-          // Show loading indicator when loading entries
-          if (entryProvider.isLoading) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    AppLocalizations.of(context).history_loadingEntries,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final entries = entryProvider.filteredEntries;
-
-          if (entries.isEmpty) {
-            return _buildEmptyState(context);
-          }
-
-          return ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            itemCount: entries.length + (_isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == entries.length) {
-                return _buildLoadingIndicator(context);
-              }
-
-              final entry = entries[index];
-              // For work entries with multiple shifts, show each shift as a row
-              if (entry.type == EntryType.work &&
-                  entry.shifts != null &&
-                  entry.shifts!.length > 1) {
-                return _buildWorkEntryWithShifts(context, entry);
-              }
-              // For travel entries with multiple legs, show each leg as a row
-              if (entry.type == EntryType.travel &&
-                  entry.travelLegs != null &&
-                  entry.travelLegs!.length > 1) {
-                return _buildTravelEntryWithLegs(context, entry);
-              }
-              return _buildEntryCard(context, entry);
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildEntryCard(BuildContext context, Entry entry) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isWorkEntry = entry.type == EntryType.work;
-    final holidayService = context.read<HolidayService>();
-    final holidayInfo = holidayService.getHolidayInfo(entry.date);
-
-    // Vibrant gradient colors
-    final Color lightColor =
-        isWorkEntry ? AppColors.success : AppColors.primaryLight;
-    final Color darkColor =
-        isWorkEntry ? FlexsaldoColors.positiveDark : AppColors.primaryDark;
-    final Color durationTextColor = theme.brightness == Brightness.dark
-        ? AppColors.neutral50.withValues(alpha: 0.95)
-        : darkColor;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            lightColor.withValues(alpha: 0.08),
-            darkColor.withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.lg + 2),
-        border: Border.all(
-          color: lightColor.withValues(alpha: 0.15),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: lightColor.withValues(alpha: 0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(AppRadius.lg + 2),
-        child: InkWell(
-          onTap: () => _openQuickView(entry),
-          borderRadius: BorderRadius.circular(AppRadius.lg + 2),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg + 2),
-            child: Row(
+    return Consumer<EntryProvider>(
+      builder: (context, entryProvider, child) {
+        // Show loading indicator when loading entries
+        if (entryProvider.isLoading) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Leading Icon with gradient
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [lightColor, darkColor],
-                    ),
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    boxShadow: [
-                      BoxShadow(
-                        color: lightColor.withValues(alpha: 0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    isWorkEntry
-                        ? Icons.work_outline_rounded
-                        : Icons.directions_car_rounded,
-                    color: AppColors.neutral50,
-                    size: 28,
-                  ),
+                CircularProgressIndicator(
+                  color: colorScheme.primary,
                 ),
-
-                const SizedBox(width: AppSpacing.lg),
-
-                // Entry Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            isWorkEntry
-                                ? AppLocalizations.of(context).history_work
-                                : AppLocalizations.of(context).history_travel,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  lightColor.withValues(alpha: 0.2),
-                                  darkColor.withValues(alpha: 0.15),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(AppRadius.lg),
-                              border: Border.all(
-                                color: lightColor.withValues(alpha: 0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              _formatDuration(entry.totalDuration),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: durationTextColor,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          // Holiday work badge (for work entries on red days)
-                          if (entry.isHolidayWork) ...[
-                            const SizedBox(width: AppSpacing.sm - 2),
-                            Tooltip(
-                              message: AppLocalizations.of(context)
-                                  .history_holidayWork(entry.holidayName ??
-                                      AppLocalizations.of(context)
-                                          .history_redDay),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.accentDark,
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm / 2),
-                                ),
-                                child: Text(
-                                  AppLocalizations.of(context)
-                                      .history_holidayWorkBadge,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: AppColors.neutral50,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                ),
-                              ),
-                            ),
-                          ] else ...[
-                            // Show red day badges (Auto and/or Personal)
-                            if (holidayInfo != null) ...[
-                              const SizedBox(width: AppSpacing.sm - 2),
-                              Tooltip(
-                                message: AppLocalizations.of(context)
-                                    .history_autoMarked(holidayInfo.name),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.error,
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.sm / 2),
-                                  ),
-                                  child: Text(
-                                    AppLocalizations.of(context)
-                                        .history_autoBadge,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color: AppColors.neutral50,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        _travelRouteText(entry) ??
-                            entry.description ??
-                            AppLocalizations.of(context).history_noDescription,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.xs / 2),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              _formatEntryDateTime(entry),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ),
-                          if (holidayInfo != null) ...[
-                            Text(
-                              ' • ',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: AppColors.error,
-                              ),
-                            ),
-                            Text(
-                              holidayInfo.name,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: AppColors.error,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  AppLocalizations.of(context).history_loadingEntries,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
-          ),
-        ),
-      ),
+          );
+        }
+
+        final entries = entryProvider.filteredEntries;
+
+        if (entries.isEmpty) {
+          return _buildEmptyState(context);
+        }
+
+        return ListView.separated(
+          controller: _scrollController,
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          itemCount: entries.length + (_isLoadingMore ? 1 : 0),
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            if (index == entries.length) {
+              return _buildLoadingIndicator(context);
+            }
+
+            final entry = entries[index];
+            return _buildEntryCard(context, entry);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildEntryCard(BuildContext context, Entry entry) {
+    return EntryCompactTile(
+      entry: entry,
+      onTap: () => _openQuickView(entry),
+      showDate: true,
+      showNote: true,
+      dense: true,
     );
   }
 
@@ -839,377 +582,5 @@ class _HistoryScreenState extends State<HistoryScreen> {
       case DateRange.custom:
         return _customDateRange;
     }
-  }
-
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes % 60;
-
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    } else {
-      return '${minutes}m';
-    }
-  }
-
-  /// Returns a "From → To" string for travel entries, or null for non-travel.
-  String? _travelRouteText(Entry entry) {
-    if (entry.type != EntryType.travel) return null;
-    // Prefer travelLegs (new format)
-    if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
-      final first = entry.travelLegs!.first;
-      final last = entry.travelLegs!.last;
-      return '${first.fromText} \u2192 ${last.toText}';
-    }
-    // Fallback to legacy from/to fields
-    if (entry.from != null && entry.to != null) {
-      return '${entry.from} \u2192 ${entry.to}';
-    }
-    return null;
-  }
-
-  String _formatEntryDateTime(Entry entry) {
-    final dateStr = DateFormat('MMM dd, yyyy').format(entry.date);
-
-    // For work entries with shifts, show time range
-    if (entry.type == EntryType.work &&
-        entry.shifts != null &&
-        entry.shifts!.isNotEmpty) {
-      final firstShift = entry.shifts!.first;
-      final lastShift = entry.shifts!.last;
-      final startTime = DateFormat('h:mm a').format(firstShift.start);
-      final endTime = DateFormat('h:mm a').format(lastShift.end);
-      return '$dateStr • $startTime - $endTime';
-    }
-
-    // For travel entries, just show the date
-    return dateStr;
-  }
-
-  /// Build a work entry showing each shift as a separate row
-  Widget _buildWorkEntryWithShifts(BuildContext context, Entry entry) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final t = AppLocalizations.of(context);
-    final dateStr = DateFormat('dd/MM').format(entry.date);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Individual shift rows
-        ...entry.shifts!.asMap().entries.map((shiftEntry) {
-          final shiftIndex = shiftEntry.key;
-          final shift = shiftEntry.value;
-          final shiftNumber = shiftIndex + 1;
-
-          return Card(
-            elevation: 1,
-            margin: EdgeInsets.only(
-              bottom: shiftIndex < entry.shifts!.length - 1
-                  ? AppSpacing.sm
-                  : AppSpacing.md,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _openQuickView(entry),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      // Date and shift number
-                      SizedBox(
-                        width: 60,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              dateStr,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Text(
-                              t.form_shiftLabel(shiftNumber),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      // Time range and location
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${DateFormat('HH:mm').format(shift.start)}–${DateFormat('HH:mm').format(shift.end)}',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            if (shift.location != null &&
-                                shift.location!.isNotEmpty) ...[
-                              const SizedBox(height: AppSpacing.xs),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on,
-                                    size: 14,
-                                    color: colorScheme.onSurfaceVariant
-                                        .withValues(alpha: 0.7),
-                                  ),
-                                  const SizedBox(width: AppSpacing.xs),
-                                  Flexible(
-                                    child: Text(
-                                      shift.location!.length > 25
-                                          ? '${shift.location!.substring(0, 25)}...'
-                                          : shift.location!,
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant
-                                            .withValues(alpha: 0.7),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      // Notes indicator and worked duration
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (shift.notes != null && shift.notes!.isNotEmpty)
-                            Icon(
-                              Icons.note,
-                              size: 16,
-                              color: colorScheme.primary.withValues(alpha: 0.7),
-                            ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  colorScheme.secondary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                            ),
-                            child: Text(
-                              '${t.history_worked} ${_formatDuration(shift.workedDuration)}',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.secondary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
-
-        // Daily total line
-        Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.md),
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-          ),
-          child: Row(
-            children: [
-              Text(
-                t.history_totalWorked,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                _formatDuration(entry.totalWorkDuration ?? Duration.zero),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.secondary,
-                ),
-              ),
-              if (entry.travelMinutes != null && entry.travelMinutes! > 0) ...[
-                const SizedBox(width: AppSpacing.md),
-                Text(
-                  '(+ ${t.history_travel} ${_formatDuration(Duration(minutes: entry.travelMinutes!))})',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Build a travel entry showing each leg as a separate row
-  Widget _buildTravelEntryWithLegs(BuildContext context, Entry entry) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final t = AppLocalizations.of(context);
-    final dateStr = DateFormat('dd/MM').format(entry.date);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Individual leg rows
-        ...entry.travelLegs!.asMap().entries.map((legEntry) {
-          final legIndex = legEntry.key;
-          final leg = legEntry.value;
-          final legNumber = legIndex + 1;
-
-          return Card(
-            elevation: 1,
-            margin: EdgeInsets.only(
-              bottom: legIndex < entry.travelLegs!.length - 1
-                  ? AppSpacing.sm
-                  : AppSpacing.md,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _openQuickView(entry),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      // Date and leg number
-                      SizedBox(
-                        width: 60,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              dateStr,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            Text(
-                              t.travel_legLabel(legNumber),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      // Route
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${leg.fromText} → ${leg.toText}',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Row(
-                              children: [
-                                Text(
-                                  _formatDuration(
-                                      Duration(minutes: leg.minutes)),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant
-                                        .withValues(alpha: 0.7),
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: leg.source == 'auto'
-                                        ? FlexsaldoColors.positiveLight
-                                        : AppColors.primaryContainer,
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.sm - 2),
-                                  ),
-                                  child: Text(
-                                    leg.source == 'auto'
-                                        ? t.travel_sourceAuto
-                                        : t.travel_sourceManual,
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: leg.source == 'auto'
-                                          ? FlexsaldoColors.positiveDark
-                                          : AppColors.primaryDark,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
-
-        // Daily total line
-        Container(
-          margin: const EdgeInsets.only(bottom: AppSpacing.md),
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-          ),
-          child: Row(
-            children: [
-              Text(
-                t.travel_total,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                _formatDuration(entry.travelDuration),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
   }
 }

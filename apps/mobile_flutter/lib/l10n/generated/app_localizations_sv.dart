@@ -2872,6 +2872,214 @@ class AppLocalizationsSv extends AppLocalizations {
   String get legal_acceptButton => 'Jag accepterar';
 
   @override
+  String get reportsCustom_periodToday => 'Idag';
+
+  @override
+  String get reportsCustom_periodThisWeek => 'Denna vecka';
+
+  @override
+  String get reportsCustom_periodLast7Days => 'Senaste 7 dagar';
+
+  @override
+  String get reportsCustom_periodThisMonth => 'Denna månad';
+
+  @override
+  String get reportsCustom_periodLastMonth => 'Förra månaden';
+
+  @override
+  String get reportsCustom_periodThisYear => 'I år';
+
+  @override
+  String get reportsCustom_periodCustom => 'Eget val...';
+
+  @override
+  String get reportsCustom_filterAll => 'Alla';
+
+  @override
+  String get reportsCustom_filterWork => 'Arbete';
+
+  @override
+  String get reportsCustom_filterTravel => 'Resor';
+
+  @override
+  String get reportsCustom_filterLeave => 'Ledighet';
+
+  @override
+  String get reportsCustom_workDays => 'Arbetsdagar';
+
+  @override
+  String get reportsCustom_daysWithWork => 'Dagar med arbete';
+
+  @override
+  String get reportsCustom_averagePerDay => 'Snitt per dag';
+
+  @override
+  String get reportsCustom_workedTime => 'Arbetad tid';
+
+  @override
+  String get reportsCustom_breaks => 'Raster';
+
+  @override
+  String reportsCustom_breakAveragePerShift(String value) {
+    return '$value / pass';
+  }
+
+  @override
+  String get reportsCustom_longestShift => 'Längsta arbetspass';
+
+  @override
+  String get reportsCustom_noLocationProvided => 'Ingen plats angiven';
+
+  @override
+  String get reportsCustom_travelTime => 'Restid';
+
+  @override
+  String get reportsCustom_totalTravelTime => 'Total restid';
+
+  @override
+  String get reportsCustom_trips => 'Resor';
+
+  @override
+  String get reportsCustom_tripCount => 'Antal resor';
+
+  @override
+  String get reportsCustom_averagePerTrip => 'Snitt per resa';
+
+  @override
+  String get reportsCustom_averageTravelTime => 'Genomsnittlig restid';
+
+  @override
+  String get reportsCustom_topRoutes => 'Topprutter';
+
+  @override
+  String reportsCustom_topRouteLine(String route, int count, String duration) {
+    return '$route - $count resor - $duration';
+  }
+
+  @override
+  String get reportsCustom_leaveDays => 'Ledighetsdagar';
+
+  @override
+  String get reportsCustom_totalInPeriod => 'Totalt i perioden';
+
+  @override
+  String get reportsCustom_leaveEntries => 'Ledighetsposter';
+
+  @override
+  String get reportsCustom_registeredEntries => 'Registrerade poster';
+
+  @override
+  String get reportsCustom_paidLeave => 'Betald ledighet';
+
+  @override
+  String get reportsCustom_paidLeaveTypes => 'Semester/Sjuk/VAB';
+
+  @override
+  String get reportsCustom_unpaidLeave => 'Obetald ledighet';
+
+  @override
+  String get reportsCustom_unpaidLeaveType => 'Tjänstledighet';
+
+  @override
+  String get reportsCustom_balanceAdjustments => 'Saldojusteringar';
+
+  @override
+  String reportsCustom_openingBalanceEffectiveFrom(String value, String date) {
+    return 'Öppningssaldo: $value (gäller från $date)';
+  }
+
+  @override
+  String reportsCustom_timeAdjustmentsTotal(String value) {
+    return 'Tidsjusteringar: $value';
+  }
+
+  @override
+  String get reportsCustom_timeAdjustmentsInPeriod =>
+      'Tidsjusteringar i perioden';
+
+  @override
+  String get reportsCustom_noNote => 'Ingen anteckning';
+
+  @override
+  String reportsCustom_balanceAtPeriodStart(String value) {
+    return 'Saldo vid periodstart: $value';
+  }
+
+  @override
+  String reportsCustom_balanceAtPeriodEnd(String value) {
+    return 'Saldo vid periodslut: $value';
+  }
+
+  @override
+  String get reportsCustom_periodStartIncludesStartDateAdjustmentsHint =>
+      'Justeringar på startdatumet ingår i saldo vid periodstart.';
+
+  @override
+  String get reportsCustom_entriesInPeriod => 'Poster i perioden';
+
+  @override
+  String get reportsCustom_emptyTitle => 'Inga poster i denna period';
+
+  @override
+  String get reportsCustom_emptySubtitle => 'Ändra period eller filter';
+
+  @override
+  String get reportsCustom_exportCsv => 'Exportera CSV';
+
+  @override
+  String get reportsCustom_exportExcel => 'Exportera Excel';
+
+  @override
+  String get reportsCustom_exportCsvDone => 'Exportera CSV: klar';
+
+  @override
+  String get reportsCustom_exportExcelDone => 'Exportera Excel: klar';
+
+  @override
+  String reportsCustom_exportFailed(String error) {
+    return 'Export misslyckades: $error';
+  }
+
+  @override
+  String get reportsExport_entriesSheetName => 'Poster';
+
+  @override
+  String get reportsExport_adjustmentsSheetName => 'Saldojusteringar';
+
+  @override
+  String get reportsExport_openingBalanceRow => 'Öppningssaldo';
+
+  @override
+  String get reportsExport_timeAdjustmentRow => 'Tidsjustering';
+
+  @override
+  String get reportsExport_timeAdjustmentsTotalRow => 'Tidsjusteringar totalt';
+
+  @override
+  String get reportsExport_periodStartBalanceRow => 'Saldo vid periodstart';
+
+  @override
+  String get reportsExport_periodEndBalanceRow => 'Saldo vid periodslut';
+
+  @override
+  String get reportsExport_colType => 'Typ';
+
+  @override
+  String get reportsExport_colDate => 'Datum';
+
+  @override
+  String get reportsExport_colMinutes => 'Minuter';
+
+  @override
+  String get reportsExport_colHours => 'Timmar';
+
+  @override
+  String get reportsExport_colNote => 'Anteckning';
+
+  @override
+  String get reportsExport_fileName => 'rapport_export';
+
+  @override
   String get session_expiredTitle => 'Sessionen har gått ut';
 
   @override

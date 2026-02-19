@@ -4,6 +4,8 @@ import '../design/app_theme.dart';
 import '../design/components/components.dart';
 import '../models/entry.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../utils/entry_filter.dart' as entry_filter_utils;
+import '../utils/entry_filter_spec.dart';
 
 class ExportDialog extends StatefulWidget {
   final List<Entry> entries;
@@ -290,40 +292,36 @@ class _ExportDialogState extends State<ExportDialog> {
   }
 
   List<Entry> _getFilteredEntries() {
-    List<Entry> filtered = widget.entries;
-
-    // Filter by entry type
+    EntryType? selectedType;
     if (_entryTypeFilter == 'travel') {
-      filtered =
-          filtered.where((entry) => entry.type == EntryType.travel).toList();
+      selectedType = EntryType.travel;
     } else if (_entryTypeFilter == 'work') {
-      filtered =
-          filtered.where((entry) => entry.type == EntryType.work).toList();
+      selectedType = EntryType.work;
     }
-    // If 'both', no type filtering needed
 
-    // Filter by date range
+    DateTime? startDate;
+    DateTime? endDate;
     if (!_includeAllData) {
-      final startDate = _startDate == null
+      startDate = _startDate == null
           ? null
           : DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
       // Inclusive end-of-day to avoid accidentally excluding entries on the end date.
-      final endDate = _endDate == null
+      endDate = _endDate == null
           ? null
           : DateTime(
               _endDate!.year, _endDate!.month, _endDate!.day, 23, 59, 59, 999);
-      filtered = filtered.where((entry) {
-        if (startDate != null && entry.date.isBefore(startDate)) {
-          return false;
-        }
-        if (endDate != null && entry.date.isAfter(endDate)) {
-          return false;
-        }
-        return true;
-      }).toList();
     }
 
-    return filtered;
+    final spec = EntryFilterSpec(
+      startDate: startDate,
+      endDate: endDate,
+      selectedType: selectedType,
+    );
+
+    return entry_filter_utils.EntryFilter.filterEntries(
+      widget.entries,
+      spec,
+    );
   }
 
   double _calculateTotalHours(List<Entry> entries) {

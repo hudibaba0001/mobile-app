@@ -1,0 +1,77 @@
+type,date,start_time,end_time,unpaid_break_minutes,location,from_location,to_location,travel_minutes,notes
+work,2026-01-01,08:00,16:30,30,Client Site A,,,,[TESTDATA] Work shift
+work,2026-01-02,08:00,16:30,30,Client Site B,,,,[TESTDATA] Work shift
+work,2026-01-05,08:00,16:30,30,Office,,,,[TESTDATA] Work shift
+work,2026-01-06,08:00,16:30,30,Client Site C,,,,[TESTDATA] Work shift
+work,2026-01-07,09:00,17:30,45,Client Site A,,,,[TESTDATA] Work shift
+work,2026-01-08,08:00,16:30,30,Client Site B,,,,[TESTDATA] Work shift
+work,2026-01-09,07:30,16:00,30,Office,,,,[TESTDATA] Work shift
+work,2026-01-12,08:00,16:30,30,Client Site C,,,,[TESTDATA] Work shift
+work,2026-01-13,08:00,16:30,30,Client Site A,,,,[TESTDATA] Work shift
+work,2026-01-14,09:00,17:30,45,Client Site B,,,,[TESTDATA] Work shift
+work,2026-01-15,08:00,16:30,30,Office,,,,[TESTDATA] Work shift
+work,2026-01-16,08:00,16:30,30,Client Site C,,,,[TESTDATA] Work shift
+work,2026-01-19,08:00,16:30,30,Client Site A,,,,[TESTDATA] Work shift
+work,2026-01-20,07:30,16:00,30,Client Site B,,,,[TESTDATA] Work shift
+work,2026-01-21,09:00,17:30,45,Office,,,,[TESTDATA] Work shift
+work,2026-01-22,08:00,16:30,30,Client Site C,,,,[TESTDATA] Work shift
+work,2026-01-23,08:00,16:30,30,Client Site A,,,,[TESTDATA] Work shift
+work,2026-01-26,08:00,16:30,30,Client Site B,,,,[TESTDATA] Work shift
+work,2026-01-27,08:00,16:30,30,Office,,,,[TESTDATA] Work shift
+work,2026-01-28,09:00,17:30,45,Client Site C,,,,[TESTDATA] Work shift
+work,2026-01-29,07:30,16:00,30,Client Site A,,,,[TESTDATA] Work shift
+work,2026-01-30,08:00,16:30,30,Client Site B,,,,[TESTDATA] Work shift
+travel,2026-01-01,,,,,Gothenburg,Torslanda,25,[TESTDATA] Travel outbound
+travel,2026-01-01,,,,,Torslanda,Gothenburg,25,[TESTDATA] Travel return
+travel,2026-01-06,,,,,Gothenburg,Molndal,30,[TESTDATA] Travel outbound
+travel,2026-01-06,,,,,Molndal,Gothenburg,35,[TESTDATA] Travel return
+travel,2026-01-08,,,,,Gothenburg,Torslanda,25,[TESTDATA] Travel outbound
+travel,2026-01-08,,,,,Torslanda,Gothenburg,25,[TESTDATA] Travel return
+travel,2026-01-13,,,,,Gothenburg,Molndal,30,[TESTDATA] Travel outbound
+travel,2026-01-13,,,,,Molndal,Gothenburg,35,[TESTDATA] Travel return
+travel,2026-01-15,,,,,Gothenburg,Torslanda,25,[TESTDATA] Travel outbound
+travel,2026-01-15,,,,,Torslanda,Gothenburg,25,[TESTDATA] Travel return
+travel,2026-01-20,,,,,Gothenburg,Molndal,30,[TESTDATA] Travel outbound
+travel,2026-01-20,,,,,Molndal,Gothenburg,35,[TESTDATA] Travel return
+travel,2026-01-22,,,,,Gothenburg,Torslanda,25,[TESTDATA] Travel outbound
+travel,2026-01-22,,,,,Torslanda,Gothenburg,25,[TESTDATA] Travel return
+travel,2026-01-27,,,,,Gothenburg,Molndal,30,[TESTDATA] Travel outbound
+travel,2026-01-27,,,,,Molndal,Gothenburg,35,[TESTDATA] Travel return
+travel,2026-01-29,,,,,Gothenburg,Torslanda,25,[TESTDATA] Travel outbound
+travel,2026-01-29,,,,,Torslanda,Gothenburg,25,[TESTDATA] Travel return
+work,2026-02-02,08:00,16:30,30,Client Site A,,,,[TESTDATA] Work shift
+work,2026-02-03,08:00,16:30,30,Client Site B,,,,[TESTDATA] Work shift
+work,2026-02-04,08:00,16:30,30,Office,,,,[TESTDATA] Work shift
+work,2026-02-05,08:00,16:30,30,Client Site C,,,,[TESTDATA] Work shift
+work,2026-02-06,09:00,17:30,45,Client Site A,,,,[TESTDATA] Work shift
+work,2026-02-09,08:00,16:30,30,Client Site B,,,,[TESTDATA] Work shift
+work,2026-02-10,07:30,16:00,30,Office,,,,[TESTDATA] Work shift
+work,2026-02-11,08:00,16:30,30,Client Site C,,,,[TESTDATA] Work shift
+work,2026-02-12,08:00,16:30,30,Client Site A,,,,[TESTDATA] Work shift
+work,2026-02-13,09:00,17:30,45,Client Site B,,,,[TESTDATA] Work shift
+work,2026-02-16,08:00,16:30,30,Office,,,,[TESTDATA] Work shift
+work,2026-02-17,08:00,16:30,30,Client Site C,,,,[TESTDATA] Work shift
+work,2026-02-18,08:00,16:30,30,Client Site A,,,,[TESTDATA] Work shift
+work,2026-02-19,07:30,16:00,30,Client Site B,,,,[TESTDATA] Work shift
+work,2026-02-20,09:00,17:30,45,Office,,,,[TESTDATA] Work shift
+work,2026-02-23,08:00,16:30,30,Client Site C,,,,[TESTDATA] Work shift
+work,2026-02-24,08:00,16:30,30,Client Site A,,,,[TESTDATA] Work shift
+work,2026-02-25,08:00,16:30,30,Client Site B,,,,[TESTDATA] Work shift
+work,2026-02-26,08:00,16:30,30,Office,,,,[TESTDATA] Work shift
+work,2026-02-27,09:00,17:30,45,Client Site C,,,,[TESTDATA] Work shift
+travel,2026-02-03,,,,,Gothenburg,Molndal,30,[TESTDATA] Travel outbound
+travel,2026-02-03,,,,,Molndal,Gothenburg,35,[TESTDATA] Travel return
+travel,2026-02-05,,,,,Gothenburg,Torslanda,25,[TESTDATA] Travel outbound
+travel,2026-02-05,,,,,Torslanda,Gothenburg,25,[TESTDATA] Travel return
+travel,2026-02-10,,,,,Gothenburg,Molndal,30,[TESTDATA] Travel outbound
+travel,2026-02-10,,,,,Molndal,Gothenburg,35,[TESTDATA] Travel return
+travel,2026-02-12,,,,,Gothenburg,Torslanda,25,[TESTDATA] Travel outbound
+travel,2026-02-12,,,,,Torslanda,Gothenburg,25,[TESTDATA] Travel return
+travel,2026-02-17,,,,,Gothenburg,Molndal,30,[TESTDATA] Travel outbound
+travel,2026-02-17,,,,,Molndal,Gothenburg,35,[TESTDATA] Travel return
+travel,2026-02-19,,,,,Gothenburg,Torslanda,25,[TESTDATA] Travel outbound
+travel,2026-02-19,,,,,Torslanda,Gothenburg,25,[TESTDATA] Travel return
+travel,2026-02-24,,,,,Gothenburg,Molndal,30,[TESTDATA] Travel outbound
+travel,2026-02-24,,,,,Molndal,Gothenburg,35,[TESTDATA] Travel return
+travel,2026-02-26,,,,,Gothenburg,Torslanda,25,[TESTDATA] Travel outbound
+travel,2026-02-26,,,,,Torslanda,Gothenburg,25,[TESTDATA] Travel return

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/entry.dart';
 import '../models/export_data.dart';
+import '../reports/report_aggregator.dart';
 import 'csv_exporter.dart';
 import 'xlsx_exporter.dart';
 
@@ -15,6 +16,36 @@ import 'dart:convert' show utf8;
 import 'web_download_stub.dart' if (dart.library.html) 'web_download_web.dart'
     as web_download;
 
+class ReportExportLabels {
+  final String entriesSheetName;
+  final String adjustmentsSheetName;
+  final String openingBalanceRow;
+  final String timeAdjustmentRow;
+  final String timeAdjustmentsTotalRow;
+  final String periodStartBalanceRow;
+  final String periodEndBalanceRow;
+  final String colType;
+  final String colDate;
+  final String colMinutes;
+  final String colHours;
+  final String colNote;
+
+  const ReportExportLabels({
+    required this.entriesSheetName,
+    required this.adjustmentsSheetName,
+    required this.openingBalanceRow,
+    required this.timeAdjustmentRow,
+    required this.timeAdjustmentsTotalRow,
+    required this.periodStartBalanceRow,
+    required this.periodEndBalanceRow,
+    required this.colType,
+    required this.colDate,
+    required this.colMinutes,
+    required this.colHours,
+    required this.colNote,
+  });
+}
+
 class ExportService {
   static const String _fileNamePrefix = 'time_tracker_export';
   static const String _csvFileExtension = '.csv';
@@ -22,46 +53,59 @@ class ExportService {
   static const MethodChannel _downloadsChannel =
       MethodChannel('se.kviktime.app/file_export');
 
-  static ExportData prepareExportData(List<Entry> entries) {
-    final hasTravel = entries.any((entry) => entry.type == EntryType.travel);
-    final hasWork = entries.any((entry) => entry.type == EntryType.work);
-    final includeTravelColumns = hasTravel;
-    final includeWorkColumns = hasWork;
-    final includeAuditColumns =
-        includeWorkColumns; // remove audit columns from travel-only exports
+  // Fixed entry export column contract (order must never change without
+  // coordinated migration of readers/tests).
+  static const List<String> _entryExportHeaders = [
+    'Type',
+    'Date',
+    'From',
+    'To',
+    'Travel Minutes',
+    'Travel Distance (km)',
+    'Shift Number',
+    'Shift Start',
+    'Shift End',
+    'Span Minutes',
+    'Unpaid Break Minutes',
+    'Worked Minutes',
+    'Worked Hours',
+    'Shift Location',
+    'Shift Notes',
+    'Entry Notes',
+    'Created At',
+    'Updated At',
+    'Holiday Work',
+    'Holiday Name',
+  ];
 
-    int totalTravelMinutes = 0;
+  static const int _colType = 0;
+  static const int _colDate = 1;
+  static const int _colFrom = 2;
+  static const int _colTo = 3;
+  static const int _colTravelMinutes = 4;
+  static const int _colTravelDistanceKm = 5;
+  static const int _colShiftNumber = 6;
+  static const int _colShiftStart = 7;
+  static const int _colShiftEnd = 8;
+  static const int _colSpanMinutes = 9;
+  static const int _colUnpaidBreakMinutes = 10;
+  static const int _colWorkedMinutes = 11;
+  static const int _colWorkedHours = 12;
+  static const int _colShiftLocation = 13;
+  static const int _colShiftNotes = 14;
+  static const int _colEntryNotes = 15;
+  static const int _colCreatedAt = 16;
+  static const int _colUpdatedAt = 17;
+  static const int _colHolidayWork = 18;
+  static const int _colHolidayName = 19;
+
+  static ExportData prepareExportData(
+    List<Entry> entries, {
+    ReportSummary? summary,
+  }) {
+    int calculatedTravelMinutes = 0;
     double totalTravelDistanceKm = 0.0;
-    int totalWorkedMinutes = 0;
-
-    final headers = <String>[
-      'Type',
-      'Date',
-      if (includeTravelColumns) ...[
-        'From',
-        'To',
-        'Travel Minutes',
-        'Travel Distance (km)',
-      ],
-      if (includeWorkColumns) ...[
-        'Shift Number',
-        'Shift Start',
-        'Shift End',
-        'Span Minutes',
-        'Unpaid Break Minutes',
-        'Worked Minutes',
-        'Worked Hours',
-        'Shift Location',
-        'Shift Notes',
-      ],
-      'Entry Notes',
-      if (includeAuditColumns) ...[
-        'Created At',
-        'Updated At',
-        'Holiday Work',
-        'Holiday Name',
-      ],
-    ];
+    int calculatedWorkedMinutes = 0;
 
     final rows = <List<dynamic>>[];
 
@@ -72,53 +116,24 @@ class ExportService {
           final legs = entry.travelLegs!;
           for (var i = 0; i < legs.length; i++) {
             final leg = legs[i];
-            rows.add([
-              entry.type.name,
-              DateFormat('yyyy-MM-dd').format(entry.date),
-              if (includeTravelColumns) ...[
-                leg.fromText, // From
-                leg.toText, // To
-                leg.minutes, // Travel Minutes
-                leg.distanceKm ?? 0.0, // Travel Distance (km)
-              ],
-              if (includeWorkColumns)
-                ...List.filled(9, ''), // Work placeholders
-              entry.notes ?? '', // Entry Notes
-              if (includeAuditColumns) ...[
-                DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
-                entry.updatedAt != null
-                    ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-                    : '',
-                '', // Holiday Work (not applicable for travel)
-                '', // Holiday Name
-              ],
-            ]);
-            totalTravelMinutes += leg.minutes;
+            final row = _newEntryExportRow(entry);
+            row[_colFrom] = leg.fromText;
+            row[_colTo] = leg.toText;
+            row[_colTravelMinutes] = leg.minutes;
+            row[_colTravelDistanceKm] = leg.distanceKm ?? 0.0;
+            rows.add(_normalizeEntryExportRow(row));
+            calculatedTravelMinutes += leg.minutes;
             totalTravelDistanceKm += (leg.distanceKm ?? 0.0);
           }
         } else {
           // Legacy single travel entry: one row
-          rows.add([
-            entry.type.name,
-            DateFormat('yyyy-MM-dd').format(entry.date),
-            if (includeTravelColumns) ...[
-              entry.from ?? '',
-              entry.to ?? '',
-              entry.travelMinutes ?? 0,
-              0.0, // Travel Distance (not available for legacy)
-            ],
-            if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
-            entry.notes ?? '', // Entry Notes
-            if (includeAuditColumns) ...[
-              DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
-              entry.updatedAt != null
-                  ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-                  : '',
-              entry.isHolidayWork ? 'Yes' : 'No',
-              entry.holidayName ?? '',
-            ],
-          ]);
-          totalTravelMinutes += entry.travelMinutes ?? 0;
+          final row = _newEntryExportRow(entry);
+          row[_colFrom] = entry.from ?? '';
+          row[_colTo] = entry.to ?? '';
+          row[_colTravelMinutes] = entry.travelMinutes ?? 0;
+          row[_colTravelDistanceKm] = 0.0;
+          rows.add(_normalizeEntryExportRow(row));
+          calculatedTravelMinutes += entry.travelMinutes ?? 0;
         }
       } else if (entry.type == EntryType.work &&
           entry.shifts != null &&
@@ -131,89 +146,275 @@ class ExportService {
           final workedMinutes = shift.workedMinutes;
           final workedHours = workedMinutes / 60.0;
 
-          rows.add([
-            entry.type.name,
-            DateFormat('yyyy-MM-dd').format(entry.date),
-            if (includeTravelColumns)
-              ...List.filled(8, ''), // Travel placeholders
-            if (includeWorkColumns) ...[
-              i + 1, // Shift Number
-              DateFormat('HH:mm').format(shift.start), // Shift Start
-              DateFormat('HH:mm').format(shift.end), // Shift End
-              spanMinutes, // Span Minutes
-              breakMinutes, // Unpaid Break Minutes
-              workedMinutes, // Worked Minutes
-              workedHours.toStringAsFixed(2), // Worked Hours
-              shift.location ?? '', // Shift Location
-              shift.notes ?? '', // Shift Notes
-            ],
-            entry.notes ?? '', // Entry Notes (day-level)
-            if (includeAuditColumns) ...[
-              DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
-              entry.updatedAt != null
-                  ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-                  : '',
-              entry.isHolidayWork ? 'Yes' : 'No',
-              entry.holidayName ?? '',
-            ],
-          ]);
-          totalWorkedMinutes += workedMinutes;
+          final row = _newEntryExportRow(entry);
+          row[_colShiftNumber] = i + 1;
+          row[_colShiftStart] = DateFormat('HH:mm').format(shift.start);
+          row[_colShiftEnd] = DateFormat('HH:mm').format(shift.end);
+          row[_colSpanMinutes] = spanMinutes;
+          row[_colUnpaidBreakMinutes] = breakMinutes;
+          row[_colWorkedMinutes] = workedMinutes;
+          row[_colWorkedHours] = workedHours.toStringAsFixed(2);
+          row[_colShiftLocation] = shift.location ?? '';
+          row[_colShiftNotes] = shift.notes ?? '';
+          rows.add(_normalizeEntryExportRow(row));
+          calculatedWorkedMinutes += workedMinutes;
         }
       } else {
         // Work entry with no shifts: one row with empty shift data
-        rows.add([
-          entry.type.name,
-          DateFormat('yyyy-MM-dd').format(entry.date),
-          if (includeTravelColumns)
-            ...List.filled(8, ''), // Travel placeholders
-          if (includeWorkColumns) ...List.filled(9, ''), // Work placeholders
-          entry.notes ?? '', // Entry Notes
-          if (includeAuditColumns) ...[
-            DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.createdAt),
-            entry.updatedAt != null
-                ? DateFormat('yyyy-MM-dd HH:mm:ss').format(entry.updatedAt!)
-                : '',
-            entry.isHolidayWork ? 'Yes' : 'No',
-            entry.holidayName ?? '',
-          ],
-        ]);
+        rows.add(_normalizeEntryExportRow(_newEntryExportRow(entry)));
         // Without shifts we can't infer worked minutes; leave total unchanged
       }
     }
 
-    // Append summary row with totals
-    final summaryRow = <dynamic>[
-      'Totals',
+    final totalTravelMinutes =
+        summary?.travelMinutes ?? calculatedTravelMinutes;
+    final totalWorkedMinutes = summary?.workMinutes ?? calculatedWorkedMinutes;
+
+    // Add a blank separator before totals for readability.
+    if (rows.isNotEmpty) {
+      rows.add(List<dynamic>.filled(_entryExportHeaders.length, ''));
+    }
+
+    // Append summary row with totals in fixed columns.
+    final summaryRow = List<dynamic>.filled(_entryExportHeaders.length, '');
+    summaryRow[_colType] = 'TOTAL';
+    summaryRow[_colTravelMinutes] = totalTravelMinutes;
+    summaryRow[_colTravelDistanceKm] =
+        double.parse(totalTravelDistanceKm.toStringAsFixed(2));
+    summaryRow[_colWorkedMinutes] = totalWorkedMinutes;
+    summaryRow[_colWorkedHours] = (totalWorkedMinutes / 60).toStringAsFixed(2);
+    summaryRow[_colEntryNotes] = 'TOTAL';
+    rows.add(_normalizeEntryExportRow(summaryRow));
+
+    return ExportData(
+      sheetName: 'Poster',
+      headers: List<String>.from(_entryExportHeaders),
+      rows: rows,
+    );
+  }
+
+  static List<dynamic> _newEntryExportRow(Entry entry) {
+    final row = List<dynamic>.filled(_entryExportHeaders.length, '');
+    row[_colType] = entry.type.name;
+    row[_colDate] = DateFormat('yyyy-MM-dd').format(entry.date);
+    row[_colEntryNotes] = entry.notes ?? '';
+    row[_colCreatedAt] = _formatIsoDateTime(entry.createdAt);
+    row[_colUpdatedAt] =
+        entry.updatedAt != null ? _formatIsoDateTime(entry.updatedAt!) : '';
+    row[_colHolidayWork] = entry.isHolidayWork ? 'Yes' : 'No';
+    row[_colHolidayName] = entry.holidayName ?? '';
+    return row;
+  }
+
+  static List<dynamic> _normalizeEntryExportRow(List<dynamic> row) {
+    if (row.length == _entryExportHeaders.length) return row;
+    if (row.length < _entryExportHeaders.length) {
+      return [
+        ...row,
+        ...List<dynamic>.filled(_entryExportHeaders.length - row.length, ''),
+      ];
+    }
+    return row.sublist(0, _entryExportHeaders.length);
+  }
+
+  static String _formatIsoDateTime(DateTime value) {
+    return DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(value);
+  }
+
+  static List<ExportData> prepareReportExportData({
+    required ReportSummary summary,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required ReportExportLabels labels,
+  }) {
+    final entriesSheet = prepareExportData(
+      summary.filteredEntries,
+      summary: summary,
+    );
+    final dateFormat = DateFormat('yyyy-MM-dd');
+
+    final adjustmentRows = <List<dynamic>>[];
+    final opening = summary.balanceOffsets.openingEvent;
+    if (opening != null) {
+      adjustmentRows.add([
+        labels.openingBalanceRow,
+        dateFormat.format(opening.effectiveDate),
+        opening.minutes,
+        _formatSignedHours(opening.minutes),
+        '',
+      ]);
+    }
+
+    for (final adjustment in summary.balanceOffsets.adjustmentsInRange) {
+      adjustmentRows.add([
+        labels.timeAdjustmentRow,
+        dateFormat.format(adjustment.effectiveDate),
+        adjustment.minutes,
+        _formatSignedHours(adjustment.minutes),
+        adjustment.note ?? '',
+      ]);
+    }
+
+    final adjustmentsTotal = summary.balanceAdjustmentMinutesInRange;
+    adjustmentRows.add([
+      labels.timeAdjustmentsTotalRow,
       '',
-      if (includeTravelColumns) ...[
-        '', // From
-        '', // To
-        totalTravelMinutes, // Travel Minutes total
-        totalTravelDistanceKm, // Travel Distance total
-      ],
-      if (includeWorkColumns) ...[
-        '', // Shift Number
-        '', // Shift Start
-        '', // Shift End
-        '', // Span Minutes
-        '', // Unpaid Break Minutes
-        totalWorkedMinutes, // Worked Minutes total
-        (totalWorkedMinutes / 60).toStringAsFixed(2), // Worked Hours total
-        '', // Shift Location
-        '', // Shift Notes
-      ],
-      'Totals',
-      if (includeAuditColumns) ...[
-        '', // Created At
-        '', // Updated At
-        '', // Holiday Work
-        '', // Holiday Name
-      ],
-    ];
+      adjustmentsTotal,
+      _formatSignedHours(adjustmentsTotal),
+      '',
+    ]);
 
-    rows.add(summaryRow);
+    adjustmentRows.add([
+      labels.periodStartBalanceRow,
+      dateFormat.format(rangeStart),
+      summary.startingBalanceMinutes,
+      _formatSignedHours(summary.startingBalanceMinutes),
+      '',
+    ]);
+    adjustmentRows.add([
+      labels.periodEndBalanceRow,
+      dateFormat.format(rangeEnd),
+      summary.closingBalanceMinutes,
+      _formatSignedHours(summary.closingBalanceMinutes),
+      '',
+    ]);
 
-    return ExportData(headers: headers, rows: rows);
+    final adjustmentsSheet = ExportData(
+      sheetName: labels.adjustmentsSheetName,
+      headers: [
+        labels.colType,
+        labels.colDate,
+        labels.colMinutes,
+        labels.colHours,
+        labels.colNote,
+      ],
+      rows: adjustmentRows,
+    );
+
+    return [entriesSheet, adjustmentsSheet];
+  }
+
+  static String _formatSignedHours(int minutes) {
+    final sign = minutes < 0 ? '-' : '+';
+    final hours = minutes.abs() / 60.0;
+    return '$sign${hours.toStringAsFixed(2)}';
+  }
+
+  static Future<String> exportReportSummaryToCSV({
+    required ReportSummary summary,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required ReportExportLabels labels,
+    String? fileName,
+  }) async {
+    try {
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final baseName = fileName ??
+          generateFileName(
+            startDate: rangeStart,
+            endDate: rangeEnd,
+            customName: 'rapport_export',
+          );
+      final fullFileName = '${baseName}_$timestamp$_csvFileExtension';
+
+      final sections = prepareReportExportData(
+        summary: summary,
+        rangeStart: rangeStart,
+        rangeEnd: rangeEnd,
+        labels: labels,
+      );
+      sections[0] = ExportData(
+        sheetName: labels.entriesSheetName,
+        headers: sections[0].headers,
+        rows: sections[0].rows,
+      );
+      final csvData = CsvExporter.exportMultiple(sections);
+
+      if (csvData.isEmpty) {
+        throw Exception('Generated CSV data is empty');
+      }
+
+      if (kIsWeb) {
+        _downloadFileWeb(csvData, fullFileName, 'text/csv;charset=utf-8');
+        return '';
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$fullFileName';
+      final file = File(filePath);
+      await file.writeAsString(csvData);
+
+      await _saveCopyToDownloads(
+        fileName: fullFileName,
+        mimeType: 'text/csv;charset=utf-8',
+        bytes: Uint8List.fromList(utf8.encode(csvData)),
+      );
+
+      return filePath;
+    } catch (e) {
+      throw Exception('Failed to export report CSV: $e');
+    }
+  }
+
+  static Future<String> exportReportSummaryToExcel({
+    required ReportSummary summary,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required ReportExportLabels labels,
+    String? fileName,
+  }) async {
+    try {
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final baseName = fileName ??
+          generateFileName(
+            startDate: rangeStart,
+            endDate: rangeEnd,
+            customName: 'rapport_export',
+          );
+      final fullFileName = '${baseName}_$timestamp$_excelFileExtension';
+
+      final sections = prepareReportExportData(
+        summary: summary,
+        rangeStart: rangeStart,
+        rangeEnd: rangeEnd,
+        labels: labels,
+      );
+      sections[0] = ExportData(
+        sheetName: labels.entriesSheetName,
+        headers: sections[0].headers,
+        rows: sections[0].rows,
+      );
+      final excelData = XlsxExporter.exportMultiple(sections);
+
+      if (excelData == null || excelData.isEmpty) {
+        throw Exception('Generated Excel data is empty');
+      }
+
+      if (kIsWeb) {
+        _downloadFileWeb(
+          excelData,
+          fullFileName,
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        );
+        return '';
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$fullFileName';
+      final file = File(filePath);
+      await file.writeAsBytes(excelData);
+
+      await _saveCopyToDownloads(
+        fileName: fullFileName,
+        mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        bytes: Uint8List.fromList(excelData),
+      );
+
+      return filePath;
+    } catch (e) {
+      throw Exception('Failed to export report Excel: $e');
+    }
   }
 
   /// Export entries to CSV file

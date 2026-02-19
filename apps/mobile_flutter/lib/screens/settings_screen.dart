@@ -626,6 +626,11 @@ class SettingsScreen extends StatelessWidget {
       }
 
       await reminderService.applySettings(settingsProvider);
+
+      // Send a test notification so the user knows reminders are working
+      if (settingsProvider.isDailyReminderEnabled && context.mounted) {
+        await reminderService.showTestNotification();
+      }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

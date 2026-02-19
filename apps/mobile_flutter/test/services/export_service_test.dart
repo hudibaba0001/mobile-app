@@ -1,18 +1,68 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:excel/excel.dart';
 import 'package:myapp/models/entry.dart';
 import 'package:myapp/services/export_service.dart';
+import 'package:myapp/services/xlsx_exporter.dart';
+
+const _entryHeaders = <String>[
+  'Type',
+  'Date',
+  'From',
+  'To',
+  'Travel Minutes',
+  'Travel Distance (km)',
+  'Shift Number',
+  'Shift Start',
+  'Shift End',
+  'Span Minutes',
+  'Unpaid Break Minutes',
+  'Worked Minutes',
+  'Worked Hours',
+  'Shift Location',
+  'Shift Notes',
+  'Entry Notes',
+  'Created At',
+  'Updated At',
+  'Holiday Work',
+  'Holiday Name',
+];
+
+const _colType = 0;
+const _colDate = 1;
+const _colFrom = 2;
+const _colTo = 3;
+const _colTravelMinutes = 4;
+const _colTravelDistanceKm = 5;
+const _colShiftNumber = 6;
+const _colShiftStart = 7;
+const _colShiftEnd = 8;
+const _colSpanMinutes = 9;
+const _colUnpaidBreakMinutes = 10;
+const _colWorkedMinutes = 11;
+const _colWorkedHours = 12;
+const _colShiftLocation = 13;
+const _colShiftNotes = 14;
+const _colEntryNotes = 15;
+const _colCreatedAt = 16;
+const _colUpdatedAt = 17;
+const _colHolidayWork = 18;
+const _colHolidayName = 19;
 
 void main() {
   group('ExportService Tests', () {
-    test('should prepare export data with correct headers', () {
+    test('uses fixed column contract for empty export', () {
       final entries = <Entry>[];
       final exportData = ExportService.prepareExportData(entries);
 
-      // With no entries we include the minimal set of columns
-      expect(exportData.headers, equals(['Type', 'Date', 'Entry Notes']));
+      expect(exportData.headers, equals(_entryHeaders));
+      expect(exportData.rows, hasLength(1)); // totals row
+      expect(exportData.rows.first.length, _entryHeaders.length);
+      expect(exportData.rows.first[_colType], 'TOTAL');
+      expect(exportData.rows.first[_colTravelMinutes], 0);
+      expect(exportData.rows.first[_colWorkedMinutes], 0);
     });
 
-    test('should prepare export data with travel entry data', () {
+    test('maps travel row into fixed columns without shifting', () {
       final entries = [
         Entry(
           userId: 'user-123',
@@ -28,32 +78,24 @@ void main() {
       ];
 
       final exportData = ExportService.prepareExportData(entries);
+      final row = exportData.rows.first;
 
-      // Travel-only export uses travel + entry columns
-      expect(
-          exportData.headers,
-          equals([
-            'Type',
-            'Date',
-            'From',
-            'To',
-            'Travel Minutes',
-            'Travel Distance (km)',
-            'Entry Notes',
-          ]));
-
-      expect(exportData.rows[0], [
-        'travel',
-        '2024-01-15',
-        'Home',
-        'Office',
-        30,
-        0.0,
-        'Morning commute',
-      ]);
+      expect(exportData.headers, equals(_entryHeaders));
+      expect(row.length, _entryHeaders.length);
+      expect(row[_colType], 'travel');
+      expect(row[_colDate], '2024-01-15');
+      expect(row[_colFrom], 'Home');
+      expect(row[_colTo], 'Office');
+      expect(row[_colTravelMinutes], 30);
+      expect(row[_colTravelDistanceKm], 0.0);
+      expect(row[_colShiftNumber], '');
+      expect(row[_colWorkedMinutes], '');
+      expect(row[_colEntryNotes], 'Morning commute');
+      expect(row[_colCreatedAt], '2024-01-15T08:00:00');
+      expect(row[_colUpdatedAt], '2024-01-15T08:00:00');
     });
 
-    test('should prepare export data with work entry data', () {
+    test('maps work row into fixed columns without shifting', () {
       final entries = [
         Entry(
           userId: 'user-123',
@@ -74,41 +116,30 @@ void main() {
       ];
 
       final exportData = ExportService.prepareExportData(entries);
-
-      // Work-only export headers
-      expect(
-          exportData.headers,
-          equals([
-            'Type',
-            'Date',
-            'Shift Number',
-            'Shift Start',
-            'Shift End',
-            'Span Minutes',
-            'Unpaid Break Minutes',
-            'Worked Minutes',
-            'Worked Hours',
-            'Shift Location',
-            'Shift Notes',
-            'Entry Notes',
-            'Created At',
-            'Updated At',
-            'Holiday Work',
-            'Holiday Name',
-          ]));
-
       final row = exportData.rows[0];
+
+      expect(exportData.headers, equals(_entryHeaders));
+      expect(row.length, _entryHeaders.length);
       expect(row[0], 'work');
       expect(row[1], '2024-01-15');
-      expect(row[5], 480); // Span Minutes
-      expect(row[6], 0); // Unpaid Break Minutes
-      expect(row[7], 480); // Worked Minutes
-      expect(row[8], '8.00'); // Worked Hours
-      expect(row[11], 'Productive day'); // Entry Notes
+      expect(row[_colFrom], '');
+      expect(row[_colTravelMinutes], '');
+      expect(row[_colShiftNumber], 1);
+      expect(row[_colShiftStart], '09:00');
+      expect(row[_colShiftEnd], '17:00');
+      expect(row[_colSpanMinutes], 480);
+      expect(row[_colUnpaidBreakMinutes], 0);
+      expect(row[_colWorkedMinutes], 480);
+      expect(row[_colWorkedHours], '8.00');
+      expect(row[_colShiftLocation], 'Office');
+      expect(row[_colShiftNotes], '');
+      expect(row[_colEntryNotes], 'Productive day');
+      expect(row[_colHolidayWork], 'No');
+      expect(row[_colHolidayName], '');
     });
 
     test(
-        'given 2 work entries + 2 travel entries same date: CSV row count equals expected',
+        'mixed work/travel export keeps every row aligned with headers and totals',
         () {
       final date = DateTime(2025, 1, 15);
 
@@ -153,83 +184,107 @@ void main() {
       final entries = [workEntry1, workEntry2, travelEntry1, travelEntry2];
       final exportData = ExportService.prepareExportData(entries);
 
-      // 4 atomic rows + 1 totals row
-      expect(exportData.rows.length, 5);
+      // 4 atomic rows + 1 separator row + 1 totals row
+      expect(exportData.rows.length, 6);
+      for (final row in exportData.rows) {
+        expect(row.length, exportData.headers.length);
+      }
 
-      // Verify worked minutes and unpaid break minutes in rows
-      // Work entry 1: worked = 240 - 15 = 225, break = 15
       final workRows =
           exportData.rows.where((row) => row[0] == 'work').toList();
       final workRow1 = workRows[0];
       final workRow2 = workRows[1];
-      // In combined export, travel placeholders (8) precede work columns
-      expect(workRow1[14], 15); // Unpaid Break Minutes
-      expect(workRow1[15], 225); // Worked Minutes
+      expect(workRow1[_colTravelMinutes], '');
+      expect(workRow1[_colUnpaidBreakMinutes], 15);
+      expect(workRow1[_colWorkedMinutes], 225);
 
-      // Work entry 2: worked = 240 - 30 = 210, break = 30
-      expect(workRow2[14], 30); // Unpaid Break Minutes
-      expect(workRow2[15], 210); // Worked Minutes
+      expect(workRow2[_colUnpaidBreakMinutes], 30);
+      expect(workRow2[_colWorkedMinutes], 210);
+
+      final travelRows =
+          exportData.rows.where((row) => row[0] == 'travel').toList();
+      expect(travelRows[0][_colTravelMinutes], 30);
+      expect(travelRows[0][_colWorkedMinutes], '');
+      expect(travelRows[1][_colTravelMinutes], 25);
+
+      final separator = exportData.rows[exportData.rows.length - 2];
+      expect(separator.every((cell) => cell == ''), isTrue);
+
+      final totals = exportData.rows.last;
+      expect(totals[_colType], 'TOTAL');
+      expect(totals[_colTravelMinutes], 55);
+      expect(totals[_colWorkedMinutes], 435);
+      expect(totals[_colWorkedHours], '7.25');
     });
 
-    test(
-        'given 2 work entries + 2 travel entries same date: XLSX row count equals expected',
-        () {
-      final date = DateTime(2025, 1, 16);
-
-      final workEntry1 = Entry.makeWorkAtomicFromShift(
+    test('xlsx layout lock keeps work/travel/totals in fixed columns', () {
+      final date = DateTime(2025, 2, 1);
+      final workEntry = Entry.makeWorkAtomicFromShift(
         userId: 'user1',
         date: date,
         shift: Shift(
-          start: DateTime(2025, 1, 16, 9, 0),
-          end: DateTime(2025, 1, 16, 17, 0), // 8 hours = 480 minutes
+          start: DateTime(2025, 2, 1, 9, 0),
+          end: DateTime(2025, 2, 1, 17, 0),
           unpaidBreakMinutes: 30,
+          location: 'HQ',
         ),
       );
-
-      final workEntry2 = Entry.makeWorkAtomicFromShift(
-        userId: 'user1',
-        date: date,
-        shift: Shift(
-          start: DateTime(2025, 1, 16, 18, 0),
-          end: DateTime(2025, 1, 16, 22, 0), // 4 hours = 240 minutes
-          unpaidBreakMinutes: 15,
-        ),
-      );
-
-      final travelEntry1 = Entry.makeTravelAtomicFromLeg(
+      final travelEntry = Entry.makeTravelAtomicFromLeg(
         userId: 'user1',
         date: date,
         from: 'A',
         to: 'B',
-        minutes: 20,
+        minutes: 40,
       );
 
-      final travelEntry2 = Entry.makeTravelAtomicFromLeg(
-        userId: 'user1',
-        date: date,
-        from: 'B',
-        to: 'C',
-        minutes: 15,
-      );
+      final exportData =
+          ExportService.prepareExportData([workEntry, travelEntry]);
+      final bytes = XlsxExporter.export(exportData)!;
+      final excel = Excel.decodeBytes(bytes);
+      final sheet = excel[excel.getDefaultSheet()!];
 
-      final entries = [workEntry1, workEntry2, travelEntry1, travelEntry2];
-      final exportData = ExportService.prepareExportData(entries);
+      expect(sheet.maxColumns, 20);
+      String readCell(int columnIndex, int rowIndex) {
+        final value = sheet
+            .cell(
+              CellIndex.indexByColumnRow(
+                columnIndex: columnIndex,
+                rowIndex: rowIndex,
+              ),
+            )
+            .value;
+        return value?.toString() ?? '';
+      }
 
-      // XLSX uses same data structure as CSV
-      expect(exportData.rows.length, 5);
+      for (var i = 0; i < _entryHeaders.length; i++) {
+        final headerCell = readCell(i, 0);
+        expect(headerCell, _entryHeaders[i]);
+      }
 
-      // Spot-check worked_minutes and unpaid_break_minutes cells
-      // Work entry 1: worked = 480 - 30 = 450, break = 30
-      final workRows =
-          exportData.rows.where((row) => row[0] == 'work').toList();
-      final workRow1 = workRows[0];
-      final workRow2 = workRows[1];
-      expect(workRow1[14], 30); // Unpaid Break Minutes
-      expect(workRow1[15], 450); // Worked Minutes
+      final workRow = 1;
+      final travelRow = 2;
+      final totalsRow = 4;
 
-      // Work entry 2: worked = 240 - 15 = 225, break = 15
-      expect(workRow2[14], 15); // Unpaid Break Minutes
-      expect(workRow2[15], 225); // Worked Minutes
+      final workType = readCell(_colType, workRow);
+      final workTravelMinutes = readCell(_colTravelMinutes, workRow);
+      final workWorkedMinutes = readCell(_colWorkedMinutes, workRow);
+      expect(workType, 'work');
+      expect(workTravelMinutes, '');
+      expect(workWorkedMinutes, '450');
+
+      final travelType = readCell(_colType, travelRow);
+      final travelTravelMinutes = readCell(_colTravelMinutes, travelRow);
+      final travelWorkedMinutes = readCell(_colWorkedMinutes, travelRow);
+      expect(travelType, 'travel');
+      expect(travelTravelMinutes, '40');
+      expect(travelWorkedMinutes, '');
+
+      final totalsType = readCell(_colType, totalsRow);
+      final totalsTravelMinutes = readCell(_colTravelMinutes, totalsRow);
+      final totalsWorkedMinutes = readCell(_colWorkedMinutes, totalsRow);
+      expect(totalsType, 'TOTAL');
+      expect(totalsTravelMinutes, '40');
+      expect(totalsWorkedMinutes, '450');
     });
 
     test('should generate filename correctly', () {
