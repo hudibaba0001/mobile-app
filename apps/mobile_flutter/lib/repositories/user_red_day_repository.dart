@@ -106,7 +106,11 @@ class UserRedDayRepository {
           .from(_tableName)
           .upsert(data, onConflict: 'user_id,date')
           .select()
-          .single();
+          .maybeSingle();
+
+      if (response == null) {
+        throw StateError('Failed to upsert red day: no data returned');
+      }
 
       debugPrint('UserRedDayRepository: ✅ Upserted red day for ${redDay.date}');
       return UserRedDay.fromJson(response);

@@ -50,7 +50,11 @@ class SupabaseAbsenceService {
       data['id'] = _uuid.v4(); // Generate UUID
 
       final response =
-          await _supabase.from('absences').insert(data).select().single();
+          await _supabase.from('absences').insert(data).select().maybeSingle();
+
+      if (response == null) {
+        throw Exception('Failed to add absence: no data returned');
+      }
 
       return response['id'] as String;
     } catch (e) {

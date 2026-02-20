@@ -319,8 +319,15 @@ class SupabaseEntryService {
       debugPrint('SupabaseEntryService: Inserting entry with ID: $entryId');
 
       // Insert into entries table
-      final entryResponse =
-          await _supabase.from(_tableName).insert(entryData).select().single();
+      final entryResponse = await _supabase
+          .from(_tableName)
+          .insert(entryData)
+          .select()
+          .maybeSingle();
+
+      if (entryResponse == null) {
+        throw Exception('Failed to add entry: no data returned');
+      }
 
       debugPrint('SupabaseEntryService: ✅ Entry inserted into entries table');
 
