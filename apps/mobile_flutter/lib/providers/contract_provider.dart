@@ -26,6 +26,8 @@ class ContractProvider extends ChangeNotifier {
   // Starting balance fields (V1: start date = opening balance date)
   DateTime? _trackingStartDate; // Date from which to calculate balances
   int _openingFlexMinutes = 0; // Signed: positive = credit, negative = deficit
+  bool _hasAnyEntries = false;
+  DateTime? _earliestEntryDate;
 
   // Employer mode (V1: affects validation strictness, not calculations yet)
   String _employerMode = 'standard'; // 'standard', 'strict', 'flexible'
@@ -48,10 +50,36 @@ class ContractProvider extends ChangeNotifier {
   static DateTime _dateOnly(DateTime value) =>
       DateTime(value.year, value.month, value.day);
 
+  @visibleForTesting
+  static DateTime resolveEffectiveTrackingStartDate({
+    required DateTime? explicitTrackingStartDate,
+    required bool hasAnyEntries,
+    required DateTime? earliestEntryDate,
+    DateTime? now,
+  }) {
+    if (explicitTrackingStartDate != null) {
+      return _dateOnly(explicitTrackingStartDate);
+    }
+    if (hasAnyEntries && earliestEntryDate != null) {
+      return _dateOnly(earliestEntryDate);
+    }
+    return _dateOnly(now ?? DateTime.now());
+  }
+
   /// Date from which to start tracking balances
-  /// Defaults to today if not set.
-  DateTime get trackingStartDate =>
-      _trackingStartDate ?? _dateOnly(DateTime.now());
+  /// Uses effective start logic:
+  /// 1) explicit user-set trackingStartDate
+  /// 2) earliest known entry date
+  /// 3) today
+  DateTime get trackingStartDate => effectiveTrackingStartDate;
+
+  DateTime get effectiveTrackingStartDate {
+    return resolveEffectiveTrackingStartDate(
+      explicitTrackingStartDate: _trackingStartDate,
+      hasAnyEntries: _hasAnyEntries,
+      earliestEntryDate: _earliestEntryDate,
+    );
+  }
 
   /// Whether a custom tracking start date has been set
   bool get hasCustomTrackingStartDate => _trackingStartDate != null;
@@ -108,6 +136,8 @@ class ContractProvider extends ChangeNotifier {
     _trackingStartDate = null;
     _openingFlexMinutes = 0;
     _employerMode = 'standard';
+    _hasAnyEntries = false;
+    _earliestEntryDate = null;
   }
 
   /// Clear/reload provider state when authenticated user changes.
@@ -226,6 +256,24 @@ class ContractProvider extends ChangeNotifier {
       await _saveTrackingStartDate();
       notifyListeners();
     }
+  }
+
+  /// Provide entry statistics used by effectiveTrackingStartDate.
+  ///
+  /// This only affects in-memory effective range logic. It does not persist.
+  void setEntryStats(bool hasAnyEntries, DateTime? earliestEntryDate) {
+    final normalizedEarliest =
+        earliestEntryDate == null ? null : _dateOnly(earliestEntryDate);
+
+    final unchanged = _hasAnyEntries == hasAnyEntries &&
+        _earliestEntryDate == normalizedEarliest;
+    if (unchanged) {
+      return;
+    }
+
+    _hasAnyEntries = hasAnyEntries;
+    _earliestEntryDate = normalizedEarliest;
+    notifyListeners();
   }
 
   /// Derives an initial tracking start date when no custom value is stored.

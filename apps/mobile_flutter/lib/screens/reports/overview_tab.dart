@@ -190,17 +190,32 @@ class _OverviewTabState extends State<OverviewTab> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final t = AppLocalizations.of(context);
+    final unselectedChipColor = colorScheme.surfaceContainerHighest
+        .withValues(alpha: theme.brightness == Brightness.dark ? 0.42 : 0.72);
+    final selectedChipColor = colorScheme.primary;
 
     Widget buildChip(ReportSegment segment, String label, IconData icon) {
       final selected = widget.segment == segment;
       return ChoiceChip(
+        showCheckmark: false,
+        backgroundColor: unselectedChipColor,
+        selectedColor: selectedChipColor,
+        side: BorderSide(
+          color: selected
+              ? colorScheme.primary
+              : colorScheme.outline.withValues(alpha: 0.35),
+        ),
+        labelStyle: theme.textTheme.labelLarge?.copyWith(
+          color: selected ? colorScheme.onPrimary : colorScheme.onSurface,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+        ),
         label: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               size: AppIconSize.xs,
-              color: selected ? colorScheme.onPrimary : null,
+              color: selected ? colorScheme.onPrimary : colorScheme.onSurface,
             ),
             const SizedBox(width: AppSpacing.xs),
             Text(label),
@@ -954,10 +969,11 @@ class _OverviewTabState extends State<OverviewTab> {
         TimeRange.custom(widget.range.start, widget.range.end);
     final start = selectedRange.startInclusive;
     final end = selectedRange.endExclusive.subtract(const Duration(days: 1));
+    final contractProvider = context.read<ContractProvider>();
     final trackingStartDate = DateTime(
-      context.read<ContractProvider>().trackingStartDate.year,
-      context.read<ContractProvider>().trackingStartDate.month,
-      context.read<ContractProvider>().trackingStartDate.day,
+      contractProvider.trackingStartDate.year,
+      contractProvider.trackingStartDate.month,
+      contractProvider.trackingStartDate.day,
     );
     final effectiveStart =
         start.isBefore(trackingStartDate) ? trackingStartDate : start;
@@ -982,6 +998,8 @@ class _OverviewTabState extends State<OverviewTab> {
           fileName: t.reportsExport_fileName,
           trackingStartDate: trackingStartDate,
           effectiveRangeStart: effectiveStart,
+          contractPercent: contractProvider.contractPercent,
+          fullTimeHours: contractProvider.fullTimeHours,
         );
       } else {
         filePath = await ExportService.exportReportSummaryToExcel(
@@ -993,6 +1011,8 @@ class _OverviewTabState extends State<OverviewTab> {
           fileName: t.reportsExport_fileName,
           trackingStartDate: trackingStartDate,
           effectiveRangeStart: effectiveStart,
+          contractPercent: contractProvider.contractPercent,
+          fullTimeHours: contractProvider.fullTimeHours,
         );
       }
 

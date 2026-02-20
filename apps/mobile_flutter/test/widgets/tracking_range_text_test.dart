@@ -25,7 +25,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.text('Calculated from: 2026-01-01 -> 2026-02-19'),
+        find.text('Calculated from: 2026-01-01 → 2026-02-19'),
         findsOneWidget,
       );
     });
@@ -45,11 +45,11 @@ void main() {
       );
 
       expect(
-        find.text('Report period: 2026-01-01 -> 2026-01-31'),
+        find.text('Report period: 2026-01-01 → 2026-01-31'),
         findsOneWidget,
       );
       expect(
-        find.text('Calculated from: 2026-01-10 -> 2026-01-31'),
+        find.text('Calculated from: 2026-01-10 → 2026-01-31'),
         findsOneWidget,
       );
     });

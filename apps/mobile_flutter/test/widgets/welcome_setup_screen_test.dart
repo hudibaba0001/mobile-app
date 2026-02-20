@@ -1,12 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myapp/providers/contract_provider.dart';
 import 'package:myapp/providers/settings_provider.dart';
+import 'package:myapp/models/user_profile.dart';
 import 'package:myapp/screens/welcome_setup_screen.dart';
+import 'package:myapp/services/profile_service.dart';
+import 'package:myapp/services/supabase_auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:io';
 
 class _TestSettingsProvider extends SettingsProvider {
   bool _timeBalanceEnabled = true;
@@ -62,21 +66,20 @@ class _TestSettingsProvider extends SettingsProvider {
 }
 
 class _TestContractProvider extends ContractProvider {
+  int _contractPercent;
+  int _fullTimeHours;
+  DateTime _trackingStartDate;
+  int _openingFlexMinutes;
+
   _TestContractProvider({
     required int contractPercent,
     required int fullTimeHours,
-    required this.initialTrackingStartDate,
-    required this.initialOpeningMinutes,
+    required DateTime trackingStartDate,
+    required int openingMinutes,
   })  : _contractPercent = contractPercent,
-        _fullTimeHours = fullTimeHours;
-
-  final int _contractPercent;
-  final int _fullTimeHours;
-  final DateTime initialTrackingStartDate;
-  final int initialOpeningMinutes;
-
-  DateTime? savedTrackingStartDate;
-  int? savedOpeningMinutes;
+        _fullTimeHours = fullTimeHours,
+        _trackingStartDate = trackingStartDate,
+        _openingFlexMinutes = openingMinutes;
 
   @override
   int get contractPercent => _contractPercent;
@@ -85,37 +88,78 @@ class _TestContractProvider extends ContractProvider {
   int get fullTimeHours => _fullTimeHours;
 
   @override
-  DateTime get trackingStartDate =>
-      savedTrackingStartDate ?? initialTrackingStartDate;
+  DateTime get trackingStartDate => _trackingStartDate;
 
   @override
-  int get openingFlexMinutes => savedOpeningMinutes ?? initialOpeningMinutes;
+  int get openingFlexMinutes => _openingFlexMinutes;
+
+  @override
+  Future<void> updateContractSettings(int percent, int hours) async {
+    _contractPercent = percent;
+    _fullTimeHours = hours;
+    notifyListeners();
+  }
 
   @override
   Future<void> setTrackingStartDate(DateTime date) async {
-    savedTrackingStartDate = DateTime(date.year, date.month, date.day);
+    _trackingStartDate = DateTime(date.year, date.month, date.day);
     notifyListeners();
   }
 
   @override
   Future<void> setOpeningFlexMinutes(int minutes) async {
-    savedOpeningMinutes = minutes;
+    _openingFlexMinutes = minutes;
     notifyListeners();
+  }
+}
+
+class _TestAuthService extends SupabaseAuthService {
+  _TestAuthService(this._userId);
+  final String _userId;
+
+  @override
+  String? get currentUserId => _userId;
+}
+
+class _TestProfileService extends ProfileService {
+  Map<String, dynamic>? lastUpdatePayload;
+  String? localCompletedUserId;
+  bool localCompletedValue = false;
+
+  @override
+  Future<UserProfile?> updateProfileFields(Map<String, dynamic> updates) async {
+    lastUpdatePayload = Map<String, dynamic>.from(updates);
+    return null;
+  }
+
+  @override
+  Future<void> setLocalSetupCompleted({
+    required String userId,
+    required bool completed,
+  }) async {
+    localCompletedUserId = userId;
+    localCompletedValue = completed;
   }
 }
 
 Widget _wrap({
   required SettingsProvider settingsProvider,
   required ContractProvider contractProvider,
+  required SupabaseAuthService authService,
+  required ProfileService profileService,
   required VoidCallback onCompleted,
 }) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<SettingsProvider>.value(value: settingsProvider),
       ChangeNotifierProvider<ContractProvider>.value(value: contractProvider),
+      ChangeNotifierProvider<SupabaseAuthService>.value(value: authService),
     ],
     child: MaterialApp(
-      home: WelcomeSetupScreen(onCompleted: onCompleted),
+      home: WelcomeSetupScreen(
+        onCompleted: onCompleted,
+        profileService: profileService,
+      ),
     ),
   );
 }
@@ -131,65 +175,52 @@ void main() {
     );
   });
 
-  testWidgets('Employee mode requires contract before continue',
+  testWidgets(
+      '"Bara logga tid" persists today baseline, opening=0 and setup completion',
       (tester) async {
     final settings = _TestSettingsProvider();
     final contract = _TestContractProvider(
-      contractPercent: 0,
-      fullTimeHours: 0,
-      initialTrackingStartDate: DateTime(2026, 2, 19),
-      initialOpeningMinutes: 0,
+      contractPercent: 80,
+      fullTimeHours: 35,
+      trackingStartDate: DateTime(2020, 1, 1),
+      openingMinutes: 300,
     );
+    final profileService = _TestProfileService();
+    final authService = _TestAuthService('user-123');
     var completed = false;
 
     await tester.pumpWidget(
       _wrap(
         settingsProvider: settings,
         contractProvider: contract,
+        authService: authService,
+        profileService: profileService,
         onCompleted: () {
           completed = true;
         },
       ),
     );
 
-    await tester.tap(find.text('Continue'));
+    await tester.tap(find.text('Bara logga tid'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Fortsätt'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Please configure contract settings before continuing.'),
-      findsOneWidget,
-    );
-    expect(completed, isFalse);
-    expect(settings.isSetupCompleted, isFalse);
-  });
-
-  testWidgets('Freelancer mode can continue without contract', (tester) async {
-    final settings = _TestSettingsProvider();
-    final contract = _TestContractProvider(
-      contractPercent: 0,
-      fullTimeHours: 0,
-      initialTrackingStartDate: DateTime(2026, 2, 19),
-      initialOpeningMinutes: 0,
-    );
-    var completed = false;
-
-    await tester.pumpWidget(
-      _wrap(
-        settingsProvider: settings,
-        contractProvider: contract,
-        onCompleted: () {
-          completed = true;
-        },
-      ),
-    );
-
-    await tester.tap(find.text('Freelancer'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Continue'));
-    await tester.pumpAndSettle();
+    final today = DateTime.now();
+    final todayDateOnly = DateTime(today.year, today.month, today.day);
 
     expect(completed, isTrue);
     expect(settings.isSetupCompleted, isTrue);
     expect(settings.isTimeBalanceEnabled, isFalse);
+    expect(contract.trackingStartDate, todayDateOnly);
+    expect(contract.openingFlexMinutes, 0);
+
+    expect(profileService.lastUpdatePayload, isNotNull);
+    expect(profileService.lastUpdatePayload!['tracking_start_date'],
+        todayDateOnly);
+    expect(profileService.lastUpdatePayload!['opening_flex_minutes'], 0);
+    expect(profileService.lastUpdatePayload!['setup_completed_at'], isNotNull);
+    expect(profileService.localCompletedUserId, 'user-123');
+    expect(profileService.localCompletedValue, isTrue);
   });
 }

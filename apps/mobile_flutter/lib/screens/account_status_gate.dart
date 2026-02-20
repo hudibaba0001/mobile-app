@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../services/supabase_auth_service.dart';
@@ -8,6 +9,7 @@ import '../services/profile_service.dart';
 import '../models/user_profile.dart';
 import '../models/user_entitlement.dart';
 import '../providers/contract_provider.dart';
+import '../providers/entry_provider.dart';
 import '../providers/settings_provider.dart';
 import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -26,6 +28,14 @@ class AccountStatusGate extends StatefulWidget {
     required this.child,
   });
 
+  @visibleForTesting
+  static bool shouldSkipOnboarding({
+    required DateTime? setupCompletedAt,
+    required bool localSetupCompleted,
+  }) {
+    return setupCompletedAt != null || localSetupCompleted;
+  }
+
   @override
   State<AccountStatusGate> createState() => _AccountStatusGateState();
 }
@@ -37,6 +47,8 @@ class _AccountStatusGateState extends State<AccountStatusGate>
   UserProfile? _profile;
   UserEntitlement? _entitlement;
   LegalVersions? _requiredLegalVersions;
+  bool _isSetupCompleted = false;
+  bool _entryStatsReady = false;
   bool _isLoading = true;
   bool _hasLoadedOnce = false;
   String? _error;
@@ -67,6 +79,7 @@ class _AccountStatusGateState extends State<AccountStatusGate>
     if (!silent) {
       setState(() {
         _isLoading = true;
+        _entryStatsReady = false;
         _error = null;
       });
     }
@@ -81,6 +94,14 @@ class _AccountStatusGateState extends State<AccountStatusGate>
         return;
       }
 
+      final userId = authService.currentUser?.id;
+      if (userId == null) {
+        if (mounted) {
+          context.goNamed(AppRouter.loginName);
+        }
+        return;
+      }
+
       var profile = await _profileService.fetchProfile();
 
       // In-app signup path: profile row may not exist yet. Bootstrap it server-side.
@@ -89,27 +110,50 @@ class _AccountStatusGateState extends State<AccountStatusGate>
         profile = await _profileService.fetchProfile();
       }
 
-      // Run remaining checks in parallel
+      final contractProvider = context.read<ContractProvider>();
+      final entryProvider = context.read<EntryProvider>();
+
+      // Run remaining checks in parallel and do not decide UI until all complete.
       final results = await Future.wait([
-        // Sync contract settings from Supabase profile
         if (profile != null && mounted)
-          context.read<ContractProvider>().loadFromSupabase()
+          contractProvider.loadFromSupabase()
         else
           Future.value(null),
-        // Fetch legal versions
         _profileService.fetchCurrentLegalVersions().catchError((_) => null),
-        // Fetch entitlement
         _entitlementService.fetchCurrentEntitlement(),
+        entryProvider.loadEntries(),
       ]);
 
       final requiredLegalVersions = results[1] as LegalVersions?;
       final entitlement = results[2] as UserEntitlement?;
+      contractProvider.setEntryStats(
+        entryProvider.hasAnyEntries,
+        entryProvider.earliestEntryDate,
+      );
+
+      final localSetupCompleted =
+          await _profileService.isLocalSetupCompleted(userId);
+      final setupCompleted = AccountStatusGate.shouldSkipOnboarding(
+        setupCompletedAt: profile?.setupCompletedAt,
+        localSetupCompleted: localSetupCompleted,
+      );
+      if (setupCompleted) {
+        if (profile?.setupCompletedAt != null) {
+          await _profileService.setLocalSetupCompleted(
+            userId: userId,
+            completed: true,
+          );
+        }
+        await context.read<SettingsProvider>().setSetupCompleted(true);
+      }
 
       if (mounted) {
         setState(() {
           _profile = profile;
           _entitlement = entitlement;
           _requiredLegalVersions = requiredLegalVersions;
+          _isSetupCompleted = setupCompleted;
+          _entryStatsReady = true;
           _isLoading = false;
           _hasLoadedOnce = true;
         });
@@ -123,6 +167,7 @@ class _AccountStatusGateState extends State<AccountStatusGate>
         }
         setState(() {
           _error = 'Failed to load profile: $e';
+          _entryStatsReady = true;
           _isLoading = false;
         });
       }
@@ -260,9 +305,11 @@ class _AccountStatusGateState extends State<AccountStatusGate>
         _profile!.privacyVersion == required.privacyVersion;
   }
 
+
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    if (_isLoading || !_entryStatsReady) {
       return Scaffold(
         body: SafeArea(
           child: Center(
@@ -390,10 +437,14 @@ class _AccountStatusGateState extends State<AccountStatusGate>
       );
     }
 
-    final settingsProvider = context.watch<SettingsProvider>();
-    if (!settingsProvider.isSetupCompleted) {
+    if (!_isSetupCompleted) {
       return WelcomeSetupScreen(
-        onCompleted: () {
+        onCompleted: () async {
+          await context.read<SettingsProvider>().setSetupCompleted(true);
+          if (!mounted) return;
+          setState(() {
+            _isSetupCompleted = true;
+          });
           if (!mounted) return;
           context.goNamed(AppRouter.homeName);
         },

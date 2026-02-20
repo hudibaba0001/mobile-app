@@ -25,7 +25,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   // Starting balance fields
   final _openingHoursController = TextEditingController();
   final _openingMinutesController = TextEditingController();
-  DateTime _trackingStartDate = DateTime(DateTime.now().year, 1, 1);
+  DateTime _trackingStartDate =
+      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
   bool _isDeficit = false; // false = credit (+), true = deficit (-)
 
   // Employer mode

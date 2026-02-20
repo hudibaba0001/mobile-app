@@ -7,6 +7,6 @@ void main() {
       expect(true, isTrue);
     },
     skip:
-        'AdminUsersScreen was removed from lib/screens; keep this placeholder so test suite stays green until an admin screen exists again.',
+        'AdminUsersScreen was removed from lib/screens; keep this placeholder so test suite stays green until an admin screen exists again. Unskip when AdminUsersScreen is reintroduced or remove this test entirely.',
   );
 }

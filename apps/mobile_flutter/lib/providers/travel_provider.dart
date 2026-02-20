@@ -102,6 +102,9 @@ class TravelProvider extends ChangeNotifier {
 
   // Refresh entries
   Future<void> refreshEntries() async {
+    // Refresh filter dates to current time window
+    _filterEndDate = DateTime.now();
+    _filterStartDate = _filterEndDate.subtract(const Duration(days: 30));
     await _loadEntries();
   }
 
@@ -116,14 +119,17 @@ class TravelProvider extends ChangeNotifier {
     await _loadEntries();
   }
 
-  // Add new entry - Updated to use Entry model
+  // Add new entry - Delegates to EntryProvider for persistence
   Future<bool> addEntry(Entry entry) async {
     _setLoading(true);
     try {
-      // For now, we'll just add to the local list
-      // In the future, we can integrate with a shared repository layer
-      _entries.add(entry);
-      _applyFilters();
+      // Delegate to EntryProvider for Supabase + Hive persistence
+      final entryProvider = _getEntryProvider();
+      if (entryProvider != null) {
+        await entryProvider.addEntry(entry);
+      }
+      // Update local list from EntryProvider
+      await _loadEntries();
       _clearError();
       return true;
     } catch (error) {
@@ -134,18 +140,19 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-  // Update existing entry - Updated to use Entry model
+  // Update existing entry - Delegates to EntryProvider for persistence
   Future<bool> updateEntry(Entry entry) async {
     _setLoading(true);
     try {
-      final index = _entries.indexWhere((e) => e.id == entry.id);
-      if (index != -1) {
-        _entries[index] = entry;
-        _applyFilters();
-        _clearError();
-        return true;
+      // Delegate to EntryProvider for Supabase + Hive persistence
+      final entryProvider = _getEntryProvider();
+      if (entryProvider != null) {
+        await entryProvider.updateEntry(entry);
       }
-      return false;
+      // Update local list from EntryProvider
+      await _loadEntries();
+      _clearError();
+      return true;
     } catch (error) {
       _handleError(error.toString());
       return false;
@@ -154,12 +161,17 @@ class TravelProvider extends ChangeNotifier {
     }
   }
 
-  // Delete entry
+  // Delete entry - Delegates to EntryProvider for persistence
   Future<bool> deleteEntry(String entryId) async {
     _setLoading(true);
     try {
-      _entries.removeWhere((entry) => entry.id == entryId);
-      _applyFilters();
+      // Delegate to EntryProvider for Supabase + Hive persistence
+      final entryProvider = _getEntryProvider();
+      if (entryProvider != null) {
+        await entryProvider.deleteEntry(entryId);
+      }
+      // Update local list from EntryProvider
+      await _loadEntries();
       _clearError();
       return true;
     } catch (error) {

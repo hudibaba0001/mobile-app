@@ -316,7 +316,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                         _buildKPICard(
                           context,
                           t.location_kpiTotalUses,
-                          '0', // TODO: Implement usage tracking
+                          '—', // TODO: Implement usage tracking
                           Icons.history_rounded,
                           colorScheme.tertiary,
                         ),

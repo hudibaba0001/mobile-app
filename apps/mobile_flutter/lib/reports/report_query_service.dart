@@ -234,7 +234,7 @@ class ReportQueryService {
     required DateTime fallbackStart,
   }) async {
     final profile = await _fetchProfile();
-    final fallbackTrackingStart = DateTime(fallbackStart.year, 1, 1);
+    final fallbackTrackingStart = _dateOnly(fallbackStart);
 
     return ProfileTrackingInfo(
       trackingStartDate:
@@ -329,7 +329,7 @@ class ReportQueryService {
   /// Backward-compatible helper used by existing aggregator code.
   Future<OpeningBalanceConfig> getOpeningBalanceConfig() async {
     final info = await _loadProfileTrackingInfo(
-      fallbackStart: DateTime(DateTime.now().year, 1, 1),
+      fallbackStart: DateTime.now(),
     );
     return OpeningBalanceConfig(
       trackingStartDate: info.trackingStartDate,

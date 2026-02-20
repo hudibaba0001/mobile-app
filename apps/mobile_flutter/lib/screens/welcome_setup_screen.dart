@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../config/app_router.dart';
 import '../design/app_theme.dart';
 import '../providers/contract_provider.dart';
 import '../providers/settings_provider.dart';
-import 'contract_settings_screen.dart';
+import '../services/profile_service.dart';
+import '../services/supabase_auth_service.dart';
 
 enum WelcomeSetupMode { employee, freelancer }
+
+enum _WelcomeStep { mode, contract, baseline }
 
 class WelcomeSetupScreen extends StatefulWidget {
   const WelcomeSetupScreen({
     super.key,
     this.onCompleted,
-  });
+    ProfileService? profileService,
+  }) : _profileService = profileService;
 
   final VoidCallback? onCompleted;
+  final ProfileService? _profileService;
 
   @override
   State<WelcomeSetupScreen> createState() => _WelcomeSetupScreenState();
@@ -28,10 +32,12 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
   late WelcomeSetupMode _mode;
   late bool _travelEnabled;
   late bool _paidLeaveEnabled;
-  late DateTime _baselineDate;
   late final TextEditingController _baselineController;
-
+  _WelcomeStep _step = _WelcomeStep.mode;
   bool _isSaving = false;
+
+  ProfileService get _profileService =>
+      widget._profileService ?? ProfileService();
 
   static DateTime _dateOnly(DateTime value) =>
       DateTime(value.year, value.month, value.day);
@@ -41,19 +47,12 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
     super.initState();
     final settings = context.read<SettingsProvider>();
     final contract = context.read<ContractProvider>();
-    final today = _dateOnly(DateTime.now());
 
     _mode = settings.isTimeBalanceEnabled
         ? WelcomeSetupMode.employee
         : WelcomeSetupMode.freelancer;
     _travelEnabled = settings.isTravelLoggingEnabled;
     _paidLeaveEnabled = settings.isPaidLeaveTrackingEnabled;
-    _baselineDate = settings.baselineDate ?? contract.trackingStartDate;
-    _baselineDate = _dateOnly(_baselineDate);
-    if (_baselineDate.isAfter(today)) {
-      _baselineDate = today;
-    }
-
     _baselineController = TextEditingController(
       text: _formatBaselineInput(contract.openingFlexMinutes),
     );
@@ -78,20 +77,18 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
 
   int? _parseBaselineMinutes(String raw) {
     final input = raw.trim().toLowerCase();
-    if (input.isEmpty) {
-      return 0;
-    }
+    if (input.isEmpty) return 0;
 
     final compact = input.replaceAll(' ', '');
     final hourMinutePattern = RegExp(r'^([+-]?)(\d+)h(?:(\d{1,2})m)?$');
     final hourOnlyPattern = RegExp(r'^([+-]?)(\d+(?:[.,]\d+)?)h?$');
     final decimalPattern = RegExp(r'^([+-]?)(\d+)[.,](\d+)$');
 
-    final matchHourMinute = hourMinutePattern.firstMatch(compact);
-    if (matchHourMinute != null) {
-      final signPart = matchHourMinute.group(1) ?? '';
-      final hourPart = int.tryParse(matchHourMinute.group(2) ?? '');
-      final minutePart = int.tryParse(matchHourMinute.group(3) ?? '0');
+    final hourMinuteMatch = hourMinutePattern.firstMatch(compact);
+    if (hourMinuteMatch != null) {
+      final signPart = hourMinuteMatch.group(1) ?? '';
+      final hourPart = int.tryParse(hourMinuteMatch.group(2) ?? '');
+      final minutePart = int.tryParse(hourMinuteMatch.group(3) ?? '0');
       if (hourPart == null || minutePart == null || minutePart >= 60) {
         return null;
       }
@@ -99,22 +96,22 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
       return signPart == '-' ? -total : total;
     }
 
-    final matchDecimal = decimalPattern.firstMatch(compact);
-    if (matchDecimal != null) {
-      final signPart = matchDecimal.group(1) ?? '';
-      final hoursPart = int.tryParse(matchDecimal.group(2) ?? '');
-      final decimals = matchDecimal.group(3) ?? '';
+    final decimalMatch = decimalPattern.firstMatch(compact);
+    if (decimalMatch != null) {
+      final signPart = decimalMatch.group(1) ?? '';
+      final hoursPart = int.tryParse(decimalMatch.group(2) ?? '');
+      final decimals = decimalMatch.group(3) ?? '';
       if (hoursPart == null) return null;
       final fractional = double.tryParse('0.$decimals');
       if (fractional == null) return null;
-      final total = (hoursPart * 60 + (fractional * 60).round());
+      final total = (hoursPart * 60) + (fractional * 60).round();
       return signPart == '-' ? -total : total;
     }
 
-    final matchHourOnly = hourOnlyPattern.firstMatch(compact);
-    if (matchHourOnly != null) {
-      final signPart = matchHourOnly.group(1) ?? '';
-      final numberText = matchHourOnly.group(2) ?? '';
+    final hourOnlyMatch = hourOnlyPattern.firstMatch(compact);
+    if (hourOnlyMatch != null) {
+      final signPart = hourOnlyMatch.group(1) ?? '';
+      final numberText = hourOnlyMatch.group(2) ?? '';
       final hours = double.tryParse(numberText.replaceAll(',', '.'));
       if (hours == null) return null;
       final total = (hours * 60).round();
@@ -124,108 +121,299 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
     return null;
   }
 
-  Future<void> _pickBaselineDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _baselineDate,
-      firstDate: DateTime(now.year - 10, 1, 1),
-      lastDate: _dateOnly(now),
-    );
-    if (picked == null || !mounted) return;
-    setState(() {
-      _baselineDate = _dateOnly(picked);
+  Future<void> _persistSetupCompletion({
+    required DateTime trackingStartDate,
+    required int openingFlexMinutes,
+    int? contractPercent,
+    int? fullTimeHours,
+    bool? timeBalanceEnabled,
+  }) async {
+    final auth = context.read<SupabaseAuthService>();
+    final userId = auth.currentUserId;
+    if (userId == null) return;
+
+    await _profileService.updateProfileFields({
+      'tracking_start_date': trackingStartDate,
+      'opening_flex_minutes': openingFlexMinutes,
+      'setup_completed_at': DateTime.now().toUtc(),
+      if (contractPercent != null) 'contract_percent': contractPercent,
+      if (fullTimeHours != null) 'full_time_hours': fullTimeHours,
+      if (timeBalanceEnabled != null)
+        'time_balance_enabled': timeBalanceEnabled,
     });
+    await _profileService.setLocalSetupCompleted(
+      userId: userId,
+      completed: true,
+    );
   }
 
-  Future<void> _saveAndFinish({
-    required bool skipped,
-  }) async {
-    if (_isSaving) return;
-    setState(() {
-      _isSaving = true;
-    });
+  Future<void> _finishFreelancerPath() async {
+    final settings = context.read<SettingsProvider>();
+    final contract = context.read<ContractProvider>();
+    final today = _dateOnly(DateTime.now());
 
+    await settings.setTimeBalanceEnabled(false);
+    await settings.setTravelLoggingEnabled(_travelEnabled);
+    await settings.setPaidLeaveTrackingEnabled(_paidLeaveEnabled);
+    await settings.setBaselineDate(today);
+
+    await contract.setTrackingStartDate(today);
+    await contract.setOpeningFlexMinutes(0);
+
+    await _persistSetupCompletion(
+      trackingStartDate: today,
+      openingFlexMinutes: 0,
+      timeBalanceEnabled: false,
+    );
+    await settings.setSetupCompleted(true);
+  }
+
+  Future<void> _applyContractDefaults() async {
+    final settings = context.read<SettingsProvider>();
+    final contract = context.read<ContractProvider>();
+    await settings.setTimeBalanceEnabled(true);
+    await settings.setTravelLoggingEnabled(_travelEnabled);
+    await settings.setPaidLeaveTrackingEnabled(_paidLeaveEnabled);
+    await contract.updateContractSettings(100, 40);
+  }
+
+  Future<void> _finishEmployeePath() async {
     final settings = context.read<SettingsProvider>();
     final contract = context.read<ContractProvider>();
     final messenger = ScaffoldMessenger.of(context);
-    final isEmployee = !skipped && _mode == WelcomeSetupMode.employee;
+    final today = _dateOnly(DateTime.now());
 
+    final baselineMinutes = _parseBaselineMinutes(_baselineController.text);
+    if (baselineMinutes == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Ange saldo som t.ex. +29h, -5h eller +29h 30m.'),
+        ),
+      );
+      return;
+    }
+
+    await contract.setTrackingStartDate(today);
+    await contract.setOpeningFlexMinutes(baselineMinutes);
+    await settings.setBaselineDate(today);
+
+    await _persistSetupCompletion(
+      trackingStartDate: today,
+      openingFlexMinutes: baselineMinutes,
+      contractPercent: 100,
+      fullTimeHours: 40,
+      timeBalanceEnabled: true,
+    );
+    await settings.setSetupCompleted(true);
+  }
+
+  Future<void> _handleContinue() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
     try {
-      if (skipped) {
-        await settings.setTimeBalanceEnabled(false);
-        await settings.setTravelLoggingEnabled(true);
-        await settings.setPaidLeaveTrackingEnabled(true);
-        await settings.setSetupCompleted(true);
-      } else {
-        await settings.setTimeBalanceEnabled(isEmployee);
-        await settings.setTravelLoggingEnabled(_travelEnabled);
-        await settings.setPaidLeaveTrackingEnabled(_paidLeaveEnabled);
-
-        if (isEmployee) {
-          final hasContract = contract.contractPercent > 0 &&
-              contract.contractPercent <= 100 &&
-              contract.fullTimeHours > 0;
-          if (!hasContract) {
-            messenger.showSnackBar(
-              const SnackBar(
-                content: Text(
-                    'Please configure contract settings before continuing.'),
-              ),
-            );
-            return;
-          }
-
-          final baselineMinutes =
-              _parseBaselineMinutes(_baselineController.text);
-          if (baselineMinutes == null) {
-            messenger.showSnackBar(
-              const SnackBar(
-                content: Text('Enter baseline like +29h, -5h, or +29h 30m.'),
-              ),
-            );
-            return;
-          }
-
-          await contract.setTrackingStartDate(_baselineDate);
-          await contract.setOpeningFlexMinutes(baselineMinutes);
-          await settings.setBaselineDate(_baselineDate);
+      if (_step == _WelcomeStep.mode) {
+        if (_mode == WelcomeSetupMode.freelancer) {
+          await _finishFreelancerPath();
+          if (!mounted) return;
+          _completeFlow();
+          return;
         }
-
-        await settings.setSetupCompleted(true);
+        setState(() => _step = _WelcomeStep.contract);
+        return;
       }
 
+      if (_step == _WelcomeStep.contract) {
+        await _applyContractDefaults();
+        if (!mounted) return;
+        setState(() => _step = _WelcomeStep.baseline);
+        return;
+      }
+
+      await _finishEmployeePath();
       if (!mounted) return;
-
-      if (widget.onCompleted != null) {
-        widget.onCompleted!.call();
-      } else {
-        context.goNamed(AppRouter.homeName);
-      }
+      _completeFlow();
     } finally {
       if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
+        setState(() => _isSaving = false);
       }
     }
   }
 
-  Future<void> _openContractSettings() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const ContractSettingsScreen(),
+  void _completeFlow() {
+    if (widget.onCompleted != null) {
+      widget.onCompleted!.call();
+      return;
+    }
+    context.goNamed(AppRouter.homeName);
+  }
+
+  void _handleBack() {
+    if (_step == _WelcomeStep.contract) {
+      setState(() => _step = _WelcomeStep.mode);
+      return;
+    }
+    if (_step == _WelcomeStep.baseline) {
+      setState(() => _step = _WelcomeStep.contract);
+    }
+  }
+
+  String _titleForStep() {
+    switch (_step) {
+      case _WelcomeStep.mode:
+        return 'Välkommen';
+      case _WelcomeStep.contract:
+        return 'Steg 2 av 3: Kontrakt';
+      case _WelcomeStep.baseline:
+        return 'Steg 3 av 3: Baslinje';
+    }
+  }
+
+  Widget _buildModeStep(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Hur vill du använda KvikTime?',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SegmentedButton<WelcomeSetupMode>(
+          segments: const [
+            ButtonSegment(
+              value: WelcomeSetupMode.employee,
+              icon: Icon(Icons.balance_rounded, size: AppIconSize.sm),
+              label: Text('Tidssaldo (rekommenderas)'),
+            ),
+            ButtonSegment(
+              value: WelcomeSetupMode.freelancer,
+              icon: Icon(Icons.timer_outlined, size: AppIconSize.sm),
+              label: Text('Bara logga tid'),
+            ),
+          ],
+          selected: {_mode},
+          onSelectionChanged: (selection) {
+            setState(() {
+              _mode = selection.first;
+            });
+          },
+          showSelectedIcon: false,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          value: _travelEnabled,
+          onChanged: (value) {
+            setState(() => _travelEnabled = value);
+          },
+          title: const Text('Logga restid'),
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          value: _paidLeaveEnabled,
+          onChanged: (value) {
+            setState(() => _paidLeaveEnabled = value);
+          },
+          title: const Text('Spåra betald frånvaro'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContractStep(ThemeData theme) {
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.cardPadding,
+      decoration: BoxDecoration(
+        color:
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: AppRadius.cardRadius,
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Snabbinställning av kontrakt',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Vi sätter säkra standardvärden för att komma igång snabbt.',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text('Veckotid: 40h', style: theme.textTheme.bodyMedium),
+          const SizedBox(height: AppSpacing.xs),
+          Text('Arbetsdagar: 5', style: theme.textTheme.bodyMedium),
+          const SizedBox(height: AppSpacing.xs),
+          Text('Kontrakt: 100%', style: theme.textTheme.bodyMedium),
+        ],
       ),
     );
-    if (!mounted) return;
-    setState(() {});
+  }
+
+  Widget _buildBaselineStep(ThemeData theme) {
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.cardPadding,
+      decoration: BoxDecoration(
+        color:
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: AppRadius.cardRadius,
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Vad är ditt plus/minus just nu?',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Fråga lönekontor/chef: Vad är mitt plus/minus idag?',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Ange inte total arbetad tid.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _baselineController,
+            keyboardType: const TextInputType.numberWithOptions(
+              signed: true,
+              decimal: true,
+            ),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9hHmM+\-.,\s]')),
+            ],
+            decoration: const InputDecoration(
+              labelText: 'Saldo-baslinje',
+              hintText: '+29h eller -5h',
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isEmployeeMode = _mode == WelcomeSetupMode.employee;
-    final baselineDateText = DateFormat('yyyy-MM-dd').format(_baselineDate);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -239,192 +427,61 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Welcome setup',
+                      _titleForStep(),
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'Set your baseline once, then track your changes forward.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                    if (_step == _WelcomeStep.mode)
+                      Text(
+                        'Ställ in grunderna en gång och följ förändringen framåt.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
                     const SizedBox(height: AppSpacing.xl),
-                    Text(
-                      'How will you use KvikTime?',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    SegmentedButton<WelcomeSetupMode>(
-                      segments: const [
-                        ButtonSegment(
-                          value: WelcomeSetupMode.employee,
-                          icon:
-                              Icon(Icons.badge_outlined, size: AppIconSize.sm),
-                          label: Text('Employee'),
-                        ),
-                        ButtonSegment(
-                          value: WelcomeSetupMode.freelancer,
-                          icon: Icon(Icons.work_outline, size: AppIconSize.sm),
-                          label: Text('Freelancer'),
-                        ),
-                      ],
-                      selected: {_mode},
-                      onSelectionChanged: (selection) {
-                        setState(() {
-                          _mode = selection.first;
-                        });
-                      },
-                      showSelectedIcon: false,
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _travelEnabled,
-                      onChanged: (value) {
-                        setState(() {
-                          _travelEnabled = value;
-                        });
-                      },
-                      title: const Text('Travel time logging'),
-                    ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _paidLeaveEnabled,
-                      onChanged: (value) {
-                        setState(() {
-                          _paidLeaveEnabled = value;
-                        });
-                      },
-                      title: const Text('Paid leave tracking'),
-                    ),
-                    if (isEmployeeMode) ...[
-                      const SizedBox(height: AppSpacing.lg),
-                      Container(
-                        width: double.infinity,
-                        padding: AppSpacing.cardPadding,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.35),
-                          borderRadius: AppRadius.cardRadius,
-                          border: Border.all(
-                            color: theme.colorScheme.outline
-                                .withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Balance baseline (from employer)',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Row(
-                              children: [
-                                Text(
-                                  'As of: $baselineDateText',
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                IconButton(
-                                  onPressed: _pickBaselineDate,
-                                  icon: const Icon(Icons.edit_calendar_rounded),
-                                  tooltip: 'Change baseline date',
-                                ),
-                              ],
-                            ),
-                            TextField(
-                              controller: _baselineController,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                signed: true,
-                                decimal: true,
-                              ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9hHmM+\-.,\s]'),
-                                ),
-                              ],
-                              decoration: const InputDecoration(
-                                labelText: 'Balance baseline',
-                                hintText: '+29h or -5h',
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              'Ask payroll/manager: What is my plus/minus balance today?',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              "Don't enter total hours worked.",
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.error,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            OutlinedButton.icon(
-                              onPressed: _openContractSettings,
-                              icon: const Icon(Icons.settings_outlined),
-                              label: const Text('Contract settings'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    if (_step == _WelcomeStep.mode) _buildModeStep(theme),
+                    if (_step == _WelcomeStep.contract)
+                      _buildContractStep(theme),
+                    if (_step == _WelcomeStep.baseline)
+                      _buildBaselineStep(theme),
                   ],
                 ),
               ),
             ),
-            Container(
-              width: double.infinity,
+            Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.lg,
-                AppSpacing.md,
+                AppSpacing.sm,
                 AppSpacing.lg,
                 AppSpacing.lg,
-              ),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                border: Border(
-                  top: BorderSide(
-                    color: theme.colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
               ),
               child: Row(
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isSaving
-                          ? null
-                          : () => _saveAndFinish(skipped: true),
-                      child: const Text('Skip for now'),
+                  if (_step != _WelcomeStep.mode)
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _isSaving ? null : _handleBack,
+                        child: const Text('Tillbaka'),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
+                  if (_step != _WelcomeStep.mode)
+                    const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: FilledButton(
-                      onPressed: _isSaving
-                          ? null
-                          : () => _saveAndFinish(skipped: false),
+                      onPressed: _isSaving ? null : _handleContinue,
                       child: _isSaving
                           ? const SizedBox(
-                              height: AppIconSize.sm,
                               width: AppIconSize.sm,
+                              height: AppIconSize.sm,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Continue'),
+                          : Text(
+                              _step == _WelcomeStep.baseline
+                                  ? 'Klar'
+                                  : 'Fortsätt',
+                            ),
                     ),
                   ),
                 ],

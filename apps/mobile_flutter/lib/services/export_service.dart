@@ -377,13 +377,39 @@ class ExportService {
     required ReportExportLabels labels,
     String? sheetNameOverride,
     bool useHhMm = false,
+    DateTime? generatedAt,
+    int? contractPercent,
+    int? fullTimeHours,
   }) {
     final dateFormat = DateFormat('yyyy-MM-dd');
+    final dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
+    final generatedTimestamp = generatedAt ?? DateTime.now();
+    final balanceOffsetsTotal = periodSummary.startBalanceMinutes +
+        periodSummary.manualAdjustmentMinutes;
+    final contractSummary = (contractPercent != null && fullTimeHours != null)
+        ? '$contractPercent% / ${fullTimeHours}h'
+        : '';
+
     final summaryRows = <List<dynamic>>[
       [
         labels.periodRow,
-        '${dateFormat.format(rangeStart)} - ${dateFormat.format(rangeEnd)}',
+        '${dateFormat.format(rangeStart)} → ${dateFormat.format(rangeEnd)}',
         '',
+      ],
+      ['Generated at', dateTimeFormat.format(generatedTimestamp), ''],
+      [
+        'Tracked work',
+        periodSummary.workMinutes,
+        useHhMm
+            ? formatMinutes(periodSummary.workMinutes)
+            : _formatUnsignedHours(periodSummary.workMinutes),
+      ],
+      [
+        'Tracked travel',
+        periodSummary.travelMinutes,
+        useHhMm
+            ? formatMinutes(periodSummary.travelMinutes)
+            : _formatUnsignedHours(periodSummary.travelMinutes),
       ],
       [
         labels.totalLoggedTimeRow,
@@ -421,12 +447,27 @@ class ExportService {
             : _formatSignedHours(periodSummary.differenceMinutes),
       ],
       [
+        'Balance offsets',
+        balanceOffsetsTotal,
+        useHhMm
+            ? formatMinutes(balanceOffsetsTotal, signed: true)
+            : _formatSignedHours(balanceOffsetsTotal),
+      ],
+      [
+        'Manual adjustments',
+        periodSummary.manualAdjustmentMinutes,
+        useHhMm
+            ? formatMinutes(periodSummary.manualAdjustmentMinutes, signed: true)
+            : _formatSignedHours(periodSummary.manualAdjustmentMinutes),
+      ],
+      [
         labels.balanceAfterPeriodRow,
         periodSummary.endBalanceMinutes,
         useHhMm
             ? formatMinutes(periodSummary.endBalanceMinutes, signed: true)
             : _formatSignedHours(periodSummary.endBalanceMinutes),
       ],
+      ['Contract settings', contractSummary, ''],
     ];
 
     return ExportData(
@@ -531,11 +572,13 @@ class ExportService {
     required DateTime rangeEnd,
     required ReportExportLabels labels,
     bool forXlsxPresentation = false,
+    int? contractPercent,
+    int? fullTimeHours,
   }) {
     final entriesSheetName =
         forXlsxPresentation ? 'Report' : labels.entriesSheetName;
     final summarySheetName =
-        forXlsxPresentation ? 'Summary (Easy)' : labels.summarySheetName;
+        forXlsxPresentation ? 'Sammanfattning' : labels.summarySheetName;
     final balanceEventsSheetName =
         forXlsxPresentation ? 'Balance Events' : labels.balanceEventsSheetName;
 
@@ -551,6 +594,9 @@ class ExportService {
       labels: labels,
       sheetNameOverride: summarySheetName,
       useHhMm: forXlsxPresentation,
+      generatedAt: DateTime.now(),
+      contractPercent: contractPercent,
+      fullTimeHours: fullTimeHours,
     );
     final balanceEventsSheet = _prepareBalanceEventsSheet(
       summary: summary,
@@ -563,6 +609,10 @@ class ExportService {
       fillFriendlyNotes: forXlsxPresentation,
     );
 
+    if (forXlsxPresentation) {
+      // Keep existing first sheets stable and append summary last.
+      return [entriesSheet, balanceEventsSheet, summarySheet];
+    }
     return [entriesSheet, summarySheet, balanceEventsSheet];
   }
 
@@ -575,6 +625,8 @@ class ExportService {
     required ReportExportLabels labels,
     DateTime? trackingStartDate,
     DateTime? effectiveRangeStart,
+    int? contractPercent,
+    int? fullTimeHours,
   }) {
     final sections = prepareReportExportData(
       summary: summary,
@@ -583,6 +635,8 @@ class ExportService {
       rangeEnd: rangeEnd,
       labels: labels,
       forXlsxPresentation: true,
+      contractPercent: contractPercent,
+      fullTimeHours: fullTimeHours,
     );
     return _buildStyledReportWorkbook(
       sections: sections,
@@ -623,12 +677,20 @@ class ExportService {
     for (var i = 0; i < sections.length; i++) {
       final section = sections[i];
       final sheet = excel[safeSheetNames[i]];
-      if (i == 0) {
+      final normalizedSheetName = section.sheetName.trim().toLowerCase();
+      final normalizedSummaryName =
+          labels.summarySheetName.trim().toLowerCase();
+      final normalizedBalanceName =
+          labels.balanceEventsSheetName.trim().toLowerCase();
+
+      if (normalizedSheetName == 'report') {
         _writeStyledReportSheet(
           sheet: sheet,
           section: section,
         );
-      } else if (i == 1) {
+      } else if (normalizedSheetName == 'sammanfattning' ||
+          normalizedSheetName == 'summary (easy)' ||
+          normalizedSheetName == normalizedSummaryName) {
         _writeStyledSummarySheet(
           sheet: sheet,
           section: section,
@@ -637,7 +699,8 @@ class ExportService {
           rangeEnd: rangeEnd,
           effectiveRangeStart: effectiveRangeStart,
         );
-      } else if (i == 2) {
+      } else if (normalizedSheetName == 'balance events' ||
+          normalizedSheetName == normalizedBalanceName) {
         _writeStyledBalanceEventsSheet(
           sheet: sheet,
           section: section,
@@ -704,7 +767,7 @@ class ExportService {
 
     final payrollNote =
         'Work/Travel = logged time. Leave rows = credited leave (not worked). '
-        'TOTAL (tracked only) excludes Leave and Balance events. See Summary (Easy).';
+        'TOTAL (tracked only) excludes Leave and Balance events. See Sammanfattning.';
 
     final startTitle = CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0);
     final endTitle = CellIndex.indexByColumnRow(
@@ -821,9 +884,9 @@ class ExportService {
       final selectedEnd = rangeEnd;
       final effectiveStartValue = effectiveRangeStart;
       final reportPeriodRow =
-          'Report period: ${dateFormat.format(selectedStart)} -> ${dateFormat.format(selectedEnd)}';
+          'Report period: ${dateFormat.format(selectedStart)} → ${dateFormat.format(selectedEnd)}';
       final effectiveRangeRow =
-          'Calculated from: ${dateFormat.format(effectiveStartValue)} -> ${dateFormat.format(selectedEnd)}';
+          'Calculated from: ${dateFormat.format(effectiveStartValue)} → ${dateFormat.format(selectedEnd)}';
 
       final metadataStartRow = 0;
       final metadataEndColumn = section.headers.length - 1;
@@ -1081,6 +1144,8 @@ class ExportService {
     String? fileName,
     DateTime? trackingStartDate,
     DateTime? effectiveRangeStart,
+    int? contractPercent,
+    int? fullTimeHours,
   }) async {
     try {
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
@@ -1098,6 +1163,8 @@ class ExportService {
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
         labels: labels,
+        contractPercent: contractPercent,
+        fullTimeHours: fullTimeHours,
       );
       final csvData = CsvExporter.exportMultiple(sections);
 
@@ -1136,6 +1203,8 @@ class ExportService {
     String? fileName,
     DateTime? trackingStartDate,
     DateTime? effectiveRangeStart,
+    int? contractPercent,
+    int? fullTimeHours,
   }) async {
     try {
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
@@ -1155,6 +1224,8 @@ class ExportService {
         labels: labels,
         trackingStartDate: trackingStartDate,
         effectiveRangeStart: effectiveRangeStart,
+        contractPercent: contractPercent,
+        fullTimeHours: fullTimeHours,
       );
 
       if (excelData == null || excelData.isEmpty) {

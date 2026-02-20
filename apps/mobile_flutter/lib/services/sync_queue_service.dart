@@ -137,6 +137,27 @@ class SyncQueueService extends ChangeNotifier {
 
   /// Queue a create operation
   Future<void> queueCreate(Entry entry, String userId) async {
+    // If a create for this entry already exists, just update its data
+    final existingCreate = _queue.indexWhere(
+      (op) => op.entryId == entry.id && op.type == SyncOperationType.create,
+    );
+    if (existingCreate != -1) {
+      _queue[existingCreate] = SyncOperation(
+        id: _queue[existingCreate].id, // Keep the original ID
+        type: SyncOperationType.create,
+        entryId: entry.id,
+        userId: userId,
+        entryData: entry.toJson(),
+        createdAt: _queue[existingCreate].createdAt,
+        retryCount: _queue[existingCreate].retryCount,
+      );
+      await _persist();
+      notifyListeners();
+      debugPrint(
+          'SyncQueueService: Updated existing create operation for entry ${entry.id}');
+      return;
+    }
+
     await enqueue(SyncOperation(
       id: 'create_${entry.id}_${DateTime.now().millisecondsSinceEpoch}',
       type: SyncOperationType.create,

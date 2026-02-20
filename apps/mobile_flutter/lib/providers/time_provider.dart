@@ -149,7 +149,8 @@ class TimeProvider extends ChangeNotifier {
     required DateTime date,
     required int weeklyTargetMinutes,
   }) {
-    // If HolidayService is available, use it for full red day support
+    // If HolidayService is available, use it for ALL holiday checks
+    // (both auto holidays and personal red days) to ensure consistency
     if (_holidayService != null) {
       final redDayInfo = _holidayService.getRedDayInfo(date);
 
@@ -162,6 +163,14 @@ class TimeProvider extends ChangeNotifier {
           isHalfRedDay: redDayInfo.halfDay != null,
         );
       }
+
+      // Not a red day — return normal scheduled minutes for weekday
+      // (weekend check is handled inside scheduledMinutesForDate)
+      return TargetHoursCalculator.scheduledMinutesForDate(
+        date: date,
+        weeklyTargetMinutes: weeklyTargetMinutes,
+        holidays: _holidays,
+      );
     }
 
     // Fallback: Use basic holiday calendar (auto holidays only)
@@ -646,6 +655,12 @@ class TimeProvider extends ChangeNotifier {
 
       for (int day = 1; day <= lastDay.day; day++) {
         final date = DateTime(summary.year, summary.month, day);
+
+        // Skip days before tracking start date (match calculateBalances)
+        if (date.isBefore(_trackingDateOnly)) {
+          continue;
+        }
+
         monthTargetMinutes += _getScheduledMinutesForDate(
           date: date,
           weeklyTargetMinutes: weeklyTargetMinutes,
@@ -1095,5 +1110,7 @@ class _WeekKey {
           weekStart.day == other.weekStart.day;
 
   @override
-  int get hashCode => weekNumber.hashCode ^ weekStart.hashCode;
+  int get hashCode =>
+      weekNumber.hashCode ^
+      Object.hash(weekStart.year, weekStart.month, weekStart.day);
 }

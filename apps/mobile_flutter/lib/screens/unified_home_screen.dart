@@ -54,6 +54,8 @@ class UnifiedHomeScreen extends StatefulWidget {
 class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   List<_EntryData> _recentEntries = [];
   bool _isLoadingRecent = false;
+  bool _pendingRecentReload = false;
+  bool _recentBootstrapReloadQueued = false;
   Timer? _recentLoadDebounce;
   EntryProvider? _entryProvider;
   AbsenceProvider? _absenceProvider;
@@ -91,19 +93,18 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   void initState() {
     super.initState();
     // Start loading data immediately; provider listeners keep recents in sync.
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final entryProvider = context.read<EntryProvider>();
       final absenceProvider = context.read<AbsenceProvider>();
 
-      // Load absences for current year
-      await absenceProvider.loadAbsences(year: DateTime.now().year);
+      // Always trigger entry load. EntryProvider deduplicates in-flight calls.
+      entryProvider.loadEntries();
 
-      if (!entryProvider.isLoading) {
-        // Kick off load/sync without blocking the initial render.
-        await entryProvider.loadEntries();
-      }
+      // Load absences in parallel; this should not block recent entries rendering.
+      absenceProvider.loadAbsences(year: DateTime.now().year);
 
-      await _ensureTrackingStartDateInitialized();
+      // Do not block home rendering on tracking start initialization.
+      _ensureTrackingStartDateInitialized();
       _loadRecentEntries();
     });
   }
@@ -132,7 +133,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       final entryProvider = context.read<EntryProvider>();
       final absenceProvider = context.read<AbsenceProvider>();
 
-      if (!entryProvider.isLoading && entryProvider.entries.isEmpty) {
+      if (entryProvider.entries.isEmpty) {
         await entryProvider.loadEntries();
       }
 
@@ -166,8 +167,13 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     // Debounce frequent triggers to avoid UI stalls
     _recentLoadDebounce?.cancel();
     _recentLoadDebounce = Timer(const Duration(milliseconds: 150), () {
-      if (_isLoadingRecent) return;
+      if (_isLoadingRecent) {
+        // Queue one follow-up refresh so updates during an in-flight load are not lost.
+        _pendingRecentReload = true;
+        return;
+      }
       _isLoadingRecent = true;
+      _pendingRecentReload = false;
       _loadRecentEntriesInternal();
     });
   }
@@ -210,96 +216,23 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
       debugPrint('Found ${sortedEntries.length} entries from EntryProvider');
 
-      // Combine and sort by date
-      final allEntries = <_EntryData>[];
-
-      if (travelEnabled) {
-        // Convert travel entries
-        final travelEntries =
-            sortedEntries.where((e) => e.type == EntryType.travel).take(5);
-        for (final entry in travelEntries) {
-          final fromText = entry.from ?? '';
-          final toText = entry.to ?? '';
-          final minutes = entry.travelMinutes ?? 0;
-          allEntries.add(_EntryData(
-            id: entry.id,
-            type: 'travel',
-            title: t.home_travelRoute(fromText, toText),
-            subtitle:
-                '${DateFormat.yMMMd().format(entry.date)} â€¢ ${entry.notes?.isNotEmpty == true ? entry.notes : t.home_noRemarks}',
-            duration: '${minutes ~/ 60}h ${minutes % 60}m',
-            icon: Icons.directions_car,
-            date: entry.date,
-          ));
-        }
-      }
-
-      // Convert work entries
-      final workEntries =
-          sortedEntries.where((e) => e.type == EntryType.work).take(5);
-      for (final entry in workEntries) {
-        // Show shift time range + location (and worked minutes)
-        final shift = entry.atomicShift ?? entry.shifts?.first;
-        final workedMinutes = entry.totalWorkDuration?.inMinutes ?? 0;
-        String title = t.home_workSession;
-        String subtitle = DateFormat.yMMMd().format(entry.date);
-
-        if (shift != null) {
-          final startTime = TimeOfDay.fromDateTime(shift.start);
-          final endTime = TimeOfDay.fromDateTime(shift.end);
-          title =
-              '${_formatTimeOfDay(startTime)} - ${_formatTimeOfDay(endTime)}';
-          if (shift.location != null && shift.location!.isNotEmpty) {
-            subtitle += ' â€¢ ${shift.location}';
-          }
-        }
-
-        if (entry.notes?.isNotEmpty == true) {
-          subtitle += ' â€¢ ${entry.notes}';
-        } else {
-          subtitle += ' â€¢ ${t.home_noRemarks}';
-        }
-
-        allEntries.add(_EntryData(
-          id: entry.id,
-          type: 'work',
-          title: title,
-          subtitle: subtitle,
-          duration: '${workedMinutes ~/ 60}h ${workedMinutes % 60}m',
-          icon: Icons.work,
-          date: entry.date,
-        ));
-      }
-
       // Convert absence entries (load current year)
       final currentYear = DateTime.now().year;
       final absences = absenceProvider.absencesForYear(currentYear);
       debugPrint(
           'Found ${absences.length} absence entries for year $currentYear');
 
-      for (final absence in absences.take(5)) {
-        final typeLabel = _getAbsenceTypeLabel(absence.type);
-        final durationText = absence.minutes == 0
-            ? t.absence_fullDay
-            : '${absence.minutes ~/ 60}h ${absence.minutes % 60}m';
-
-        allEntries.add(_EntryData(
-          id: absence.id ?? 'absence_${absence.date.millisecondsSinceEpoch}',
-          type: 'absence',
-          title: typeLabel,
-          subtitle: DateFormat.yMMMd().format(absence.date),
-          duration: durationText,
-          icon: _getAbsenceIcon(absence.type),
-          date: absence.date,
-        ));
-      }
-
-      // Sort by real date (most recent first)
-      allEntries.sort((a, b) => b.date.compareTo(a.date));
+      final allEntries = _composeRecentEntries(
+        sortedEntries: sortedEntries,
+        absences: absences,
+        travelEnabled: travelEnabled,
+        t: t,
+      );
+      debugPrint('Recent entries composed: ${allEntries.length}');
 
       if (mounted) {
         setState(() {
-          _recentEntries = allEntries.take(10).toList();
+          _recentEntries = allEntries;
         });
       }
     } catch (e) {
@@ -307,7 +240,93 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       debugPrint('Error loading recent entries: $e');
     } finally {
       _isLoadingRecent = false;
+      if (_pendingRecentReload && mounted) {
+        _pendingRecentReload = false;
+        _loadRecentEntries();
+      }
     }
+  }
+
+  List<_EntryData> _composeRecentEntries({
+    required List<Entry> sortedEntries,
+    required List<AbsenceEntry> absences,
+    required bool travelEnabled,
+    required AppLocalizations t,
+  }) {
+    final allEntries = <_EntryData>[];
+
+    if (travelEnabled) {
+      final travelEntries =
+          sortedEntries.where((e) => e.type == EntryType.travel).take(5);
+      for (final entry in travelEntries) {
+        final fromText = entry.from ?? '';
+        final toText = entry.to ?? '';
+        final minutes = entry.travelMinutes ?? 0;
+        allEntries.add(_EntryData(
+          id: entry.id,
+          type: 'travel',
+          title: t.home_travelRoute(fromText, toText),
+          subtitle:
+              '${DateFormat.yMMMd().format(entry.date)} • ${entry.notes?.isNotEmpty == true ? entry.notes : t.home_noRemarks}',
+          duration: '${minutes ~/ 60}h ${minutes % 60}m',
+          icon: Icons.directions_car,
+          date: entry.date,
+        ));
+      }
+    }
+
+    final workEntries = sortedEntries.where((e) => e.type == EntryType.work).take(5);
+    for (final entry in workEntries) {
+      final shift = entry.atomicShift ?? entry.shifts?.first;
+      final workedMinutes = entry.totalWorkDuration?.inMinutes ?? 0;
+      String title = t.home_workSession;
+      String subtitle = DateFormat.yMMMd().format(entry.date);
+
+      if (shift != null) {
+        final startTime = TimeOfDay.fromDateTime(shift.start);
+        final endTime = TimeOfDay.fromDateTime(shift.end);
+        title = '${_formatTimeOfDay(startTime)} - ${_formatTimeOfDay(endTime)}';
+        if (shift.location != null && shift.location!.isNotEmpty) {
+          subtitle += ' • ${shift.location}';
+        }
+      }
+
+      if (entry.notes?.isNotEmpty == true) {
+        subtitle += ' • ${entry.notes}';
+      } else {
+        subtitle += ' • ${t.home_noRemarks}';
+      }
+
+      allEntries.add(_EntryData(
+        id: entry.id,
+        type: 'work',
+        title: title,
+        subtitle: subtitle,
+        duration: '${workedMinutes ~/ 60}h ${workedMinutes % 60}m',
+        icon: Icons.work,
+        date: entry.date,
+      ));
+    }
+
+    for (final absence in absences.take(5)) {
+      final typeLabel = _getAbsenceTypeLabel(absence.type);
+      final durationText = absence.minutes == 0
+          ? t.absence_fullDay
+          : '${absence.minutes ~/ 60}h ${absence.minutes % 60}m';
+
+      allEntries.add(_EntryData(
+        id: absence.id ?? 'absence_${absence.date.millisecondsSinceEpoch}',
+        type: 'absence',
+        title: typeLabel,
+        subtitle: DateFormat.yMMMd().format(absence.date),
+        duration: durationText,
+        icon: _getAbsenceIcon(absence.type),
+        date: absence.date,
+      ));
+    }
+
+    allEntries.sort((a, b) => b.date.compareTo(a.date));
+    return allEntries.take(10).toList();
   }
 
   String _getAbsenceTypeLabel(AbsenceType type) {
@@ -1002,7 +1021,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                     child: Row(
                       children: [
                         Text(
-                          t.home_viewAllArrow,
+                          t.home_viewAll,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,
@@ -1041,7 +1060,45 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
   Widget _buildRecentEntriesSliver(ThemeData theme, AppLocalizations t) {
     final entryProvider = context.watch<EntryProvider>();
-    final showLoadingState = entryProvider.isLoading && _recentEntries.isEmpty;
+    final absenceProvider = context.watch<AbsenceProvider>();
+    final travelEnabled = context.watch<SettingsProvider>().isTravelLoggingEnabled;
+    final currentYear = DateTime.now().year;
+    final fallbackRecentEntries = _recentEntries.isNotEmpty
+        ? _recentEntries
+        : _composeRecentEntries(
+            sortedEntries: List<Entry>.from(entryProvider.entries)
+              ..sort((a, b) {
+                final dateCompare = b.date.compareTo(a.date);
+                if (dateCompare != 0) return dateCompare;
+                final aTime = a.updatedAt ?? a.createdAt;
+                final bTime = b.updatedAt ?? b.createdAt;
+                return bTime.compareTo(aTime);
+              }),
+            absences: absenceProvider.absencesForYear(currentYear),
+            travelEnabled: travelEnabled,
+            t: t,
+          );
+    final showLoadingState =
+        entryProvider.isLoading && fallbackRecentEntries.isEmpty;
+
+    if (fallbackRecentEntries.isEmpty &&
+        !entryProvider.isLoading &&
+        !_isLoadingRecent &&
+        !_recentBootstrapReloadQueued) {
+      _recentBootstrapReloadQueued = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        try {
+          await context.read<EntryProvider>().loadEntries();
+          if (!mounted) return;
+          _loadRecentEntries();
+        } finally {
+          _recentBootstrapReloadQueued = false;
+        }
+      });
+    } else if (fallbackRecentEntries.isNotEmpty) {
+      _recentBootstrapReloadQueued = false;
+    }
 
     if (showLoadingState) {
       return SliverList(
@@ -1087,7 +1144,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       );
     }
 
-    if (_recentEntries.isEmpty) {
+    if (fallbackRecentEntries.isEmpty) {
       return SliverToBoxAdapter(
         child: Container(
           width: double.infinity,
@@ -1125,13 +1182,23 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              const SizedBox(height: AppSpacing.md),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  await context.read<EntryProvider>().loadEntries();
+                  if (!mounted) return;
+                  _loadRecentEntries();
+                },
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(t.common_retry),
+              ),
             ],
           ),
         ),
       );
     }
 
-    final items = _recentEntries.take(5).toList();
+    final items = fallbackRecentEntries.take(5).toList();
     return SliverList(
       delegate: SliverChildListDelegate(
         List.generate(
@@ -1288,43 +1355,46 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     required bool isFirst,
     required bool isLast,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
       children: [
-        SizedBox(
-          width: AppSpacing.lg,
-          child: Column(
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              if (!isLast)
-                Expanded(
-                  child: Container(
-                    width: 2,
-                    margin: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.xs,
-                    ),
-                    color: theme.colorScheme.outline.withValues(alpha: 0.2),
+        if (!isLast)
+          Positioned(
+            left: (AppSpacing.lg - 2) / 2,
+            top: 8 + AppSpacing.xs,
+            bottom: 0,
+            child: Container(
+              width: 2,
+              color: theme.colorScheme.outline.withValues(alpha: 0.2),
+            ),
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: AppSpacing.lg,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    shape: BoxShape.circle,
                   ),
                 ),
-            ],
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Column(
-            children: [
-              if (!isFirst) const SizedBox(height: AppSpacing.xs),
-              _buildRecentEntryCard(theme, entry, fullEntries),
-              if (!isLast) const SizedBox(height: AppSpacing.sm),
-            ],
-          ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                children: [
+                  if (!isFirst) const SizedBox(height: AppSpacing.xs),
+                  _buildRecentEntryCard(theme, entry, fullEntries),
+                  if (!isLast) const SizedBox(height: AppSpacing.sm),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );

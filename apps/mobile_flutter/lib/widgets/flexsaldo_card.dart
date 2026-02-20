@@ -6,6 +6,7 @@ import '../models/absence.dart';
 import '../models/balance_adjustment.dart';
 import '../models/entry.dart';
 import '../design/app_theme.dart';
+import '../config/app_router.dart';
 import '../providers/absence_provider.dart';
 import '../providers/balance_adjustment_provider.dart';
 import '../providers/time_provider.dart';
@@ -55,7 +56,7 @@ class HomeTrackingRangeText extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Calculated from: $baselineDateText -> $todayDateText',
+          'Calculated from: $baselineDateText → $todayDateText',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -154,10 +155,13 @@ class FlexsaldoCard extends StatelessWidget {
         final month = now.month;
         final todayDateOnly = DateTime(now.year, now.month, now.day);
         final trackingStartDateOnly = DateTime(
-          contractProvider.trackingStartDate.year,
-          contractProvider.trackingStartDate.month,
-          contractProvider.trackingStartDate.day,
+          contractProvider.effectiveTrackingStartDate.year,
+          contractProvider.effectiveTrackingStartDate.month,
+          contractProvider.effectiveTrackingStartDate.day,
         );
+        final earliestEntryDate = entryProvider.earliestEntryDate;
+        final showBackfillBanner = earliestEntryDate != null &&
+            earliestEntryDate.isBefore(trackingStartDateOnly);
         final localeCode = Localizations.localeOf(context).toLanguageTag();
         final monthName =
             DateFormat.MMMM(Localizations.localeOf(context).toString())
@@ -302,6 +306,36 @@ class FlexsaldoCard extends StatelessWidget {
                 today: todayDateOnly,
                 localeCode: localeCode,
               ),
+              if (showBackfillBanner) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.tertiaryContainer
+                        .withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Du har poster före ditt startdatum. Saldo beräknas från startdatum.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onTertiaryContainer,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            AppRouter.goToContractSettings(context),
+                        child: const Text('Ändra'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               const SizedBox(height: AppSpacing.lg),
 

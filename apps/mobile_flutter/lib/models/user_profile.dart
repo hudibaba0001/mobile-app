@@ -19,6 +19,7 @@ class UserProfile {
   final int fullTimeHours;
   final DateTime? trackingStartDate;
   final int openingFlexMinutes;
+  final DateTime? setupCompletedAt;
   final String employerMode;
   // Timestamps
   final DateTime? createdAt;
@@ -40,6 +41,7 @@ class UserProfile {
     this.fullTimeHours = 40,
     this.trackingStartDate,
     this.openingFlexMinutes = 0,
+    this.setupCompletedAt,
     this.employerMode = 'standard',
     this.createdAt,
     this.updatedAt,
@@ -87,6 +89,9 @@ class UserProfile {
           ? DateTime.parse(map['tracking_start_date'] as String)
           : null,
       openingFlexMinutes: map['opening_flex_minutes'] as int? ?? 0,
+      setupCompletedAt: map['setup_completed_at'] != null
+          ? DateTime.parse(map['setup_completed_at'] as String)
+          : null,
       employerMode: map['employer_mode'] as String? ?? 'standard',
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'] as String)
@@ -116,6 +121,7 @@ class UserProfile {
           ? '${trackingStartDate!.year}-${trackingStartDate!.month.toString().padLeft(2, '0')}-${trackingStartDate!.day.toString().padLeft(2, '0')}'
           : null,
       'opening_flex_minutes': openingFlexMinutes,
+      'setup_completed_at': setupCompletedAt?.toUtc().toIso8601String(),
       'employer_mode': employerMode,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),

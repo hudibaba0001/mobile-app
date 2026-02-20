@@ -31,4 +31,39 @@ void main() {
       expect(derived, DateTime(2025, 12, 20));
     });
   });
+
+  group('ContractProvider effectiveTrackingStartDate', () {
+    test('explicit tracking start date wins', () {
+      final resolved = ContractProvider.resolveEffectiveTrackingStartDate(
+        explicitTrackingStartDate: DateTime(2026, 2, 1, 15, 30),
+        hasAnyEntries: true,
+        earliestEntryDate: DateTime(2026, 1, 1),
+        now: DateTime(2026, 3, 1),
+      );
+
+      expect(resolved, DateTime(2026, 2, 1));
+    });
+
+    test('without explicit date, earliest entry date is used', () {
+      final resolved = ContractProvider.resolveEffectiveTrackingStartDate(
+        explicitTrackingStartDate: null,
+        hasAnyEntries: true,
+        earliestEntryDate: DateTime(2026, 1, 12, 23, 59),
+        now: DateTime(2026, 3, 1),
+      );
+
+      expect(resolved, DateTime(2026, 1, 12));
+    });
+
+    test('without explicit date and without entries, falls back to today', () {
+      final resolved = ContractProvider.resolveEffectiveTrackingStartDate(
+        explicitTrackingStartDate: null,
+        hasAnyEntries: false,
+        earliestEntryDate: null,
+        now: DateTime(2026, 2, 19, 11, 45),
+      );
+
+      expect(resolved, DateTime(2026, 2, 19));
+    });
+  });
 }

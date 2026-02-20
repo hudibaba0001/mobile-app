@@ -66,6 +66,19 @@ class EntryProvider extends ChangeNotifier {
 
   List<Entry> get entries => _entries;
   List<Entry> get filteredEntries => _filteredEntries;
+  bool get hasAnyEntries => _entries.isNotEmpty;
+  DateTime? get earliestEntryDate {
+    if (_entries.isEmpty) return null;
+    DateTime? earliest;
+    for (final entry in _entries) {
+      final date = DateTime(entry.date.year, entry.date.month, entry.date.day);
+      if (earliest == null || date.isBefore(earliest)) {
+        earliest = date;
+      }
+    }
+    return earliest;
+  }
+
   bool get isLoading => _isLoading;
   bool get isSyncing => _isSyncing;
   String? get error => _error;
@@ -592,7 +605,7 @@ class EntryProvider extends ChangeNotifier {
     _selectedType = null;
     _startDate = null;
     _endDate = null;
-    _filteredEntries = _entries;
+    _filteredEntries = List.from(_entries);
     notifyListeners();
   }
 
@@ -628,8 +641,8 @@ class EntryProvider extends ChangeNotifier {
         }
       }
 
-      // Remove from local list
-      _entries.removeWhere((entry) => entry.id.startsWith('sample_'));
+      // deleteEntry() already removes each entry from _entries,
+      // so just refresh the filtered list.
       _filteredEntries = List.from(_entries);
       _error = null;
 
@@ -699,6 +712,7 @@ class EntryProvider extends ChangeNotifier {
 
   /// Sync entries from Supabase to local Hive cache
   /// Stores Entry objects directly in Hive (no legacy model conversion)
+  /// Also removes stale entries that no longer exist on the server
   Future<void> _syncToLocalCache(List<Entry> entries, String userId) async {
     try {
       await _initEntriesBox();
@@ -708,10 +722,26 @@ class EntryProvider extends ChangeNotifier {
         return;
       }
 
+      // Build set of cloud entry IDs for stale-detection
+      final cloudIds = entries.map((e) => e.id).toSet();
+
       for (final entry in entries) {
         // Store Entry directly in Hive (preserves all fields: shifts, unpaid breaks, notes, travel legs, etc.)
         await _entriesBox!.put(entry.id, entry);
       }
+
+      // Remove stale Hive entries that no longer exist on the server
+      final allCachedKeys = _entriesBox!.keys.toList();
+      for (final key in allCachedKeys) {
+        if (!cloudIds.contains(key)) {
+          final cachedEntry = _entriesBox!.get(key);
+          if (cachedEntry != null && cachedEntry.userId == userId) {
+            await _entriesBox!.delete(key);
+            debugPrint('EntryProvider: Removed stale cache entry: $key');
+          }
+        }
+      }
+
       debugPrint(
           'EntryProvider: Synced ${entries.length} entries to local cache');
     } catch (e) {

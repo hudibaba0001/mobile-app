@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/app_config.dart';
 import '../config/supabase_config.dart';
@@ -19,6 +20,7 @@ class LegalVersions {
 /// Service for fetching and updating user profile from Supabase
 class ProfileService {
   final _supabase = SupabaseConfig.client;
+  static const String _setupCompletedKeyPrefix = 'setupCompleted_';
 
   String get _apiBase {
     final configured = AppConfig.apiBase.trim();
@@ -208,5 +210,109 @@ class ProfileService {
       debugPrint('ProfileService: Error updating $field: $e');
       rethrow;
     }
+  }
+
+  static String setupCompletedCacheKeyForUser(String userId) {
+    return '$_setupCompletedKeyPrefix$userId';
+  }
+
+  static String _dateOnlyString(DateTime date) {
+    final normalized = DateTime(date.year, date.month, date.day);
+    return '${normalized.year.toString().padLeft(4, '0')}-'
+        '${normalized.month.toString().padLeft(2, '0')}-'
+        '${normalized.day.toString().padLeft(2, '0')}';
+  }
+
+  Map<String, dynamic> _normalizeProfileUpdatePayload(
+      Map<String, dynamic> updates) {
+    final normalized = <String, dynamic>{};
+
+    updates.forEach((key, value) {
+      if (key == 'tracking_start_date') {
+        if (value == null) {
+          normalized[key] = null;
+        } else if (value is DateTime) {
+          normalized[key] = _dateOnlyString(value);
+        } else {
+          normalized[key] = value.toString();
+        }
+        return;
+      }
+
+      if (key == 'setup_completed_at') {
+        if (value == null) {
+          normalized[key] = null;
+        } else if (value is DateTime) {
+          normalized[key] = value.toUtc().toIso8601String();
+        } else {
+          normalized[key] = value;
+        }
+        return;
+      }
+
+      normalized[key] = value;
+    });
+
+    normalized['updated_at'] = DateTime.now().toUtc().toIso8601String();
+    return normalized;
+  }
+
+  Future<UserProfile?> updateProfileFields(Map<String, dynamic> updates) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      debugPrint(
+          'ProfileService: Cannot update profile - user not authenticated');
+      return null;
+    }
+
+    final payload = _normalizeProfileUpdatePayload(updates);
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .update(payload)
+          .eq('id', user.id)
+          .select()
+          .maybeSingle();
+
+      if (response == null) {
+        return null;
+      }
+
+      final profileData = Map<String, dynamic>.from(response);
+      profileData['email'] ??= user.email;
+      return UserProfile.fromMap(profileData);
+    } catch (e) {
+      debugPrint('ProfileService: Error updating profile fields: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> setLocalSetupCompleted({
+    required String userId,
+    required bool completed,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = setupCompletedCacheKeyForUser(userId);
+    await prefs.setBool(key, completed);
+  }
+
+  Future<bool> isLocalSetupCompleted(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = setupCompletedCacheKeyForUser(userId);
+    return prefs.getBool(key) ?? false;
+  }
+
+  Future<UserProfile?> markSetupCompleted({DateTime? at}) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return null;
+    }
+
+    final completedAt = at ?? DateTime.now();
+    final profile = await updateProfileFields({
+      'setup_completed_at': completedAt,
+    });
+    await setLocalSetupCompleted(userId: user.id, completed: true);
+    return profile;
   }
 }

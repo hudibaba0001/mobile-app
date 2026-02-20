@@ -73,14 +73,14 @@ class OverviewTrackingRangeText extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Report period: ${dateFormat.format(reportStartOnly)} -> ${dateFormat.format(reportEndOnly)}',
+          'Report period: ${dateFormat.format(reportStartOnly)} → ${dateFormat.format(reportEndOnly)}',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Calculated from: ${dateFormat.format(effectiveStart)} -> ${dateFormat.format(reportEndOnly)}',
+          'Calculated from: ${dateFormat.format(effectiveStart)} → ${dateFormat.format(reportEndOnly)}',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -217,7 +217,7 @@ class _ReportsScreenState extends State<ReportsScreen>
     final range = _currentRange();
     final dateFormat = DateFormat('yyyy-MM-dd');
     final rangeText =
-        '${dateFormat.format(range.start)} \u2013 ${dateFormat.format(range.end)}';
+        '${dateFormat.format(range.start)} → ${dateFormat.format(range.end)}';
 
     final presets = <ReportsPeriodPreset>[
       ReportsPeriodPreset.today,

@@ -512,7 +512,7 @@ void main() {
     });
 
     test(
-        'xlsx report workbook uses Report/Summary/Balance names and Hh Mm labels',
+        'xlsx report workbook keeps Report/Balance order and appends Sammanfattning',
         () {
       final labels = _testReportLabels();
       final rangeStart = DateTime(2026, 2, 1);
@@ -585,7 +585,7 @@ void main() {
       final excel = Excel.decodeBytes(bytes!);
       expect(
         excel.tables.keys.toList(),
-        equals(['Report', 'Summary (Easy)', 'Balance Events']),
+        equals(['Report', 'Balance Events', 'Sammanfattning']),
       );
 
       String readCell(Sheet sheet, int columnIndex, int rowIndex) {
@@ -609,7 +609,7 @@ void main() {
         return -1;
       }
 
-      final summarySheet = excel['Summary (Easy)'];
+      final summarySheet = excel['Sammanfattning'];
       expect(readCell(summarySheet, 2, 0), 'Hh Mm');
 
       final totalLoggedRow =
@@ -733,7 +733,7 @@ void main() {
 
         expect(bytes, isNotNull);
         final excel = Excel.decodeBytes(bytes!);
-        final summarySheet = excel['Summary (Easy)'];
+        final summarySheet = excel['Sammanfattning'];
         final balanceSheet = excel['Balance Events'];
 
         String readCell(Sheet sheet, int columnIndex, int rowIndex) {
@@ -759,11 +759,11 @@ void main() {
 
         expect(
           readCell(summarySheet, 0, 0),
-          'Report period: 2026-01-01 -> 2026-01-31',
+          'Report period: 2026-01-01 → 2026-01-31',
         );
         expect(
           readCell(summarySheet, 0, 1),
-          'Calculated from: 2026-01-10 -> 2026-01-31',
+          'Calculated from: 2026-01-10 → 2026-01-31',
         );
         expect(readCell(summarySheet, 2, 3), 'Hh Mm');
 
