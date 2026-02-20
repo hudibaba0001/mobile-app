@@ -96,6 +96,7 @@ class LeaveEntry extends HiveObject {
       date: DateTime.parse(json['date'] as String),
       type: LeaveType.values.firstWhere(
         (e) => e.toString().split('.').last == json['type'],
+        orElse: () => LeaveType.unpaid,
       ),
       reason: json['reason'] as String? ?? '',
       isPaid: json['isPaid'] as bool,

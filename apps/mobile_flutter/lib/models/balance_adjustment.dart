@@ -1,3 +1,5 @@
+import '../utils/date_parser.dart';
+
 /// Model representing a balance adjustment entry
 ///
 /// Adjustments shift the running balance by +/- minutes without changing
@@ -25,12 +27,7 @@ class BalanceAdjustment {
   /// Create from Supabase row
   factory BalanceAdjustment.fromMap(Map<String, dynamic> map) {
     final dateStr = map['effective_date'] as String;
-    final dateParts = dateStr.split('-');
-    final effectiveDate = DateTime(
-      int.parse(dateParts[0]),
-      int.parse(dateParts[1]),
-      int.parse(dateParts[2]),
-    );
+    final effectiveDate = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
 
     return BalanceAdjustment(
       id: map['id'] as String?,

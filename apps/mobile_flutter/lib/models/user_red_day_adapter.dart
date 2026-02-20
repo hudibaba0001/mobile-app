@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'user_red_day.dart';
+import '../utils/date_parser.dart';
 
 /// Hive adapter for UserRedDay (typeId: 12)
 class UserRedDayAdapter extends TypeAdapter<UserRedDay> {
@@ -16,12 +17,7 @@ class UserRedDayAdapter extends TypeAdapter<UserRedDay> {
     final reason = reader.readString();
     final sourceIndex = reader.readInt();
 
-    final dateParts = dateStr.split('-');
-    final date = DateTime(
-      int.parse(dateParts[0]),
-      int.parse(dateParts[1]),
-      int.parse(dateParts[2]),
-    );
+    final date = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
 
     return UserRedDay(
       id: id.isEmpty ? null : id,

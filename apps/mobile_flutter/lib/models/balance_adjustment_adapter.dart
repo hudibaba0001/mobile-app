@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'balance_adjustment.dart';
+import '../utils/date_parser.dart';
 
 /// Hive adapter for BalanceAdjustment (typeId: 11)
 class BalanceAdjustmentAdapter extends TypeAdapter<BalanceAdjustment> {
@@ -14,12 +15,7 @@ class BalanceAdjustmentAdapter extends TypeAdapter<BalanceAdjustment> {
     final deltaMinutes = reader.readInt();
     final note = reader.readString();
 
-    final dateParts = dateStr.split('-');
-    final effectiveDate = DateTime(
-      int.parse(dateParts[0]),
-      int.parse(dateParts[1]),
-      int.parse(dateParts[2]),
-    );
+    final effectiveDate = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
 
     return BalanceAdjustment(
       id: id.isEmpty ? null : id,

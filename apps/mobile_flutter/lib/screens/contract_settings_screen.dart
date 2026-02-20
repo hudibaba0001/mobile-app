@@ -148,8 +148,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
       final contractProvider = context.read<ContractProvider>();
 
       // Parse values
-      final contractPercent = int.parse(_contractPercentController.text.trim());
-      final fullTimeHours = int.parse(_fullTimeHoursController.text.trim());
+      final contractPercent = int.tryParse(_contractPercentController.text.trim()) ?? 100;
+      final fullTimeHours = int.tryParse(_fullTimeHoursController.text.trim()) ?? 40;
 
       final hoursText = _openingHoursController.text.trim();
       final minutesText = _openingMinutesController.text.trim();

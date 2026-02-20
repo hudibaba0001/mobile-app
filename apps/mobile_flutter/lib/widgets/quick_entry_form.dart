@@ -160,7 +160,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
         date: _selectedDate,
         from: _departureController.text.trim(),
         to: _arrivalController.text.trim(),
-        travelMinutes: int.parse(_minutesController.text),
+        travelMinutes: int.tryParse(_minutesController.text) ?? 0,
         notes: _infoController.text.trim().isEmpty
             ? null
             : _infoController.text.trim(),
