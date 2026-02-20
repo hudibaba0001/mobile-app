@@ -763,7 +763,7 @@ void main() {
         );
         expect(
           readCell(summarySheet, 0, 1),
-          'Effective tracking range: 2026-01-10 -> 2026-01-31',
+          'Calculated from: 2026-01-10 -> 2026-01-31',
         );
         expect(readCell(summarySheet, 2, 3), 'Hh Mm');
 
@@ -781,7 +781,7 @@ void main() {
 
         expect(
           readCell(balanceSheet, 0, 0),
-          'Tracking start date: 2026-01-10',
+          'Baseline date: 2026-01-10',
         );
       },
     );

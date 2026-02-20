@@ -18,8 +18,10 @@ void main() {
       final csvString = CsvExporter.export(data);
 
       // Assert
-      expect(csvString,
-          'Header 1,Header 2\r\nValue 1,Value 2\r\nValue 3,Value 4\r\n');
+      expect(
+        csvString,
+        'Data\r\nHeader 1,Header 2\r\nValue 1,Value 2\r\nValue 3,Value 4\r\n',
+      );
     });
 
     test('should handle empty data', () {
@@ -33,7 +35,7 @@ void main() {
       final csvString = CsvExporter.export(data);
 
       // Assert
-      expect(csvString, '\r\n');
+      expect(csvString, 'Data\r\n\r\n');
     });
 
     test('should handle data with only headers', () {
@@ -47,7 +49,7 @@ void main() {
       final csvString = CsvExporter.export(data);
 
       // Assert
-      expect(csvString, 'Header 1,Header 2\r\n');
+      expect(csvString, 'Data\r\nHeader 1,Header 2\r\n');
     });
   });
 }

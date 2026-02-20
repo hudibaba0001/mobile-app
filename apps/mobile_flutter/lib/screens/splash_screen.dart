@@ -66,7 +66,7 @@ class SplashScreen extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.xl),
 
-              // Title "KvikTime" with typing effect
+              // Title "KvikTime" with entrance animation
               Text(
                 'KvikTime',
                 style: GoogleFonts.dmSans(
@@ -77,7 +77,8 @@ class SplashScreen extends StatelessWidget {
                 ),
               )
               .animate()
-              .typewriter(duration: 900.ms, curve: Curves.easeOut),
+              .fadeIn(duration: 900.ms, curve: Curves.easeOut)
+              .slideY(begin: 0.12, end: 0, duration: 900.ms),
 
               const SizedBox(height: AppSpacing.sm),
 

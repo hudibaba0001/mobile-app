@@ -991,8 +991,7 @@ class ExportService {
 
     if (trackingStartDate != null) {
       final dateFormat = DateFormat('yyyy-MM-dd');
-      final noteText =
-          'Baseline date: ${dateFormat.format(trackingStartDate)}';
+      final noteText = 'Baseline date: ${dateFormat.format(trackingStartDate)}';
       final noteStart = CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0);
       final noteEnd = CellIndex.indexByColumnRow(
         columnIndex: section.headers.length - 1,

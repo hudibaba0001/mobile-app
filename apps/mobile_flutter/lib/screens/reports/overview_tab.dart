@@ -256,6 +256,8 @@ class _OverviewTabState extends State<OverviewTab> {
   Widget _buildSummaryContent(BuildContext context, ReportSummary summary) {
     final mediaQuery = MediaQuery.of(context);
     final periodSummary = _buildPeriodSummary(summary);
+    final showBalanceDetails =
+        context.watch<SettingsProvider>().isTimeBalanceEnabled;
 
     return CustomScrollView(
       controller: _scrollController,
@@ -272,12 +274,14 @@ class _OverviewTabState extends State<OverviewTab> {
             child: Column(
               children: [
                 ..._buildSegmentCards(context, summary, periodSummary),
-                const SizedBox(height: AppSpacing.lg),
-                _buildBalanceAdjustmentsSection(
-                  context,
-                  summary,
-                  periodSummary,
-                ),
+                if (showBalanceDetails) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildBalanceAdjustmentsSection(
+                    context,
+                    summary,
+                    periodSummary,
+                  ),
+                ],
               ],
             ),
           ),
@@ -322,6 +326,9 @@ class _OverviewTabState extends State<OverviewTab> {
 
   List<Widget> _buildAllCards(
       BuildContext context, PeriodSummary periodSummary) {
+    final showBalanceDetails =
+        context.watch<SettingsProvider>().isTimeBalanceEnabled;
+
     return [
       Row(
         children: [
@@ -371,59 +378,61 @@ class _OverviewTabState extends State<OverviewTab> {
         ],
       ),
       const SizedBox(height: AppSpacing.md),
-      Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              context,
-              icon: Icons.account_balance_wallet_rounded,
-              title: 'Accounted time',
-              value: _formatMinutes(periodSummary.accountedMinutes),
-              subtitle: 'Logged + paid leave',
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: _buildStatCard(
-              context,
-              icon: Icons.flag_rounded,
-              title: 'Planned time',
-              value: _formatMinutes(periodSummary.targetMinutes),
-              subtitle: 'Scheduled target',
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: AppSpacing.md),
-      Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              context,
-              icon: Icons.show_chart_rounded,
-              title: 'Difference vs plan',
-              value: _formatMinutes(
-                periodSummary.differenceMinutes,
-                signed: true,
+      if (showBalanceDetails) ...[
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                context,
+                icon: Icons.account_balance_wallet_rounded,
+                title: 'Accounted time',
+                value: _formatMinutes(periodSummary.accountedMinutes),
+                subtitle: 'Logged + paid leave',
               ),
-              subtitle: 'Accounted - planned',
             ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: _buildStatCard(
-              context,
-              icon: Icons.balance_rounded,
-              title: 'Your balance after this period',
-              value: _formatMinutes(
-                periodSummary.endBalanceMinutes,
-                signed: true,
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _buildStatCard(
+                context,
+                icon: Icons.flag_rounded,
+                title: 'Planned time',
+                value: _formatMinutes(periodSummary.targetMinutes),
+                subtitle: 'Scheduled target',
               ),
-              subtitle: 'Start + adjustments + difference',
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                context,
+                icon: Icons.show_chart_rounded,
+                title: 'Difference vs plan',
+                value: _formatMinutes(
+                  periodSummary.differenceMinutes,
+                  signed: true,
+                ),
+                subtitle: 'Accounted - planned',
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _buildStatCard(
+                context,
+                icon: Icons.balance_rounded,
+                title: 'Your balance after this period',
+                value: _formatMinutes(
+                  periodSummary.endBalanceMinutes,
+                  signed: true,
+                ),
+                subtitle: 'Start + adjustments + difference',
+              ),
+            ),
+          ],
+        ),
+      ],
     ];
   }
 

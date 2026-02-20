@@ -176,7 +176,8 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
             return;
           }
 
-          final baselineMinutes = _parseBaselineMinutes(_baselineController.text);
+          final baselineMinutes =
+              _parseBaselineMinutes(_baselineController.text);
           if (baselineMinutes == null) {
             messenger.showSnackBar(
               const SnackBar(
@@ -262,7 +263,8 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
                       segments: const [
                         ButtonSegment(
                           value: WelcomeSetupMode.employee,
-                          icon: Icon(Icons.badge_outlined, size: AppIconSize.sm),
+                          icon:
+                              Icon(Icons.badge_outlined, size: AppIconSize.sm),
                           label: Text('Employee'),
                         ),
                         ButtonSegment(
@@ -310,7 +312,8 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
                               .withValues(alpha: 0.35),
                           borderRadius: AppRadius.cardRadius,
                           border: Border.all(
-                            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                            color: theme.colorScheme.outline
+                                .withValues(alpha: 0.2),
                           ),
                         ),
                         child: Column(
@@ -339,7 +342,8 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
                             ),
                             TextField(
                               controller: _baselineController,
-                              keyboardType: const TextInputType.numberWithOptions(
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
                                 signed: true,
                                 decimal: true,
                               ),
@@ -402,16 +406,18 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed:
-                          _isSaving ? null : () => _saveAndFinish(skipped: true),
+                      onPressed: _isSaving
+                          ? null
+                          : () => _saveAndFinish(skipped: true),
                       child: const Text('Skip for now'),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: FilledButton(
-                      onPressed:
-                          _isSaving ? null : () => _saveAndFinish(skipped: false),
+                      onPressed: _isSaving
+                          ? null
+                          : () => _saveAndFinish(skipped: false),
                       child: _isSaving
                           ? const SizedBox(
                               height: AppIconSize.sm,

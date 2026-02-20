@@ -25,52 +25,52 @@ void main() {
 
   testWidgets('Yearly status uses adjustments so it matches year balance',
       (tester) async {
-    // Scenario: worked 26.6h, target 152h, adjustments +126h => net +0.6h
-    // yearNetBalance = worked + adjustments - target = 26.6 + 126 - 152 = 0.6h
-    // balanceToday = yearNetBalance + openingBalanceHours = 0.6 + 0 = 0.6h
+    // Scenario: worked 26h 36m, target 152h 0m, adjustments +126h 0m => net +0h 36m
+    // yearNet = worked + adjustments - target = 1596 + 7560 - 9120 = +36 min
+    // balanceToday = yearNet + openingBalance = +36 + 0 = +36 min
     await tester.pumpWidget(wrap(TimeBalanceDashboard(
-      currentMonthHours: 0,
-      currentYearHours: 26.6,
-      yearNetBalance: 0.6, // Year-only net balance (worked + adj - target)
-      targetHours: 0,
-      targetYearlyHours: 152,
+      currentMonthMinutes: 0,
+      currentYearMinutes: 1596,
+      yearNetMinutes: 36,
+      targetMinutes: 0,
+      targetYearlyMinutes: 9120,
       currentMonthName: 'Jan',
       currentYear: 2026,
-      monthlyAdjustmentHours: 0,
-      yearlyAdjustmentHours: 126,
-      openingBalanceHours: 0,
-      creditHours: 0,
-      yearCreditHours: 0,
+      monthlyAdjustmentMinutes: 0,
+      yearlyAdjustmentMinutes: 7560,
+      openingBalanceMinutes: 0,
+      creditMinutes: 0,
+      yearCreditMinutes: 0,
     )));
 
     await tester.pumpAndSettle();
 
     // Balance today row should match the balanceToday value
-    expect(find.text('BALANCE TODAY: +0.6h'), findsOneWidget);
+    expect(find.text('BALANCE TODAY: +0h 36m'), findsOneWidget);
 
-    // Balance Today section should show the balanceToday value (yearNetBalance + openingBalanceHours)
+    // Balance Today section should show the balanceToday value (yearNet + openingBalance)
     expect(find.text('BALANCE TODAY'), findsOneWidget);
-    expect(find.text('+0.6h'), findsOneWidget);
+    expect(find.text('+0h 36m'), findsWidgets);
   });
 
   testWidgets('Balance Today includes opening balance', (tester) async {
     // Scenario: User signed up Jan 31, tracking from Jan 1, no logged hours
     // Worked: 0h, Target: 160h, Opening Balance: +170h
-    // yearNetBalance = 0 - 160 = -160h (without opening)
-    // balanceToday = -160 + 170 = +10h (with opening)
+    // yearNet = 0 - 160h = -160h
+    // balanceToday = -160h + 170h = +10h
     await tester.pumpWidget(wrap(TimeBalanceDashboard(
-      currentMonthHours: 0,
-      currentYearHours: 0,
-      yearNetBalance: -160.0, // Year-only net balance (NO opening)
-      targetHours: 160,
-      targetYearlyHours: 160,
+      currentMonthMinutes: 0,
+      currentYearMinutes: 0,
+      yearNetMinutes: -9600,
+      targetMinutes: 9600,
+      targetYearlyMinutes: 9600,
       currentMonthName: 'Jan',
       currentYear: 2026,
-      monthlyAdjustmentHours: 0,
-      yearlyAdjustmentHours: 0,
-      openingBalanceHours: 170, // User's starting balance
-      creditHours: 0,
-      yearCreditHours: 0,
+      monthlyAdjustmentMinutes: 0,
+      yearlyAdjustmentMinutes: 0,
+      openingBalanceMinutes: 10200,
+      creditMinutes: 0,
+      yearCreditMinutes: 0,
       openingBalanceFormatted: '+170h',
       trackingStartDate: DateTime(2026, 1, 1),
       showYearLoggedSince: true,
@@ -78,13 +78,13 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // Balance Today should be +10h (yearNetBalance + openingBalance = -160 + 170)
+    // Balance Today should be +10h (yearNet + openingBalance = -160h + 170h)
     expect(find.text('BALANCE TODAY'), findsOneWidget);
-    expect(find.text('+10.0h'), findsOneWidget);
+    expect(find.text('+10h 00m'), findsWidgets);
 
-    // Should show "Net this year" with the year-only balance (-160h)
+    // Should show "Net this year" with the year-only balance (-160h).
     expect(find.textContaining('Net this year'), findsOneWidget);
-    expect(find.text('Net this year (logged): -160.0h'), findsOneWidget);
+    expect(find.text('Net this year (logged): -160h 00m'), findsOneWidget);
 
     // Should show starting balance info
     expect(find.textContaining('+170h'), findsAtLeastNWidgets(1));

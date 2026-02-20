@@ -89,5 +89,26 @@ void main() {
         expect(yearlyBalance, 795); // Yearly includes opening/adjustments.
       },
     );
+
+    test(
+      'baseline set today with no entries keeps yearly balance at baseline value',
+      () {
+        final now = DateTime(2026, 2, 22, 12, 0); // Sunday
+        final baselineMinutes = 29 * 60;
+
+        final yearlyBalance = computeHomeYearlyBalanceMinutes(
+          now: now,
+          entries: const <Entry>[],
+          absences: const <AbsenceEntry>[],
+          adjustments: const <BalanceAdjustment>[],
+          weeklyTargetMinutes: 40 * 60,
+          trackingStartDate: DateTime(2026, 2, 22),
+          openingBalanceMinutes: baselineMinutes,
+          travelEnabled: true,
+        );
+
+        expect(yearlyBalance, baselineMinutes);
+      },
+    );
   });
 }

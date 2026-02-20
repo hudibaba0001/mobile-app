@@ -104,8 +104,8 @@ class SettingsProvider extends ChangeNotifier {
     if (baselineDateRaw is String && baselineDateRaw.isNotEmpty) {
       _baselineDate = DateTime.tryParse(baselineDateRaw);
       if (_baselineDate != null) {
-        _baselineDate =
-            DateTime(_baselineDate!.year, _baselineDate!.month, _baselineDate!.day);
+        _baselineDate = DateTime(
+            _baselineDate!.year, _baselineDate!.month, _baselineDate!.day);
       }
     } else {
       _baselineDate = null;
@@ -270,7 +270,8 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> setBaselineDate(DateTime? date) async {
-    _baselineDate = date == null ? null : DateTime(date.year, date.month, date.day);
+    _baselineDate =
+        date == null ? null : DateTime(date.year, date.month, date.day);
     if (_settingsBox != null) {
       if (_baselineDate == null) {
         await _settingsBox!.delete(_scopedKey(_baselineDateKey));
