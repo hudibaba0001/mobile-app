@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart'; // Ensure this is available, or use Theme
 import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../design/app_theme.dart';
@@ -637,4 +636,3 @@ class _GlassCard extends StatelessWidget {
     );
   }
 }
-

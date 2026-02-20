@@ -45,7 +45,6 @@ import 'models/user_red_day.dart';
 import 'models/absence_entry_adapter.dart';
 import 'models/balance_adjustment_adapter.dart';
 import 'models/user_red_day_adapter.dart';
-import 'models/user_red_day_adapter.dart';
 import 'utils/constants.dart';
 import 'screens/splash_screen.dart'; // Import the new screen
 
