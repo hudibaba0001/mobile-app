@@ -91,6 +91,12 @@ class TimeProvider extends ChangeNotifier {
 
   /// Handle entry changes - debounced recalculation
   void _onEntriesChanged() {
+    // Keep effective tracking range in sync with entries without persisting.
+    _contractProvider.setEntryStats(
+      _entryProvider.hasAnyEntries,
+      _entryProvider.earliestEntryDate,
+    );
+
     // Always notify listeners immediately so widgets using methods like monthActualMinutesToDate
     // (which read directly from EntryProvider) get updated values right away
     notifyListeners();

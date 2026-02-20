@@ -116,48 +116,32 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Future<void> _ensureTrackingStartDateInitialized() async {
-    if (!mounted || _trackingStartInitialized || _trackingStartInitInProgress) {
+    if (!mounted || _trackingStartInitInProgress) {
       return;
     }
 
     final contractProvider = context.read<ContractProvider>();
-    if (contractProvider.hasCustomTrackingStartDate) {
-      _trackingStartInitialized = true;
+    if (_trackingStartInitialized && contractProvider.hasCustomTrackingStartDate) {
       return;
     }
 
     _trackingStartInitInProgress = true;
     try {
-      final now = DateTime.now();
-      final currentYear = now.year;
       final entryProvider = context.read<EntryProvider>();
-      final absenceProvider = context.read<AbsenceProvider>();
 
       if (entryProvider.entries.isEmpty) {
         await entryProvider.loadEntries();
       }
 
-      final entries = List<Entry>.from(entryProvider.entries);
-      final years = <int>{
-        currentYear,
-        ...entries.map((entry) => entry.date.year)
-      }..removeWhere((year) => year < 2000 || year > (currentYear + 1));
-
-      for (final year in (years.toList()..sort())) {
-        await absenceProvider.loadAbsences(year: year);
-      }
-
-      final absences = <AbsenceEntry>[
-        for (final year in years) ...absenceProvider.absencesForYear(year),
-      ];
-
-      await contractProvider.ensureTrackingStartDateInitialized(
-        entryDates: entries.map((entry) => entry.date),
-        absenceDates: absences.map((absence) => absence.date),
-        now: now,
+      contractProvider.setEntryStats(
+        entryProvider.hasAnyEntries,
+        entryProvider.earliestEntryDate,
       );
 
-      _trackingStartInitialized = contractProvider.hasCustomTrackingStartDate;
+      if (contractProvider.hasCustomTrackingStartDate ||
+          entryProvider.hasAnyEntries) {
+        _trackingStartInitialized = true;
+      }
     } finally {
       _trackingStartInitInProgress = false;
     }
@@ -480,11 +464,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                               entryProvider,
                               t,
                               travelEnabled,
-                            ).animate().fadeIn(delay: 50.ms).slideY(
-                                  begin: 0.08,
-                                  end: 0,
-                                  curve: Curves.easeOut,
-                                ),
+                            ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
 
@@ -496,11 +476,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                               entryProvider,
                               t,
                               travelEnabled,
-                            ).animate().fadeIn(delay: 100.ms).slideY(
-                                  begin: 0.08,
-                                  end: 0,
-                                  curve: Curves.easeOut,
-                                ),
+                            ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
                     ]),
@@ -694,9 +670,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       ),
     );
 
-    return card
-        .animate(onPlay: (controller) => controller.repeat(period: 5.seconds))
-        .shimmer(duration: 1800.ms, color: Colors.white24);
+    return card;
   }
 
   Widget _buildStatsSection(

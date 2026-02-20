@@ -240,7 +240,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                     children: [
                       Text(
                         _startDate != null && _endDate != null
-                            ? '${DateFormat(AppConstants.dateFormat).format(_startDate!)} - ${DateFormat(AppConstants.dateFormat).format(_endDate!)}'
+                            ? '${DateFormat(AppConstants.dateFormat).format(_startDate!)} → ${DateFormat(AppConstants.dateFormat).format(_endDate!)}'
                             : t.dateRange_title,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: _startDate != null && _endDate != null

@@ -11,48 +11,39 @@ class SplashScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
               AppColors.gradientStart,
-              Color(0xFF2A2A72),
               AppColors.gradientEnd,
             ],
-            stops: [0.0, 0.5, 1.0],
           ),
         ),
         child: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Animated logo GIF
               Image.asset(
-                'assets/images/kviktime_logo.gif',
+                'assets/images/kviktime_logo.png',
                 width: 200,
                 height: 200,
-              )
-              .animate()
-              .fadeIn(duration: 600.ms)
-              .scale(
-                begin: const Offset(0.85, 0.85),
-                end: const Offset(1.0, 1.0),
-                duration: 800.ms,
-                curve: Curves.easeOutBack,
-              ),
-
-              const SizedBox(height: AppSpacing.xxxl),
-
-              // Minimal Progress Indicator
+              ).animate().fadeIn(duration: 600.ms).scale(
+                    begin: const Offset(0.9, 0.9),
+                    end: const Offset(1.0, 1.0),
+                    duration: 700.ms,
+                    curve: Curves.easeOutCubic,
+                  ),
+              const SizedBox(height: AppSpacing.xl),
               SizedBox(
                 width: 160,
-                child: const LinearProgressIndicator(
+                child: LinearProgressIndicator(
                   minHeight: 2,
-                  backgroundColor: Colors.white10,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                  backgroundColor: Colors.white.withValues(alpha: 0.18),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.white.withValues(alpha: 0.78),
+                  ),
                 ),
-              )
-              .animate()
-              .fadeIn(delay: 600.ms, duration: 400.ms),
+              ).animate().fadeIn(delay: 520.ms, duration: 360.ms),
             ],
           ),
         ),

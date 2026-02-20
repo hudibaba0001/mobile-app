@@ -232,6 +232,35 @@ class AppLocalizationsEn extends AppLocalizations {
       'Notification permission is required for reminders.';
 
   @override
+  String settings_reminderSetupFailed(String error) {
+    return 'Reminder setup failed: $error';
+  }
+
+  @override
+  String get settings_crashlyticsTestNonFatalTitle =>
+      'Crashlytics test (non-fatal)';
+
+  @override
+  String get settings_crashlyticsTestNonFatalSubtitle =>
+      'Send a non-fatal test event to Firebase';
+
+  @override
+  String get settings_crashlyticsTestFatalTitle =>
+      'Crashlytics test (fatal crash)';
+
+  @override
+  String get settings_crashlyticsTestFatalSubtitle =>
+      'Force app crash to verify Crashlytics';
+
+  @override
+  String get settings_crashlyticsDisabled =>
+      'Crashlytics is disabled for this build.';
+
+  @override
+  String get settings_crashlyticsNonFatalSent =>
+      'Crashlytics non-fatal event sent.';
+
+  @override
   String get contract_title => 'Contract Settings';
 
   @override
@@ -3142,4 +3171,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get session_signInAgain => 'Sign In Again';
+
+  @override
+  String get common_continue => 'Continue';
+
+  @override
+  String get onboarding_step1Title => 'Welcome';
+
+  @override
+  String get onboarding_step2Title => 'Contract';
+
+  @override
+  String get onboarding_step3Title => 'Starting balance';
+
+  @override
+  String onboarding_stepIndicator(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get onboarding_modeQuestion => 'How do you want to use KvikTime?';
+
+  @override
+  String get onboarding_modeSubtitle =>
+      'Set the basics once and track the change over time.';
+
+  @override
+  String get onboarding_modeBalance => 'Time balance (recommended)';
+
+  @override
+  String get onboarding_modeLogOnly => 'Log time only';
+
+  @override
+  String get onboarding_toggleTravel => 'Log travel time';
+
+  @override
+  String get onboarding_togglePaidLeave => 'Track paid leave';
+
+  @override
+  String get onboarding_contractTitle => 'Quick contract setup';
+
+  @override
+  String get onboarding_contractBody =>
+      'We prefill safe defaults so you can get started quickly.';
+
+  @override
+  String onboarding_contractWorkdays(int days) {
+    return 'Workdays: $days';
+  }
+
+  @override
+  String get onboarding_baselineTitle => 'What\'s your plus/minus right now?';
+
+  @override
+  String get onboarding_baselineHelp =>
+      'Ask payroll/manager: What is my plus/minus today?';
+
+  @override
+  String get onboarding_baselineNote => 'Do not enter total worked time.';
+
+  @override
+  String get onboarding_baselineLabel => 'Balance baseline';
+
+  @override
+  String get onboarding_baselinePlaceholder => '+29h or -5h';
+
+  @override
+  String get onboarding_baselineError =>
+      'Enter a balance like +29h, -5h, or +29h 30m.';
+
+  @override
+  String get legal_documentNotFound => 'Document not found';
+
+  @override
+  String get legal_documentLoadFailed => 'Failed to load document';
+
+  @override
+  String get accountStatus_loading => 'Checking account status...';
+
+  @override
+  String get accountStatus_setupIncompleteTitle => 'Account setup incomplete';
+
+  @override
+  String get accountStatus_setupIncompleteBody =>
+      'We could not finish setting up your account profile. Please retry.';
+
+  @override
+  String accountStatus_loadFailed(String error) {
+    return 'Failed to load profile: $error';
+  }
 }

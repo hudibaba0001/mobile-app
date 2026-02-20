@@ -8,7 +8,7 @@ import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../design/app_theme.dart';
 import '../l10n/generated/app_localizations.dart';
-import '../providers/locale_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/glass_text_form_field.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -127,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    final localeProvider = context.watch<LocaleProvider>();
+    final settingsProvider = context.watch<SettingsProvider>();
     final t = AppLocalizations.of(context);
 
     // Stagger delays
@@ -234,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen>
                     const SizedBox(height: AppSpacing.lg),
 
                     // F. Language (Slide up from bottom)
-                    _buildLanguageSwitcher(t, localeProvider)
+                    _buildLanguageSwitcher(t, settingsProvider)
                         .animate()
                         .slideY(
                             begin: 1, end: 0, delay: (startDelay + step * 5).ms)
@@ -251,10 +251,10 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _buildLanguageSwitcher(
     AppLocalizations t,
-    LocaleProvider localeProvider,
+    SettingsProvider settingsProvider,
   ) {
     String selectedLanguageLabel;
-    switch (localeProvider.locale?.languageCode) {
+    switch (settingsProvider.locale?.languageCode) {
       case 'sv':
         selectedLanguageLabel = t.settings_languageSwedish;
         break;
@@ -270,17 +270,17 @@ class _LoginScreenState extends State<LoginScreen>
       alignment: Alignment.center,
       child: PopupMenuButton<String>(
         tooltip: t.settings_language,
-        initialValue: localeProvider.localeCode ?? 'system',
+        initialValue: settingsProvider.localeCode ?? 'system',
         onSelected: (value) {
           switch (value) {
             case 'en':
-              localeProvider.setLocale(const Locale('en'));
+              settingsProvider.setLocale(const Locale('en'));
               break;
             case 'sv':
-              localeProvider.setLocale(const Locale('sv'));
+              settingsProvider.setLocale(const Locale('sv'));
               break;
             default:
-              localeProvider.setLocale(null);
+              settingsProvider.setLocale(null);
               break;
           }
         },

@@ -5,17 +5,16 @@ import '../design/design.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/locale_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/holiday_service.dart';
 import '../config/app_router.dart';
-import '../widgets/standard_app_bar.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/reminder_service.dart';
 import '../services/crash_reporting_service.dart';
 import '../widgets/add_red_day_dialog.dart';
 import '../models/user_red_day.dart';
+import '../widgets/onboarding/onboarding_scaffold.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -108,6 +107,28 @@ class SettingsScreen extends StatelessWidget {
         visualDensity: VisualDensity.compact,
       ),
     );
+  }
+
+  String _languageLabel(AppLocalizations t, Locale? locale) {
+    switch (locale?.languageCode) {
+      case 'sv':
+        return t.settings_languageSwedish;
+      case 'en':
+        return t.settings_languageEnglish;
+      default:
+        return t.settings_languageSystem;
+    }
+  }
+
+  String _themeModeLabel(AppLocalizations t, ThemeProvider themeProvider) {
+    switch (themeProvider.themeMode) {
+      case ThemeMode.light:
+        return t.settings_themeLight;
+      case ThemeMode.dark:
+        return t.settings_themeDark;
+      case ThemeMode.system:
+        return t.settings_themeSystem;
+    }
   }
 
   void _showHolidayInfoDialog(BuildContext context) {
@@ -635,7 +656,7 @@ class SettingsScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Reminder setup failed: $e'),
+            content: Text(t.settings_reminderSetupFailed(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -712,7 +733,6 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
     final themeProvider = context.watch<ThemeProvider>();
-    final localeProvider = context.watch<LocaleProvider>();
     final holidayService = context.watch<HolidayService>();
     final authService = context.watch<SupabaseAuthService>();
     final user = authService.currentUser;
@@ -721,14 +741,20 @@ class SettingsScreen extends StatelessWidget {
     final showCrashlyticsTestActions =
         !kReleaseMode || _enableCrashlyticsTestActions;
 
-    return Scaffold(
-      appBar: StandardAppBar(title: t.settings_title),
-      body: ListView(
-        children: [
+    return OnboardingScaffold(
+      title: t.settings_title,
+      showBack: true,
+      child: ListTileTheme(
+        contentPadding: EdgeInsets.zero,
+        child: ListView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          children: [
           // User Info Section
           if (user != null) ...[
             AppCard(
-              margin: AppSpacing.pagePadding,
+              margin: EdgeInsets.zero,
               color: theme.colorScheme.surfaceContainerHighest
                   .withValues(alpha: 0.3),
               child: Row(
@@ -746,14 +772,14 @@ class SettingsScreen extends StatelessWidget {
                         Text(
                           user.userMetadata?['full_name'] ??
                               user.email?.split('@').first ??
-                              'User',
+                              t.common_user,
                           style: AppTypography.cardTitle(
                             theme.colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         Text(
-                          user.email ?? '—',
+                          user.email ?? t.common_unknown,
                           style: AppTypography.body(
                             theme.colorScheme.onSurfaceVariant,
                           ),
@@ -775,7 +801,6 @@ class SettingsScreen extends StatelessWidget {
           // Theme Settings
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
               vertical: AppSpacing.md,
             ),
             child: Column(
@@ -797,7 +822,7 @@ class SettingsScreen extends StatelessWidget {
                             style: theme.textTheme.bodyLarge),
                         const SizedBox(height: AppSpacing.xs),
                         Text(
-                          themeProvider.themeModeDisplayName,
+                          _themeModeLabel(t, themeProvider),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -816,10 +841,9 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.language),
             title: Text(t.settings_language),
-            subtitle:
-                Text(LocaleProvider.getDisplayName(localeProvider.locale)),
+            subtitle: Text(_languageLabel(t, settingsProvider.locale)),
             trailing: DropdownButton<Locale?>(
-              value: localeProvider.locale,
+              value: settingsProvider.locale,
               underline: const SizedBox(),
               items: [
                 DropdownMenuItem<Locale?>(
@@ -838,7 +862,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
               onChanged: (Locale? locale) {
-                localeProvider.setLocale(locale);
+                settingsProvider.setLocale(locale);
               },
             ),
           ),
@@ -846,7 +870,7 @@ class SettingsScreen extends StatelessWidget {
           const Divider(),
 
           // Holiday Settings Section
-          AppSectionHeader(title: t.settings_publicHolidays),
+          AppSectionHeader(title: t.settings_publicHolidays, padding: EdgeInsets.zero),
 
           // Auto-mark holidays toggle
           ListTile(
@@ -983,16 +1007,14 @@ class SettingsScreen extends StatelessWidget {
             const Divider(),
             ListTile(
               leading: const Icon(Icons.bug_report_outlined),
-              title: const Text('Crashlytics test (non-fatal)'),
-              subtitle: const Text('Send a non-fatal test event to Firebase'),
+              title: Text(t.settings_crashlyticsTestNonFatalTitle),
+              subtitle: Text(t.settings_crashlyticsTestNonFatalSubtitle),
               onTap: () async {
                 if (!CrashReportingService.isEnabled) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Crashlytics is disabled for this build.',
-                        ),
+                      SnackBar(
+                        content: Text(t.settings_crashlyticsDisabled),
                       ),
                     );
                   }
@@ -1002,8 +1024,8 @@ class SettingsScreen extends StatelessWidget {
                 await CrashReportingService.sendTestNonFatal();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Crashlytics non-fatal event sent.'),
+                    SnackBar(
+                      content: Text(t.settings_crashlyticsNonFatalSent),
                     ),
                   );
                 }
@@ -1011,15 +1033,13 @@ class SettingsScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.warning_amber_outlined),
-              title: const Text('Crashlytics test (fatal crash)'),
-              subtitle: const Text('Force app crash to verify Crashlytics'),
+              title: Text(t.settings_crashlyticsTestFatalTitle),
+              subtitle: Text(t.settings_crashlyticsTestFatalSubtitle),
               onTap: () {
                 if (!CrashReportingService.isEnabled) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Crashlytics is disabled for this build.',
-                      ),
+                    SnackBar(
+                      content: Text(t.settings_crashlyticsDisabled),
                     ),
                   );
                   return;
@@ -1032,6 +1052,7 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.xxl),
         ],
       ),
+    ),
     );
   }
 }

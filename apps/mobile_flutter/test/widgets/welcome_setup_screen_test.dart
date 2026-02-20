@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:myapp/providers/contract_provider.dart';
 import 'package:myapp/providers/settings_provider.dart';
 import 'package:myapp/models/user_profile.dart';
 import 'package:myapp/screens/welcome_setup_screen.dart';
+import 'package:myapp/l10n/generated/app_localizations.dart';
 import 'package:myapp/services/profile_service.dart';
 import 'package:myapp/services/supabase_auth_service.dart';
 import 'package:provider/provider.dart';
@@ -156,10 +158,45 @@ Widget _wrap({
       ChangeNotifierProvider<SupabaseAuthService>.value(value: authService),
     ],
     child: MaterialApp(
+      locale: const Locale('sv'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: WelcomeSetupScreen(
         onCompleted: onCompleted,
         profileService: profileService,
       ),
+    ),
+  );
+}
+
+Widget _wrapWithLocale({
+  required SettingsProvider settingsProvider,
+  required ContractProvider contractProvider,
+}) {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<SettingsProvider>.value(value: settingsProvider),
+      ChangeNotifierProvider<ContractProvider>.value(value: contractProvider),
+    ],
+    child: Consumer<SettingsProvider>(
+      builder: (context, settings, _) {
+        return MaterialApp(
+          locale: settings.locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: const WelcomeSetupScreen(),
+        );
+      },
     ),
   );
 }
@@ -222,5 +259,31 @@ void main() {
     expect(profileService.lastUpdatePayload!['setup_completed_at'], isNotNull);
     expect(profileService.localCompletedUserId, 'user-123');
     expect(profileService.localCompletedValue, isTrue);
+  });
+
+  testWidgets('Welcome setup reacts to locale changes', (tester) async {
+    final settings = _TestSettingsProvider();
+    final contract = _TestContractProvider(
+      contractPercent: 100,
+      fullTimeHours: 40,
+      trackingStartDate: DateTime(2020, 1, 1),
+      openingMinutes: 0,
+    );
+
+    await settings.setLocale(const Locale('sv'));
+    await tester.pumpWidget(
+      _wrapWithLocale(
+        settingsProvider: settings,
+        contractProvider: contract,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Välkommen'), findsOneWidget);
+
+    await settings.setLocale(const Locale('en'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Welcome'), findsOneWidget);
   });
 }

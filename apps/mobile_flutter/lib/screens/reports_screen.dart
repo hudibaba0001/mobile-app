@@ -215,6 +215,14 @@ class _ReportsScreenState extends State<ReportsScreen>
     final t = AppLocalizations.of(context);
     final contractProvider = context.watch<ContractProvider>();
     final range = _currentRange();
+    final unselectedChipColor = colorScheme.surfaceContainerHighest
+        .withValues(alpha: theme.brightness == Brightness.dark ? 0.42 : 0.72);
+    final selectedChipColor = colorScheme.primary;
+    final periodChipTextStyle = theme.textTheme.labelMedium?.copyWith(
+      // Keep chip labels on the app's configured font family.
+      fontFamily: theme.textTheme.titleMedium?.fontFamily,
+      fontWeight: FontWeight.w600,
+    );
     final dateFormat = DateFormat('yyyy-MM-dd');
     final rangeText =
         '${dateFormat.format(range.start)} → ${dateFormat.format(range.end)}';
@@ -249,7 +257,23 @@ class _ReportsScreenState extends State<ReportsScreen>
                 return Padding(
                   padding: const EdgeInsets.only(right: AppSpacing.sm),
                   child: ChoiceChip(
-                    label: Text(_periodLabel(t, preset)),
+                    backgroundColor: unselectedChipColor,
+                    selectedColor: selectedChipColor,
+                    side: BorderSide(
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.outline.withValues(alpha: 0.35),
+                    ),
+                    labelStyle: periodChipTextStyle?.copyWith(
+                      color: isSelected
+                          ? colorScheme.onPrimary
+                          : colorScheme.onSurface,
+                    ),
+                    label: Text(
+                      _periodLabel(t, preset),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     selected: isSelected,
                     onSelected: (_) => _onPeriodSelected(preset),
                   ),

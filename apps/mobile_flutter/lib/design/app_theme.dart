@@ -129,17 +129,17 @@ class AppColors {
   // Light surface base (Warm cream for light mode background)
   static const Color lightSurface = Color(0xFFFAF8F5);
 
-  // Primary (Blue)
-  static const Color primary = Color(0xFF2563EB);
-  static const Color primaryLight = Color(0xFF3B82F6);
-  static const Color primaryDark = Color(0xFF1D4ED8);
-  static const Color primaryContainer = Color(0xFFDBEAFE);
+  // Primary (Forest green)
+  static const Color primary = Color(0xFF1F6B4E);
+  static const Color primaryLight = Color(0xFF2F8C66);
+  static const Color primaryDark = Color(0xFF174E39);
+  static const Color primaryContainer = Color(0xFFD8ECE2);
 
-  // Secondary (Teal)
-  static const Color secondary = Color(0xFF0D9488);
-  static const Color secondaryLight = Color(0xFF14B8A6);
-  static const Color secondaryDark = Color(0xFF0F766E);
-  static const Color secondaryContainer = Color(0xFFCCFBF1);
+  // Secondary (Deep teal-green)
+  static const Color secondary = Color(0xFF1F7A67);
+  static const Color secondaryLight = Color(0xFF2A927C);
+  static const Color secondaryDark = Color(0xFF145746);
+  static const Color secondaryContainer = Color(0xFFD8F1EA);
 
   // Accent (Orange)
   static const Color accent = Color(0xFFF59E0B);
@@ -177,8 +177,9 @@ class AppColors {
   static const Color darkSurfaceElevated = Color(0xFF2D2D2D);
 
   // Gradient colors (Login/Auth screens)
-  static const Color gradientStart = Color(0xFF7B68EE); // Medium slate blue
-  static const Color gradientEnd = Color(0xFF6B5B95); // Purple haze
+  static const Color gradientStart = Color(0xFF1F6B4E);
+  static const Color gradientMid = Color(0xFF1A4F3B);
+  static const Color gradientEnd = Color(0xFF2F8C66);
 
   static Color mutedForeground(Brightness brightness) =>
       brightness == Brightness.dark ? neutral500Dark : neutral500;
@@ -340,17 +341,17 @@ class AppThemeData {
   static ThemeData dark() {
     const scheme = ColorScheme.dark(
       primary: AppColors.primaryLight,
-      primaryContainer: Color(0xFF1E3A8A),
+      primaryContainer: Color(0xFF123629),
       secondary: AppColors.secondaryLight,
-      secondaryContainer: Color(0xFF134E4A),
+      secondaryContainer: Color(0xFF123A32),
       tertiary: AppColors.accentLight,
       tertiaryContainer: Color(0xFF92400E),
       surface: AppColors.darkSurface,
       error: Color(0xFFF87171),
       errorContainer: Color(0xFF7F1D1D),
-      onPrimary: AppColors.neutral900,
+      onPrimary: Colors.white,
       onPrimaryContainer: AppColors.primaryLight,
-      onSecondary: AppColors.neutral900,
+      onSecondary: Colors.white,
       onSecondaryContainer: AppColors.secondaryLight,
       onTertiary: AppColors.neutral900,
       onTertiaryContainer: AppColors.accentLight,

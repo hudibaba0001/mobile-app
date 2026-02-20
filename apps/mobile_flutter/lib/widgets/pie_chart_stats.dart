@@ -403,7 +403,7 @@ class _PieChartStatsState extends State<PieChartStats>
     } else if (startDate == endDate) {
       return _formatDate(startDate);
     } else {
-      return '${_formatDate(startDate)} - ${_formatDate(endDate)}';
+      return '${_formatDate(startDate)} → ${_formatDate(endDate)}';
     }
   }
 

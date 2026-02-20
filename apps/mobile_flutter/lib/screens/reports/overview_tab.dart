@@ -193,6 +193,11 @@ class _OverviewTabState extends State<OverviewTab> {
     final unselectedChipColor = colorScheme.surfaceContainerHighest
         .withValues(alpha: theme.brightness == Brightness.dark ? 0.42 : 0.72);
     final selectedChipColor = colorScheme.primary;
+    final segmentChipTextStyle = theme.textTheme.labelMedium?.copyWith(
+      // Keep chip labels on the app's configured font family.
+      fontFamily: theme.textTheme.titleMedium?.fontFamily,
+      fontWeight: FontWeight.w600,
+    );
 
     Widget buildChip(ReportSegment segment, String label, IconData icon) {
       final selected = widget.segment == segment;
@@ -205,9 +210,8 @@ class _OverviewTabState extends State<OverviewTab> {
               ? colorScheme.primary
               : colorScheme.outline.withValues(alpha: 0.35),
         ),
-        labelStyle: theme.textTheme.labelLarge?.copyWith(
+        labelStyle: segmentChipTextStyle?.copyWith(
           color: selected ? colorScheme.onPrimary : colorScheme.onSurface,
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
         ),
         label: Row(
           mainAxisSize: MainAxisSize.min,

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -21,6 +23,7 @@ class SettingsProvider extends ChangeNotifier {
   int _dailyReminderHour = 17;
   int _dailyReminderMinute = 0;
   String _dailyReminderText = '';
+  Locale? _locale;
 
   static const String _darkModeKey = 'isDarkMode';
   static const String _firstLaunchKey = 'isFirstLaunch';
@@ -33,6 +36,9 @@ class SettingsProvider extends ChangeNotifier {
   static const String _dailyReminderHourKey = 'dailyReminderHour';
   static const String _dailyReminderMinuteKey = 'dailyReminderMinute';
   static const String _dailyReminderTextKey = 'dailyReminderText';
+  static const String _localeKey = 'locale_code';
+  static const String _systemLocaleValue = 'system';
+  static const List<String> _supportedLocaleCodes = ['en', 'sv'];
 
   bool get isDarkMode => _isDarkMode;
   bool get isFirstLaunch => _isFirstLaunch;
@@ -46,6 +52,9 @@ class SettingsProvider extends ChangeNotifier {
   int get dailyReminderMinute => _dailyReminderMinute;
   String get dailyReminderText => _dailyReminderText;
   bool get isInitialized => _isInitialized;
+  Locale? get locale => _locale;
+  String? get localeCode => _locale?.languageCode;
+  bool get isSystemLocale => _locale == null;
 
   /// Set Supabase dependencies for cloud sync.
   /// Does NOT push to cloud immediately — call loadFromCloud() first
@@ -78,8 +87,25 @@ class SettingsProvider extends ChangeNotifier {
     _dailyReminderText = '';
   }
 
+  void _loadLocaleFromCache() {
+    if (_settingsBox == null) return;
+    final storedValue = _settingsBox!.get(_localeKey);
+    if (storedValue == _systemLocaleValue) {
+      _locale = null;
+      return;
+    }
+    if (storedValue is String && storedValue.isNotEmpty) {
+      if (_supportedLocaleCodes.contains(storedValue)) {
+        _locale = Locale(storedValue);
+        return;
+      }
+    }
+    _locale = null;
+  }
+
   void _loadLocalCacheForCurrentUser() {
     _resetToDefaults();
+    _loadLocaleFromCache();
     if (_settingsBox == null) return;
 
     _isDarkMode =
@@ -312,6 +338,18 @@ class SettingsProvider extends ChangeNotifier {
     _dailyReminderText = value;
     if (_settingsBox != null) {
       await _settingsBox!.put(_scopedKey(_dailyReminderTextKey), value);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setLocale(Locale? value) async {
+    _locale = value;
+    if (_settingsBox != null) {
+      if (value == null) {
+        await _settingsBox!.put(_localeKey, _systemLocaleValue);
+      } else {
+        await _settingsBox!.put(_localeKey, value.languageCode);
+      }
     }
     notifyListeners();
   }

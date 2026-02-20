@@ -94,6 +94,18 @@
   "settings_dailyReminderTextHint": "Write your reminder message",
   "settings_dailyReminderDefaultText": "Time to log your hours",
   "settings_dailyReminderPermissionDenied": "Notification permission is required for reminders.",
+  "settings_reminderSetupFailed": "Reminder setup failed: {error}",
+  "@settings_reminderSetupFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "settings_crashlyticsTestNonFatalTitle": "Crashlytics test (non-fatal)",
+  "settings_crashlyticsTestNonFatalSubtitle": "Send a non-fatal test event to Firebase",
+  "settings_crashlyticsTestFatalTitle": "Crashlytics test (fatal crash)",
+  "settings_crashlyticsTestFatalSubtitle": "Force app crash to verify Crashlytics",
+  "settings_crashlyticsDisabled": "Crashlytics is disabled for this build.",
+  "settings_crashlyticsNonFatalSent": "Crashlytics non-fatal event sent.",
 
   "contract_title": "Contract Settings",
   "contract_headerTitle": "Contract Settings",
@@ -1723,5 +1735,51 @@
   "reportsMetric_accountedMinusTarget": "Accounted - target",
   "session_expiredTitle": "Session Expired",
   "session_expiredBody": "Your session has expired. Please sign in again to continue.",
-  "session_signInAgain": "Sign In Again"
+  "session_signInAgain": "Sign In Again",
+  "common_continue": "Continue",
+  "onboarding_step1Title": "Welcome",
+  "onboarding_step2Title": "Contract",
+  "onboarding_step3Title": "Starting balance",
+  "onboarding_stepIndicator": "Step {current} of {total}",
+  "@onboarding_stepIndicator": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboarding_modeQuestion": "How do you want to use KvikTime?",
+  "onboarding_modeSubtitle": "Set the basics once and track the change over time.",
+  "onboarding_modeBalance": "Time balance (recommended)",
+  "onboarding_modeLogOnly": "Log time only",
+  "onboarding_toggleTravel": "Log travel time",
+  "onboarding_togglePaidLeave": "Track paid leave",
+  "onboarding_contractTitle": "Quick contract setup",
+  "onboarding_contractBody": "We prefill safe defaults so you can get started quickly.",
+  "onboarding_contractWorkdays": "Workdays: {days}",
+  "@onboarding_contractWorkdays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "onboarding_baselineTitle": "What's your plus/minus right now?",
+  "onboarding_baselineHelp": "Ask payroll/manager: What is my plus/minus today?",
+  "onboarding_baselineNote": "Do not enter total worked time.",
+  "onboarding_baselineLabel": "Balance baseline",
+  "onboarding_baselinePlaceholder": "+29h or -5h",
+  "onboarding_baselineError": "Enter a balance like +29h, -5h, or +29h 30m.",
+  "legal_documentNotFound": "Document not found",
+  "legal_documentLoadFailed": "Failed to load document",
+  "accountStatus_loading": "Checking account status...",
+  "accountStatus_setupIncompleteTitle": "Account setup incomplete",
+  "accountStatus_setupIncompleteBody": "We could not finish setting up your account profile. Please retry.",
+  "accountStatus_loadFailed": "Failed to load profile: {error}",
+  "@accountStatus_loadFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  }
 }

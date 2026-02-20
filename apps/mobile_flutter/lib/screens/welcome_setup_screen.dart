@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 
 import '../config/app_router.dart';
 import '../design/app_theme.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../providers/contract_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/profile_service.dart';
 import '../services/supabase_auth_service.dart';
+import '../widgets/onboarding/onboarding_scaffold.dart';
 
 enum WelcomeSetupMode { employee, freelancer }
 
@@ -33,6 +35,10 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
   late bool _travelEnabled;
   late bool _paidLeaveEnabled;
   late final TextEditingController _baselineController;
+  late final TextEditingController _contractPercentController;
+  late final TextEditingController _fullTimeHoursController;
+  String? _contractPercentError;
+  String? _fullTimeHoursError;
   _WelcomeStep _step = _WelcomeStep.mode;
   bool _isSaving = false;
 
@@ -56,11 +62,26 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
     _baselineController = TextEditingController(
       text: _formatBaselineInput(contract.openingFlexMinutes),
     );
+    _contractPercentController = TextEditingController(
+      text: contract.contractPercent.toString(),
+    );
+    _fullTimeHoursController = TextEditingController(
+      text: contract.fullTimeHours.toString(),
+    );
+    _contractPercentController.addListener(_validateContractDraft);
+    _fullTimeHoursController.addListener(_validateContractDraft);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _validateContractDraft();
+      }
+    });
   }
 
   @override
   void dispose() {
     _baselineController.dispose();
+    _contractPercentController.dispose();
+    _fullTimeHoursController.dispose();
     super.dispose();
   }
 
@@ -121,6 +142,44 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
     return null;
   }
 
+  void _validateContractDraft() {
+    final t = AppLocalizations.of(context);
+    final percentText = _contractPercentController.text.trim();
+    final hoursText = _fullTimeHoursController.text.trim();
+
+    String? percentError;
+    if (percentText.isEmpty) {
+      percentError = t.common_required(t.contract_percentage);
+    } else {
+      final percent = int.tryParse(percentText);
+      if (percent == null) {
+        percentError = t.common_invalidNumber;
+      } else if (percent < 0 || percent > 100) {
+        percentError = t.contract_percentageError;
+      }
+    }
+
+    String? hoursError;
+    if (hoursText.isEmpty) {
+      hoursError = t.common_required(t.contract_fullTimeHours);
+    } else {
+      final hours = int.tryParse(hoursText);
+      if (hours == null) {
+        hoursError = t.common_invalidNumber;
+      } else if (hours <= 0) {
+        hoursError = t.contract_fullTimeHoursError;
+      }
+    }
+
+    if (percentError != _contractPercentError ||
+        hoursError != _fullTimeHoursError) {
+      setState(() {
+        _contractPercentError = percentError;
+        _fullTimeHoursError = hoursError;
+      });
+    }
+  }
+
   Future<void> _persistSetupCompletion({
     required DateTime trackingStartDate,
     required int openingFlexMinutes,
@@ -168,26 +227,41 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
     await settings.setSetupCompleted(true);
   }
 
-  Future<void> _applyContractDefaults() async {
+  Future<bool> _applyContractDefaults() async {
     final settings = context.read<SettingsProvider>();
     final contract = context.read<ContractProvider>();
+    final percentText = _contractPercentController.text.trim();
+    final hoursText = _fullTimeHoursController.text.trim();
+    final percent = int.tryParse(percentText);
+    final hours = int.tryParse(hoursText);
+
+    if (percent == null ||
+        hours == null ||
+        percent < 0 ||
+        percent > 100 ||
+        hours <= 0) {
+      _validateContractDraft();
+      return false;
+    }
     await settings.setTimeBalanceEnabled(true);
     await settings.setTravelLoggingEnabled(_travelEnabled);
     await settings.setPaidLeaveTrackingEnabled(_paidLeaveEnabled);
-    await contract.updateContractSettings(100, 40);
+    await contract.updateContractSettings(percent, hours);
+    return true;
   }
 
   Future<void> _finishEmployeePath() async {
     final settings = context.read<SettingsProvider>();
     final contract = context.read<ContractProvider>();
     final messenger = ScaffoldMessenger.of(context);
+    final t = AppLocalizations.of(context);
     final today = _dateOnly(DateTime.now());
 
     final baselineMinutes = _parseBaselineMinutes(_baselineController.text);
     if (baselineMinutes == null) {
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Ange saldo som t.ex. +29h, -5h eller +29h 30m.'),
+        SnackBar(
+          content: Text(t.onboarding_baselineError),
         ),
       );
       return;
@@ -200,8 +274,8 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
     await _persistSetupCompletion(
       trackingStartDate: today,
       openingFlexMinutes: baselineMinutes,
-      contractPercent: 100,
-      fullTimeHours: 40,
+      contractPercent: contract.contractPercent,
+      fullTimeHours: contract.fullTimeHours,
       timeBalanceEnabled: true,
     );
     await settings.setSetupCompleted(true);
@@ -223,7 +297,8 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
       }
 
       if (_step == _WelcomeStep.contract) {
-        await _applyContractDefaults();
+        final applied = await _applyContractDefaults();
+        if (!applied) return;
         if (!mounted) return;
         setState(() => _step = _WelcomeStep.baseline);
         return;
@@ -257,39 +332,39 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
     }
   }
 
-  String _titleForStep() {
+  String _titleForStep(AppLocalizations t) {
     switch (_step) {
       case _WelcomeStep.mode:
-        return 'Välkommen';
+        return t.onboarding_step1Title;
       case _WelcomeStep.contract:
-        return 'Steg 2 av 3: Kontrakt';
+        return t.onboarding_step2Title;
       case _WelcomeStep.baseline:
-        return 'Steg 3 av 3: Baslinje';
+        return t.onboarding_step3Title;
     }
   }
 
-  Widget _buildModeStep(ThemeData theme) {
+  Widget _buildModeStep(ThemeData theme, AppLocalizations t) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Hur vill du använda KvikTime?',
+          t.onboarding_modeQuestion,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
         SegmentedButton<WelcomeSetupMode>(
-          segments: const [
+          segments: [
             ButtonSegment(
               value: WelcomeSetupMode.employee,
-              icon: Icon(Icons.balance_rounded, size: AppIconSize.sm),
-              label: Text('Tidssaldo (rekommenderas)'),
+              icon: const Icon(Icons.balance_rounded, size: AppIconSize.sm),
+              label: Text(t.onboarding_modeBalance),
             ),
             ButtonSegment(
               value: WelcomeSetupMode.freelancer,
-              icon: Icon(Icons.timer_outlined, size: AppIconSize.sm),
-              label: Text('Bara logga tid'),
+              icon: const Icon(Icons.timer_outlined, size: AppIconSize.sm),
+              label: Text(t.onboarding_modeLogOnly),
             ),
           ],
           selected: {_mode},
@@ -307,7 +382,7 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
           onChanged: (value) {
             setState(() => _travelEnabled = value);
           },
-          title: const Text('Logga restid'),
+          title: Text(t.onboarding_toggleTravel),
         ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
@@ -315,13 +390,13 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
           onChanged: (value) {
             setState(() => _paidLeaveEnabled = value);
           },
-          title: const Text('Spåra betald frånvaro'),
+          title: Text(t.onboarding_togglePaidLeave),
         ),
       ],
     );
   }
 
-  Widget _buildContractStep(ThemeData theme) {
+  Widget _buildContractStep(ThemeData theme, AppLocalizations t) {
     return Container(
       width: double.infinity,
       padding: AppSpacing.cardPadding,
@@ -337,28 +412,49 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Snabbinställning av kontrakt',
+            t.onboarding_contractTitle,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Vi sätter säkra standardvärden för att komma igång snabbt.',
+            t.onboarding_contractBody,
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('Veckotid: 40h', style: theme.textTheme.bodyMedium),
-          const SizedBox(height: AppSpacing.xs),
-          Text('Arbetsdagar: 5', style: theme.textTheme.bodyMedium),
-          const SizedBox(height: AppSpacing.xs),
-          Text('Kontrakt: 100%', style: theme.textTheme.bodyMedium),
+          TextField(
+            controller: _contractPercentController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(
+              labelText: t.contract_percentage,
+              hintText: t.contract_percentageHint,
+              errorText: _contractPercentError,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _fullTimeHoursController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(
+              labelText: t.contract_fullTimeHours,
+              hintText: t.contract_fullTimeHoursHint,
+              errorText: _fullTimeHoursError,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            t.onboarding_contractWorkdays(5),
+            style: theme.textTheme.bodyMedium,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildBaselineStep(ThemeData theme) {
+  Widget _buildBaselineStep(ThemeData theme, AppLocalizations t) {
     return Container(
       width: double.infinity,
       padding: AppSpacing.cardPadding,
@@ -374,19 +470,19 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Vad är ditt plus/minus just nu?',
+            t.onboarding_baselineTitle,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Fråga lönekontor/chef: Vad är mitt plus/minus idag?',
+            t.onboarding_baselineHelp,
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Ange inte total arbetad tid.',
+            t.onboarding_baselineNote,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -401,9 +497,9 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9hHmM+\-.,\s]')),
             ],
-            decoration: const InputDecoration(
-              labelText: 'Saldo-baslinje',
-              hintText: '+29h eller -5h',
+            decoration: InputDecoration(
+              labelText: t.onboarding_baselineLabel,
+              hintText: t.onboarding_baselinePlaceholder,
             ),
           ),
         ],
@@ -414,81 +510,34 @@ class _WelcomeSetupScreenState extends State<WelcomeSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
+    final stepIndex = switch (_step) {
+      _WelcomeStep.mode => 1,
+      _WelcomeStep.contract => 2,
+      _WelcomeStep.baseline => 3,
+    };
+    final subtitle =
+        _step == _WelcomeStep.mode ? t.onboarding_modeSubtitle : null;
+    final primaryLabel = _isSaving
+        ? t.common_loading
+        : (_step == _WelcomeStep.baseline ? t.common_done : t.common_continue);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: AppSpacing.pagePadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _titleForStep(),
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    if (_step == _WelcomeStep.mode)
-                      Text(
-                        'Ställ in grunderna en gång och följ förändringen framåt.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    const SizedBox(height: AppSpacing.xl),
-                    if (_step == _WelcomeStep.mode) _buildModeStep(theme),
-                    if (_step == _WelcomeStep.contract)
-                      _buildContractStep(theme),
-                    if (_step == _WelcomeStep.baseline)
-                      _buildBaselineStep(theme),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.sm,
-                AppSpacing.lg,
-                AppSpacing.lg,
-              ),
-              child: Row(
-                children: [
-                  if (_step != _WelcomeStep.mode)
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _isSaving ? null : _handleBack,
-                        child: const Text('Tillbaka'),
-                      ),
-                    ),
-                  if (_step != _WelcomeStep.mode)
-                    const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: _isSaving ? null : _handleContinue,
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: AppIconSize.sm,
-                              height: AppIconSize.sm,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(
-                              _step == _WelcomeStep.baseline
-                                  ? 'Klar'
-                                  : 'Fortsätt',
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+    return OnboardingScaffold(
+      title: _titleForStep(t),
+      subtitle: subtitle,
+      step: stepIndex,
+      totalSteps: 3,
+      primaryLabel: primaryLabel,
+      onPrimary: _isSaving ? null : _handleContinue,
+      secondaryLabel: _step == _WelcomeStep.mode ? null : t.common_back,
+      onSecondary: _isSaving ? null : _handleBack,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_step == _WelcomeStep.mode) _buildModeStep(theme, t),
+          if (_step == _WelcomeStep.contract) _buildContractStep(theme, t),
+          if (_step == _WelcomeStep.baseline) _buildBaselineStep(theme, t),
+        ],
       ),
     );
   }

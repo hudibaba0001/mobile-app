@@ -1,17 +1,15 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/app_router.dart';
-import '../design/app_theme.dart';
+import '../design/design.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../widgets/legal_document_dialog.dart';
 import '../services/entitlement_service.dart';
 import '../services/profile_service.dart';
 import '../services/supabase_auth_service.dart';
-import '../widgets/glass_text_form_field.dart';
+import '../widgets/onboarding/onboarding_scaffold.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -33,9 +31,6 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
   bool _acceptedLegal = false;
   String? _error;
-
-  static const _gradientStart = AppColors.gradientStart;
-  static const _gradientEnd = AppColors.gradientEnd;
 
   String _buildSignupErrorMessage(Object error) {
     final t = AppLocalizations.of(context);
@@ -179,391 +174,225 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
+    final canSubmit = !_isLoading && _acceptedLegal;
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [_gradientStart, _gradientEnd],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
-                vertical: AppSpacing.xxxl,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      t.auth_createAccount,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        color: AppColors.neutral50,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      t.signup_subtitle,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.neutral50.withValues(alpha: 0.85),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-                    _SignupGlassCard(
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            GlassTextFormField(
-                              controller: _firstNameController,
-                              hintText: t.signup_firstNameLabel,
-                              prefixIcon: Icons.person_outline,
-                              onChanged: (_) {
-                                if (_error != null) {
-                                  setState(() {
-                                    _error = null;
-                                  });
-                                }
-                              },
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return t.signup_firstNameRequired;
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            GlassTextFormField(
-                              controller: _lastNameController,
-                              hintText: t.signup_lastNameLabel,
-                              prefixIcon: Icons.person_outline,
-                              onChanged: (_) {
-                                if (_error != null) {
-                                  setState(() {
-                                    _error = null;
-                                  });
-                                }
-                              },
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return t.signup_lastNameRequired;
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            GlassTextFormField(
-                              controller: _emailController,
-                              hintText: t.password_emailLabel,
-                              prefixIcon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              onChanged: (_) {
-                                if (_error != null) {
-                                  setState(() {
-                                    _error = null;
-                                  });
-                                }
-                              },
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return t.password_emailRequired;
-                                }
-                                if (!value.contains('@')) {
-                                  return t.password_emailInvalid;
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            GlassTextFormField(
-                              controller: _passwordController,
-                              hintText: t.auth_passwordLabel,
-                              prefixIcon: Icons.lock_outline,
-                              obscureText: true,
-                              onChanged: (_) {
-                                if (_error != null) {
-                                  setState(() {
-                                    _error = null;
-                                  });
-                                }
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return t.auth_passwordRequired;
-                                }
-                                if (!_isStrongPassword(value)) {
-                                  return t.signup_passwordStrongRequired;
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            GlassTextFormField(
-                              controller: _confirmPasswordController,
-                              hintText: t.signup_confirmPasswordLabel,
-                              prefixIcon: Icons.lock_outline,
-                              obscureText: true,
-                              onChanged: (_) {
-                                if (_error != null) {
-                                  setState(() {
-                                    _error = null;
-                                  });
-                                }
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return t.signup_confirmPasswordRequired;
-                                }
-                                if (value != _passwordController.text) {
-                                  return t.signup_passwordsDoNotMatch;
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Checkbox(
-                                  value: _acceptedLegal,
-                                  onChanged: _isLoading
-                                      ? null
-                                      : (value) => setState(
-                                            () {
-                                              _acceptedLegal = value ?? false;
-                                              _error = null;
-                                            },
-                                          ),
-                                  checkColor: _gradientStart,
-                                  fillColor: WidgetStateProperty.all(
-                                      AppColors.neutral50),
-                                  side: BorderSide(
-                                    color: AppColors.neutral50
-                                        .withValues(alpha: 0.8),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: AppSpacing.md - 2,
-                                    ),
-                                    child: Wrap(
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      children: [
-                                        Text(
-                                          t.signup_acceptLegalPrefix,
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                            color: AppColors.neutral50
-                                                .withValues(alpha: 0.9),
-                                          ),
-                                        ),
-                                        TextButton(
-                                          onPressed: _isLoading
-                                              ? null
-                                              : () =>
-                                                  LegalDocumentDialog.showTerms(
-                                                      context),
-                                          style: TextButton.styleFrom(
-                                            minimumSize: Size.zero,
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 4,
-                                              vertical: 0,
-                                            ),
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
-                                          ),
-                                          child: Text(
-                                            t.settings_terms,
-                                            style: theme.textTheme.bodySmall
-                                                ?.copyWith(
-                                              color: AppColors.neutral50,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          t.signup_acceptLegalAnd,
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                            color: AppColors.neutral50
-                                                .withValues(alpha: 0.9),
-                                          ),
-                                        ),
-                                        TextButton(
-                                          onPressed: _isLoading
-                                              ? null
-                                              : () => LegalDocumentDialog
-                                                  .showPrivacy(context),
-                                          style: TextButton.styleFrom(
-                                            minimumSize: Size.zero,
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 4,
-                                              vertical: 0,
-                                            ),
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
-                                          ),
-                                          child: Text(
-                                            t.settings_privacy,
-                                            style: theme.textTheme.bodySmall
-                                                ?.copyWith(
-                                              color: AppColors.neutral50,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (_error != null) ...[
-                              const SizedBox(height: AppSpacing.lg),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md,
-                                  vertical: AppSpacing.sm,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.error.withValues(alpha: 0.2),
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm),
-                                  border: Border.all(
-                                    color: AppColors.error.withValues(
-                                      alpha: 0.4,
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  _error!,
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: AppColors.neutral50,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: AppSpacing.xl),
-                            ElevatedButton(
-                              onPressed: (_isLoading || !_acceptedLegal)
-                                  ? null
-                                  : _handleSignup,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.neutral50,
-                                foregroundColor: _gradientStart,
-                                disabledBackgroundColor:
-                                    AppColors.neutral50.withValues(alpha: 0.4),
-                                disabledForegroundColor:
-                                    _gradientStart.withValues(alpha: 0.5),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: AppSpacing.lg,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.md),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: _isLoading
-                                  ? SizedBox(
-                                      height: AppIconSize.sm,
-                                      width: AppIconSize.sm,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: _gradientStart,
-                                      ),
-                                    )
-                                  : Text(
-                                      t.auth_createAccount,
-                                      style:
-                                          theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.5,
-                                        color: _gradientStart,
-                                      ),
-                                    ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            TextButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () => AppRouter.goToLogin(context),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.neutral50,
-                              ),
-                              child: Text(
-                                t.password_backToSignIn,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.neutral50
-                                      .withValues(alpha: 0.9),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+    return OnboardingScaffold(
+      title: t.auth_createAccount,
+      subtitle: t.signup_subtitle,
+      primaryLabel: _isLoading ? t.common_loading : t.auth_createAccount,
+      onPrimary: canSubmit ? _handleSignup : null,
+      secondaryLabel: t.password_backToSignIn,
+      onSecondary: _isLoading ? null : () => AppRouter.goToLogin(context),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppTextFormField(
+                    controller: _firstNameController,
+                    labelText: t.signup_firstNameLabel,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      if (_error != null) {
+                        setState(() {
+                          _error = null;
+                        });
+                      }
+                    },
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return t.signup_firstNameRequired;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  AppTextFormField(
+                    controller: _lastNameController,
+                    labelText: t.signup_lastNameLabel,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      if (_error != null) {
+                        setState(() {
+                          _error = null;
+                        });
+                      }
+                    },
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return t.signup_lastNameRequired;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  AppTextFormField(
+                    controller: _emailController,
+                    labelText: t.password_emailLabel,
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      if (_error != null) {
+                        setState(() {
+                          _error = null;
+                        });
+                      }
+                    },
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return t.password_emailRequired;
+                      }
+                      if (!value.contains('@')) {
+                        return t.password_emailInvalid;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  AppTextFormField(
+                    controller: _passwordController,
+                    labelText: t.auth_passwordLabel,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    obscureText: true,
+                    textInputAction: TextInputAction.next,
+                    onChanged: (_) {
+                      if (_error != null) {
+                        setState(() {
+                          _error = null;
+                        });
+                      }
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return t.auth_passwordRequired;
+                      }
+                      if (!_isStrongPassword(value)) {
+                        return t.signup_passwordStrongRequired;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  AppTextFormField(
+                    controller: _confirmPasswordController,
+                    labelText: t.signup_confirmPasswordLabel,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    obscureText: true,
+                    textInputAction: TextInputAction.done,
+                    onChanged: (_) {
+                      if (_error != null) {
+                        setState(() {
+                          _error = null;
+                        });
+                      }
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return t.signup_confirmPasswordRequired;
+                      }
+                      if (value != _passwordController.text) {
+                        return t.signup_passwordsDoNotMatch;
+                      }
+                      return null;
+                    },
+                  ),
+                ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SignupGlassCard extends StatelessWidget {
-  final Widget child;
-
-  const _SignupGlassCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.xl),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.neutral50.withValues(alpha: 0.25),
-                AppColors.neutral50.withValues(alpha: 0.1),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Checkbox(
+                  value: _acceptedLegal,
+                  onChanged: _isLoading
+                      ? null
+                      : (value) => setState(
+                            () {
+                              _acceptedLegal = value ?? false;
+                              _error = null;
+                            },
+                          ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.xs),
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          t.signup_acceptLegalPrefix,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        TextButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () => LegalDocumentDialog.showTerms(context),
+                          style: TextButton.styleFrom(
+                            minimumSize: Size.zero,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 0,
+                            ),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(t.settings_terms),
+                        ),
+                        Text(
+                          t.signup_acceptLegalAnd,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        TextButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () => LegalDocumentDialog.showPrivacy(context),
+                          style: TextButton.styleFrom(
+                            minimumSize: Size.zero,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 0,
+                            ),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(t.settings_privacy),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(
-              color: AppColors.neutral50.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.neutral900.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+            if (_error != null) ...[
+              const SizedBox(height: AppSpacing.lg),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(
+                    color: theme.colorScheme.error.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Text(
+                  _error!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onErrorContainer,
+                  ),
+                ),
               ),
             ],
-          ),
-          child: child,
+          ],
         ),
       ),
     );

@@ -233,6 +233,34 @@ class AppLocalizationsSv extends AppLocalizations {
       'Behörighet för notiser krävs för påminnelser.';
 
   @override
+  String settings_reminderSetupFailed(String error) {
+    return 'Kunde inte ställa in påminnelse: $error';
+  }
+
+  @override
+  String get settings_crashlyticsTestNonFatalTitle =>
+      'Crashlytics-test (icke-fatalt)';
+
+  @override
+  String get settings_crashlyticsTestNonFatalSubtitle =>
+      'Skicka ett icke-fatalt testevent till Firebase';
+
+  @override
+  String get settings_crashlyticsTestFatalTitle => 'Crashlytics-test (krasch)';
+
+  @override
+  String get settings_crashlyticsTestFatalSubtitle =>
+      'Tvinga appen att krascha för att verifiera Crashlytics';
+
+  @override
+  String get settings_crashlyticsDisabled =>
+      'Crashlytics är inaktiverat för den här versionen.';
+
+  @override
+  String get settings_crashlyticsNonFatalSent =>
+      'Crashlytics icke-fatalt testevent skickat.';
+
+  @override
   String get contract_title => 'Anställningsinställningar';
 
   @override
@@ -3136,4 +3164,94 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get session_signInAgain => 'Logga in igen';
+
+  @override
+  String get common_continue => 'Fortsätt';
+
+  @override
+  String get onboarding_step1Title => 'Välkommen';
+
+  @override
+  String get onboarding_step2Title => 'Kontrakt';
+
+  @override
+  String get onboarding_step3Title => 'Startsaldo';
+
+  @override
+  String onboarding_stepIndicator(int current, int total) {
+    return 'Steg $current av $total';
+  }
+
+  @override
+  String get onboarding_modeQuestion => 'Hur vill du använda KvikTime?';
+
+  @override
+  String get onboarding_modeSubtitle =>
+      'Ställ in grunderna en gång och följ förändringen framåt.';
+
+  @override
+  String get onboarding_modeBalance => 'Tidssaldo (rekommenderas)';
+
+  @override
+  String get onboarding_modeLogOnly => 'Bara logga tid';
+
+  @override
+  String get onboarding_toggleTravel => 'Logga restid';
+
+  @override
+  String get onboarding_togglePaidLeave => 'Spåra betald frånvaro';
+
+  @override
+  String get onboarding_contractTitle => 'Snabbinställning av kontrakt';
+
+  @override
+  String get onboarding_contractBody =>
+      'Vi sätter säkra standardvärden för att komma igång snabbt.';
+
+  @override
+  String onboarding_contractWorkdays(int days) {
+    return 'Arbetsdagar: $days';
+  }
+
+  @override
+  String get onboarding_baselineTitle => 'Vad är ditt plus/minus just nu?';
+
+  @override
+  String get onboarding_baselineHelp =>
+      'Fråga lönekontor/chef: Vad är mitt plus/minus idag?';
+
+  @override
+  String get onboarding_baselineNote => 'Ange inte total arbetad tid.';
+
+  @override
+  String get onboarding_baselineLabel => 'Saldo-baslinje';
+
+  @override
+  String get onboarding_baselinePlaceholder => '+29h eller -5h';
+
+  @override
+  String get onboarding_baselineError =>
+      'Ange saldo som t.ex. +29h, -5h eller +29h 30m.';
+
+  @override
+  String get legal_documentNotFound => 'Dokumentet hittades inte';
+
+  @override
+  String get legal_documentLoadFailed => 'Kunde inte ladda dokument';
+
+  @override
+  String get accountStatus_loading => 'Kontrollerar kontostatus...';
+
+  @override
+  String get accountStatus_setupIncompleteTitle =>
+      'Kontoinställningen är inte klar';
+
+  @override
+  String get accountStatus_setupIncompleteBody =>
+      'Vi kunde inte slutföra kontoprofilen. Försök igen.';
+
+  @override
+  String accountStatus_loadFailed(String error) {
+    return 'Kunde inte läsa profilen: $error';
+  }
 }

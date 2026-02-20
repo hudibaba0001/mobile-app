@@ -9,7 +9,8 @@ import '../services/entitlement_service.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../design/app_theme.dart';
-import '../widgets/standard_app_bar.dart';
+import '../widgets/language_toggle_action.dart';
+import '../widgets/onboarding/onboarding_scaffold.dart';
 
 class PaywallScreen extends StatefulWidget {
   final VoidCallback? onUnlocked;
@@ -122,104 +123,88 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final isBusy = _billingService.isProcessingPurchase ||
         _billingService.isLoadingProducts ||
         _isCheckingEntitlement;
+    final primaryLabel = isBusy
+        ? t.common_loading
+        : (product == null
+            ? t.paywall_subscriptionUnavailable
+            : t.paywall_subscribe(product.price));
 
-    return Scaffold(
-      appBar: StandardAppBar(
-        title: t.paywall_title,
-        showBackButton: false,
-        actions: [
-          IconButton(
-            onPressed: isBusy ? null : _refreshEntitlement,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: AppSpacing.pagePadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Icon(
-                Icons.workspace_premium,
-                size: AppIconSize.xl * 1.7,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                t.paywall_unlockAllFeatures,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                t.paywall_subscribeWithGooglePlay,
-                style: theme.textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              _buildFeatureTile(
-                  Icons.history, t.paywall_featureFullHistoryReports),
-              _buildFeatureTile(Icons.cloud_sync, t.paywall_featureCloudSync),
-              _buildFeatureTile(
-                  Icons.shield_outlined, t.paywall_featureSecureSubscription),
-              const SizedBox(height: AppSpacing.xl),
-              if (_entitlement != null)
-                Text(
-                  t.paywall_currentEntitlement(_entitlement!.status),
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium,
-                ),
-              const SizedBox(height: AppSpacing.md),
-              FilledButton(
-                onPressed: isBusy || product == null ? null : _buyNow,
-                child: isBusy
-                    ? const SizedBox(
-                        width: AppIconSize.sm,
-                        height: AppIconSize.sm,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        product == null
-                            ? t.paywall_subscriptionUnavailable
-                            : t.paywall_subscribe(product.price),
-                      ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextButton(
-                onPressed: isBusy ? null : _billingService.restorePurchases,
-                child: Text(t.paywall_restorePurchase),
-              ),
-              TextButton(
-                onPressed: () => launchUrl(
-                  Uri.parse(ExternalLinks.manageSubscriptionUrl),
-                  mode: LaunchMode.externalApplication,
-                ),
-                child: Text(t.paywall_manageSubscriptionGooglePlay),
-              ),
-              if (widget.showSignOut)
-                TextButton(
-                  onPressed: () async {
-                    await context.read<SupabaseAuthService>().signOut();
-                  },
-                  child: Text(t.paywall_signOut),
-                ),
-              if (_screenError != null) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  _screenError!,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: theme.colorScheme.error),
-                ),
-              ],
-            ],
-          ),
+    return OnboardingScaffold(
+      title: t.paywall_title,
+      actions: [
+        const LanguageToggleAction(),
+        IconButton(
+          onPressed: isBusy ? null : _refreshEntitlement,
+          icon: const Icon(Icons.refresh),
+          tooltip: t.common_refresh,
         ),
+      ],
+      primaryLabel: primaryLabel,
+      onPrimary: isBusy || product == null ? null : _buyNow,
+      secondaryLabel: t.paywall_restorePurchase,
+      onSecondary: isBusy ? null : () => _billingService.restorePurchases(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Icon(
+            Icons.workspace_premium,
+            size: AppIconSize.xl * 1.7,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            t.paywall_unlockAllFeatures,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            t.paywall_subscribeWithGooglePlay,
+            style: theme.textTheme.bodyLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          _buildFeatureTile(
+              Icons.history, t.paywall_featureFullHistoryReports),
+          _buildFeatureTile(Icons.cloud_sync, t.paywall_featureCloudSync),
+          _buildFeatureTile(
+              Icons.shield_outlined, t.paywall_featureSecureSubscription),
+          const SizedBox(height: AppSpacing.xl),
+          if (_entitlement != null)
+            Text(
+              t.paywall_currentEntitlement(_entitlement!.status),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+          const SizedBox(height: AppSpacing.md),
+          TextButton(
+            onPressed: () => launchUrl(
+              Uri.parse(ExternalLinks.manageSubscriptionUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+            child: Text(t.paywall_manageSubscriptionGooglePlay),
+          ),
+          if (widget.showSignOut)
+            TextButton(
+              onPressed: () async {
+                await context.read<SupabaseAuthService>().signOut();
+              },
+              child: Text(t.paywall_signOut),
+            ),
+          if (_screenError != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              _screenError!,
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: theme.colorScheme.error),
+            ),
+          ],
+        ],
       ),
     );
   }

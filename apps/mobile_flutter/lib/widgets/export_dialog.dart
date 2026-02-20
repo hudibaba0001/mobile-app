@@ -72,7 +72,7 @@ class _ExportDialogState extends State<ExportDialog> {
     if (_startDate == null || _endDate == null) return t.dateRange_description;
     final start = DateFormat('MMM dd, yyyy').format(_startDate!);
     final end = DateFormat('MMM dd, yyyy').format(_endDate!);
-    return '$start - $end';
+    return '$start → $end';
   }
 
   void _updateDefaultFileName() {

@@ -494,6 +494,48 @@ abstract class AppLocalizations {
   /// **'Notification permission is required for reminders.'**
   String get settings_dailyReminderPermissionDenied;
 
+  /// No description provided for @settings_reminderSetupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder setup failed: {error}'**
+  String settings_reminderSetupFailed(String error);
+
+  /// No description provided for @settings_crashlyticsTestNonFatalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Crashlytics test (non-fatal)'**
+  String get settings_crashlyticsTestNonFatalTitle;
+
+  /// No description provided for @settings_crashlyticsTestNonFatalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a non-fatal test event to Firebase'**
+  String get settings_crashlyticsTestNonFatalSubtitle;
+
+  /// No description provided for @settings_crashlyticsTestFatalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Crashlytics test (fatal crash)'**
+  String get settings_crashlyticsTestFatalTitle;
+
+  /// No description provided for @settings_crashlyticsTestFatalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Force app crash to verify Crashlytics'**
+  String get settings_crashlyticsTestFatalSubtitle;
+
+  /// No description provided for @settings_crashlyticsDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Crashlytics is disabled for this build.'**
+  String get settings_crashlyticsDisabled;
+
+  /// No description provided for @settings_crashlyticsNonFatalSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Crashlytics non-fatal event sent.'**
+  String get settings_crashlyticsNonFatalSent;
+
   /// No description provided for @contract_title.
   ///
   /// In en, this message translates to:
@@ -5690,6 +5732,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign In Again'**
   String get session_signInAgain;
+
+  /// No description provided for @common_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get common_continue;
+
+  /// No description provided for @onboarding_step1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get onboarding_step1Title;
+
+  /// No description provided for @onboarding_step2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get onboarding_step2Title;
+
+  /// No description provided for @onboarding_step3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting balance'**
+  String get onboarding_step3Title;
+
+  /// No description provided for @onboarding_stepIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String onboarding_stepIndicator(int current, int total);
+
+  /// No description provided for @onboarding_modeQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you want to use KvikTime?'**
+  String get onboarding_modeQuestion;
+
+  /// No description provided for @onboarding_modeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the basics once and track the change over time.'**
+  String get onboarding_modeSubtitle;
+
+  /// No description provided for @onboarding_modeBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Time balance (recommended)'**
+  String get onboarding_modeBalance;
+
+  /// No description provided for @onboarding_modeLogOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Log time only'**
+  String get onboarding_modeLogOnly;
+
+  /// No description provided for @onboarding_toggleTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Log travel time'**
+  String get onboarding_toggleTravel;
+
+  /// No description provided for @onboarding_togglePaidLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Track paid leave'**
+  String get onboarding_togglePaidLeave;
+
+  /// No description provided for @onboarding_contractTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick contract setup'**
+  String get onboarding_contractTitle;
+
+  /// No description provided for @onboarding_contractBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We prefill safe defaults so you can get started quickly.'**
+  String get onboarding_contractBody;
+
+  /// No description provided for @onboarding_contractWorkdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Workdays: {days}'**
+  String onboarding_contractWorkdays(int days);
+
+  /// No description provided for @onboarding_baselineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your plus/minus right now?'**
+  String get onboarding_baselineTitle;
+
+  /// No description provided for @onboarding_baselineHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask payroll/manager: What is my plus/minus today?'**
+  String get onboarding_baselineHelp;
+
+  /// No description provided for @onboarding_baselineNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not enter total worked time.'**
+  String get onboarding_baselineNote;
+
+  /// No description provided for @onboarding_baselineLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance baseline'**
+  String get onboarding_baselineLabel;
+
+  /// No description provided for @onboarding_baselinePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'+29h or -5h'**
+  String get onboarding_baselinePlaceholder;
+
+  /// No description provided for @onboarding_baselineError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a balance like +29h, -5h, or +29h 30m.'**
+  String get onboarding_baselineError;
+
+  /// No description provided for @legal_documentNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Document not found'**
+  String get legal_documentNotFound;
+
+  /// No description provided for @legal_documentLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load document'**
+  String get legal_documentLoadFailed;
+
+  /// No description provided for @accountStatus_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking account status...'**
+  String get accountStatus_loading;
+
+  /// No description provided for @accountStatus_setupIncompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account setup incomplete'**
+  String get accountStatus_setupIncompleteTitle;
+
+  /// No description provided for @accountStatus_setupIncompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not finish setting up your account profile. Please retry.'**
+  String get accountStatus_setupIncompleteBody;
+
+  /// No description provided for @accountStatus_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load profile: {error}'**
+  String accountStatus_loadFailed(String error);
 }
 
 class _AppLocalizationsDelegate

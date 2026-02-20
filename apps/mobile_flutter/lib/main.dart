@@ -12,7 +12,6 @@ import 'config/app_theme.dart';
 import 'providers/app_state_provider.dart';
 import 'providers/contract_provider.dart';
 import 'providers/local_entry_provider.dart';
-import 'providers/locale_provider.dart';
 import 'providers/network_status_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
@@ -155,13 +154,11 @@ class _BootstrapAppState extends State<BootstrapApp> {
       }
 
       // Initialize independent providers
-      final localeProvider = LocaleProvider();
       final contractProvider = ContractProvider();
       final settingsProvider = SettingsProvider();
 
       // We can run these in parallel
       await Future.wait([
-        localeProvider.init(),
         contractProvider.init(),
         settingsProvider.init(),
       ]);
@@ -180,7 +177,6 @@ class _BootstrapAppState extends State<BootstrapApp> {
       // Create the main app widget
       final app = MyApp(
         authService: authService,
-        localeProvider: localeProvider,
         contractProvider: contractProvider,
         settingsProvider: settingsProvider,
         reminderService: reminderService,
@@ -256,7 +252,6 @@ class _BootstrapAppState extends State<BootstrapApp> {
 
 class MyApp extends StatelessWidget {
   final SupabaseAuthService authService;
-  final LocaleProvider localeProvider;
   final ContractProvider contractProvider;
   final SettingsProvider settingsProvider;
   final ReminderService reminderService;
@@ -269,7 +264,6 @@ class MyApp extends StatelessWidget {
   const MyApp({
     super.key,
     required this.authService,
-    required this.localeProvider,
     required this.contractProvider,
     required this.settingsProvider,
     required this.reminderService,
@@ -285,7 +279,6 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<SupabaseAuthService>.value(value: authService),
-        ChangeNotifierProvider<LocaleProvider>.value(value: localeProvider),
         ChangeNotifierProvider<SettingsProvider>.value(
           value: settingsProvider,
         ),
@@ -401,8 +394,8 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: _NetworkSyncSetup(
-        child: Consumer2<ThemeProvider, LocaleProvider>(
-          builder: (context, themeProvider, localeProvider, child) {
+        child: Consumer2<ThemeProvider, SettingsProvider>(
+          builder: (context, themeProvider, settingsProvider, child) {
             return MaterialApp.router(
               title: 'KvikTime',
               theme: AppTheme.lightTheme,
@@ -422,7 +415,7 @@ class MyApp extends StatelessWidget {
                 );
               },
               // Localization configuration
-              locale: localeProvider.locale,
+              locale: settingsProvider.locale,
               supportedLocales: AppLocalizations.supportedLocales,
               localizationsDelegates: const [
                 AppLocalizations.delegate,

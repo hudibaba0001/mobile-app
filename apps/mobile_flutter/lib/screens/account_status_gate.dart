@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../services/supabase_auth_service.dart';
@@ -15,6 +14,7 @@ import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../design/app_theme.dart';
 import '../widgets/legal_document_dialog.dart';
+import '../widgets/language_toggle_action.dart';
 import 'paywall_screen.dart';
 import 'welcome_setup_screen.dart';
 
@@ -166,7 +166,9 @@ class _AccountStatusGateState extends State<AccountStatusGate>
           return;
         }
         setState(() {
-          _error = 'Failed to load profile: $e';
+          _error = AppLocalizations.of(context).accountStatus_loadFailed(
+            e.toString(),
+          );
           _entryStatsReady = true;
           _isLoading = false;
         });
@@ -216,6 +218,11 @@ class _AccountStatusGateState extends State<AccountStatusGate>
     final theme = Theme.of(context);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const SizedBox.shrink(),
+        automaticallyImplyLeading: false,
+        actions: const [LanguageToggleAction()],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
@@ -319,7 +326,7 @@ class _AccountStatusGateState extends State<AccountStatusGate>
                 const CircularProgressIndicator(),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  'Checking account status...',
+                  AppLocalizations.of(context).accountStatus_loading,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ],
@@ -384,7 +391,8 @@ class _AccountStatusGateState extends State<AccountStatusGate>
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 Text(
-                  'Account setup incomplete',
+                  AppLocalizations.of(context)
+                      .accountStatus_setupIncompleteTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -392,7 +400,8 @@ class _AccountStatusGateState extends State<AccountStatusGate>
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  'We could not finish setting up your account profile. Please retry.',
+                  AppLocalizations.of(context)
+                      .accountStatus_setupIncompleteBody,
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),

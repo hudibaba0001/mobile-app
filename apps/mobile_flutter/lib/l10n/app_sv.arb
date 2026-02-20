@@ -71,6 +71,18 @@
   "settings_dailyReminderTextHint": "Skriv ditt påminnelsemeddelande",
   "settings_dailyReminderDefaultText": "Dags att logga dina timmar",
   "settings_dailyReminderPermissionDenied": "Behörighet för notiser krävs för påminnelser.",
+  "settings_reminderSetupFailed": "Kunde inte ställa in påminnelse: {error}",
+  "@settings_reminderSetupFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "settings_crashlyticsTestNonFatalTitle": "Crashlytics-test (icke-fatalt)",
+  "settings_crashlyticsTestNonFatalSubtitle": "Skicka ett icke-fatalt testevent till Firebase",
+  "settings_crashlyticsTestFatalTitle": "Crashlytics-test (krasch)",
+  "settings_crashlyticsTestFatalSubtitle": "Tvinga appen att krascha för att verifiera Crashlytics",
+  "settings_crashlyticsDisabled": "Crashlytics är inaktiverat för den här versionen.",
+  "settings_crashlyticsNonFatalSent": "Crashlytics icke-fatalt testevent skickat.",
 
   "contract_title": "Anställningsinställningar",
   "contract_headerTitle": "Anställningsinställningar",
@@ -1288,6 +1300,59 @@
   "reportsMetric_accountedMinusTarget": "Redovisad - m\u00e5l",
   "session_expiredTitle": "Sessionen har gått ut",
   "session_expiredBody": "Din session har gått ut. Vänligen logga in igen för att fortsätta.",
-  "session_signInAgain": "Logga in igen"
+  "session_signInAgain": "Logga in igen",
+  "common_continue": "Fortsätt",
+  "onboarding_step1Title": "Välkommen",
+  "onboarding_step2Title": "Kontrakt",
+  "onboarding_step3Title": "Startsaldo",
+  "onboarding_stepIndicator": "Steg {step} av {total}",
+  "@onboarding_stepIndicator": {
+    "placeholders": {
+      "step": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboarding_stepIndicator": "Steg {current} av {total}",
+  "@onboarding_stepIndicator": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboarding_modeQuestion": "Hur vill du använda KvikTime?",
+  "onboarding_modeSubtitle": "Ställ in grunderna en gång och följ förändringen framåt.",
+  "onboarding_modeBalance": "Tidssaldo (rekommenderas)",
+  "onboarding_modeLogOnly": "Bara logga tid",
+  "onboarding_toggleTravel": "Logga restid",
+  "onboarding_togglePaidLeave": "Spåra betald frånvaro",
+  "onboarding_contractTitle": "Snabbinställning av kontrakt",
+  "onboarding_contractBody": "Vi sätter säkra standardvärden för att komma igång snabbt.",
+  "onboarding_contractWorkdays": "Arbetsdagar: {days}",
+  "@onboarding_contractWorkdays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "onboarding_baselineTitle": "Vad är ditt plus/minus just nu?",
+  "onboarding_baselineHelp": "Fråga lönekontor/chef: Vad är mitt plus/minus idag?",
+  "onboarding_baselineNote": "Ange inte total arbetad tid.",
+  "onboarding_baselineLabel": "Saldo-baslinje",
+  "onboarding_baselinePlaceholder": "+29h eller -5h",
+  "onboarding_baselineError": "Ange saldo som t.ex. +29h, -5h eller +29h 30m.",
+  "legal_documentNotFound": "Dokumentet hittades inte",
+  "legal_documentLoadFailed": "Kunde inte ladda dokument",
+  "accountStatus_loading": "Kontrollerar kontostatus...",
+  "accountStatus_setupIncompleteTitle": "Kontoinställningen är inte klar",
+  "accountStatus_setupIncompleteBody": "Vi kunde inte slutföra kontoprofilen. Försök igen.",
+  "accountStatus_loadFailed": "Kunde inte läsa profilen: {error}",
+  "@accountStatus_loadFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  }
 }
 
