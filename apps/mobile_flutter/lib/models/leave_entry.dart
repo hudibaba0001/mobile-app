@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 part 'leave_entry.g.dart';
@@ -15,6 +16,9 @@ enum LeaveType {
 
   @HiveField(3)
   vab, // Care of sick child (Swedish system)
+
+  @HiveField(4)
+  unknown,
 }
 
 @HiveType(typeId: 5)
@@ -43,6 +47,9 @@ class LeaveEntry extends HiveObject {
   @HiveField(7)
   final String userId;
 
+  @HiveField(8)
+  final String? rawType;
+
   LeaveEntry({
     required this.id,
     required this.date,
@@ -50,6 +57,7 @@ class LeaveEntry extends HiveObject {
     this.reason = '',
     required this.isPaid,
     required this.userId,
+    this.rawType,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : createdAt = createdAt ?? DateTime.now(),
@@ -62,6 +70,7 @@ class LeaveEntry extends HiveObject {
     String? reason,
     bool? isPaid,
     String? userId,
+    String? rawType,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -72,6 +81,7 @@ class LeaveEntry extends HiveObject {
       reason: reason ?? this.reason,
       isPaid: isPaid ?? this.isPaid,
       userId: userId ?? this.userId,
+      rawType: rawType ?? this.rawType,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -81,7 +91,7 @@ class LeaveEntry extends HiveObject {
     return {
       'id': id,
       'date': date.toIso8601String(),
-      'type': type.toString().split('.').last,
+      'type': type == LeaveType.unknown && rawType != null ? rawType! : type.name,
       'reason': reason,
       'isPaid': isPaid,
       'userId': userId,
@@ -91,16 +101,23 @@ class LeaveEntry extends HiveObject {
   }
 
   factory LeaveEntry.fromJson(Map<String, dynamic> json) {
+    final typeStr = json['type'] as String?;
+    final resolvedType = LeaveType.values.firstWhere(
+      (e) => e.name == typeStr,
+      orElse: () {
+        debugPrint('LeaveEntry: Safely mapped unknown leave type: $typeStr');
+        return LeaveType.unknown;
+      },
+    );
+
     return LeaveEntry(
       id: json['id'] as String,
       date: DateTime.parse(json['date'] as String),
-      type: LeaveType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
-        orElse: () => LeaveType.unpaid,
-      ),
+      type: resolvedType,
       reason: json['reason'] as String? ?? '',
       isPaid: json['isPaid'] as bool,
       userId: json['userId'] as String,
+      rawType: resolvedType == LeaveType.unknown ? typeStr : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
     );

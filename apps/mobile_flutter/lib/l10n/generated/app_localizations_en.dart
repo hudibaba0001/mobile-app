@@ -621,6 +621,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leave_unpaid => 'Unpaid Leave';
 
   @override
+  String get leave_unknownType => 'Unknown leave type';
+
+  @override
   String get leave_totalDays => 'Total Leave Days';
 
   @override

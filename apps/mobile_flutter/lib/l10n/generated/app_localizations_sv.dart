@@ -623,6 +623,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get leave_unpaid => 'Tjänstledighet';
 
   @override
+  String get leave_unknownType => 'Okänd frånvarotyp';
+
+  @override
   String get leave_totalDays => 'Totalt antal dagar';
 
   @override
