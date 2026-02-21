@@ -650,6 +650,8 @@
   "overview_balanceAfterPeriod": "Ditt saldo efter perioden",
   "overview_startPlusAdjPlusDiff": "Start + justeringar + skillnad",
 
+  "balance_accountedTooltip": "Loggad tid + ersatt frånvaro",
+
   "location_fullAddress": "Fullständig adress",
 
   "auth_legalRequired": "Juridisk godkännande krävs",

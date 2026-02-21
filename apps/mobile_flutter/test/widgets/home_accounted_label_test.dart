@@ -6,7 +6,7 @@ import 'package:myapp/l10n/generated/app_localizations_sv.dart';
 import 'package:myapp/widgets/flexsaldo_card.dart';
 
 /// Regression test: any label that displays "work + leave" combined must read
-/// "Accounted" / "Räknat", never "Worked" / "Arbetat".
+/// "Accounted time" / "Räknad tid", never "Worked" / "Arbetat".
 void main() {
   group('Accounted-vs-Worked label regression', () {
     late AppLocalizationsEn en;
@@ -22,8 +22,8 @@ void main() {
       expect(en.balance_workedToDate, isNot(contains('Worked')));
     });
 
-    test('SV: balance_workedToDate says "Räknat", not "Arbetat"', () {
-      expect(sv.balance_workedToDate, contains('Räknat'));
+    test('SV: balance_workedToDate says "Räknad tid", not "Arbetat"', () {
+      expect(sv.balance_workedToDate, contains('Räknad tid'));
       expect(sv.balance_workedToDate, isNot(contains('Arbetat')));
     });
 
@@ -122,11 +122,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Accounted'), findsOneWidget);
+      expect(find.textContaining('Accounted time'), findsOneWidget);
       expect(find.textContaining('Worked'), findsNothing);
     });
 
-    testWidgets('SV locale shows "Räknat" in localized widget',
+    testWidgets('SV locale shows "Räknad tid" in localized widget',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -145,7 +145,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Räknat'), findsOneWidget);
+      expect(find.textContaining('Räknad tid'), findsOneWidget);
       expect(find.textContaining('Arbetat'), findsNothing);
     });
   });

@@ -472,7 +472,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance_statusToDate => 'Status (to date):';
 
   @override
-  String get balance_workedToDate => 'Accounted (to date):';
+  String get balance_workedToDate => 'Accounted time (to date):';
 
   @override
   String balance_fullMonthTarget(String hours) {
@@ -1867,6 +1867,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get overview_startPlusAdjPlusDiff =>
       'Start + adjustments + difference';
+
+  @override
+  String get balance_accountedTooltip => 'Logged time + credited leave';
 
   @override
   String get location_fullAddress => 'Full address';

@@ -899,7 +899,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_workedToDate.
   ///
   /// In en, this message translates to:
-  /// **'Accounted (to date):'**
+  /// **'Accounted time (to date):'**
   String get balance_workedToDate;
 
   /// No description provided for @balance_fullMonthTarget.
@@ -3385,6 +3385,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start + adjustments + difference'**
   String get overview_startPlusAdjPlusDiff;
+
+  /// No description provided for @balance_accountedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged time + credited leave'**
+  String get balance_accountedTooltip;
 
   /// No description provided for @location_fullAddress.
   ///

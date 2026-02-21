@@ -473,7 +473,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get balance_statusToDate => 'Status (hittills):';
 
   @override
-  String get balance_workedToDate => 'Räknat (hittills):';
+  String get balance_workedToDate => 'Räknad tid (hittills):';
 
   @override
   String balance_fullMonthTarget(String hours) {
@@ -1868,6 +1868,9 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get overview_startPlusAdjPlusDiff => 'Start + justeringar + skillnad';
+
+  @override
+  String get balance_accountedTooltip => 'Loggad tid + ersatt frånvaro';
 
   @override
   String get location_fullAddress => 'Fullständig adress';

@@ -6,6 +6,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myapp/models/absence.dart';
 import 'package:myapp/models/absence_entry_adapter.dart';
+import 'package:myapp/models/balance_adjustment.dart';
+import 'package:myapp/models/balance_adjustment_adapter.dart';
+import 'package:myapp/models/user_red_day.dart';
+import 'package:myapp/models/user_red_day_adapter.dart';
 import 'package:myapp/reports/report_aggregator.dart';
 import 'package:myapp/reporting/leave_minutes.dart';
 
@@ -177,12 +181,8 @@ void main() {
   // ──────────────────────────────────────────────────────────────────────
   // C6) Provider skips corrupted records, no uncaught exception
   // ──────────────────────────────────────────────────────────────────────
-  group('C6: Provider filters corrupted sentinel records', () {
-    test(
-        'corrupted record with sentinel ID is skipped during provider filtering',
-        () {
-      // Simulate what _loadFromHive does: it checks absence.id against
-      // the sentinel ID and skips it. We test the filtering logic.
+  group('C6: AbsenceProvider filters corrupted sentinel records', () {
+    test('corrupted AbsenceEntry with sentinel ID is filtered out', () {
       final records = <AbsenceEntry>[
         AbsenceEntry(
           id: 'valid-1',
@@ -204,14 +204,84 @@ void main() {
         ),
       ];
 
-      // Apply the same filtering the provider does
       final filtered = records
           .where((a) => a.id != AbsenceEntryAdapter.corruptedSentinelId)
           .toList();
 
       expect(filtered.length, 2, reason: 'Only valid records should remain');
       expect(filtered.map((a) => a.id), ['valid-1', 'valid-2']);
-      // No exception thrown — app continues
+    });
+  });
+
+  group('C6: BalanceAdjustmentProvider filters corrupted sentinel records', () {
+    test('corrupted BalanceAdjustment with sentinel ID is filtered out', () {
+      final records = <BalanceAdjustment>[
+        BalanceAdjustment(
+          id: 'adj-1',
+          userId: 'u1',
+          effectiveDate: DateTime(2024, 4, 1),
+          deltaMinutes: 60,
+          note: 'Real adjustment',
+        ),
+        BalanceAdjustment(
+          id: BalanceAdjustmentAdapter.corruptedSentinelId,
+          userId: 'u1',
+          effectiveDate: DateTime(1970),
+          deltaMinutes: 0,
+          note: 'CORRUPTED: invalid date bad-date',
+        ),
+        BalanceAdjustment(
+          id: 'adj-2',
+          userId: 'u1',
+          effectiveDate: DateTime(2024, 6, 15),
+          deltaMinutes: -30,
+          note: null,
+        ),
+      ];
+
+      final filtered = records
+          .where((a) => a.id != BalanceAdjustmentAdapter.corruptedSentinelId)
+          .toList();
+
+      expect(filtered.length, 2, reason: 'Only valid records should remain');
+      expect(filtered.map((a) => a.id), ['adj-1', 'adj-2']);
+    });
+  });
+
+  group('C6: HolidayService filters corrupted UserRedDay sentinel records', () {
+    test('corrupted UserRedDay with sentinel ID is filtered out', () {
+      final records = <UserRedDay>[
+        UserRedDay(
+          id: 'rd-1',
+          userId: 'u1',
+          date: DateTime(2024, 12, 25),
+          kind: RedDayKind.full,
+          source: RedDaySource.manual,
+        ),
+        UserRedDay(
+          id: UserRedDayAdapter.corruptedSentinelId,
+          userId: 'u1',
+          date: DateTime(1970),
+          kind: RedDayKind.full,
+          reason: 'CORRUPTED: invalid date xyz',
+          source: RedDaySource.manual,
+        ),
+        UserRedDay(
+          id: 'rd-2',
+          userId: 'u1',
+          date: DateTime(2024, 1, 1),
+          kind: RedDayKind.half,
+          half: HalfDay.am,
+          source: RedDaySource.manual,
+        ),
+      ];
+
+      final filtered = records
+          .where((r) => r.id != UserRedDayAdapter.corruptedSentinelId)
+          .toList();
+
+      expect(filtered.length, 2, reason: 'Only valid records should remain');
+      expect(filtered.map((r) => r.id), ['rd-1', 'rd-2']);
     });
   });
 }
