@@ -23,6 +23,7 @@ class LeaveEntryAdapter extends TypeAdapter<LeaveEntry> {
       reason: fields[3] as String,
       isPaid: fields[4] as bool,
       userId: fields[7] as String,
+      rawType: fields[8] as String?,
       createdAt: fields[5] as DateTime?,
       updatedAt: fields[6] as DateTime?,
     );
@@ -31,7 +32,7 @@ class LeaveEntryAdapter extends TypeAdapter<LeaveEntry> {
   @override
   void write(BinaryWriter writer, LeaveEntry obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class LeaveEntryAdapter extends TypeAdapter<LeaveEntry> {
       ..writeByte(6)
       ..write(obj.updatedAt)
       ..writeByte(7)
-      ..write(obj.userId);
+      ..write(obj.userId)
+      ..writeByte(8)
+      ..write(obj.rawType);
   }
 
   @override
@@ -76,6 +79,8 @@ class LeaveTypeAdapter extends TypeAdapter<LeaveType> {
         return LeaveType.unpaid;
       case 3:
         return LeaveType.vab;
+      case 4:
+        return LeaveType.unknown;
       default:
         return LeaveType.sick;
     }
@@ -95,6 +100,9 @@ class LeaveTypeAdapter extends TypeAdapter<LeaveType> {
         break;
       case LeaveType.vab:
         writer.writeByte(3);
+        break;
+      case LeaveType.unknown:
+        writer.writeByte(4);
         break;
     }
   }

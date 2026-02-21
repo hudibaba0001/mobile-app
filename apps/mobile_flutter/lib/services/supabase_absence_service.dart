@@ -6,8 +6,11 @@ import 'package:uuid/uuid.dart';
 
 /// Service for managing absence entries in Supabase
 class SupabaseAbsenceService {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase;
   static const _uuid = Uuid();
+
+  SupabaseAbsenceService({SupabaseClient? supabase})
+      : _supabase = supabase ?? Supabase.instance.client;
 
   /// Fetch all absences for a user and year
   ///

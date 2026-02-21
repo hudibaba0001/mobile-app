@@ -1148,6 +1148,12 @@ abstract class AppLocalizations {
   /// **'Unpaid Leave'**
   String get leave_unpaid;
 
+  /// No description provided for @leave_unknownType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown leave type'**
+  String get leave_unknownType;
+
   /// No description provided for @leave_totalDays.
   ///
   /// In en, this message translates to:

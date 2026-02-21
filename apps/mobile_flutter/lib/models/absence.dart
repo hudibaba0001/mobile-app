@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../utils/date_parser.dart';
 
 /// Type of absence entry
@@ -6,6 +7,7 @@ enum AbsenceType {
   sickPaid,
   vabPaid,
   unpaid,
+  unknown,
 }
 
 /// Model representing an absence entry
@@ -17,12 +19,14 @@ class AbsenceEntry {
   final DateTime date; // date-only (normalized)
   final int minutes; // can be 0 meaning "full scheduled day"
   final AbsenceType type;
+  final String? rawType; // Preserves backend value for unknown types
 
   const AbsenceEntry({
     this.id,
     required this.date,
     required this.minutes,
     required this.type,
+    this.rawType,
   });
 
   /// Factory constructor that normalizes the date
@@ -45,7 +49,7 @@ class AbsenceEntry {
       'date':
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
       'minutes': minutes,
-      'type': type.name,
+      'type': type == AbsenceType.unknown && rawType != null ? rawType : type.name,
     };
     if (id != null) {
       map['id'] = id!;
@@ -74,7 +78,10 @@ class AbsenceEntry {
         type = AbsenceType.unpaid;
         break;
       default:
-        throw ArgumentError('Unknown absence type: $typeStr');
+        // Safely map unknown types without throwing, preserve raw value
+        type = AbsenceType.unknown;
+        debugPrint('AbsenceEntry: Safely mapped unknown absence type: $typeStr');
+        break;
     }
 
     return AbsenceEntry(
@@ -82,11 +89,12 @@ class AbsenceEntry {
       date: date,
       minutes: map['minutes'] as int,
       type: type,
+      rawType: type == AbsenceType.unknown ? typeStr : null,
     );
   }
 
   /// Check if this is a paid absence
-  bool get isPaid => type != AbsenceType.unpaid;
+  bool get isPaid => type != AbsenceType.unpaid && type != AbsenceType.unknown;
 
   @override
   String toString() {

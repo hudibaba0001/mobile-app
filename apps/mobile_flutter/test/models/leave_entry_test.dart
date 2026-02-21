@@ -19,7 +19,7 @@ void main() {
       expect(entry.type, LeaveType.sick);
     });
 
-    test('falls back to LeaveType.unpaid for unknown type, does not throw', () {
+    test('falls back to LeaveType.unknown for unknown type, saves raw string', () {
       final json = {
         'id': 'l2',
         'date': '2024-05-11T00:00:00.000',
@@ -32,7 +32,8 @@ void main() {
       };
 
       final entry = LeaveEntry.fromJson(json);
-      expect(entry.type, LeaveType.unpaid);
+      expect(entry.type, LeaveType.unknown);
+      expect(entry.rawType, 'unknown_type_from_future');
     });
   });
 }

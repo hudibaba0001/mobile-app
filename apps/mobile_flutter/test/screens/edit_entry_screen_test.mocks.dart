@@ -58,6 +58,12 @@ class MockEntryProvider extends _i1.Mock implements _i3.EntryProvider {
       ) as List<_i4.Entry>);
 
   @override
+  bool get hasAnyEntries => (super.noSuchMethod(
+        Invocation.getter(#hasAnyEntries),
+        returnValue: false,
+      ) as bool);
+
+  @override
   bool get isLoading => (super.noSuchMethod(
         Invocation.getter(#isLoading),
         returnValue: false,

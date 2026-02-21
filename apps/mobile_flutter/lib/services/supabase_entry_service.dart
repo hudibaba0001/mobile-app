@@ -9,9 +9,12 @@ import 'package:uuid/uuid.dart';
 /// This is the PRIMARY storage - all data is synced to Supabase first
 /// Works with normalized database structure: entries, travel_segments, work_shifts
 class SupabaseEntryService {
-  final SupabaseClient _supabase = SupabaseConfig.client;
+  final SupabaseClient _supabase;
   static const String _tableName = 'entries';
   static const String _travelSegmentsTable = 'travel_segments';
+  
+  SupabaseEntryService({SupabaseClient? supabase})
+      : _supabase = supabase ?? SupabaseConfig.client;
   static const String _workShiftsTable = 'work_shifts';
   static const _uuid = Uuid();
 

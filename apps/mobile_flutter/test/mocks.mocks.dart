@@ -459,6 +459,58 @@ class MockProfileService extends _i1.Mock implements _i8.ProfileService {
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
       ) as _i6.Future<void>);
+
+  @override
+  _i6.Future<_i9.UserProfile?> updateProfileFields(
+          Map<String, dynamic>? updates) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateProfileFields,
+          [updates],
+        ),
+        returnValue: _i6.Future<_i9.UserProfile?>.value(),
+        returnValueForMissingStub: _i6.Future<_i9.UserProfile?>.value(),
+      ) as _i6.Future<_i9.UserProfile?>);
+
+  @override
+  _i6.Future<void> setLocalSetupCompleted({
+    required String? userId,
+    required bool? completed,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setLocalSetupCompleted,
+          [],
+          {
+            #userId: userId,
+            #completed: completed,
+          },
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
+  _i6.Future<bool> isLocalSetupCompleted(String? userId) => (super.noSuchMethod(
+        Invocation.method(
+          #isLocalSetupCompleted,
+          [userId],
+        ),
+        returnValue: _i6.Future<bool>.value(false),
+        returnValueForMissingStub: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
+
+  @override
+  _i6.Future<_i9.UserProfile?> markSetupCompleted({DateTime? at}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #markSetupCompleted,
+          [],
+          {#at: at},
+        ),
+        returnValue: _i6.Future<_i9.UserProfile?>.value(),
+        returnValueForMissingStub: _i6.Future<_i9.UserProfile?>.value(),
+      ) as _i6.Future<_i9.UserProfile?>);
 }
 
 /// A class which mocks [HolidayService].

@@ -326,6 +326,7 @@
   "leave_sickLeave": "Sick Leave",
   "leave_vab": "VAB (Child Care)",
   "leave_unpaid": "Unpaid Leave",
+  "leave_unknownType": "Unknown leave type",
   "leave_totalDays": "Total Leave Days",
   "leave_recent": "Recent Leaves",
   "leave_noRecords": "No leaves recorded",
