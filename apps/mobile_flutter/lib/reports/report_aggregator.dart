@@ -1,6 +1,8 @@
 import '../models/absence.dart';
 import '../models/entry.dart';
 import '../reporting/leave_minutes.dart';
+import '../reporting/time_range.dart';
+import '../reporting/tracked_time_calculator.dart';
 import 'report_query_service.dart';
 
 class ReportSummary {
@@ -230,6 +232,7 @@ class ReportAggregator {
   Future<ReportSummary> buildSummary({
     required DateTime start,
     required DateTime end,
+    required bool travelEnabled,
     EntryType? selectedType,
   }) async {
     final startDate = _dateOnly(start);
@@ -283,12 +286,13 @@ class ReportAggregator {
         return bTime.compareTo(aTime);
       });
 
-    final workMinutes = sortedEntries
-        .where((entry) => entry.type == EntryType.work)
-        .fold<int>(0, (sum, entry) => sum + entry.workDuration.inMinutes);
-    final travelMinutes = sortedEntries
-        .where((entry) => entry.type == EntryType.travel)
-        .fold<int>(0, (sum, entry) => sum + entry.travelDuration.inMinutes);
+    final tracked = TrackedTimeCalculator.computeTrackedSummary(
+      entries: sortedEntries,
+      range: TimeRange.custom(startDate, endDate),
+      travelEnabled: travelEnabled,
+    );
+    final workMinutes = tracked.workMinutes;
+    final travelMinutes = tracked.travelMinutes;
 
     final openingEvent = BalanceOffsetEvent.opening(
       effectiveDate: openingConfig.trackingStartDate,
