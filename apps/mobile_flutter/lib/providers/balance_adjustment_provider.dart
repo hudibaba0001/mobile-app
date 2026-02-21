@@ -1,7 +1,7 @@
-// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../models/balance_adjustment.dart';
+import '../models/balance_adjustment_adapter.dart';
 import '../repositories/balance_adjustment_repository.dart';
 import '../services/supabase_auth_service.dart';
 
@@ -43,6 +43,11 @@ class BalanceAdjustmentProvider extends ChangeNotifier {
     if (_hiveBox == null || userId == null) return;
 
     for (final adj in _hiveBox!.values) {
+      // Skip corrupted sentinel records produced by Hive adapter
+      if (adj.id == BalanceAdjustmentAdapter.corruptedSentinelId) {
+        debugPrint('BalanceAdjustmentProvider: Skipping corrupted Hive record');
+        continue;
+      }
       if (adj.userId != userId) continue;
       final year = adj.effectiveDate.year;
       _adjustmentsByYear.putIfAbsent(year, () => []);

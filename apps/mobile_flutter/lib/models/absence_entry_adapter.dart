@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'absence.dart';
 import '../utils/date_parser.dart';
@@ -6,6 +7,9 @@ import '../utils/date_parser.dart';
 class AbsenceEntryAdapter extends TypeAdapter<AbsenceEntry> {
   @override
   final int typeId = 10;
+
+  /// Sentinel ID used to mark records that failed deserialization.
+  static const String corruptedSentinelId = '__corrupted__';
 
   @override
   AbsenceEntry read(BinaryReader reader) {
@@ -16,8 +20,15 @@ class AbsenceEntryAdapter extends TypeAdapter<AbsenceEntry> {
 
     final date = DateParser.tryParseDateOnly(dateStr);
     if (date == null) {
-      throw HiveError(
-          'Invalid or corrupted date format: $dateStr in AbsenceEntry');
+      debugPrint(
+          'AbsenceEntryAdapter: Skipping corrupted record (id=$id, date=$dateStr)');
+      // Return a sentinel that the provider will filter out.
+      return AbsenceEntry(
+        id: corruptedSentinelId,
+        date: DateTime(1970),
+        minutes: 0,
+        type: AbsenceType.unknown,
+      );
     }
 
     return AbsenceEntry(

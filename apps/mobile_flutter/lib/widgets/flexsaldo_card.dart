@@ -365,32 +365,51 @@ class FlexsaldoCard extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.md),
 
-              // Line 2: Worked (to date): X.Xh / Y.Yh
-              RichText(
-                text: TextSpan(
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  children: [
-                    TextSpan(text: '${t.balance_workedToDate} '),
-                    TextSpan(
-                      text: workedText,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: theme.colorScheme.primary,
+              // Line 2: Accounted time (to date): X.Xh / Y.Yh
+              Row(
+                children: [
+                  Flexible(
+                    child: RichText(
+                      text: TextSpan(
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        children: [
+                          TextSpan(text: '${t.balance_workedToDate} '),
+                          TextSpan(
+                            text: workedText,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.primary,
+                                ),
                           ),
+                          const TextSpan(text: ' / '),
+                          TextSpan(
+                            text: targetText,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
                     ),
-                    const TextSpan(text: ' / '),
-                    TextSpan(
-                      text: targetText,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Tooltip(
+                    message: t.balance_accountedTooltip,
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.5),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: AppSpacing.xs),
@@ -429,32 +448,51 @@ class FlexsaldoCard extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
 
-              // Year worked (to date): X.Xh / Y.Yh
-              RichText(
-                text: TextSpan(
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  children: [
-                    TextSpan(text: '${t.balance_workedToDate} '),
-                    TextSpan(
-                      text: yearWorkedText,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: theme.colorScheme.primary,
+              // Year accounted time (to date): X.Xh / Y.Yh
+              Row(
+                children: [
+                  Flexible(
+                    child: RichText(
+                      text: TextSpan(
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        children: [
+                          TextSpan(text: '${t.balance_workedToDate} '),
+                          TextSpan(
+                            text: yearWorkedText,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.primary,
+                                ),
                           ),
+                          const TextSpan(text: ' / '),
+                          TextSpan(
+                            text: yearTargetText,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
                     ),
-                    const TextSpan(text: ' / '),
-                    TextSpan(
-                      text: yearTargetText,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Tooltip(
+                    message: t.balance_accountedTooltip,
+                    child: Icon(
+                      Icons.info_outline_rounded,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.5),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
 
               if (contractProvider.hasOpeningBalance) ...[

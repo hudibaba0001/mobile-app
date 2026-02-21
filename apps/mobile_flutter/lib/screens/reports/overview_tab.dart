@@ -345,6 +345,7 @@ class _OverviewTabState extends State<OverviewTab> {
 
   List<Widget> _buildAllCards(
       BuildContext context, PeriodSummary periodSummary) {
+    final t = AppLocalizations.of(context);
     final showBalanceDetails =
         context.watch<SettingsProvider>().isTimeBalanceEnabled;
 
@@ -355,9 +356,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.work_rounded,
-              title: 'Work time',
+              title: t.overview_workTime,
               value: _formatMinutes(periodSummary.workMinutes),
-              subtitle: 'Tracked work',
+              subtitle: t.overview_trackedWork,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -365,9 +366,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.directions_car_rounded,
-              title: 'Travel time',
+              title: t.overview_travelTime,
               value: _formatMinutes(periodSummary.travelMinutes),
-              subtitle: 'Tracked travel',
+              subtitle: t.overview_trackedTravel,
             ),
           ),
         ],
@@ -379,9 +380,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.timer_rounded,
-              title: 'Total logged time',
+              title: t.overview_totalLoggedTime,
               value: _formatMinutes(periodSummary.trackedTotalMinutes),
-              subtitle: 'Work + travel',
+              subtitle: t.overview_workPlusTravel,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -389,9 +390,9 @@ class _OverviewTabState extends State<OverviewTab> {
             child: _buildStatCard(
               context,
               icon: Icons.event_note_rounded,
-              title: 'Paid leave',
+              title: t.overview_creditedLeave,
               value: _formatMinutes(periodSummary.paidLeaveMinutes),
-              subtitle: 'Credited leave',
+              subtitle: t.reportsCustom_paidLeaveTypes,
             ),
           ),
         ],
@@ -404,9 +405,9 @@ class _OverviewTabState extends State<OverviewTab> {
               child: _buildStatCard(
                 context,
                 icon: Icons.account_balance_wallet_rounded,
-                title: 'Accounted time',
+                title: t.overview_accountedTime,
                 value: _formatMinutes(periodSummary.accountedMinutes),
-                subtitle: 'Logged + paid leave',
+                subtitle: t.overview_loggedPlusCreditedLeave,
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -414,9 +415,9 @@ class _OverviewTabState extends State<OverviewTab> {
               child: _buildStatCard(
                 context,
                 icon: Icons.flag_rounded,
-                title: 'Planned time',
+                title: t.overview_plannedTime,
                 value: _formatMinutes(periodSummary.targetMinutes),
-                subtitle: 'Scheduled target',
+                subtitle: t.overview_scheduledTarget,
               ),
             ),
           ],
@@ -428,12 +429,12 @@ class _OverviewTabState extends State<OverviewTab> {
               child: _buildStatCard(
                 context,
                 icon: Icons.show_chart_rounded,
-                title: 'Difference vs plan',
+                title: t.overview_differenceVsPlan,
                 value: _formatMinutes(
                   periodSummary.differenceMinutes,
                   signed: true,
                 ),
-                subtitle: 'Accounted - planned',
+                subtitle: t.overview_accountedMinusPlanned,
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -441,12 +442,12 @@ class _OverviewTabState extends State<OverviewTab> {
               child: _buildStatCard(
                 context,
                 icon: Icons.balance_rounded,
-                title: 'Your balance after this period',
+                title: t.overview_balanceAfterPeriod,
                 value: _formatMinutes(
                   periodSummary.endBalanceMinutes,
                   signed: true,
                 ),
-                subtitle: 'Start + adjustments + difference',
+                subtitle: t.overview_startPlusAdjPlusDiff,
               ),
             ),
           ],
@@ -937,8 +938,8 @@ class _OverviewTabState extends State<OverviewTab> {
       periodRow: isSwedish ? 'Period' : 'Period',
       quickReadRow: isSwedish ? 'Snabböversikt' : 'Quick read',
       totalLoggedTimeRow: isSwedish ? 'Totalt loggad tid' : 'Total logged time',
-      paidLeaveRow: isSwedish ? 'Betald frånvaro' : 'Paid leave',
-      accountedTimeRow: isSwedish ? 'Tid som räknas' : 'Accounted time',
+      paidLeaveRow: isSwedish ? 'Ersatt frånvaro' : 'Credited leave',
+      accountedTimeRow: isSwedish ? 'Räknad tid' : 'Accounted time',
       plannedTimeRow: isSwedish ? 'Planerad tid' : 'Planned time',
       differenceVsPlanRow:
           isSwedish ? 'Skillnad mot plan' : 'Difference vs plan',

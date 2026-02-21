@@ -178,35 +178,50 @@ class MonthlyStatusCard extends StatelessWidget {
 
           const SizedBox(height: AppSpacing.md),
 
-          // Line 2: Worked (to date): X.Xh / Y.Yh
-          RichText(
-            text: TextSpan(
-              style: AppTypography.body(theme.colorScheme.onSurface)
-                  .copyWith(fontSize: 16),
-              children: [
-                TextSpan(text: '${l10n.balance_workedToDate} '),
-                TextSpan(
-                  text: formatMinutes(
-                    effectiveMinutes,
-                    localeCode: localeCode,
-                    padMinutes: true,
-                  ),
-                  style: AppTypography.body(theme.colorScheme.primary).copyWith(
-                    fontWeight: FontWeight.w700,
+          // Line 2: Accounted time (to date): X.Xh / Y.Yh
+          Row(
+            children: [
+              Flexible(
+                child: RichText(
+                  text: TextSpan(
+                    style: AppTypography.body(theme.colorScheme.onSurface)
+                        .copyWith(fontSize: 16),
+                    children: [
+                      TextSpan(text: '${l10n.balance_workedToDate} '),
+                      TextSpan(
+                        text: formatMinutes(
+                          effectiveMinutes,
+                          localeCode: localeCode,
+                          padMinutes: true,
+                        ),
+                        style: AppTypography.body(theme.colorScheme.primary)
+                            .copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const TextSpan(text: ' / '),
+                      TextSpan(
+                        text: formatMinutes(
+                          targetForVariance,
+                          localeCode: localeCode,
+                          padMinutes: true,
+                        ),
+                        style: AppTypography.body(theme.colorScheme.onSurface)
+                            .copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
                   ),
                 ),
-                const TextSpan(text: ' / '),
-                TextSpan(
-                  text: formatMinutes(
-                    targetForVariance,
-                    localeCode: localeCode,
-                    padMinutes: true,
-                  ),
-                  style: AppTypography.body(theme.colorScheme.onSurface)
-                      .copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Tooltip(
+                message: l10n.balance_accountedTooltip,
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant
+                      .withValues(alpha: 0.5),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
 
           const SizedBox(height: AppSpacing.xs),
@@ -416,37 +431,52 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           ),
           const SizedBox(height: AppSpacing.md),
 
-          // Worked (to date): X.Xh / Y.Yh
-          RichText(
-            text: TextSpan(
-              style: AppTypography.body(theme.colorScheme.onSurface)
-                  .copyWith(fontSize: 16),
-              children: [
-                TextSpan(text: '${l10n.balance_workedToDate} '),
-                TextSpan(
-                  text: formatMinutes(
-                    widget.workedMinutes +
-                        (widget.creditMinutes ?? 0) +
-                        widget.adjustmentMinutes,
-                    localeCode: localeCode,
-                    padMinutes: true,
-                  ),
-                  style: AppTypography.body(theme.colorScheme.primary).copyWith(
-                    fontWeight: FontWeight.w700,
+          // Accounted time (to date): X.Xh / Y.Yh
+          Row(
+            children: [
+              Flexible(
+                child: RichText(
+                  text: TextSpan(
+                    style: AppTypography.body(theme.colorScheme.onSurface)
+                        .copyWith(fontSize: 16),
+                    children: [
+                      TextSpan(text: '${l10n.balance_workedToDate} '),
+                      TextSpan(
+                        text: formatMinutes(
+                          widget.workedMinutes +
+                              (widget.creditMinutes ?? 0) +
+                              widget.adjustmentMinutes,
+                          localeCode: localeCode,
+                          padMinutes: true,
+                        ),
+                        style: AppTypography.body(theme.colorScheme.primary)
+                            .copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const TextSpan(text: ' / '),
+                      TextSpan(
+                        text: formatMinutes(
+                          targetForDisplay,
+                          localeCode: localeCode,
+                          padMinutes: true,
+                        ),
+                        style: AppTypography.body(theme.colorScheme.onSurface)
+                            .copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
                   ),
                 ),
-                const TextSpan(text: ' / '),
-                TextSpan(
-                  text: formatMinutes(
-                    targetForDisplay,
-                    localeCode: localeCode,
-                    padMinutes: true,
-                  ),
-                  style: AppTypography.body(theme.colorScheme.onSurface)
-                      .copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Tooltip(
+                message: l10n.balance_accountedTooltip,
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant
+                      .withValues(alpha: 0.5),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
 
           const SizedBox(height: AppSpacing.xs),

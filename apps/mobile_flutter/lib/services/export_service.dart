@@ -274,7 +274,7 @@ class ExportService {
       case AbsenceType.unpaid:
         return 'Obetald frånvaro';
       case AbsenceType.unknown:
-        return 'Okänd frånvarotyp';
+        return 'Leave (Unknown)';
     }
   }
 

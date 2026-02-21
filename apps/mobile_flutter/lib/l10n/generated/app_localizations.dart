@@ -773,7 +773,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_hoursWorkedToDate.
   ///
   /// In en, this message translates to:
-  /// **'Hours Worked (to date): {worked} / {target} h'**
+  /// **'Hours Accounted (to date): {worked} / {target} h'**
   String balance_hoursWorkedToDate(String worked, String target);
 
   /// No description provided for @balance_creditedHours.
@@ -899,7 +899,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_workedToDate.
   ///
   /// In en, this message translates to:
-  /// **'Worked (to date):'**
+  /// **'Accounted time (to date):'**
   String get balance_workedToDate;
 
   /// No description provided for @balance_fullMonthTarget.
@@ -911,7 +911,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_creditedPaidLeave.
   ///
   /// In en, this message translates to:
-  /// **'+ {hours}h credited (paid leave)'**
+  /// **'+ {hours}h credited leave'**
   String balance_creditedPaidLeave(String hours);
 
   /// No description provided for @balance_manualAdjustments.
@@ -3308,6 +3308,90 @@ abstract class AppLocalizations {
   /// **'Work'**
   String get overview_work;
 
+  /// No description provided for @overview_trackedWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked work'**
+  String get overview_trackedWork;
+
+  /// No description provided for @overview_trackedTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked travel'**
+  String get overview_trackedTravel;
+
+  /// No description provided for @overview_totalLoggedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total logged time'**
+  String get overview_totalLoggedTime;
+
+  /// No description provided for @overview_workPlusTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Work + travel'**
+  String get overview_workPlusTravel;
+
+  /// No description provided for @overview_creditedLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Credited leave'**
+  String get overview_creditedLeave;
+
+  /// No description provided for @overview_accountedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounted time'**
+  String get overview_accountedTime;
+
+  /// No description provided for @overview_loggedPlusCreditedLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged + credited leave'**
+  String get overview_loggedPlusCreditedLeave;
+
+  /// No description provided for @overview_plannedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned time'**
+  String get overview_plannedTime;
+
+  /// No description provided for @overview_scheduledTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled target'**
+  String get overview_scheduledTarget;
+
+  /// No description provided for @overview_differenceVsPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference vs plan'**
+  String get overview_differenceVsPlan;
+
+  /// No description provided for @overview_accountedMinusPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounted - planned'**
+  String get overview_accountedMinusPlanned;
+
+  /// No description provided for @overview_balanceAfterPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Your balance after this period'**
+  String get overview_balanceAfterPeriod;
+
+  /// No description provided for @overview_startPlusAdjPlusDiff.
+  ///
+  /// In en, this message translates to:
+  /// **'Start + adjustments + difference'**
+  String get overview_startPlusAdjPlusDiff;
+
+  /// No description provided for @balance_accountedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged time + credited leave'**
+  String get balance_accountedTooltip;
+
   /// No description provided for @location_fullAddress.
   ///
   /// In en, this message translates to:
@@ -3491,7 +3575,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_hoursWorked.
   ///
   /// In en, this message translates to:
-  /// **'Hours Worked (to date): {worked} / {target} h'**
+  /// **'Hours Accounted (to date): {worked} / {target} h'**
   String balance_hoursWorked(String worked, String target);
 
   /// No description provided for @balance_over.
@@ -3587,7 +3671,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_creditedPaidLeaveValue.
   ///
   /// In en, this message translates to:
-  /// **'+ {value} credited (paid leave)'**
+  /// **'+ {value} credited leave'**
   String balance_creditedPaidLeaveValue(String value);
 
   /// No description provided for @balance_manualAdjustmentsValue.
@@ -4127,7 +4211,7 @@ abstract class AppLocalizations {
   /// No description provided for @home_paidLeave.
   ///
   /// In en, this message translates to:
-  /// **'Paid Leave'**
+  /// **'Credited Leave'**
   String get home_paidLeave;
 
   /// No description provided for @home_sickLeave.
@@ -5490,7 +5574,7 @@ abstract class AppLocalizations {
   /// No description provided for @reportsCustom_paidLeave.
   ///
   /// In en, this message translates to:
-  /// **'Paid leave'**
+  /// **'Credited leave'**
   String get reportsCustom_paidLeave;
 
   /// No description provided for @reportsCustom_paidLeaveTypes.

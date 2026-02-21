@@ -390,7 +390,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String balance_hoursWorkedToDate(String worked, String target) {
-    return 'Hours Worked (to date): $worked / $target h';
+    return 'Hours Accounted (to date): $worked / $target h';
   }
 
   @override
@@ -472,7 +472,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance_statusToDate => 'Status (to date):';
 
   @override
-  String get balance_workedToDate => 'Worked (to date):';
+  String get balance_workedToDate => 'Accounted time (to date):';
 
   @override
   String balance_fullMonthTarget(String hours) {
@@ -481,7 +481,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String balance_creditedPaidLeave(String hours) {
-    return '+ ${hours}h credited (paid leave)';
+    return '+ ${hours}h credited leave';
   }
 
   @override
@@ -1829,6 +1829,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get overview_work => 'Work';
 
   @override
+  String get overview_trackedWork => 'Tracked work';
+
+  @override
+  String get overview_trackedTravel => 'Tracked travel';
+
+  @override
+  String get overview_totalLoggedTime => 'Total logged time';
+
+  @override
+  String get overview_workPlusTravel => 'Work + travel';
+
+  @override
+  String get overview_creditedLeave => 'Credited leave';
+
+  @override
+  String get overview_accountedTime => 'Accounted time';
+
+  @override
+  String get overview_loggedPlusCreditedLeave => 'Logged + credited leave';
+
+  @override
+  String get overview_plannedTime => 'Planned time';
+
+  @override
+  String get overview_scheduledTarget => 'Scheduled target';
+
+  @override
+  String get overview_differenceVsPlan => 'Difference vs plan';
+
+  @override
+  String get overview_accountedMinusPlanned => 'Accounted - planned';
+
+  @override
+  String get overview_balanceAfterPeriod => 'Your balance after this period';
+
+  @override
+  String get overview_startPlusAdjPlusDiff =>
+      'Start + adjustments + difference';
+
+  @override
+  String get balance_accountedTooltip => 'Logged time + credited leave';
+
+  @override
   String get location_fullAddress => 'Full address';
 
   @override
@@ -1928,7 +1971,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String balance_hoursWorked(String worked, String target) {
-    return 'Hours Worked (to date): $worked / $target h';
+    return 'Hours Accounted (to date): $worked / $target h';
   }
 
   @override
@@ -1992,7 +2035,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String balance_creditedPaidLeaveValue(String value) {
-    return '+ $value credited (paid leave)';
+    return '+ $value credited leave';
   }
 
   @override
@@ -2280,7 +2323,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home_workSession => 'Work Session';
 
   @override
-  String get home_paidLeave => 'Paid Leave';
+  String get home_paidLeave => 'Credited Leave';
 
   @override
   String get home_sickLeave => 'Sick Leave';
@@ -3037,7 +3080,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportsCustom_registeredEntries => 'Registered entries';
 
   @override
-  String get reportsCustom_paidLeave => 'Paid leave';
+  String get reportsCustom_paidLeave => 'Credited leave';
 
   @override
   String get reportsCustom_paidLeaveTypes => 'Vacation/Sick/VAB';

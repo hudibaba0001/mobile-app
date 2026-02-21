@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../calendar/sweden_holidays.dart';
 import '../models/user_red_day.dart';
+import '../models/user_red_day_adapter.dart';
 import '../repositories/user_red_day_repository.dart';
 
 /// Combined red day info (auto holiday + personal)
@@ -160,8 +161,11 @@ class HolidayService extends ChangeNotifier {
   void _loadFromHive() {
     if (_hiveBox == null || _userId == null) return;
 
-    final allUserRedDays =
-        _hiveBox!.values.where((redDay) => redDay.userId == _userId).toList();
+    final allUserRedDays = _hiveBox!.values
+        .where((redDay) =>
+            redDay.userId == _userId &&
+            redDay.id != UserRedDayAdapter.corruptedSentinelId)
+        .toList();
     final deduped = _dedupeRedDaysByDate(allUserRedDays);
     for (final redDay in deduped) {
       final year = redDay.date.year;

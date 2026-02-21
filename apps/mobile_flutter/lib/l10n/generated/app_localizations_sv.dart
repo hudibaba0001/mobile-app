@@ -391,7 +391,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String balance_hoursWorkedToDate(String worked, String target) {
-    return 'Arbetade timmar (hittills): $worked / $target h';
+    return 'Räknade timmar (hittills): $worked / $target h';
   }
 
   @override
@@ -473,7 +473,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get balance_statusToDate => 'Status (hittills):';
 
   @override
-  String get balance_workedToDate => 'Arbetat (hittills):';
+  String get balance_workedToDate => 'Räknad tid (hittills):';
 
   @override
   String balance_fullMonthTarget(String hours) {
@@ -482,7 +482,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String balance_creditedPaidLeave(String hours) {
-    return '+ ${hours}h tillgodoräknat (betald ledighet)';
+    return '+ ${hours}h ersatt frånvaro';
   }
 
   @override
@@ -1831,6 +1831,48 @@ class AppLocalizationsSv extends AppLocalizations {
   String get overview_work => 'Arbete';
 
   @override
+  String get overview_trackedWork => 'Spårad arbetstid';
+
+  @override
+  String get overview_trackedTravel => 'Spårad restid';
+
+  @override
+  String get overview_totalLoggedTime => 'Totalt loggad tid';
+
+  @override
+  String get overview_workPlusTravel => 'Arbete + resor';
+
+  @override
+  String get overview_creditedLeave => 'Ersatt frånvaro';
+
+  @override
+  String get overview_accountedTime => 'Räknad tid';
+
+  @override
+  String get overview_loggedPlusCreditedLeave => 'Loggad + ersatt frånvaro';
+
+  @override
+  String get overview_plannedTime => 'Planerad tid';
+
+  @override
+  String get overview_scheduledTarget => 'Schemalagt mål';
+
+  @override
+  String get overview_differenceVsPlan => 'Skillnad mot plan';
+
+  @override
+  String get overview_accountedMinusPlanned => 'Räknad - planerad';
+
+  @override
+  String get overview_balanceAfterPeriod => 'Ditt saldo efter perioden';
+
+  @override
+  String get overview_startPlusAdjPlusDiff => 'Start + justeringar + skillnad';
+
+  @override
+  String get balance_accountedTooltip => 'Loggad tid + ersatt frånvaro';
+
+  @override
   String get location_fullAddress => 'Fullständig adress';
 
   @override
@@ -1930,7 +1972,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String balance_hoursWorked(String worked, String target) {
-    return 'Arbetade timmar (hittills): $worked / $target h';
+    return 'Räknade timmar (hittills): $worked / $target h';
   }
 
   @override
@@ -1994,7 +2036,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String balance_creditedPaidLeaveValue(String value) {
-    return '+ $value tillgodoräknat (betald ledighet)';
+    return '+ $value ersatt frånvaro';
   }
 
   @override
@@ -2279,7 +2321,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get home_workSession => 'Arbetspass';
 
   @override
-  String get home_paidLeave => 'Betald ledighet';
+  String get home_paidLeave => 'Ersatt frånvaro';
 
   @override
   String get home_sickLeave => 'Sjukledighet';
@@ -3030,7 +3072,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get reportsCustom_registeredEntries => 'Registrerade poster';
 
   @override
-  String get reportsCustom_paidLeave => 'Betald ledighet';
+  String get reportsCustom_paidLeave => 'Ersatt frånvaro';
 
   @override
   String get reportsCustom_paidLeaveTypes => 'Semester/Sjuk/VAB';
