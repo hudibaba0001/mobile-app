@@ -283,6 +283,8 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
         return t.leave_vab;
       case AbsenceType.unpaid:
         return t.leave_unpaid;
+      case AbsenceType.unknown:
+        return t.leave_unknownType;
     }
   }
 

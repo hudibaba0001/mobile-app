@@ -14,7 +14,11 @@ class AbsenceEntryAdapter extends TypeAdapter<AbsenceEntry> {
     final minutes = reader.readInt();
     final typeIndex = reader.readInt();
 
-    final date = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
+    final date = DateParser.tryParseDateOnly(dateStr);
+    if (date == null) {
+      throw HiveError(
+          'Invalid or corrupted date format: $dateStr in AbsenceEntry');
+    }
 
     return AbsenceEntry(
       id: id.isEmpty ? null : id,

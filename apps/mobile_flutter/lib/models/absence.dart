@@ -49,7 +49,8 @@ class AbsenceEntry {
       'date':
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
       'minutes': minutes,
-      'type': type == AbsenceType.unknown && rawType != null ? rawType : type.name,
+      'type':
+          type == AbsenceType.unknown && rawType != null ? rawType : type.name,
     };
     if (id != null) {
       map['id'] = id!;
@@ -59,8 +60,11 @@ class AbsenceEntry {
 
   /// Create from map (from storage)
   factory AbsenceEntry.fromMap(Map<String, dynamic> map) {
-    final dateStr = map['date'] as String;
-    final date = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
+    final dateStr = map['date'] as String?;
+    final date = DateParser.tryParseDateOnly(dateStr);
+    if (date == null) {
+      throw FormatException('Invalid date in AbsenceEntry.fromMap: $dateStr');
+    }
 
     final typeStr = map['type'] as String;
     AbsenceType type;
@@ -80,7 +84,8 @@ class AbsenceEntry {
       default:
         // Safely map unknown types without throwing, preserve raw value
         type = AbsenceType.unknown;
-        debugPrint('AbsenceEntry: Safely mapped unknown absence type: $typeStr');
+        debugPrint(
+            'AbsenceEntry: Safely mapped unknown absence type: $typeStr');
         break;
     }
 

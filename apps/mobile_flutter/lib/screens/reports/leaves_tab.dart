@@ -443,6 +443,7 @@ class _LeavesTabState extends State<LeavesTab> {
           label: t.leave_vab,
         );
       case AbsenceType.unpaid:
+      case AbsenceType.unknown:
         return _TypeInfo(
           icon: Icons.event_busy,
           color: AppColors.mutedForeground(Theme.of(context).brightness),

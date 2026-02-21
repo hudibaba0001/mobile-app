@@ -17,7 +17,10 @@ class UserRedDayAdapter extends TypeAdapter<UserRedDay> {
     final reason = reader.readString();
     final sourceIndex = reader.readInt();
 
-    final date = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
+    final date = DateParser.tryParseDateOnly(dateStr);
+    if (date == null) {
+      throw HiveError('Invalid date format in UserRedDay: $dateStr');
+    }
 
     return UserRedDay(
       id: id.isEmpty ? null : id,

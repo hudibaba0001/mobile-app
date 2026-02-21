@@ -268,11 +268,13 @@ class ExportService {
       case AbsenceType.sickPaid:
         return 'Leave (Sick)';
       case AbsenceType.vabPaid:
-        return 'Leave (VAB)';
+        return 'VAB';
       case AbsenceType.vacationPaid:
         return 'Leave (Paid Vacation)';
       case AbsenceType.unpaid:
-        return 'Leave (Unpaid)';
+        return 'Obetald frånvaro';
+      case AbsenceType.unknown:
+        return 'Okänd frånvarotyp';
     }
   }
 

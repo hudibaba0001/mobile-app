@@ -15,7 +15,10 @@ class BalanceAdjustmentAdapter extends TypeAdapter<BalanceAdjustment> {
     final deltaMinutes = reader.readInt();
     final note = reader.readString();
 
-    final effectiveDate = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
+    final effectiveDate = DateParser.tryParseDateOnly(dateStr);
+    if (effectiveDate == null) {
+      throw HiveError('Invalid effective date in BalanceAdjustment: $dateStr');
+    }
 
     return BalanceAdjustment(
       id: id.isEmpty ? null : id,
