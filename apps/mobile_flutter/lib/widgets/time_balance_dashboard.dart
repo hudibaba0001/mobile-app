@@ -178,7 +178,7 @@ class MonthlyStatusCard extends StatelessWidget {
 
           const SizedBox(height: AppSpacing.md),
 
-          // Line 2: Worked (to date): X.Xh / Y.Yh
+          // Line 2: Accounted (to date): X.Xh / Y.Yh
           RichText(
             text: TextSpan(
               style: AppTypography.body(theme.colorScheme.onSurface)
@@ -416,7 +416,7 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
           ),
           const SizedBox(height: AppSpacing.md),
 
-          // Worked (to date): X.Xh / Y.Yh
+          // Accounted (to date): X.Xh / Y.Yh
           RichText(
             text: TextSpan(
               style: AppTypography.body(theme.colorScheme.onSurface)

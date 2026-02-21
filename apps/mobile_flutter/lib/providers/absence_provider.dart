@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../models/absence.dart';
+import '../models/absence_entry_adapter.dart';
 import '../services/supabase_absence_service.dart';
 import '../services/supabase_auth_service.dart';
 
@@ -47,6 +48,13 @@ class AbsenceProvider extends ChangeNotifier {
       }
       final absence = _hiveBox!.get(key);
       if (absence == null) continue;
+
+      // Skip corrupted sentinel records produced by Hive adapter
+      if (absence.id == AbsenceEntryAdapter.corruptedSentinelId) {
+        debugPrint('AbsenceProvider: Skipping corrupted Hive record key=$key');
+        continue;
+      }
+
       final year = absence.date.year;
       _absencesByYear.putIfAbsent(year, () => []);
       final existing = _absencesByYear[year]!;

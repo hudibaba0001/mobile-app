@@ -124,7 +124,7 @@
   "balance_myTimeBalance": "Mitt flexsaldo ({year})",
   "balance_thisYear": "I ÅR: {year}",
   "balance_thisMonth": "DENNA MÅNAD: {month}",
-  "balance_hoursWorkedToDate": "Arbetade timmar (hittills): {worked} / {target} h",
+  "balance_hoursWorkedToDate": "Räknade timmar (hittills): {worked} / {target} h",
   "balance_creditedHours": "Tillgodoräknade timmar: {hours} h",
   "balance_statusOver": "Över",
   "balance_statusUnder": "Under",
@@ -160,9 +160,9 @@
   "balance_yearlyLabel": "År ({year})",
   "balance_thisMonthLabel": "Denna månad: {month}",
   "balance_statusToDate": "Status (hittills):",
-  "balance_workedToDate": "Arbetat (hittills):",
+  "balance_workedToDate": "Räknat (hittills):",
   "balance_fullMonthTarget": "Mål denna månad: {hours}h",
-  "balance_creditedPaidLeave": "+ {hours}h tillgodoräknat (betald ledighet)",
+  "balance_creditedPaidLeave": "+ {hours}h ersatt frånvaro",
   "balance_manualAdjustments": "{hours}h manuella justeringar",
   "balance_percentFullMonthTarget": "{percent}% av månadsmålet",
   "balance_fullYearTarget": "Årsmål: {hours}h",
@@ -636,6 +636,19 @@
   "overview_errorLoadingData": "Fel vid laddning av data",
   "overview_travel": "Resa",
   "overview_work": "Arbete",
+  "overview_trackedWork": "Spårad arbetstid",
+  "overview_trackedTravel": "Spårad restid",
+  "overview_totalLoggedTime": "Totalt loggad tid",
+  "overview_workPlusTravel": "Arbete + resor",
+  "overview_creditedLeave": "Ersatt frånvaro",
+  "overview_accountedTime": "Räknad tid",
+  "overview_loggedPlusCreditedLeave": "Loggad + ersatt frånvaro",
+  "overview_plannedTime": "Planerad tid",
+  "overview_scheduledTarget": "Schemalagt mål",
+  "overview_differenceVsPlan": "Skillnad mot plan",
+  "overview_accountedMinusPlanned": "Räknad - planerad",
+  "overview_balanceAfterPeriod": "Ditt saldo efter perioden",
+  "overview_startPlusAdjPlusDiff": "Start + justeringar + skillnad",
 
   "location_fullAddress": "Fullständig adress",
 
@@ -685,7 +698,7 @@
   "balance_thisWeek": "DENNA VECKAN: {range}",
   "balance_thisMonth": "DENNA MÅNADEN: {month}",
   "balance_thisYear": "DETTA ÅRET: {year}",
-  "balance_hoursWorked": "Arbetade timmar (hittills): {worked} / {target} h",
+  "balance_hoursWorked": "Räknade timmar (hittills): {worked} / {target} h",
   "balance_creditedHours": "Tillgodoräknade timmar: {hours} h",
   "balance_status": "Status: {variance} h ({status})",
   "balance_over": "Över",
@@ -735,7 +748,7 @@
       "value": {"type": "String"}
     }
   },
-  "balance_creditedPaidLeaveValue": "+ {value} tillgodoräknat (betald ledighet)",
+  "balance_creditedPaidLeaveValue": "+ {value} ersatt frånvaro",
   "@balance_creditedPaidLeaveValue": {
     "placeholders": {
       "value": {"type": "String"}
@@ -871,7 +884,7 @@
   "dateRange_last30Days": "Senaste 30 dagarna",
 
   "home_workSession": "Arbetspass",
-  "home_paidLeave": "Betald ledighet",
+  "home_paidLeave": "Ersatt frånvaro",
   "home_sickLeave": "Sjukledighet",
   "home_vab": "VAB (Vård av barn)",
   "home_unpaidLeave": "Obetald ledighet",
@@ -1234,7 +1247,7 @@
   "reportsCustom_totalInPeriod": "Totalt i perioden",
   "reportsCustom_leaveEntries": "Ledighetsposter",
   "reportsCustom_registeredEntries": "Registrerade poster",
-  "reportsCustom_paidLeave": "Betald ledighet",
+  "reportsCustom_paidLeave": "Ersatt frånvaro",
   "reportsCustom_paidLeaveTypes": "Semester/Sjuk/VAB",
   "reportsCustom_unpaidLeave": "Obetald ledighet",
   "reportsCustom_unpaidLeaveType": "Tj\u00e4nstledighet",

@@ -365,7 +365,7 @@ class FlexsaldoCard extends StatelessWidget {
 
               const SizedBox(height: AppSpacing.md),
 
-              // Line 2: Worked (to date): X.Xh / Y.Yh
+              // Line 2: Accounted (to date): X.Xh / Y.Yh
               RichText(
                 text: TextSpan(
                   style: theme.textTheme.bodyLarge?.copyWith(
@@ -429,7 +429,7 @@ class FlexsaldoCard extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
 
-              // Year worked (to date): X.Xh / Y.Yh
+              // Year accounted (to date): X.Xh / Y.Yh
               RichText(
                 text: TextSpan(
                   style: theme.textTheme.bodyLarge?.copyWith(

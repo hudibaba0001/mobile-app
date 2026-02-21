@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'balance_adjustment.dart';
 import '../utils/date_parser.dart';
@@ -6,6 +7,9 @@ import '../utils/date_parser.dart';
 class BalanceAdjustmentAdapter extends TypeAdapter<BalanceAdjustment> {
   @override
   final int typeId = 11;
+
+  /// Sentinel ID used to mark records that failed deserialization.
+  static const String corruptedSentinelId = '__corrupted__';
 
   @override
   BalanceAdjustment read(BinaryReader reader) {
@@ -17,7 +21,15 @@ class BalanceAdjustmentAdapter extends TypeAdapter<BalanceAdjustment> {
 
     final effectiveDate = DateParser.tryParseDateOnly(dateStr);
     if (effectiveDate == null) {
-      throw HiveError('Invalid effective date in BalanceAdjustment: $dateStr');
+      debugPrint(
+          'BalanceAdjustmentAdapter: Skipping corrupted record (id=$id, date=$dateStr)');
+      return BalanceAdjustment(
+        id: corruptedSentinelId,
+        userId: userId,
+        effectiveDate: DateTime(1970),
+        deltaMinutes: 0,
+        note: 'CORRUPTED: invalid date $dateStr',
+      );
     }
 
     return BalanceAdjustment(

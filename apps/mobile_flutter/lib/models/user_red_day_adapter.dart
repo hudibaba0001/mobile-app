@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'user_red_day.dart';
 import '../utils/date_parser.dart';
@@ -6,6 +7,9 @@ import '../utils/date_parser.dart';
 class UserRedDayAdapter extends TypeAdapter<UserRedDay> {
   @override
   final int typeId = 12;
+
+  /// Sentinel ID used to mark records that failed deserialization.
+  static const String corruptedSentinelId = '__corrupted__';
 
   @override
   UserRedDay read(BinaryReader reader) {
@@ -19,7 +23,17 @@ class UserRedDayAdapter extends TypeAdapter<UserRedDay> {
 
     final date = DateParser.tryParseDateOnly(dateStr);
     if (date == null) {
-      throw HiveError('Invalid date format in UserRedDay: $dateStr');
+      debugPrint(
+          'UserRedDayAdapter: Skipping corrupted record (id=$id, date=$dateStr)');
+      return UserRedDay(
+        id: corruptedSentinelId,
+        userId: userId,
+        date: DateTime(1970),
+        kind: RedDayKind.values[kindIndex],
+        half: halfIndex >= 0 ? HalfDay.values[halfIndex] : null,
+        reason: 'CORRUPTED: invalid date $dateStr',
+        source: RedDaySource.values[sourceIndex],
+      );
     }
 
     return UserRedDay(

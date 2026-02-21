@@ -122,7 +122,10 @@ class LeavesSummary {
 
   int get unpaidMinutes => byType[AbsenceType.unpaid]?.totalMinutes ?? 0;
 
-  int get paidMinutes => totalMinutes - unpaidMinutes;
+  int get unknownMinutes => byType[AbsenceType.unknown]?.totalMinutes ?? 0;
+
+  /// Paid = total minus unpaid minus unknown (unknown must NOT inflate credit).
+  int get paidMinutes => totalMinutes - unpaidMinutes - unknownMinutes;
 
   int get creditedMinutes => paidMinutes;
 }

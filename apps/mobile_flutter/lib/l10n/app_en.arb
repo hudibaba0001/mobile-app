@@ -162,7 +162,7 @@
       "month": {"type": "String"}
     }
   },
-  "balance_hoursWorkedToDate": "Hours Worked (to date): {worked} / {target} h",
+  "balance_hoursWorkedToDate": "Hours Accounted (to date): {worked} / {target} h",
   "@balance_hoursWorkedToDate": {
     "placeholders": {
       "worked": {"type": "String"},
@@ -230,14 +230,14 @@
     }
   },
   "balance_statusToDate": "Status (to date):",
-  "balance_workedToDate": "Worked (to date):",
+  "balance_workedToDate": "Accounted (to date):",
   "balance_fullMonthTarget": "Full month target: {hours}h",
   "@balance_fullMonthTarget": {
     "placeholders": {
       "hours": {"type": "String"}
     }
   },
-  "balance_creditedPaidLeave": "+ {hours}h credited (paid leave)",
+  "balance_creditedPaidLeave": "+ {hours}h credited leave",
   "@balance_creditedPaidLeave": {
     "placeholders": {
       "hours": {"type": "String"}
@@ -970,6 +970,19 @@
   "overview_errorLoadingData": "Error loading data",
   "overview_travel": "Travel",
   "overview_work": "Work",
+  "overview_trackedWork": "Tracked work",
+  "overview_trackedTravel": "Tracked travel",
+  "overview_totalLoggedTime": "Total logged time",
+  "overview_workPlusTravel": "Work + travel",
+  "overview_creditedLeave": "Credited leave",
+  "overview_accountedTime": "Accounted time",
+  "overview_loggedPlusCreditedLeave": "Logged + credited leave",
+  "overview_plannedTime": "Planned time",
+  "overview_scheduledTarget": "Scheduled target",
+  "overview_differenceVsPlan": "Difference vs plan",
+  "overview_accountedMinusPlanned": "Accounted - planned",
+  "overview_balanceAfterPeriod": "Your balance after this period",
+  "overview_startPlusAdjPlusDiff": "Start + adjustments + difference",
 
   "location_fullAddress": "Full address",
 
@@ -1052,7 +1065,7 @@
       "year": {"type": "int"}
     }
   },
-  "balance_hoursWorked": "Hours Worked (to date): {worked} / {target} h",
+  "balance_hoursWorked": "Hours Accounted (to date): {worked} / {target} h",
   "@balance_hoursWorked": {
     "placeholders": {
       "worked": {"type": "String"},
@@ -1154,7 +1167,7 @@
       "value": {"type": "String"}
     }
   },
-  "balance_creditedPaidLeaveValue": "+ {value} credited (paid leave)",
+  "balance_creditedPaidLeaveValue": "+ {value} credited leave",
   "@balance_creditedPaidLeaveValue": {
     "placeholders": {
       "value": {"type": "String"}
@@ -1303,7 +1316,7 @@
   "dateRange_last30Days": "Last 30 Days",
 
   "home_workSession": "Work Session",
-  "home_paidLeave": "Paid Leave",
+  "home_paidLeave": "Credited Leave",
   "home_sickLeave": "Sick Leave",
   "home_vab": "VAB (Child Care)",
   "home_unpaidLeave": "Unpaid Leave",
@@ -1669,7 +1682,7 @@
   "reportsCustom_totalInPeriod": "Total in period",
   "reportsCustom_leaveEntries": "Leave entries",
   "reportsCustom_registeredEntries": "Registered entries",
-  "reportsCustom_paidLeave": "Paid leave",
+  "reportsCustom_paidLeave": "Credited leave",
   "reportsCustom_paidLeaveTypes": "Vacation/Sick/VAB",
   "reportsCustom_unpaidLeave": "Unpaid leave",
   "reportsCustom_unpaidLeaveType": "Unpaid leave",
