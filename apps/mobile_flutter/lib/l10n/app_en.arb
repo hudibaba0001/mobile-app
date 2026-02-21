@@ -230,7 +230,7 @@
     }
   },
   "balance_statusToDate": "Status (to date):",
-  "balance_workedToDate": "Accounted (to date):",
+  "balance_workedToDate": "Accounted time (to date):",
   "balance_fullMonthTarget": "Full month target: {hours}h",
   "@balance_fullMonthTarget": {
     "placeholders": {
@@ -983,6 +983,8 @@
   "overview_accountedMinusPlanned": "Accounted - planned",
   "overview_balanceAfterPeriod": "Your balance after this period",
   "overview_startPlusAdjPlusDiff": "Start + adjustments + difference",
+
+  "balance_accountedTooltip": "Logged time + credited leave",
 
   "location_fullAddress": "Full address",
 
