@@ -26,8 +26,12 @@ class BalanceAdjustment {
 
   /// Create from Supabase row
   factory BalanceAdjustment.fromMap(Map<String, dynamic> map) {
-    final dateStr = map['effective_date'] as String;
-    final effectiveDate = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
+    final dateStr = map['effective_date'] as String?;
+    final effectiveDate = DateParser.tryParseDateOnly(dateStr);
+    if (effectiveDate == null) {
+      throw FormatException(
+          'Invalid effectiveDate in BalanceAdjustment: $dateStr');
+    }
 
     return BalanceAdjustment(
       id: map['id'] as String?,

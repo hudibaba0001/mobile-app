@@ -322,6 +322,9 @@ class _TrendsTabState extends State<TrendsTab> {
             unpaidCount += 1;
             unpaidMinutes += minutes;
             break;
+          case AbsenceType.unknown:
+            // Skip or log unknown types for trends
+            break;
         }
       }
 

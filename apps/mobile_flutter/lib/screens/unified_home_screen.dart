@@ -121,7 +121,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     }
 
     final contractProvider = context.read<ContractProvider>();
-    if (_trackingStartInitialized && contractProvider.hasCustomTrackingStartDate) {
+    if (_trackingStartInitialized &&
+        contractProvider.hasCustomTrackingStartDate) {
       return;
     }
 
@@ -260,7 +261,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       }
     }
 
-    final workEntries = sortedEntries.where((e) => e.type == EntryType.work).take(5);
+    final workEntries =
+        sortedEntries.where((e) => e.type == EntryType.work).take(5);
     for (final entry in workEntries) {
       final shift = entry.atomicShift ?? entry.shifts?.first;
       final workedMinutes = entry.totalWorkDuration?.inMinutes ?? 0;
@@ -325,6 +327,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         return t.home_vab;
       case AbsenceType.unpaid:
         return t.home_unpaidLeave;
+      case AbsenceType.unknown:
+        return t.leave_unknownType;
     }
   }
 
@@ -337,6 +341,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       case AbsenceType.vabPaid:
         return Icons.child_care;
       case AbsenceType.unpaid:
+      case AbsenceType.unknown:
         return Icons.event_busy;
     }
   }
@@ -459,13 +464,12 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
                       // Today's Total Card
                       Consumer<EntryProvider>(
-                        builder: (context, entryProvider, _) =>
-                            _buildTotalCard(
-                              theme,
-                              entryProvider,
-                              t,
-                              travelEnabled,
-                            ),
+                        builder: (context, entryProvider, _) => _buildTotalCard(
+                          theme,
+                          entryProvider,
+                          t,
+                          travelEnabled,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
 
@@ -473,19 +477,17 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       Consumer<EntryProvider>(
                         builder: (context, entryProvider, _) =>
                             _buildStatsSection(
-                              theme,
-                              entryProvider,
-                              t,
-                              travelEnabled,
-                            ),
+                          theme,
+                          entryProvider,
+                          t,
+                          travelEnabled,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
                     ]),
                   ),
                 ),
-
                 _buildRecentEntriesHeaderSliver(theme, t),
-
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.lg,
@@ -495,7 +497,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                   sliver: _buildRecentEntriesSliver(theme, t),
                 ),
-
                 const SliverToBoxAdapter(
                   child: SizedBox(height: AppSpacing.xxxl + AppSpacing.xxl),
                 ),
@@ -1036,7 +1037,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   Widget _buildRecentEntriesSliver(ThemeData theme, AppLocalizations t) {
     final entryProvider = context.watch<EntryProvider>();
     final absenceProvider = context.watch<AbsenceProvider>();
-    final travelEnabled = context.watch<SettingsProvider>().isTravelLoggingEnabled;
+    final travelEnabled =
+        context.watch<SettingsProvider>().isTravelLoggingEnabled;
     final currentYear = DateTime.now().year;
     final fallbackRecentEntries = _recentEntries.isNotEmpty
         ? _recentEntries
@@ -1139,8 +1141,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer
-                      .withValues(alpha: 0.3),
+                  color:
+                      theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
