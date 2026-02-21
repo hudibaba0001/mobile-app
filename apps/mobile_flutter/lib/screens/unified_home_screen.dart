@@ -151,6 +151,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     // Debounce frequent triggers to avoid UI stalls
     _recentLoadDebounce?.cancel();
     _recentLoadDebounce = Timer(const Duration(milliseconds: 150), () {
+      if (!mounted) return;
       if (_isLoadingRecent) {
         // Queue one follow-up refresh so updates during an in-flight load are not lost.
         _pendingRecentReload = true;

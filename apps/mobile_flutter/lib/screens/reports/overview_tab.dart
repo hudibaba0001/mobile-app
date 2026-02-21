@@ -1045,6 +1045,8 @@ class _OverviewTabState extends State<OverviewTab> {
         navigator.pop();
       }
 
+      if (!context.mounted) return;
+
       scaffold.showSnackBar(
         SnackBar(
           content: Text(t.reportsCustom_exportFailed(e.toString())),

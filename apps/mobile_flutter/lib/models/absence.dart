@@ -1,3 +1,5 @@
+import '../utils/date_parser.dart';
+
 /// Type of absence entry
 enum AbsenceType {
   vacationPaid,
@@ -54,12 +56,7 @@ class AbsenceEntry {
   /// Create from map (from storage)
   factory AbsenceEntry.fromMap(Map<String, dynamic> map) {
     final dateStr = map['date'] as String;
-    final dateParts = dateStr.split('-');
-    final date = DateTime(
-      int.parse(dateParts[0]),
-      int.parse(dateParts[1]),
-      int.parse(dateParts[2]),
-    );
+    final date = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
 
     final typeStr = map['type'] as String;
     AbsenceType type;

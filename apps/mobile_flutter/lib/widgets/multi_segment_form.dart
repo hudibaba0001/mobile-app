@@ -114,7 +114,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
       id: const Uuid().v4(),
       departure: _departureController.text.trim(),
       arrival: _arrivalController.text.trim(),
-      durationMinutes: int.parse(_minutesController.text),
+      durationMinutes: int.tryParse(_minutesController.text) ?? 0,
       notes: _infoController.text.trim().isEmpty
           ? null
           : _infoController.text.trim(),

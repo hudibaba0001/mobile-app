@@ -95,7 +95,11 @@ class BalanceAdjustmentRepository {
           .from(_tableName)
           .insert(adjustment.toMap())
           .select()
-          .single();
+          .maybeSingle();
+
+      if (response == null) {
+        throw StateError('Failed to create adjustment: no data returned');
+      }
 
       debugPrint(
           'BalanceAdjustmentRepository: Created adjustment: ${adjustment.deltaFormatted}');
@@ -129,7 +133,11 @@ class BalanceAdjustmentRepository {
           .eq('id', id)
           .eq('user_id', userId)
           .select()
-          .single();
+          .maybeSingle();
+
+      if (response == null) {
+        throw StateError('Failed to update adjustment: no data returned');
+      }
 
       debugPrint('BalanceAdjustmentRepository: Updated adjustment: $id');
       return BalanceAdjustment.fromMap(response);

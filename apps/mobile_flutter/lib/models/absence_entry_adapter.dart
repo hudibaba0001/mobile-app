@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'absence.dart';
+import '../utils/date_parser.dart';
 
 /// Hive adapter for AbsenceEntry (typeId: 10)
 class AbsenceEntryAdapter extends TypeAdapter<AbsenceEntry> {
@@ -13,12 +14,7 @@ class AbsenceEntryAdapter extends TypeAdapter<AbsenceEntry> {
     final minutes = reader.readInt();
     final typeIndex = reader.readInt();
 
-    final dateParts = dateStr.split('-');
-    final date = DateTime(
-      int.parse(dateParts[0]),
-      int.parse(dateParts[1]),
-      int.parse(dateParts[2]),
-    );
+    final date = DateParser.tryParseDateOnly(dateStr) ?? DateTime.now();
 
     return AbsenceEntry(
       id: id.isEmpty ? null : id,

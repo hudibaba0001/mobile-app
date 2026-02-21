@@ -496,6 +496,8 @@ class _ReportsScreenState extends State<ReportsScreen>
     } catch (e) {
       debugPrint('Export error: $e');
 
+      if (!mounted) return;
+
       // Show error message
       scaffoldMessenger.showSnackBar(
         SnackBar(
