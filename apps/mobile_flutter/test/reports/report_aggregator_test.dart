@@ -112,6 +112,7 @@ void main() {
       final summary = await aggregator.buildSummary(
         start: DateTime(2026, 1, 1),
         end: DateTime(2026, 1, 31),
+        travelEnabled: true,
       );
 
       expect(summary.workMinutes, 480);
@@ -175,6 +176,7 @@ void main() {
       final summary = await aggregator.buildSummary(
         start: DateTime(2026, 1, 1),
         end: DateTime(2026, 1, 31),
+        travelEnabled: true,
       );
 
       expect(summary.travelInsights.tripCount, 3);
@@ -207,6 +209,7 @@ void main() {
       final summary = await aggregator.buildSummary(
         start: DateTime(2026, 1, 1),
         end: DateTime(2026, 1, 31),
+        travelEnabled: true,
       );
 
       expect(summary.startingBalanceMinutes, 0);
@@ -235,6 +238,7 @@ void main() {
       final summary = await aggregator.buildSummary(
         start: DateTime(2026, 1, 1),
         end: DateTime(2026, 1, 31),
+        travelEnabled: true,
       );
 
       expect(summary.startingBalanceMinutes, 130);
@@ -279,6 +283,7 @@ void main() {
       final summary = await aggregator.buildSummary(
         start: DateTime(2026, 1, 1),
         end: DateTime(2026, 1, 31),
+        travelEnabled: true,
       );
 
       expect(summary.travelInsights.topRoutes, hasLength(1));
@@ -318,6 +323,7 @@ void main() {
       final summary = await aggregator.buildSummary(
         start: DateTime(2026, 2, 1),
         end: DateTime(2026, 2, 28),
+        travelEnabled: true,
       );
 
       final accounted = AccountedTimeCalculator.compute(

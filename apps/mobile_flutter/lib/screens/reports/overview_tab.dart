@@ -100,6 +100,7 @@ class _OverviewTabState extends State<OverviewTab> {
     final summary = await aggregator.buildSummary(
       start: selectedRange.startInclusive,
       end: endInclusive,
+      travelEnabled: context.read<SettingsProvider>().isTravelLoggingEnabled,
       selectedType: _entryTypeForSegment(widget.segment),
     );
 
@@ -1119,9 +1120,9 @@ class _OverviewTabState extends State<OverviewTab> {
       case AbsenceType.vabPaid:
         return t.leave_vab;
       case AbsenceType.unpaid:
-      return t.leave_unpaid;
-    case AbsenceType.unknown:
-      return t.leave_unknownType;
+        return t.leave_unpaid;
+      case AbsenceType.unknown:
+        return t.leave_unknownType;
     }
   }
 
