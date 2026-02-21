@@ -132,6 +132,50 @@ void main() {
       );
     });
 
+    test('travelEnabled: false zeroes travel and totalTracked equals workOnly',
+        () async {
+      final queryService = _queryService(
+        entries: [
+          _workEntry(id: 'w1', date: DateTime(2026, 1, 5)),
+          _travelEntry(
+            id: 't1',
+            date: DateTime(2026, 1, 6),
+            from: 'A',
+            to: 'B',
+            minutes: 60,
+          ),
+        ],
+        leavesByYear: const {},
+        profile: UserProfile(
+          id: 'user-1',
+          trackingStartDate: DateTime(2025, 1, 1),
+          openingFlexMinutes: 0,
+        ),
+        adjustments: const [],
+      );
+
+      final aggregator = ReportAggregator(queryService: queryService);
+      final summary = await aggregator.buildSummary(
+        start: DateTime(2026, 1, 1),
+        end: DateTime(2026, 1, 31),
+        travelEnabled: false,
+      );
+
+      // Travel must be zeroed
+      expect(summary.travelMinutes, 0,
+          reason: 'travelEnabled=false must zero travel');
+      // Total tracked must equal work only
+      expect(summary.totalTrackedMinutes, summary.workMinutes,
+          reason: 'totalTracked must equal work when travel disabled');
+      expect(summary.workMinutes, 480);
+      // Travel entries still present in filteredEntries for listing
+      expect(
+        summary.filteredEntries.where((e) => e.type == EntryType.travel).length,
+        1,
+        reason: 'travel entries must still be in filteredEntries list',
+      );
+    });
+
     test('aggregates top routes and leave summary from one report summary',
         () async {
       final queryService = _queryService(
