@@ -160,7 +160,7 @@
   "balance_yearlyLabel": "År ({year})",
   "balance_thisMonthLabel": "Denna månad: {month}",
   "balance_statusToDate": "Status (hittills):",
-  "balance_workedToDate": "Räknat (hittills):",
+  "balance_workedToDate": "Räknad tid (hittills):",
   "balance_fullMonthTarget": "Mål denna månad: {hours}h",
   "balance_creditedPaidLeave": "+ {hours}h ersatt frånvaro",
   "balance_manualAdjustments": "{hours}h manuella justeringar",
