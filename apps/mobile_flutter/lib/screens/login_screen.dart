@@ -149,9 +149,9 @@ class _LoginScreenState extends State<LoginScreen>
                       end: Alignment.bottomRight,
                       colors: const [
                         AppColors.gradientStart,
-                        Color(0xFF4A148C), // Deep Purple
+                        AppColors.secondary, // Deep teal-green
                         AppColors.gradientEnd,
-                        Color(0xFF311B92), // Deep Indigo
+                        AppColors.primaryDark, // Deep forest green
                       ],
                       stops: [
                         0.0,
@@ -165,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen>
               },
             ),
           ),
-          
+
           // 2. Content
           SafeArea(
             child: Center(
@@ -200,7 +200,8 @@ class _LoginScreenState extends State<LoginScreen>
                             delay: (startDelay + step).ms,
                             duration: 600.ms,
                             curve: Curves.easeOutCubic)
-                        .fadeIn(delay: (startDelay + step).ms, duration: 600.ms),
+                        .fadeIn(
+                            delay: (startDelay + step).ms, duration: 600.ms),
 
                     const SizedBox(height: AppSpacing.lg),
 
@@ -368,13 +369,11 @@ class _LoginScreenState extends State<LoginScreen>
               size: AppIconSize.xl,
               color: AppColors.neutral50,
             ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .scale(
-                  begin: const Offset(1, 1),
-                  end: const Offset(1.05, 1.05),
-                  duration: 2.seconds,
-                  curve: Curves.easeInOut), // Subtle breathing
+          ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
+              begin: const Offset(1, 1),
+              end: const Offset(1.05, 1.05),
+              duration: 2.seconds,
+              curve: Curves.easeInOut), // Subtle breathing
 
           const SizedBox(height: AppSpacing.md),
           Text(

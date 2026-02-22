@@ -4,7 +4,7 @@ import '../app_theme.dart';
 /// A styled card with consistent padding and decoration.
 ///
 /// Use this as the primary container for grouped content.
-class AppCard extends StatelessWidget {
+class AppCard extends StatefulWidget {
   const AppCard({
     super.key,
     required this.child,
@@ -23,17 +23,42 @@ class AppCard extends StatelessWidget {
   final BorderRadius? borderRadius;
 
   @override
+  State<AppCard> createState() => _AppCardState();
+}
+
+class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
+  late final AnimationController _scaleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+      lowerBound: 0.96,
+      upperBound: 1.0,
+      value: 1.0,
+    );
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final cardColor = color ??
+    final cardColor = widget.color ??
         (isDark ? AppColors.darkSurfaceElevated : theme.colorScheme.surface);
 
-    final effectiveRadius = borderRadius ?? AppRadius.cardRadius;
+    final effectiveRadius = widget.borderRadius ?? AppRadius.cardRadius;
 
     Widget cardContent = Container(
-      padding: padding ?? AppSpacing.cardPadding,
+      padding: widget.padding ?? AppSpacing.cardPadding,
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: effectiveRadius,
@@ -42,25 +67,42 @@ class AppCard extends StatelessWidget {
           width: 1,
         ),
       ),
-      child: child,
+      child: widget.child,
     );
 
-    if (onTap != null) {
+    if (widget.onTap != null) {
       cardContent = Material(
         color: Colors.transparent,
         borderRadius: effectiveRadius,
         child: InkWell(
-          onTap: onTap,
+          onTap: widget.onTap,
+          onHighlightChanged: (isHighlighted) {
+            if (isHighlighted) {
+              _scaleController.reverse(); // Animate to 0.96 scale
+            } else {
+              _scaleController.forward(); // Animate back to 1.0 scale
+            }
+          },
           borderRadius: effectiveRadius,
           child: cardContent,
         ),
       );
     }
 
-    return Padding(
-      padding: margin ?? EdgeInsets.zero,
+    Widget finalWidget = Padding(
+      padding: widget.margin ?? EdgeInsets.zero,
       child: cardContent,
     );
+
+    if (widget.onTap != null) {
+      // Wrap with ScaleTransition only if it's tappable
+      finalWidget = ScaleTransition(
+        scale: _scaleController,
+        child: finalWidget,
+      );
+    }
+
+    return finalWidget;
   }
 }
 

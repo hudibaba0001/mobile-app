@@ -879,6 +879,23 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       color: theme.colorScheme.primary,
                     ),
                   ),
+                  const SizedBox(width: AppSpacing.md),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer
+                          .withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Text(
+                      '${t.edit_total}: ${travelEntry.formattedDuration}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ],
               ),
               // Remove button disabled in edit mode (only one entry allowed)
@@ -965,94 +982,44 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context).edit_hours,
-                      style: theme.textTheme.labelMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    TextFormField(
-                      controller: travelEntry.durationHoursController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(2),
-                      ],
-                      textAlign: TextAlign.center,
-                      decoration: InputDecoration(
-                        hintText: '0',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                        contentPadding: const EdgeInsets.all(AppSpacing.md),
-                      ),
-                    ),
+                child: TextFormField(
+                  controller: travelEntry.durationHoursController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(2),
                   ],
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).edit_hours,
+                    hintText: '0',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    suffixText: 'h',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.all(AppSpacing.sm),
+                  ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context).edit_minutes,
-                      style: theme.textTheme.labelMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    TextFormField(
-                      controller: travelEntry.durationMinutesController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(2),
-                      ],
-                      textAlign: TextAlign.center,
-                      decoration: InputDecoration(
-                        hintText: '0',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                        contentPadding: const EdgeInsets.all(AppSpacing.md),
-                      ),
-                    ),
+                child: TextFormField(
+                  controller: travelEntry.durationMinutesController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(2),
                   ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context).edit_total,
-                      style: theme.textTheme.labelMedium,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).edit_minutes,
+                    hintText: '0',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                        border: Border.all(
-                          color:
-                              theme.colorScheme.outline.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          travelEntry.formattedDuration,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    suffixText: 'm',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.all(AppSpacing.sm),
+                  ),
                 ),
               ),
             ],

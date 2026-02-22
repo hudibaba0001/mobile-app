@@ -449,6 +449,19 @@ class AppLocalizationsSv extends AppLocalizations {
   String get balance_contractBalanceNoDate => 'Kontraktssaldo (sedan start)';
 
   @override
+  String get balance_today_includes_offsets =>
+      'Saldo idag (inkl. startsaldo + justeringar)';
+
+  @override
+  String get balance_adjustments_this_month => 'Justeringar (denna månad)';
+
+  @override
+  String get balance_adjustments_this_year => 'Justeringar (i år)';
+
+  @override
+  String get balance_recent_adjustments => 'Senaste justeringar';
+
+  @override
   String get balance_details => 'Detaljer';
 
   @override
@@ -504,6 +517,32 @@ class AppLocalizationsSv extends AppLocalizations {
   String balance_includesAdjustments(String hours) {
     return 'Inkluderar justeringar: ${hours}h';
   }
+
+  @override
+  String get balance_loggedTime => 'Loggad tid';
+
+  @override
+  String get balance_creditedLeave => 'Ersatt frånvaro';
+
+  @override
+  String get balance_accountedTime => 'Räknad tid';
+
+  @override
+  String get balance_plannedTimeSinceBaseline => 'Planerad tid (hittills)';
+
+  @override
+  String get balance_differenceVsPlan => 'Skillnad mot plan';
+
+  @override
+  String balance_countingFrom(String date) {
+    return 'Räknas från: $date';
+  }
+
+  @override
+  String get balance_planCalculatedFromStart => 'Plan beräknas från startdatum';
+
+  @override
+  String get balance_travelExcluded => 'Restid (exkluderad av inställningar)';
 
   @override
   String get adjustment_title => 'Saldojusteringar';
@@ -2409,10 +2448,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String error_breakExceedsSpan(
-    Object number,
-    Object breakMinutes,
-    Object spanMinutes,
-  ) {
+      Object number, Object breakMinutes, Object spanMinutes) {
     return 'Skift $number: Rastminuter ($breakMinutes) kan inte överstiga tidsintervallet (${spanMinutes}m)';
   }
 

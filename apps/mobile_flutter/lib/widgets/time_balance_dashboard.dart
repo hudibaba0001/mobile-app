@@ -4,55 +4,40 @@ import '../design/design.dart';
 import '../reporting/time_format.dart';
 import '../l10n/generated/app_localizations.dart';
 
-/// Dashboard widget for displaying time balance information
-/// Shows current month status and yearly balance with Material 3 styling
 class TimeBalanceDashboard extends StatelessWidget {
   final int currentMonthMinutes;
   final int currentYearMinutes;
-  final int yearNetMinutes; // Year-only balance (no opening balance)
-  final int?
-      contractBalanceMinutes; // Optional: lifetime/contract balance with opening
-  final int targetMinutes; // Full month target (for display)
-  final int targetYearlyMinutes; // Full year target (for display)
-  final int?
-      targetMinutesToDate; // Month target to date (for variance calculations)
-  final int?
-      targetYearlyMinutesToDate; // Year target to date (for variance calculations)
+  final int fullMonthlyTargetMinutes;
+  final int fullYearlyTargetMinutes;
+  final int? monthlyTargetToDateMinutes;
+  final int? yearlyTargetToDateMinutes;
   final String currentMonthName;
   final int currentYear;
-  final int? creditMinutes; // Optional: paid absence credits for month
-  final int? yearCreditMinutes; // Optional: paid absence credits for year
-  final String? openingBalanceFormatted; // e.g., "+12h 30m" for opening balance
-  final DateTime? trackingStartDate; // Date from which tracking started
+  final int? monthlyCreditMinutes;
+  final int? yearlyCreditMinutes;
   final int monthlyAdjustmentMinutes;
   final int yearlyAdjustmentMinutes;
   final int openingBalanceMinutes;
-  final bool
-      showYearLoggedSince; // Whether to show "Logged since..." for year card
-  final bool
-      showMonthLoggedSince; // Whether to show "Logged since..." for month card
+  final DateTime? trackingStartDate;
+  final bool travelEnabled;
 
   const TimeBalanceDashboard({
     super.key,
     required this.currentMonthMinutes,
     required this.currentYearMinutes,
-    required this.yearNetMinutes,
-    required this.targetMinutes,
-    required this.targetYearlyMinutes,
+    required this.fullMonthlyTargetMinutes,
+    required this.fullYearlyTargetMinutes,
     required this.currentMonthName,
     required this.currentYear,
     required this.monthlyAdjustmentMinutes,
     required this.yearlyAdjustmentMinutes,
     required this.openingBalanceMinutes,
-    this.contractBalanceMinutes,
-    this.targetMinutesToDate,
-    this.targetYearlyMinutesToDate,
-    this.creditMinutes,
-    this.yearCreditMinutes,
-    this.openingBalanceFormatted,
+    this.monthlyTargetToDateMinutes,
+    this.yearlyTargetToDateMinutes,
+    this.monthlyCreditMinutes,
+    this.yearlyCreditMinutes,
     this.trackingStartDate,
-    this.showYearLoggedSince = false,
-    this.showMonthLoggedSince = false,
+    this.travelEnabled = true,
   });
 
   @override
@@ -63,54 +48,50 @@ class TimeBalanceDashboard extends StatelessWidget {
         MonthlyStatusCard(
           monthName: currentMonthName,
           workedMinutes: currentMonthMinutes,
-          targetMinutes: targetMinutes,
-          targetMinutesToDate: targetMinutesToDate,
-          creditMinutes: creditMinutes,
+          fullTargetMinutes: fullMonthlyTargetMinutes,
+          targetMinutesToDate: monthlyTargetToDateMinutes,
+          creditMinutes: monthlyCreditMinutes,
           adjustmentMinutes: monthlyAdjustmentMinutes,
           trackingStartDate: trackingStartDate,
-          showLoggedSince: showMonthLoggedSince,
+          travelEnabled: travelEnabled,
         ),
         const SizedBox(height: AppSpacing.lg),
         YearlyBalanceCard(
           year: currentYear,
           workedMinutes: currentYearMinutes,
-          targetMinutes: targetYearlyMinutes,
-          targetMinutesToDate: targetYearlyMinutesToDate,
-          yearNetMinutes: yearNetMinutes,
-          contractBalanceMinutes: contractBalanceMinutes,
-          creditMinutes: yearCreditMinutes,
+          fullTargetMinutes: fullYearlyTargetMinutes,
+          targetMinutesToDate: yearlyTargetToDateMinutes,
+          creditMinutes: yearlyCreditMinutes,
           adjustmentMinutes: yearlyAdjustmentMinutes,
           openingBalanceMinutes: openingBalanceMinutes,
-          openingBalanceFormatted: openingBalanceFormatted,
           trackingStartDate: trackingStartDate,
-          showLoggedSince: showYearLoggedSince,
+          travelEnabled: travelEnabled,
         ),
       ],
     );
   }
 }
 
-/// Card displaying current month's work hours status
 class MonthlyStatusCard extends StatelessWidget {
   final String monthName;
   final int workedMinutes;
-  final int targetMinutes; // Full month target (for display)
-  final int? targetMinutesToDate; // Target to date (for variance calculations)
+  final int fullTargetMinutes;
+  final int? targetMinutesToDate;
   final int adjustmentMinutes;
-  final int? creditMinutes; // Optional: paid absence credits
-  final DateTime? trackingStartDate; // Date from which tracking started
-  final bool showLoggedSince; // Whether to show "Logged since..." label
+  final int? creditMinutes;
+  final DateTime? trackingStartDate;
+  final bool travelEnabled;
 
   const MonthlyStatusCard({
     super.key,
     required this.monthName,
     required this.workedMinutes,
-    required this.targetMinutes,
+    required this.fullTargetMinutes,
     required this.adjustmentMinutes,
     this.targetMinutesToDate,
     this.creditMinutes,
     this.trackingStartDate,
-    this.showLoggedSince = false,
+    this.travelEnabled = true,
   });
 
   @override
@@ -119,26 +100,22 @@ class MonthlyStatusCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final localeCode = Localizations.localeOf(context).languageCode;
     final isDark = theme.brightness == Brightness.dark;
-    // Calculate effective minutes including credits and adjustments.
-    final effectiveMinutes =
-        workedMinutes + (creditMinutes ?? 0) + adjustmentMinutes;
-    // Use target-to-date for variance calculation when available.
-    final targetForVariance = targetMinutesToDate ?? targetMinutes;
-    final varianceMinutes = effectiveMinutes - targetForVariance;
+
+    final accountedMinutes = workedMinutes + (creditMinutes ?? 0);
+    final targetForVariance = targetMinutesToDate ?? fullTargetMinutes;
+    final varianceMinutes = accountedMinutes - targetForVariance;
     final isOverTarget = varianceMinutes >= 0;
 
-    // Theme-aware colors
     final positiveColor =
         isDark ? FlexsaldoColors.positive : FlexsaldoColors.positiveDark;
     final negativeColor =
         isDark ? FlexsaldoColors.negative : FlexsaldoColors.negativeDark;
 
     return AppCard(
-      padding: AppSpacing.cardPadding * 1.5, // Slightly more padding
+      padding: AppSpacing.cardPadding * 1.5,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title: "This month: February"
           Row(
             children: [
               Icon(
@@ -147,230 +124,192 @@ class MonthlyStatusCard extends StatelessWidget {
                 color: theme.colorScheme.primary,
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                l10n.balance_thisMonthLabel(monthName),
-                style: AppTypography.cardTitle(theme.colorScheme.onSurface),
+              Expanded(
+                child: Text(
+                  l10n.balance_thisMonthLabel(monthName),
+                  style: AppTypography.cardTitle(theme.colorScheme.onSurface),
+                ),
               ),
+              if (trackingStartDate != null &&
+                  trackingStartDate!.month == DateTime.now().month &&
+                  trackingStartDate!.year == DateTime.now().year)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.tertiaryContainer,
+                    borderRadius: AppRadius.pillRadius,
+                  ),
+                  child: Text(
+                    l10n.balance_countingFrom(
+                        DateFormat('d MMM').format(trackingStartDate!)),
+                    style: AppTypography.caption(
+                            theme.colorScheme.onTertiaryContainer)
+                        .copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
             ],
           ),
-
           const SizedBox(height: AppSpacing.lg),
-
-          // Line 1 (PRIMARY): Status (to date)
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                l10n.balance_statusToDate,
+                l10n.balance_differenceVsPlan,
                 style: AppTypography.sectionTitle(
                     theme.colorScheme.onSurfaceVariant),
               ),
               Text(
-                formatSignedMinutes(
-                  varianceMinutes,
-                  localeCode: localeCode,
-                ),
+                formatSignedMinutes(varianceMinutes,
+                    localeCode: localeCode, showPlusForZero: true),
                 style: AppTypography.headline(
-                  isOverTarget ? positiveColor : negativeColor,
-                ).copyWith(fontSize: 28),
+                        isOverTarget ? positiveColor : negativeColor)
+                    .copyWith(fontSize: 28),
               ),
             ],
           ),
-
-          const SizedBox(height: AppSpacing.md),
-
-          // Line 2: Accounted time (to date): X.Xh / Y.Yh
-          Row(
-            children: [
-              Flexible(
-                child: RichText(
-                  text: TextSpan(
-                    style: AppTypography.body(theme.colorScheme.onSurface)
-                        .copyWith(fontSize: 16),
-                    children: [
-                      TextSpan(text: '${l10n.balance_workedToDate} '),
-                      TextSpan(
-                        text: formatMinutes(
-                          effectiveMinutes,
-                          localeCode: localeCode,
-                          padMinutes: true,
-                        ),
-                        style: AppTypography.body(theme.colorScheme.primary)
-                            .copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const TextSpan(text: ' / '),
-                      TextSpan(
-                        text: formatMinutes(
-                          targetForVariance,
-                          localeCode: localeCode,
-                          padMinutes: true,
-                        ),
-                        style: AppTypography.body(theme.colorScheme.onSurface)
-                            .copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Tooltip(
-                message: l10n.balance_accountedTooltip,
-                child: Icon(
-                  Icons.info_outline_rounded,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant
-                      .withValues(alpha: 0.5),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: AppSpacing.xs),
-
-          // Line 3 (small): Full month target: XXXh
-          Text(
-            l10n.balance_fullMonthTargetValue(
-              formatMinutes(
-                targetMinutes,
-                localeCode: localeCode,
-                padMinutes: true,
-              ),
-            ),
-            style: AppTypography.caption(
-              theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ).copyWith(fontWeight: FontWeight.w500),
-          ),
-
-          // Show credits and adjustments if any
-          if (creditMinutes != null && creditMinutes! > 0) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.balance_creditedPaidLeaveValue(
-                formatMinutes(
-                  creditMinutes!,
-                  localeCode: localeCode,
-                  padMinutes: true,
-                ),
-              ),
-              style: AppTypography.caption(
-                theme.colorScheme.primary.withValues(alpha: 0.8),
-              ).copyWith(fontStyle: FontStyle.italic),
-            ),
-          ],
-          if (adjustmentMinutes != 0) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.balance_manualAdjustmentsValue(
-                formatSignedMinutes(
-                  adjustmentMinutes,
-                  localeCode: localeCode,
-                ),
-              ),
-              style: AppTypography.caption(
-                theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-              ).copyWith(fontStyle: FontStyle.italic),
-            ),
-          ],
-
-          // Show "Logged since..." when tracking started mid-month
-          if (showLoggedSince && trackingStartDate != null) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              AppLocalizations.of(context).balance_loggedSince(
-                DateFormat('d MMM').format(trackingStartDate!),
-              ),
-              style: AppTypography.caption(theme.colorScheme.tertiary).copyWith(
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-
+          const SizedBox(height: AppSpacing.sm),
+          _buildProgressBar(context, accountedMinutes, targetForVariance,
+              positiveColor, negativeColor),
           const SizedBox(height: AppSpacing.lg),
+          _buildInfoRow(
+              context, l10n.balance_loggedTime, workedMinutes, localeCode),
+          _buildInfoRow(context, l10n.balance_creditedLeave, creditMinutes ?? 0,
+              localeCode,
+              isCredit: true),
+          const Divider(height: 16),
+          _buildInfoRow(
+              context, l10n.balance_accountedTime, accountedMinutes, localeCode,
+              isBold: true),
+          _buildInfoRow(context, l10n.balance_plannedTimeSinceBaseline,
+              targetForVariance, localeCode,
+              isBold: true),
+          if (targetForVariance == 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                l10n.balance_planCalculatedFromStart,
+                style:
+                    AppTypography.caption(theme.colorScheme.onSurfaceVariant),
+              ),
+            ),
+          if (adjustmentMinutes != 0)
+            _buildInfoRow(context, l10n.balance_adjustments_this_month,
+                adjustmentMinutes, localeCode,
+                isBold: false, isSubtle: false),
+          const SizedBox(height: AppSpacing.md),
+          _buildInfoRow(context, l10n.balance_fullMonthTargetValue(''),
+              fullTargetMinutes, localeCode,
+              isSubtle: true),
+          _buildCollapsibleDetails(
+            context,
+            l10n,
+            localeCode,
+            travelEnabled: travelEnabled,
+          ),
         ],
       ),
     );
   }
+
+  Widget _buildProgressBar(BuildContext context, int current, int target,
+      Color positiveColor, Color negativeColor) {
+    if (target == 0) return const SizedBox.shrink();
+    final double percent = (current / target).clamp(0.0, 1.0);
+    final theme = Theme.of(context);
+    final isOverTarget = current >= target;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: LinearProgressIndicator(
+        value: percent,
+        minHeight: 8,
+        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        valueColor: AlwaysStoppedAnimation<Color>(
+          isOverTarget ? positiveColor : theme.colorScheme.primary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+      BuildContext context, String label, int minutes, String localeCode,
+      {bool isBold = false, bool isCredit = false, bool isSubtle = false}) {
+    final theme = Theme.of(context);
+    Color textColor = theme.colorScheme.onSurface;
+    if (isSubtle) textColor = theme.colorScheme.onSurfaceVariant;
+    if (isCredit && minutes > 0) textColor = theme.colorScheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: AppTypography.body(textColor).copyWith(
+                fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+                fontSize: isSubtle ? 13 : 15,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            formatMinutes(minutes, localeCode: localeCode, padMinutes: true),
+            style: AppTypography.body(textColor).copyWith(
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+              fontSize: isSubtle ? 13 : 15,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCollapsibleDetails(
+      BuildContext context, AppLocalizations l10n, String localeCode,
+      {required bool travelEnabled}) {
+    // Only show if we have adjustments to explain or we want to show Travel status
+    return ExpansionTile(
+      title: Text(l10n.balance_details,
+          style: AppTypography.body(Theme.of(context).colorScheme.primary)),
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(bottom: AppSpacing.md),
+      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!travelEnabled)
+          _buildInfoRow(context, l10n.balance_travelExcluded, 0, localeCode,
+              isSubtle: true),
+      ],
+    );
+  }
 }
 
-/// Card displaying yearly balance
-/// Primary: "Balance Today" (includes opening balance)
-/// Secondary: "Net This Year" (from logged hours only)
-class YearlyBalanceCard extends StatefulWidget {
+class YearlyBalanceCard extends StatelessWidget {
   final int year;
   final int workedMinutes;
-  final int targetMinutes; // Full year target (for display)
-  final int?
-      targetMinutesToDate; // Year target to date (for variance calculations)
-  final int
-      yearNetMinutes; // Year-only balance (worked - target + adjustments, NO opening)
-  final int? contractBalanceMinutes; // Balance including opening (for verification)
-  final int? creditMinutes; // Optional: paid absence credits
+  final int fullTargetMinutes;
+  final int? targetMinutesToDate;
+  final int? creditMinutes;
   final int adjustmentMinutes;
   final int openingBalanceMinutes;
-  final String? openingBalanceFormatted; // e.g., "+12h 30m" or "-3h 15m"
-  final DateTime? trackingStartDate; // Date from which tracking started
-  final bool
-      showLoggedSince; // Whether to show "Logged since..." label prominently
+  final DateTime? trackingStartDate;
+  final bool travelEnabled;
 
   const YearlyBalanceCard({
     super.key,
     required this.year,
     required this.workedMinutes,
-    required this.targetMinutes,
-    required this.yearNetMinutes,
+    required this.fullTargetMinutes,
     required this.adjustmentMinutes,
     required this.openingBalanceMinutes,
     this.targetMinutesToDate,
-    this.contractBalanceMinutes,
     this.creditMinutes,
-    this.openingBalanceFormatted,
     this.trackingStartDate,
-    this.showLoggedSince = false,
+    this.travelEnabled = true,
   });
-
-  @override
-  State<YearlyBalanceCard> createState() => _YearlyBalanceCardState();
-}
-
-class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
-  bool _showDetails = false;
-
-  Widget _buildBreakdownRow(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-    required bool isPositive,
-    required Color positiveColor,
-    required Color negativeColor,
-  }) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: AppIconSize.xs,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              label,
-              style: AppTypography.body(theme.colorScheme.onSurfaceVariant)
-                  .copyWith(fontSize: 13),
-            ),
-          ),
-          Text(
-            value,
-            style:
-                AppTypography.body(isPositive ? positiveColor : negativeColor)
-                    .copyWith(fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -379,442 +318,211 @@ class _YearlyBalanceCardState extends State<YearlyBalanceCard> {
     final localeCode = Localizations.localeOf(context).languageCode;
     final isDark = theme.brightness == Brightness.dark;
 
-    // PRIMARY: Balance Today = yearNet + opening balance.
-    // This is what the user cares about: their actual flex balance right now
-    final balanceTodayMinutes = widget.contractBalanceMinutes ??
-        (widget.yearNetMinutes + widget.openingBalanceMinutes);
-    final isPositive = balanceTodayMinutes >= 0;
-    final displayBalance = formatSignedMinutes(
-      balanceTodayMinutes,
-      localeCode: localeCode,
-    );
+    final accountedMinutes = workedMinutes + (creditMinutes ?? 0);
+    final targetForVariance = targetMinutesToDate ?? fullTargetMinutes;
+    final varianceMinutes = accountedMinutes - targetForVariance;
+    final netBalanceToday =
+        varianceMinutes + openingBalanceMinutes + adjustmentMinutes;
+    final isOverTarget = varianceMinutes >= 0;
 
-    // Status reflects balanceToday (the real balance)
-    final isOverTarget = balanceTodayMinutes >= 0;
-
-    // Use target-to-date for display and progress when available
-    final targetForDisplay = widget.targetMinutesToDate ?? widget.targetMinutes;
-
-    // Theme-aware colors
     final positiveColor =
         isDark ? FlexsaldoColors.positive : FlexsaldoColors.positiveDark;
     final negativeColor =
         isDark ? FlexsaldoColors.negative : FlexsaldoColors.negativeDark;
-    final cardBgColor = isDark
-        ? (isPositive
-            ? positiveColor.withValues(alpha: 0.06)
-            : negativeColor.withValues(alpha: 0.06))
-        : (isPositive
-            ? positiveColor.withValues(alpha: 0.04)
-            : negativeColor.withValues(alpha: 0.04));
-
-    // Show details if there's an opening balance OR adjustments to explain
-    final hasDetails =
-        widget.openingBalanceMinutes != 0 || widget.adjustmentMinutes != 0;
 
     return AppCard(
       padding: AppSpacing.cardPadding * 1.5,
-      color: cardBgColor,
-      // We let AppCard handle the border, or we could override it if strictly needed.
-      // Ideally AppCard should be flexible enough. For now, the standard border is fine.
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: THIS YEAR 2026
-          Text(
-            l10n.balance_thisYear(widget.year),
-            style: AppTypography.cardTitle(theme.colorScheme.onSurfaceVariant)
-                .copyWith(
-              letterSpacing: 1.2,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // Accounted time (to date): X.Xh / Y.Yh
-          Row(
-            children: [
-              Flexible(
-                child: RichText(
-                  text: TextSpan(
-                    style: AppTypography.body(theme.colorScheme.onSurface)
-                        .copyWith(fontSize: 16),
-                    children: [
-                      TextSpan(text: '${l10n.balance_workedToDate} '),
-                      TextSpan(
-                        text: formatMinutes(
-                          widget.workedMinutes +
-                              (widget.creditMinutes ?? 0) +
-                              widget.adjustmentMinutes,
-                          localeCode: localeCode,
-                          padMinutes: true,
-                        ),
-                        style: AppTypography.body(theme.colorScheme.primary)
-                            .copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const TextSpan(text: ' / '),
-                      TextSpan(
-                        text: formatMinutes(
-                          targetForDisplay,
-                          localeCode: localeCode,
-                          padMinutes: true,
-                        ),
-                        style: AppTypography.body(theme.colorScheme.onSurface)
-                            .copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Tooltip(
-                message: l10n.balance_accountedTooltip,
-                child: Icon(
-                  Icons.info_outline_rounded,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant
-                      .withValues(alpha: 0.5),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: AppSpacing.xs),
-
-          // Full year target
-          Text(
-            l10n.balance_fullYearTargetValue(
-              formatMinutes(
-                widget.targetMinutes,
-                localeCode: localeCode,
-                padMinutes: true,
-              ),
-            ),
-            style: AppTypography.caption(
-              theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ).copyWith(fontWeight: FontWeight.w500),
-          ),
-
-          // Show "Logged since..." prominently when tracking started after Jan 1
-          if (widget.showLoggedSince && widget.trackingStartDate != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm - 2,
-              ),
-              decoration: BoxDecoration(
-                color:
-                    theme.colorScheme.tertiaryContainer.withValues(alpha: 0.5),
-                borderRadius: AppRadius.pillRadius,
-                border: Border.all(
-                  color: theme.colorScheme.tertiary.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        size: AppIconSize.xs,
-                        color: theme.colorScheme.tertiary,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        l10n.balance_loggedSince(
-                          DateFormat('d MMM').format(widget.trackingStartDate!),
-                        ),
-                        style: AppTypography.caption(
-                                theme.colorScheme.onTertiaryContainer)
-                            .copyWith(fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
-                  // Show starting balance if there is one
-                  if (widget.openingBalanceFormatted != null) ...[
-                    const SizedBox(height: AppSpacing.xs / 2),
-                    Text(
-                      l10n.balance_startingBalanceAsOf(
-                        DateFormat('d MMM').format(widget.trackingStartDate!),
-                        widget.openingBalanceFormatted!,
-                      ),
-                      style: AppTypography.caption(
-                        theme.colorScheme.onTertiaryContainer
-                            .withValues(alpha: 0.8),
-                      ).copyWith(fontSize: 11),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-
-          // Credit hours if any (informational)
-          if (widget.creditMinutes != null && widget.creditMinutes! > 0) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.balance_creditedHoursValue(
-                formatMinutes(
-                  widget.creditMinutes!,
-                  localeCode: localeCode,
-                  padMinutes: true,
-                ),
-              ),
-              style: AppTypography.body(theme.colorScheme.primary),
-            ),
-          ],
-
-          // Adjustments if any
-          if (widget.adjustmentMinutes != 0) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.balance_includesAdjustmentsValue(
-                formatSignedMinutes(
-                  widget.adjustmentMinutes,
-                  localeCode: localeCode,
-                ),
-              ),
-              style: AppTypography.caption(theme.colorScheme.onSurfaceVariant),
-            ),
-          ],
-
-          const SizedBox(height: AppSpacing.sm),
-
-          // Balance today (avoid "Status" wording)
           Row(
             children: [
               Icon(
-                isOverTarget ? Icons.check_circle : Icons.error_outline,
+                Icons.analytics_outlined,
                 size: AppIconSize.sm,
-                color: isOverTarget ? positiveColor : negativeColor,
+                color: theme.colorScheme.primary,
               ),
               const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  l10n.balance_thisYear(year),
+                  style: AppTypography.cardTitle(theme.colorScheme.onSurface),
+                ),
+              ),
+              if (trackingStartDate != null &&
+                  trackingStartDate!.year == year &&
+                  trackingStartDate!.month != DateTime.now().month)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.tertiaryContainer,
+                    borderRadius: AppRadius.pillRadius,
+                  ),
+                  child: Text(
+                    l10n.balance_countingFrom(
+                        DateFormat('d MMM yyyy').format(trackingStartDate!)),
+                    style: AppTypography.caption(
+                            theme.colorScheme.onTertiaryContainer)
+                        .copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
               Text(
-                '${l10n.balance_balanceToday}: $displayBalance',
-                style: AppTypography.body(
-                  isOverTarget ? positiveColor : negativeColor,
-                ).copyWith(fontWeight: FontWeight.w500),
+                l10n.balance_differenceVsPlan,
+                style: AppTypography.sectionTitle(
+                    theme.colorScheme.onSurfaceVariant),
+              ),
+              Text(
+                formatSignedMinutes(varianceMinutes,
+                    localeCode: localeCode, showPlusForZero: true),
+                style: AppTypography.headline(
+                        isOverTarget ? positiveColor : negativeColor)
+                    .copyWith(fontSize: 28),
               ),
             ],
           ),
-
-          const SizedBox(height: AppSpacing.lg),
-          Divider(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
-          const SizedBox(height: AppSpacing.lg),
-
-          // PRIMARY: Balance Today - the main number users care about
-          Text(
-            l10n.balance_balanceToday,
-            style: AppTypography.cardTitle(theme.colorScheme.onSurfaceVariant)
-                .copyWith(
-              letterSpacing: 1.2,
-              fontSize: 12,
-            ),
-          ),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            displayBalance,
-            style: AppTypography.headline(
-              isPositive ? positiveColor : negativeColor,
-            ).copyWith(
-              fontSize: 36,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-
-          // SECONDARY: Show Net This Year (logged hours only) when there's an opening balance
-          if (widget.openingBalanceMinutes != 0) ...[
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Icon(
-                  Icons.analytics_outlined,
-                  size: AppIconSize.xs,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: AppSpacing.sm - 2),
-                Text(
-                  l10n.balance_netThisYear(
-                    formatSignedMinutes(
-                      widget.yearNetMinutes,
-                      localeCode: localeCode,
-                    ),
-                  ),
-                  style: AppTypography.body(theme.colorScheme.onSurfaceVariant),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Row(
-              children: [
-                Icon(
-                  Icons.account_balance_wallet_outlined,
-                  size: AppIconSize.xs,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: AppSpacing.sm - 2),
-                Text(
-                  l10n.balance_startingBalanceValue(
-                    widget.openingBalanceFormatted ??
-                        formatSignedMinutes(
-                          widget.openingBalanceMinutes,
-                          localeCode: localeCode,
-                        ),
-                  ),
-                  style: AppTypography.body(theme.colorScheme.onSurfaceVariant),
-                ),
-              ],
-            ),
-          ],
-
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            l10n.balance_resetsOn('31 Dec'),
-            style: AppTypography.caption(theme.colorScheme.onSurfaceVariant)
-                .copyWith(
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-
-          // Collapsible Details section - breakdown of balance components
-          if (hasDetails) ...[
-            const SizedBox(height: AppSpacing.md),
-            InkWell(
-              onTap: () => setState(() => _showDetails = !_showDetails),
-              borderRadius: AppRadius.buttonRadius,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                child: Row(
-                  children: [
-                    Icon(
-                      _showDetails ? Icons.expand_less : Icons.expand_more,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      l10n.balance_details,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
+          _buildProgressBar(context, accountedMinutes, targetForVariance,
+              positiveColor, negativeColor),
+          const SizedBox(height: AppSpacing.lg),
+          _buildInfoRow(
+              context, l10n.balance_loggedTime, workedMinutes, localeCode),
+          _buildInfoRow(context, l10n.balance_creditedLeave, creditMinutes ?? 0,
+              localeCode,
+              isCredit: true),
+          const Divider(height: 16),
+          _buildInfoRow(
+              context, l10n.balance_accountedTime, accountedMinutes, localeCode,
+              isBold: true),
+          _buildInfoRow(context, l10n.balance_plannedTimeSinceBaseline,
+              targetForVariance, localeCode,
+              isBold: true),
+          if (targetForVariance == 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                l10n.balance_planCalculatedFromStart,
+                style:
+                    AppTypography.caption(theme.colorScheme.onSurfaceVariant),
               ),
             ),
-            if (_showDetails) ...[
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  border: Border.all(
-                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.balance_breakdown,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-
-                    // Starting balance row
-                    if (widget.openingBalanceMinutes != 0) ...[
-                      _buildBreakdownRow(
-                        context,
-                        icon: Icons.account_balance_wallet,
-                        label: widget.trackingStartDate != null
-                            ? l10n
-                                .balance_startingBalanceAsOf(
-                                  DateFormat('d MMM')
-                                      .format(widget.trackingStartDate!),
-                                  '',
-                                )
-                                .replaceAll(': ', '')
-                            : l10n.balance_startingBalance,
-                        value: widget.openingBalanceFormatted ??
-                            formatSignedMinutes(
-                              widget.openingBalanceMinutes,
-                              localeCode: localeCode,
-                            ),
-                        isPositive: widget.openingBalanceMinutes >= 0,
-                        positiveColor: positiveColor,
-                        negativeColor: negativeColor,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                    ],
-
-                    // Net this year row
-                    _buildBreakdownRow(
-                      context,
-                      icon: Icons.analytics,
-                      label: l10n.balance_netThisYearLabel,
-                      value: formatSignedMinutes(
-                        widget.yearNetMinutes,
-                        localeCode: localeCode,
-                      ),
-                      isPositive: widget.yearNetMinutes >= 0,
-                      positiveColor: positiveColor,
-                      negativeColor: negativeColor,
-                    ),
-
-                    // Adjustments row (if any)
-                    if (widget.adjustmentMinutes != 0) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      _buildBreakdownRow(
-                        context,
-                        icon: Icons.tune,
-                        label: l10n.balance_adjustments,
-                        value: formatSignedMinutes(
-                          widget.adjustmentMinutes,
-                          localeCode: localeCode,
-                        ),
-                        isPositive: widget.adjustmentMinutes >= 0,
-                        positiveColor: positiveColor,
-                        negativeColor: negativeColor,
-                      ),
-                    ],
-
-                    const SizedBox(height: AppSpacing.md),
-                    Divider(
-                        color:
-                            theme.colorScheme.outline.withValues(alpha: 0.3)),
-                    const SizedBox(height: AppSpacing.sm),
-
-                    // Total row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l10n.balance_balanceToday,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          displayBalance,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isPositive ? positiveColor : negativeColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
+          const SizedBox(height: AppSpacing.md),
+          _buildInfoRow(context, l10n.balance_fullYearTargetValue(''),
+              fullTargetMinutes, localeCode,
+              isSubtle: true),
+          if (adjustmentMinutes != 0)
+            _buildInfoRow(context, l10n.balance_adjustments_this_year,
+                adjustmentMinutes, localeCode,
+                isBold: false, isSubtle: false),
+          const Divider(height: 16),
+          _buildInfoRow(context, l10n.balance_today_includes_offsets,
+              netBalanceToday, localeCode,
+              isBold: true),
+          _buildCollapsibleDetails(
+            context,
+            l10n,
+            localeCode,
+            travelEnabled: travelEnabled,
+            openingBalanceMinutes: openingBalanceMinutes,
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProgressBar(BuildContext context, int current, int target,
+      Color positiveColor, Color negativeColor) {
+    if (target == 0) return const SizedBox.shrink();
+    final double percent = (current / target).clamp(0.0, 1.0);
+    final theme = Theme.of(context);
+    final isOverTarget = current >= target;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: LinearProgressIndicator(
+        value: percent,
+        minHeight: 8,
+        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        valueColor: AlwaysStoppedAnimation<Color>(
+          isOverTarget ? positiveColor : theme.colorScheme.primary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+      BuildContext context, String label, int minutes, String localeCode,
+      {bool isBold = false, bool isCredit = false, bool isSubtle = false}) {
+    final theme = Theme.of(context);
+    Color textColor = theme.colorScheme.onSurface;
+    if (isSubtle) textColor = theme.colorScheme.onSurfaceVariant;
+    if (isCredit && minutes > 0) textColor = theme.colorScheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: AppTypography.body(textColor).copyWith(
+                fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+                fontSize: isSubtle ? 13 : 15,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            formatMinutes(minutes, localeCode: localeCode, padMinutes: true),
+            style: AppTypography.body(textColor).copyWith(
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+              fontSize: isSubtle ? 13 : 15,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCollapsibleDetails(
+      BuildContext context, AppLocalizations l10n, String localeCode,
+      {required bool travelEnabled, required int openingBalanceMinutes}) {
+    // Only show if we have something to explain
+    final hasDetails = !travelEnabled || openingBalanceMinutes != 0;
+    if (!hasDetails) return const SizedBox.shrink();
+
+    return ExpansionTile(
+      title: Text(l10n.balance_details,
+          style: AppTypography.body(Theme.of(context).colorScheme.primary)),
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(bottom: AppSpacing.md),
+      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!travelEnabled)
+          _buildInfoRow(context, l10n.balance_travelExcluded, 0, localeCode,
+              isSubtle: true),
+        if (openingBalanceMinutes != 0)
+          _buildInfoRow(
+            context,
+            l10n.balance_includesOpening(
+                formatSignedMinutes(openingBalanceMinutes,
+                    localeCode: localeCode, showPlusForZero: true),
+                trackingStartDate != null
+                    ? DateFormat('d MMM yyyy').format(trackingStartDate!)
+                    : l10n.common_unknown),
+            openingBalanceMinutes,
+            localeCode,
+            isSubtle: true,
+          ),
+      ],
     );
   }
 }

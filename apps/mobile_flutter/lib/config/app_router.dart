@@ -54,6 +54,32 @@ class AppRouter {
   static const String timeBalanceName = 'time-balance';
   static const String absenceManagementName = 'absences';
 
+  // Premium Shared Axis Transition Builder
+  static CustomTransitionPage _buildSharedAxisTransitionPage({
+    required Widget child,
+    required GoRouterState state,
+  }) {
+    return CustomTransitionPage(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),
+          child: SlideTransition(
+            position: animation.drive(
+              Tween<Offset>(
+                begin: const Offset(0.0, 0.05),
+                end: Offset.zero,
+              ).chain(CurveTween(curve: Curves.easeOutCubic)),
+            ),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
   static final router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: homePath,
@@ -142,7 +168,10 @@ class AppRouter {
           GoRoute(
             path: homePath,
             name: homeName,
-            builder: (context, state) => const UnifiedHomeScreen(),
+            pageBuilder: (context, state) => _buildSharedAxisTransitionPage(
+              child: const UnifiedHomeScreen(),
+              state: state,
+            ),
             routes: [
               GoRoute(
                 path: 'edit-entry',
@@ -171,21 +200,30 @@ class AppRouter {
           GoRoute(
             path: historyPath,
             name: historyName,
-            builder: (context, state) => const HistoryScreen(),
+            pageBuilder: (context, state) => _buildSharedAxisTransitionPage(
+              child: const HistoryScreen(),
+              state: state,
+            ),
           ),
 
           // Reports tab
           GoRoute(
             path: reportsPath,
             name: reportsName,
-            builder: (context, state) => const ReportsScreen(),
+            pageBuilder: (context, state) => _buildSharedAxisTransitionPage(
+              child: const ReportsScreen(),
+              state: state,
+            ),
           ),
 
           // Settings tab and nested contract
           GoRoute(
             path: settingsPath,
             name: settingsName,
-            builder: (context, state) => const SettingsScreen(),
+            pageBuilder: (context, state) => _buildSharedAxisTransitionPage(
+              child: const SettingsScreen(),
+              state: state,
+            ),
             routes: [
               GoRoute(
                 path: 'contract',
@@ -199,14 +237,20 @@ class AppRouter {
           GoRoute(
             path: absenceManagementPath,
             name: absenceManagementName,
-            builder: (context, state) => const AbsenceManagementScreen(),
+            pageBuilder: (context, state) => _buildSharedAxisTransitionPage(
+              child: const AbsenceManagementScreen(),
+              state: state,
+            ),
           ),
 
           // Time Balance screen
           GoRoute(
             path: timeBalancePath,
             name: timeBalanceName,
-            builder: (context, state) => const TimeBalanceScreen(),
+            pageBuilder: (context, state) => _buildSharedAxisTransitionPage(
+              child: const TimeBalanceScreen(),
+              state: state,
+            ),
           ),
         ],
       ),

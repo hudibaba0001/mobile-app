@@ -596,14 +596,24 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const Spacer(),
-                // Remove button only in create mode and if more than one leg
-                if (!_isEditMode && _travelLegs.length > 1)
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    onPressed: () => _removeTravelLeg(index),
-                    tooltip: t.travel_removeLeg,
+                const SizedBox(width: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer
+                        .withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
+                  child: Text(
+                    '${t.edit_total}: ${_formatDuration(leg.minutes)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const Spacer(),
                 // Source badge
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -668,7 +678,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               },
               prefixIcon: Icons.my_location,
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
 
             // To location
             LocationSelector(
@@ -696,7 +706,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Duration input
+            // Duration input and Calculate Row
             Row(
               children: [
                 Expanded(
@@ -710,6 +720,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       labelText: AppLocalizations.of(context).entry_hours,
                       border: const OutlineInputBorder(),
                       suffixText: 'h',
+                      isDense: true,
+                      contentPadding: const EdgeInsets.all(AppSpacing.sm),
                     ),
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
@@ -725,7 +737,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     },
                   ),
                 ),
-                const SizedBox(width: AppSpacing.md),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: TextFormField(
                     controller: _legMinutesControllers[index] ??=
@@ -737,6 +749,8 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                       labelText: AppLocalizations.of(context).entry_minutes,
                       border: const OutlineInputBorder(),
                       suffixText: 'm',
+                      isDense: true,
+                      contentPadding: const EdgeInsets.all(AppSpacing.sm),
                     ),
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
@@ -752,29 +766,29 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     },
                   ),
                 ),
+                if (leg.fromText.isNotEmpty && leg.toText.isNotEmpty) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  OutlinedButton(
+                    onPressed:
+                        isCalculating ? null : () => _calculateTravelLeg(index),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.sm,
+                      ),
+                      minimumSize: const Size(0, 48),
+                    ),
+                    child: isCalculating
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.directions_car),
+                  ),
+                ],
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Calculate button
-            if (leg.fromText.isNotEmpty && leg.toText.isNotEmpty)
-              OutlinedButton.icon(
-                onPressed:
-                    isCalculating ? null : () => _calculateTravelLeg(index),
-                icon: isCalculating
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.directions_car),
-                label: Text(isCalculating
-                    ? AppLocalizations.of(context).entry_calculating
-                    : AppLocalizations.of(context).entry_calculateTravelTime),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-              ),
 
             // Error message
             if (error != null) ...[
@@ -788,27 +802,64 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
             ],
 
             // Per-leg notes
-            const SizedBox(height: AppSpacing.md),
-            TextFormField(
-              controller: _legNotesControllers[index] ??=
-                  TextEditingController(),
-              decoration: InputDecoration(
-                hintText: t.entry_notesHint,
-                labelText: t.entry_notes,
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.note_outlined),
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.md,
-                ),
-              ),
-              maxLines: 2,
-              textCapitalization: TextCapitalization.sentences,
-            ),
+            const SizedBox(height: AppSpacing.sm),
+            _buildLegNotesField(theme, index, leg),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLegNotesField(ThemeData theme, int index, TravelLeg leg) {
+    final controller = _legNotesControllers[index] ??= TextEditingController();
+    final hasNotes = controller.text.isNotEmpty;
+
+    return ExpansionTile(
+      initiallyExpanded: hasNotes,
+      title: Row(
+        children: [
+          Icon(
+            Icons.note_outlined,
+            size: 20,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            AppLocalizations.of(context).entry_notes,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (!hasNotes) ...[
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              AppLocalizations.of(context).common_optional,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+          child: TextFormField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context).entry_notesHint,
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.note),
+            ),
+            maxLines: 2,
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: (value) {
+              // Notes are kept in controller state, no need to update TravelLeg object
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -983,24 +1034,30 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
           },
           prefixIcon: Icons.work,
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.xs),
         // Toggle for "Use location for all shifts"
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Checkbox(
-              value: _useLocationForAllShifts,
-              onChanged: (value) {
-                setState(() {
-                  _useLocationForAllShifts = value ?? true;
-                  if (_useLocationForAllShifts) {
-                    // Clear shift-specific locations so they all use the default
-                    _shifts = _shifts
-                        .map((shift) => shift.copyWith(location: null))
-                        .toList();
-                  }
-                });
-              },
+            SizedBox(
+              height: 32,
+              width: 32,
+              child: Checkbox(
+                value: _useLocationForAllShifts,
+                onChanged: (value) {
+                  setState(() {
+                    _useLocationForAllShifts = value ?? true;
+                    if (_useLocationForAllShifts) {
+                      // Clear shift-specific locations so they all use the default
+                      _shifts = _shifts
+                          .map((shift) => shift.copyWith(location: null))
+                          .toList();
+                    }
+                  });
+                },
+              ),
             ),
+            const SizedBox(width: AppSpacing.xs),
             Expanded(
               child: GestureDetector(
                 onTap: () {
@@ -1016,7 +1073,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 },
                 child: Text(
                   AppLocalizations.of(context).form_useLocationForAllShifts,
-                  style: theme.textTheme.bodyMedium,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             ),
@@ -1117,16 +1176,21 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ),
       ),
       const SizedBox(height: AppSpacing.sm),
-      Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
-        children: [
-          _buildQuickDurationChip(theme, 2),
-          _buildQuickDurationChip(theme, 4),
-          _buildQuickDurationChip(theme, 6),
-          _buildQuickDurationChip(theme, 8),
-          _buildCopyYesterdayChip(theme),
-        ],
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildQuickDurationChip(theme, 2),
+            const SizedBox(width: AppSpacing.sm),
+            _buildQuickDurationChip(theme, 4),
+            const SizedBox(width: AppSpacing.sm),
+            _buildQuickDurationChip(theme, 6),
+            const SizedBox(width: AppSpacing.sm),
+            _buildQuickDurationChip(theme, 8),
+            const SizedBox(width: AppSpacing.sm),
+            _buildCopyYesterdayChip(theme),
+          ],
+        ),
       ),
       const SizedBox(height: AppSpacing.sm),
       AnimatedSize(
@@ -1342,8 +1406,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
   Widget _buildShiftRow(ThemeData theme, int index, Shift shift) {
     final t = AppLocalizations.of(context);
-    final spanMinutes = shift.duration.inMinutes;
-    final breakMinutes = shift.unpaidBreakMinutes;
     final workedMinutes = shift.workedMinutes;
 
     return Card(
@@ -1360,6 +1422,23 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   t.form_shiftLabel(index + 1),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer
+                        .withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Text(
+                    '${t.form_worked}: ${_formatDuration(workedMinutes)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -1444,89 +1523,68 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [0, 15, 30, 45, 60].map((minutes) {
-                final isSelected = shift.unpaidBreakMinutes == minutes;
-                return FilterChip(
-                  label: Text(
-                    '$minutes',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isSelected
-                              ? theme.colorScheme.onSecondaryContainer
-                              : theme.colorScheme.onSurface,
-                        ),
-                  ),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() {
-                        _shifts[index] = _shifts[index].copyWith(
-                          unpaidBreakMinutes: minutes,
-                        );
-                        _shiftBreakControllers[index]?.text =
-                            minutes.toString();
-                      });
-                    }
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextFormField(
-              controller: _shiftBreakControllers[index] ??=
-                  TextEditingController(
-                      text: shift.unpaidBreakMinutes.toString()),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(
-                labelText: t.form_minutes,
-                hintText: '0',
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm + 2,
-                ),
-              ),
-              onChanged: (value) {
-                final parsed = int.tryParse(value.trim()) ?? 0;
-                if (parsed == shift.unpaidBreakMinutes) return;
-                setState(() {
-                  _shifts[index] = _shifts[index].copyWith(
-                    unpaidBreakMinutes: parsed,
-                  );
-                });
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-
-            // Computed values display
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(AppRadius.sm - 2),
-              ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildComputedValue(
-                    theme,
-                    t.form_span,
-                    _formatDuration(spanMinutes),
-                  ),
-                  _buildComputedValue(
-                    theme,
-                    t.form_break,
-                    _formatDuration(breakMinutes),
-                  ),
-                  _buildComputedValue(
-                    theme,
-                    t.form_worked,
-                    _formatDuration(workedMinutes),
-                    isHighlighted: true,
+                  ...[0, 15, 30, 45, 60].map((minutes) {
+                    final isSelected = shift.unpaidBreakMinutes == minutes;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: FilterChip(
+                        label: Text(
+                          '$minutes',
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: isSelected
+                                        ? theme.colorScheme.onSecondaryContainer
+                                        : theme.colorScheme.onSurface,
+                                  ),
+                        ),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() {
+                              _shifts[index] = _shifts[index].copyWith(
+                                unpaidBreakMinutes: minutes,
+                              );
+                              _shiftBreakControllers[index]?.text =
+                                  minutes.toString();
+                            });
+                          }
+                        },
+                      ),
+                    );
+                  }),
+                  const SizedBox(width: AppSpacing.xs),
+                  SizedBox(
+                    width: 80,
+                    child: TextFormField(
+                      controller: _shiftBreakControllers[index] ??=
+                          TextEditingController(
+                              text: shift.unpaidBreakMinutes.toString()),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        labelText: t.form_minutes,
+                        hintText: '0',
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.sm,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        final parsed = int.tryParse(value.trim()) ?? 0;
+                        if (parsed == shift.unpaidBreakMinutes) return;
+                        setState(() {
+                          _shifts[index] = _shifts[index].copyWith(
+                            unpaidBreakMinutes: parsed,
+                          );
+                        });
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -1616,30 +1674,6 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     notes: value.trim().isEmpty ? null : value.trim());
               });
             },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildComputedValue(ThemeData theme, String label, String value,
-      {bool isHighlighted = false}) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: isHighlighted
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurface,
           ),
         ),
       ],

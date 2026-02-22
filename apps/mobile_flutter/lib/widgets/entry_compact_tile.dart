@@ -103,55 +103,58 @@ class _EntryCompactTileState extends State<EntryCompactTile> {
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  titleLabel,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: colorScheme.onSurface,
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    titleLabel,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: colorScheme.onSurface,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              _DurationPill(
-                                text: _formatDurationMinutes(
-                                  widget.entry.totalDuration.inMinutes,
+                                const SizedBox(width: AppSpacing.sm),
+                                _DurationPill(
+                                  text: _formatDurationMinutes(
+                                    widget.entry.totalDuration.inMinutes,
+                                  ),
+                                  tint: leadingTintBase,
                                 ),
-                                tint: leadingTintBase,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
+                              ],
                             ),
-                          ),
-                          if (meta != null) ...[
-                            const SizedBox(height: AppSpacing.xs / 2),
+                            const SizedBox(height: AppSpacing.xs),
                             Text(
-                              meta,
+                              subtitle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.85),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
+                            if (meta != null) ...[
+                              const SizedBox(height: AppSpacing.xs / 2),
+                              Text(
+                                meta,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.85),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ],

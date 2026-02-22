@@ -5,7 +5,6 @@ import '../design/app_theme.dart';
 import '../providers/time_provider.dart';
 import '../providers/entry_provider.dart';
 import '../providers/contract_provider.dart';
-import '../reporting/time_format.dart';
 import '../widgets/time_balance_dashboard.dart';
 import '../widgets/standard_app_bar.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -105,8 +104,6 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
         final monthSummary = timeProvider.getCurrentMonthSummary();
 
         final currentDate = DateTime.now();
-        final localeCode = Localizations.localeOf(context).languageCode;
-
         // Get to-date values (month-to-date and year-to-date)
         final currentMonthMinutes = timeProvider.monthActualMinutesToDate(
           currentDate.year,
@@ -123,7 +120,8 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
         final openingBalanceMinutes = contractProvider.openingFlexMinutes;
 
         // Get to-date targets (for variance calculations)
-        final monthlyTargetToDateMinutes = timeProvider.monthTargetMinutesToDate(
+        final monthlyTargetToDateMinutes =
+            timeProvider.monthTargetMinutesToDate(
           currentDate.year,
           currentDate.month,
         );
@@ -146,19 +144,12 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
         final yearlyCreditMinutes =
             timeProvider.yearCreditMinutesToDate(currentDate.year);
 
-        // Year-only net balance (no opening balance) - primary display.
-        final yearNetMinutes = timeProvider.currentYearNetMinutes;
-        // Contract balance includes opening balance (for Details section).
-        final contractBalanceMinutes = yearNetMinutes + openingBalanceMinutes;
-
         debugPrint(
             'TimeBalanceScreen: Using contract settings - Weekly: ${contractProvider.weeklyTargetHours}h, Monthly: ${(fullMonthlyTargetMinutes / 60.0).toStringAsFixed(1)}h, Yearly: ${(fullYearlyTargetMinutes / 60.0).toStringAsFixed(1)}h');
         debugPrint(
             'TimeBalanceScreen: Contract %: ${contractProvider.contractPercent}%, Full-time hours: ${contractProvider.fullTimeHours}h');
         debugPrint(
             'TimeBalanceScreen: Monthly credit: ${(monthlyCreditMinutes / 60.0).toStringAsFixed(1)}h, Yearly credit: ${(yearlyCreditMinutes / 60.0).toStringAsFixed(1)}h');
-        debugPrint(
-            'TimeBalanceScreen: Year net balance: ${(yearNetMinutes / 60.0).toStringAsFixed(1)}h (contract: ${(contractBalanceMinutes / 60.0).toStringAsFixed(1)}h)');
 
         final t = AppLocalizations.of(context);
         return Scaffold(
@@ -179,32 +170,19 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
             child: TimeBalanceDashboard(
               currentMonthMinutes: currentMonthMinutes,
               currentYearMinutes: currentYearMinutes,
-              yearNetMinutes: yearNetMinutes,
-              contractBalanceMinutes: contractBalanceMinutes,
-              targetMinutes:
-                  fullMonthlyTargetMinutes, // Full month target for display
-              targetYearlyMinutes:
-                  fullYearlyTargetMinutes, // Full year target for display
-              targetMinutesToDate:
-                  monthlyTargetToDateMinutes, // To-date target for variance
-              targetYearlyMinutesToDate:
-                  yearlyTargetToDateMinutes, // To-date target for variance
+              fullMonthlyTargetMinutes: fullMonthlyTargetMinutes,
+              fullYearlyTargetMinutes: fullYearlyTargetMinutes,
+              monthlyTargetToDateMinutes: monthlyTargetToDateMinutes,
+              yearlyTargetToDateMinutes: yearlyTargetToDateMinutes,
               currentMonthName: monthSummary?.monthName ?? t.common_unknown,
               currentYear: currentMonth.year,
-              creditMinutes:
-                  monthlyCreditMinutes > 0 ? monthlyCreditMinutes : null,
-              yearCreditMinutes:
-                  yearlyCreditMinutes > 0 ? yearlyCreditMinutes : null,
               monthlyAdjustmentMinutes: monthlyAdjustmentMinutes,
               yearlyAdjustmentMinutes: yearlyAdjustmentMinutes,
               openingBalanceMinutes: openingBalanceMinutes,
-              openingBalanceFormatted: timeProvider.hasOpeningBalance
-                  ? formatSignedMinutes(
-                      openingBalanceMinutes,
-                      localeCode: localeCode,
-                      showPlusForZero: true,
-                    )
-                  : null,
+              monthlyCreditMinutes:
+                  monthlyCreditMinutes > 0 ? monthlyCreditMinutes : null,
+              yearlyCreditMinutes:
+                  yearlyCreditMinutes > 0 ? yearlyCreditMinutes : null,
               trackingStartDate: timeProvider.hasOpeningBalance ||
                       timeProvider.hasCustomTrackingStartDate
                   ? timeProvider.trackingStartDate
@@ -216,4 +194,3 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
     );
   }
 }
-

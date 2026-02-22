@@ -63,7 +63,7 @@ import 'app_localizations_sv.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('sv'),
+    Locale('sv')
   ];
 
   /// Application title
@@ -860,6 +860,30 @@ abstract class AppLocalizations {
   /// **'Contract balance (since start)'**
   String get balance_contractBalanceNoDate;
 
+  /// No description provided for @balance_today_includes_offsets.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance today (includes starting balance + adjustments)'**
+  String get balance_today_includes_offsets;
+
+  /// No description provided for @balance_adjustments_this_month.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustments (this month)'**
+  String get balance_adjustments_this_month;
+
+  /// No description provided for @balance_adjustments_this_year.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustments (this year)'**
+  String get balance_adjustments_this_year;
+
+  /// No description provided for @balance_recent_adjustments.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent adjustments'**
+  String get balance_recent_adjustments;
+
   /// No description provided for @balance_details.
   ///
   /// In en, this message translates to:
@@ -937,6 +961,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Includes adjustments: {hours}h'**
   String balance_includesAdjustments(String hours);
+
+  /// No description provided for @balance_loggedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged time'**
+  String get balance_loggedTime;
+
+  /// No description provided for @balance_creditedLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Credited leave'**
+  String get balance_creditedLeave;
+
+  /// No description provided for @balance_accountedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounted time'**
+  String get balance_accountedTime;
+
+  /// No description provided for @balance_plannedTimeSinceBaseline.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned time (since baseline)'**
+  String get balance_plannedTimeSinceBaseline;
+
+  /// No description provided for @balance_differenceVsPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference vs plan'**
+  String get balance_differenceVsPlan;
+
+  /// No description provided for @balance_countingFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting from: {date}'**
+  String balance_countingFrom(String date);
+
+  /// No description provided for @balance_planCalculatedFromStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan is calculated from start date'**
+  String get balance_planCalculatedFromStart;
+
+  /// No description provided for @balance_travelExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel (excluded by settings)'**
+  String get balance_travelExcluded;
 
   /// No description provided for @adjustment_title.
   ///
@@ -4375,10 +4447,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shift {number}: Break minutes ({breakMinutes}) cannot exceed span ({spanMinutes}m)'**
   String error_breakExceedsSpan(
-    Object number,
-    Object breakMinutes,
-    Object spanMinutes,
-  );
+      Object number, Object breakMinutes, Object spanMinutes);
 
   /// No description provided for @home_trackWorkShifts.
   ///
@@ -6010,9 +6079,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

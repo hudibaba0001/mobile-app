@@ -788,16 +788,57 @@ class TimeProvider extends ChangeNotifier {
     return monthlyAdjustmentMinutes(year: year, month: month) / 60.0;
   }
 
-  /// Get total adjustment minutes for a specific year
+  /// Get total adjustment minutes for a specific year up to today
+  /// Respects trackingStartDate - only includes adjustments on/after tracking start
   int yearAdjustmentMinutesToDate(int year) {
-    int total = 0;
-    final yearPrefix = '$year-';
-    for (final entry in _monthlyAdjustmentMinutes.entries) {
-      if (entry.key.startsWith(yearPrefix)) {
-        total += entry.value;
-      }
+    final provider = _adjustmentProvider;
+    if (provider == null) return 0;
+
+    final periodStart = DateTime(year, 1, 1);
+    final endOfYear = DateTime(year, 12, 31);
+    final today = _dateOnly(DateTime.now());
+
+    // Effective start: max(Jan 1, tracking start date)
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+
+    // Effective end: min(today, Dec 31)
+    final effectiveEnd = today.isBefore(endOfYear) ? today : endOfYear;
+
+    // If effective end is before effective start, return 0
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
     }
-    return total;
+
+    return provider.totalAdjustmentMinutesInRange(effectiveStart, effectiveEnd);
+  }
+
+  /// Get month adjustment minutes up to today
+  /// Respects trackingStartDate - only includes adjustments on/after tracking start
+  int monthAdjustmentMinutesToDate(int year, int month) {
+    final provider = _adjustmentProvider;
+    if (provider == null) return 0;
+
+    final periodStart = DateTime(year, month, 1);
+    final lastDayOfMonth = DateTime(year, month + 1, 0);
+    final today = _dateOnly(DateTime.now());
+
+    // Effective start: max(period start, tracking start date)
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+
+    // Effective end: min(today, last day of month)
+    final effectiveEnd =
+        today.isBefore(lastDayOfMonth) ? today : lastDayOfMonth;
+
+    // If effective end is before effective start, return 0
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
+    }
+
+    return provider.totalAdjustmentMinutesInRange(effectiveStart, effectiveEnd);
   }
 
   /// Get total adjustment hours for the year

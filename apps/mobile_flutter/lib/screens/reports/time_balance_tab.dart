@@ -96,8 +96,6 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
         final monthSummary = timeProvider.getCurrentMonthSummary();
 
         final currentDate = DateTime.now();
-        final localeCode = Localizations.localeOf(context).languageCode;
-
         // Get to-date values (month-to-date and year-to-date)
         final currentMonthMinutes = timeProvider.monthActualMinutesToDate(
           currentDate.year,
@@ -105,15 +103,17 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
         );
         final currentYearMinutes =
             timeProvider.yearActualMinutesToDate(currentDate.year);
-        final monthlyAdjustmentMinutes = timeProvider.monthlyAdjustmentMinutes(
-          year: currentDate.year,
-          month: currentDate.month,
+        final monthlyAdjustmentMinutes =
+            timeProvider.monthAdjustmentMinutesToDate(
+          currentDate.year,
+          currentDate.month,
         );
         final yearlyAdjustmentMinutes =
             timeProvider.yearAdjustmentMinutesToDate(currentDate.year);
 
         // Get to-date targets (for variance/balance calculations)
-        final monthlyTargetToDateMinutes = timeProvider.monthTargetMinutesToDate(
+        final monthlyTargetToDateMinutes =
+            timeProvider.monthTargetMinutesToDate(
           currentDate.year,
           currentDate.month,
         );
@@ -138,9 +138,6 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
 
         final openingBalanceMinutes = contractProvider.openingFlexMinutes;
 
-        // Use provider's year-only net balance in minutes (no opening balance)
-        final yearNetMinutes = timeProvider.currentYearNetMinutes;
-
         // Determine if we should show "Logged since..." labels
         final showYearLoggedSince =
             timeProvider.isTrackingStartAfterYearStart(currentDate.year);
@@ -160,42 +157,24 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               TimeBalanceDashboard(
                 currentMonthMinutes: currentMonthMinutes,
                 currentYearMinutes: currentYearMinutes,
-                yearNetMinutes: yearNetMinutes,
-                // Don't pass contractBalance - let the card calculate
-                // it as yearNet + opening balance in minutes.
-                targetMinutes:
-                    fullMonthlyTargetMinutes, // Full month target for display
-                targetYearlyMinutes:
-                    fullYearlyTargetMinutes, // Full year target for display
-                targetMinutesToDate:
-                    monthlyTargetToDateMinutes, // To-date target for variance
-                targetYearlyMinutesToDate:
-                    yearlyTargetToDateMinutes, // To-date target for variance
+                fullMonthlyTargetMinutes: fullMonthlyTargetMinutes,
+                fullYearlyTargetMinutes: fullYearlyTargetMinutes,
+                monthlyTargetToDateMinutes: monthlyTargetToDateMinutes,
+                yearlyTargetToDateMinutes: yearlyTargetToDateMinutes,
                 currentMonthName: monthSummary?.monthName ?? t.common_unknown,
                 currentYear: currentMonth.year,
-                creditMinutes: monthlyCreditMinutes > 0 ? monthlyCreditMinutes : null,
-                yearCreditMinutes: yearlyCreditMinutes > 0 ? yearlyCreditMinutes : null,
+                monthlyCreditMinutes:
+                    monthlyCreditMinutes > 0 ? monthlyCreditMinutes : null,
+                yearlyCreditMinutes:
+                    yearlyCreditMinutes > 0 ? yearlyCreditMinutes : null,
                 monthlyAdjustmentMinutes: monthlyAdjustmentMinutes,
                 yearlyAdjustmentMinutes: yearlyAdjustmentMinutes,
                 openingBalanceMinutes: openingBalanceMinutes,
-                openingBalanceFormatted: timeProvider.hasOpeningBalance
-                    ? formatSignedMinutes(
-                        openingBalanceMinutes,
-                        localeCode: localeCode,
-                        showPlusForZero: true,
-                      )
-                    : (showYearLoggedSince
-                        ? formatSignedMinutes(
-                            0,
-                            localeCode: localeCode,
-                            showPlusForZero: true,
-                          )
-                        : null),
                 trackingStartDate: showYearLoggedSince || showMonthLoggedSince
                     ? timeProvider.trackingStartDate
                     : null,
-                showYearLoggedSince: showYearLoggedSince,
-                showMonthLoggedSince: showMonthLoggedSince,
+                travelEnabled:
+                    true, // TODO: Check actual contract travel settings
               ),
 
               const SizedBox(height: AppSpacing.xl),

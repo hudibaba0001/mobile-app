@@ -448,6 +448,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance_contractBalanceNoDate => 'Contract balance (since start)';
 
   @override
+  String get balance_today_includes_offsets =>
+      'Balance today (includes starting balance + adjustments)';
+
+  @override
+  String get balance_adjustments_this_month => 'Adjustments (this month)';
+
+  @override
+  String get balance_adjustments_this_year => 'Adjustments (this year)';
+
+  @override
+  String get balance_recent_adjustments => 'Recent adjustments';
+
+  @override
   String get balance_details => 'Details';
 
   @override
@@ -503,6 +516,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String balance_includesAdjustments(String hours) {
     return 'Includes adjustments: ${hours}h';
   }
+
+  @override
+  String get balance_loggedTime => 'Logged time';
+
+  @override
+  String get balance_creditedLeave => 'Credited leave';
+
+  @override
+  String get balance_accountedTime => 'Accounted time';
+
+  @override
+  String get balance_plannedTimeSinceBaseline =>
+      'Planned time (since baseline)';
+
+  @override
+  String get balance_differenceVsPlan => 'Difference vs plan';
+
+  @override
+  String balance_countingFrom(String date) {
+    return 'Counting from: $date';
+  }
+
+  @override
+  String get balance_planCalculatedFromStart =>
+      'Plan is calculated from start date';
+
+  @override
+  String get balance_travelExcluded => 'Travel (excluded by settings)';
 
   @override
   String get adjustment_title => 'Balance Adjustments';
@@ -2411,10 +2452,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String error_breakExceedsSpan(
-    Object number,
-    Object breakMinutes,
-    Object spanMinutes,
-  ) {
+      Object number, Object breakMinutes, Object spanMinutes) {
     return 'Shift $number: Break minutes ($breakMinutes) cannot exceed span (${spanMinutes}m)';
   }
 

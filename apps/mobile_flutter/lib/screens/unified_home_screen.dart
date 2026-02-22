@@ -56,6 +56,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   bool _isLoadingRecent = false;
   bool _pendingRecentReload = false;
   bool _recentBootstrapReloadQueued = false;
+
+  /// Stays true once the initial bootstrap reload has been attempted,
+  /// preventing an infinite loadEntries→rebuild loop when the user genuinely
+  /// has zero entries.
+  bool _bootstrapLoadAttempted = false;
   Timer? _recentLoadDebounce;
   EntryProvider? _entryProvider;
   AbsenceProvider? _absenceProvider;
@@ -116,21 +121,16 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
   }
 
   Future<void> _ensureTrackingStartDateInitialized() async {
-    if (!mounted || _trackingStartInitInProgress) {
-      return;
-    }
-
-    final contractProvider = context.read<ContractProvider>();
-    if (_trackingStartInitialized &&
-        contractProvider.hasCustomTrackingStartDate) {
+    if (!mounted || _trackingStartInitInProgress || _trackingStartInitialized) {
       return;
     }
 
     _trackingStartInitInProgress = true;
     try {
+      final contractProvider = context.read<ContractProvider>();
       final entryProvider = context.read<EntryProvider>();
 
-      if (entryProvider.entries.isEmpty) {
+      if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
         await entryProvider.loadEntries();
       }
 
@@ -139,10 +139,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         entryProvider.earliestEntryDate,
       );
 
-      if (contractProvider.hasCustomTrackingStartDate ||
-          entryProvider.hasAnyEntries) {
-        _trackingStartInitialized = true;
-      }
+      // Mark as initialized after the first attempt, even if entries are empty.
+      // This prevents an infinite loadEntries→notify→rebuild loop when the
+      // user genuinely has zero entries.
+      _trackingStartInitialized = true;
     } finally {
       _trackingStartInitInProgress = false;
     }
@@ -1061,8 +1061,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     if (fallbackRecentEntries.isEmpty &&
         !entryProvider.isLoading &&
         !_isLoadingRecent &&
-        !_recentBootstrapReloadQueued) {
+        !_recentBootstrapReloadQueued &&
+        !_bootstrapLoadAttempted) {
       _recentBootstrapReloadQueued = true;
+      _bootstrapLoadAttempted = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
         try {
@@ -1075,6 +1077,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       });
     } else if (fallbackRecentEntries.isNotEmpty) {
       _recentBootstrapReloadQueued = false;
+      _bootstrapLoadAttempted = false;
     }
 
     if (showLoadingState) {
@@ -1268,52 +1271,55 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _entryTypeLabel(
-                                    entry.type, AppLocalizations.of(context)),
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: theme.colorScheme.onSurface,
+                    child: SingleChildScrollView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _entryTypeLabel(
+                                      entry.type, AppLocalizations.of(context)),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            _buildDurationPill(
-                              theme,
-                              text: entry.duration,
-                              tint: lightColor,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          entry.title,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
+                              const SizedBox(width: AppSpacing.sm),
+                              _buildDurationPill(
+                                theme,
+                                text: entry.duration,
+                                tint: lightColor,
+                              ),
+                            ],
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: AppSpacing.xs / 2),
-                        Text(
-                          entry.subtitle,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            entry.title,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                          const SizedBox(height: AppSpacing.xs / 2),
+                          Text(
+                            entry.subtitle,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
