@@ -19,38 +19,39 @@ void main() {
   }
 
   group('HomeBalanceGlanceCard - compact rendering', () {
-    testWidgets('renders title, big number, and month line with planned > 0',
+    testWidgets(
+        'renders title, subtitle, big number, and change-vs-plan lines',
         (tester) async {
       var seeMoreTapped = false;
 
       await tester.pumpWidget(wrap(HomeBalanceGlanceCard(
         timeBalanceEnabled: true,
         balanceTodayMinutes: 265, // +4h 25m
-        monthAccountedMinutes: 7465, // 124h 25m
-        monthPlannedMinutes: 7200, // 120h 0m
         monthDeltaMinutes: 265, // +4h 25m
         monthLabel: 'Feb',
         yearDeltaMinutes: 360, // +6h 0m
         yearLabel: 'This year',
-        title: 'Time balance',
+        title: 'Balance today',
+        balanceSubtitle: 'Incl. opening + adjustments',
+        changeVsPlanLabel: 'Change vs plan',
         seeMoreLabel: 'See more →',
-        sinceStartLabel: 'since start',
         localeCode: 'en',
         onSeeMore: () => seeMoreTapped = true,
       )));
       await tester.pumpAndSettle();
 
       // Title present
-      expect(find.text('Time balance'), findsOneWidget);
+      expect(find.text('Balance today'), findsOneWidget);
+      // Subtitle present
+      expect(find.text('Incl. opening + adjustments'), findsOneWidget);
       // See more link present
       expect(find.text('See more →'), findsOneWidget);
 
-      // Month line contains worked / planned format
-      expect(find.textContaining('Feb:'), findsOneWidget);
-      expect(find.textContaining('/'), findsOneWidget);
+      // Month line: "Feb: Change vs plan  +4h 25m"
+      expect(find.textContaining('Feb: Change vs plan'), findsOneWidget);
 
-      // Year line present
-      expect(find.textContaining('This year:'), findsOneWidget);
+      // Year line: "This year: Change vs plan  +6h 0m"
+      expect(find.textContaining('This year: Change vs plan'), findsOneWidget);
 
       // Does NOT contain verbose legacy strings
       expect(find.textContaining('Calculated from'), findsNothing);
@@ -59,7 +60,7 @@ void main() {
       expect(find.textContaining('Starting balance'), findsNothing);
       expect(find.textContaining('Status (to date)'), findsNothing);
 
-      // Progress bar present
+      // Progress bar present (even at zero progress when timeBalanceEnabled)
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
 
       // Tap "See more" triggers callback
@@ -68,54 +69,52 @@ void main() {
     });
   });
 
-  group('HomeBalanceGlanceCard - planned zero edge case', () {
-    testWidgets('shows "since start" variant when planned is 0',
-        (tester) async {
+  group('HomeBalanceGlanceCard - with progress bar', () {
+    testWidgets('shows progress bar when month planned > 0', (tester) async {
       await tester.pumpWidget(wrap(HomeBalanceGlanceCard(
         timeBalanceEnabled: true,
-        balanceTodayMinutes: 480,
-        monthAccountedMinutes: 480, // 8h 0m
-        monthPlannedMinutes: 0,
-        monthDeltaMinutes: 480,
+        balanceTodayMinutes: 265,
+        monthAccountedMinutes: 7465,
+        monthPlannedMinutes: 7200,
+        monthDeltaMinutes: 265,
         monthLabel: 'Feb',
-        yearDeltaMinutes: 480,
-        yearLabel: 'This year (since start)',
-        title: 'Time balance',
+        yearDeltaMinutes: 360,
+        yearLabel: 'This year',
+        title: 'Balance today',
+        balanceSubtitle: 'Incl. opening + adjustments',
+        changeVsPlanLabel: 'Change vs plan',
         seeMoreLabel: 'See more →',
-        sinceStartLabel: 'since start',
         localeCode: 'en',
         onSeeMore: () {},
       )));
       await tester.pumpAndSettle();
 
-      // Shows "since start" variant in month line
-      expect(find.textContaining('since start'), findsWidgets);
-      // Does NOT show "/ 0h" confusing denominator
-      expect(find.textContaining('/ 0h'), findsNothing);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
   });
 
   group('HomeBalanceGlanceCard - year label variants', () {
-    testWidgets('shows "This year (since start)" when tracking started mid-year',
+    testWidgets(
+        'shows "This year (since start)" when tracking started mid-year',
         (tester) async {
       await tester.pumpWidget(wrap(HomeBalanceGlanceCard(
         timeBalanceEnabled: true,
         balanceTodayMinutes: 120,
-        monthAccountedMinutes: 480,
-        monthPlannedMinutes: 480,
         monthDeltaMinutes: 0,
         monthLabel: 'Feb',
         yearDeltaMinutes: 120, // +2h 0m
         yearLabel: 'This year (since start)',
-        title: 'Time balance',
+        title: 'Balance today',
+        balanceSubtitle: 'Incl. opening + adjustments',
+        changeVsPlanLabel: 'Change vs plan',
         seeMoreLabel: 'See more →',
-        sinceStartLabel: 'since start',
         localeCode: 'en',
         onSeeMore: () {},
       )));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('This year (since start):'), findsOneWidget);
+      expect(find.textContaining('This year (since start): Change vs plan'),
+          findsOneWidget);
     });
 
     testWidgets('shows "This year" when tracking started on/before Jan 1',
@@ -123,41 +122,39 @@ void main() {
       await tester.pumpWidget(wrap(HomeBalanceGlanceCard(
         timeBalanceEnabled: true,
         balanceTodayMinutes: -60,
-        monthAccountedMinutes: 480,
-        monthPlannedMinutes: 480,
         monthDeltaMinutes: 0,
         monthLabel: 'Feb',
         yearDeltaMinutes: -60, // -1h 0m
         yearLabel: 'This year',
-        title: 'Time balance',
+        title: 'Balance today',
+        balanceSubtitle: 'Incl. opening + adjustments',
+        changeVsPlanLabel: 'Change vs plan',
         seeMoreLabel: 'See more →',
-        sinceStartLabel: 'since start',
         localeCode: 'en',
         onSeeMore: () {},
       )));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('This year:'), findsOneWidget);
+      expect(find.textContaining('This year: Change vs plan'), findsOneWidget);
       // Should NOT contain "since start" in the year label
       expect(find.textContaining('This year (since start)'), findsNothing);
     });
   });
 
   group('HomeBalanceGlanceCard - log-only mode', () {
-    testWidgets('shows log-only title and hides delta/planned and year line',
+    testWidgets('shows log-only title and hides balance/year line',
         (tester) async {
       await tester.pumpWidget(wrap(HomeBalanceGlanceCard(
         timeBalanceEnabled: false,
         balanceTodayMinutes: 0,
-        monthAccountedMinutes: 480,
-        monthPlannedMinutes: 0,
         monthDeltaMinutes: 0,
         monthLabel: 'Feb',
         yearDeltaMinutes: 0,
         yearLabel: 'This year',
         title: 'Logged time',
+        balanceSubtitle: 'Incl. opening + adjustments',
+        changeVsPlanLabel: 'Change vs plan',
         seeMoreLabel: 'See more →',
-        sinceStartLabel: 'since start',
         localeCode: 'en',
         onSeeMore: () {},
       )));
@@ -165,6 +162,8 @@ void main() {
 
       // Title shows log-only mode
       expect(find.text('Logged time'), findsOneWidget);
+      // No subtitle in log-only mode
+      expect(find.text('Incl. opening + adjustments'), findsNothing);
       // No progress bar in log-only mode
       expect(find.byType(LinearProgressIndicator), findsNothing);
       // Shows month label with accounted time

@@ -766,29 +766,30 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                     },
                   ),
                 ),
-                if (leg.fromText.isNotEmpty && leg.toText.isNotEmpty) ...[
-                  const SizedBox(width: AppSpacing.sm),
-                  OutlinedButton(
-                    onPressed:
-                        isCalculating ? null : () => _calculateTravelLeg(index),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.sm,
-                      ),
-                      minimumSize: const Size(0, 48),
-                    ),
-                    child: isCalculating
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.directions_car),
-                  ),
-                ],
               ],
             ),
+
+            if (leg.fromText.isNotEmpty && leg.toText.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              OutlinedButton.icon(
+                onPressed:
+                    isCalculating ? null : () => _calculateTravelLeg(index),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 44),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                ),
+                icon: isCalculating
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.calculate_outlined, size: 20),
+                label: Text(AppLocalizations.of(context).entry_calculate),
+              ),
+            ],
 
             // Error message
             if (error != null) ...[

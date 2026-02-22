@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../design/app_theme.dart';
+import '../../design/design.dart';
 import '../../providers/time_provider.dart';
 import '../../providers/entry_provider.dart';
 import '../../providers/contract_provider.dart';
@@ -149,11 +149,31 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
         final recentAdjustments =
             adjustmentProvider.allAdjustments.take(5).toList();
 
+        // Compute balance today for headline (same formula as Home)
+        final yearAccountedMinutes =
+            currentYearMinutes + yearlyCreditMinutes;
+        final yearChangeMinutes =
+            yearAccountedMinutes - yearlyTargetToDateMinutes;
+        final balanceTodayMinutes =
+            openingBalanceMinutes + yearlyAdjustmentMinutes + yearChangeMinutes;
+        final localeCode = Localizations.localeOf(context).languageCode;
+
         return SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Balance today headline
+              _buildBalanceTodayHeadline(
+                context,
+                t,
+                localeCode,
+                balanceTodayMinutes: balanceTodayMinutes,
+                openingMinutes: openingBalanceMinutes,
+                adjustmentMinutes: yearlyAdjustmentMinutes,
+                yearChangeMinutes: yearChangeMinutes,
+              ),
+              const SizedBox(height: AppSpacing.xl),
               TimeBalanceDashboard(
                 currentMonthMinutes: currentMonthMinutes,
                 currentYearMinutes: currentYearMinutes,
@@ -189,6 +209,68 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildBalanceTodayHeadline(
+    BuildContext context,
+    AppLocalizations t,
+    String localeCode, {
+    required int balanceTodayMinutes,
+    required int openingMinutes,
+    required int adjustmentMinutes,
+    required int yearChangeMinutes,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final isPositive = balanceTodayMinutes >= 0;
+    final balanceColor = isPositive
+        ? (isDark ? FlexsaldoColors.positive : FlexsaldoColors.positiveDark)
+        : (isDark ? FlexsaldoColors.negative : FlexsaldoColors.negativeDark);
+
+    final openingStr = formatSignedMinutes(openingMinutes,
+        localeCode: localeCode, showPlusForZero: true);
+    final adjStr = formatSignedMinutes(adjustmentMinutes,
+        localeCode: localeCode, showPlusForZero: true);
+    final changeStr = formatSignedMinutes(yearChangeMinutes,
+        localeCode: localeCode, showPlusForZero: true);
+
+    return AppCard(
+      padding: AppSpacing.cardPadding * 1.5,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.balance_rounded,
+                size: AppIconSize.sm,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                t.balance_balanceTodayHeadline,
+                style: AppTypography.cardTitle(theme.colorScheme.onSurface),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            formatSignedMinutes(balanceTodayMinutes,
+                localeCode: localeCode, showPlusForZero: true),
+            style: AppTypography.headline(balanceColor).copyWith(fontSize: 36),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            t.balance_balanceTodaySubline(openingStr, adjStr, changeStr),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 

@@ -516,8 +516,6 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                             timeBalanceEnabled: timeBalanceEnabled,
                             balanceTodayMinutes:
                                 yearSummary.endBalanceMinutes,
-                            monthAccountedMinutes: monthAccounted,
-                            monthPlannedMinutes: monthTarget,
                             monthDeltaMinutes: monthDelta,
                             monthLabel: monthName,
                             yearDeltaMinutes:
@@ -528,8 +526,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                             title: timeBalanceEnabled
                                 ? t.home_timeBalanceTitle
                                 : t.home_loggedTimeTitle,
+                            balanceSubtitle: t.home_balanceSubtitle,
+                            changeVsPlanLabel: t.home_changeVsPlan,
                             seeMoreLabel: t.home_seeMore,
-                            sinceStartLabel: t.home_sinceStart,
                             localeCode: localeCode,
                             onSeeMore: () =>
                                 AppRouter.goToTimeBalance(context),

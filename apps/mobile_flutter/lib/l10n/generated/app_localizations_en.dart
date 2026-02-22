@@ -452,6 +452,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Balance today (includes starting balance + adjustments)';
 
   @override
+  String get balance_balanceTodayHeadline => 'Balance today';
+
+  @override
+  String balance_balanceTodaySubline(
+      String opening, String adjustments, String yearChange) {
+    return 'Opening $opening • Adjustments $adjustments • Year change $yearChange';
+  }
+
+  @override
   String get balance_adjustments_this_month => 'Adjustments (this month)';
 
   @override
@@ -531,7 +540,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Planned time (since baseline)';
 
   @override
-  String get balance_differenceVsPlan => 'Difference vs plan';
+  String get balance_differenceVsPlan => 'Change vs plan';
 
   @override
   String balance_countingFrom(String date) {
@@ -1059,7 +1068,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home_fullDay => 'Full day';
 
   @override
-  String get home_timeBalanceTitle => 'Time balance';
+  String get home_timeBalanceTitle => 'Balance today';
+
+  @override
+  String get home_balanceSubtitle => 'Incl. opening + adjustments';
+
+  @override
+  String get home_changeVsPlan => 'Change vs plan';
 
   @override
   String get home_loggedTimeTitle => 'Logged time';
@@ -1153,6 +1168,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entry_editEntry => 'Edit Entry';
+
+  @override
+  String get entry_saveChanges => 'Save Changes';
+
+  @override
+  String get entry_calculate => 'Calculate';
+
+  @override
+  String get entry_logTravel => 'Log Travel';
 
   @override
   String get entry_deleteTitle => 'Delete Entry';
@@ -1933,17 +1957,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get overview_scheduledTarget => 'Scheduled target';
 
   @override
-  String get overview_differenceVsPlan => 'Difference vs plan';
+  String get overview_differenceVsPlan => 'Change vs plan';
 
   @override
   String get overview_accountedMinusPlanned => 'Accounted - planned';
 
   @override
-  String get overview_balanceAfterPeriod => 'Your balance after this period';
+  String get overview_balanceAfterPeriod => 'Balance at end of period';
 
   @override
-  String get overview_startPlusAdjPlusDiff =>
-      'Start + adjustments + difference';
+  String get overview_startPlusAdjPlusDiff => 'Start + adjustments + change';
+
+  @override
+  String get overview_endBalanceFormula =>
+      'End balance = Start balance + Adjustments in period + Change vs plan';
 
   @override
   String get balance_accountedTooltip => 'Logged time + credited leave';

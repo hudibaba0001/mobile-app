@@ -866,6 +866,19 @@ abstract class AppLocalizations {
   /// **'Balance today (includes starting balance + adjustments)'**
   String get balance_today_includes_offsets;
 
+  /// No description provided for @balance_balanceTodayHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance today'**
+  String get balance_balanceTodayHeadline;
+
+  /// No description provided for @balance_balanceTodaySubline.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening {opening} • Adjustments {adjustments} • Year change {yearChange}'**
+  String balance_balanceTodaySubline(
+      String opening, String adjustments, String yearChange);
+
   /// No description provided for @balance_adjustments_this_month.
   ///
   /// In en, this message translates to:
@@ -989,7 +1002,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_differenceVsPlan.
   ///
   /// In en, this message translates to:
-  /// **'Difference vs plan'**
+  /// **'Change vs plan'**
   String get balance_differenceVsPlan;
 
   /// No description provided for @balance_countingFrom.
@@ -1937,8 +1950,20 @@ abstract class AppLocalizations {
   /// No description provided for @home_timeBalanceTitle.
   ///
   /// In en, this message translates to:
-  /// **'Time balance'**
+  /// **'Balance today'**
   String get home_timeBalanceTitle;
+
+  /// No description provided for @home_balanceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Incl. opening + adjustments'**
+  String get home_balanceSubtitle;
+
+  /// No description provided for @home_changeVsPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Change vs plan'**
+  String get home_changeVsPlan;
 
   /// No description provided for @home_loggedTimeTitle.
   ///
@@ -2084,6 +2109,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Entry'**
   String get entry_editEntry;
+
+  /// No description provided for @entry_saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get entry_saveChanges;
+
+  /// No description provided for @entry_calculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate'**
+  String get entry_calculate;
+
+  /// No description provided for @entry_logTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Travel'**
+  String get entry_logTravel;
 
   /// No description provided for @entry_deleteTitle.
   ///
@@ -3498,7 +3541,7 @@ abstract class AppLocalizations {
   /// No description provided for @overview_differenceVsPlan.
   ///
   /// In en, this message translates to:
-  /// **'Difference vs plan'**
+  /// **'Change vs plan'**
   String get overview_differenceVsPlan;
 
   /// No description provided for @overview_accountedMinusPlanned.
@@ -3510,14 +3553,20 @@ abstract class AppLocalizations {
   /// No description provided for @overview_balanceAfterPeriod.
   ///
   /// In en, this message translates to:
-  /// **'Your balance after this period'**
+  /// **'Balance at end of period'**
   String get overview_balanceAfterPeriod;
 
   /// No description provided for @overview_startPlusAdjPlusDiff.
   ///
   /// In en, this message translates to:
-  /// **'Start + adjustments + difference'**
+  /// **'Start + adjustments + change'**
   String get overview_startPlusAdjPlusDiff;
+
+  /// No description provided for @overview_endBalanceFormula.
+  ///
+  /// In en, this message translates to:
+  /// **'End balance = Start balance + Adjustments in period + Change vs plan'**
+  String get overview_endBalanceFormula;
 
   /// No description provided for @balance_accountedTooltip.
   ///

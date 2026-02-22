@@ -243,6 +243,21 @@
   },
   "balance_contractBalanceNoDate": "Contract balance (since start)",
   "balance_today_includes_offsets": "Balance today (includes starting balance + adjustments)",
+  "balance_balanceTodayHeadline": "Balance today",
+  "balance_balanceTodaySubline": "Opening {opening} \u2022 Adjustments {adjustments} \u2022 Year change {yearChange}",
+  "@balance_balanceTodaySubline": {
+    "placeholders": {
+      "opening": {
+        "type": "String"
+      },
+      "adjustments": {
+        "type": "String"
+      },
+      "yearChange": {
+        "type": "String"
+      }
+    }
+  },
   "balance_adjustments_this_month": "Adjustments (this month)",
   "balance_adjustments_this_year": "Adjustments (this year)",
   "balance_recent_adjustments": "Recent adjustments",
@@ -319,7 +334,7 @@
   "balance_creditedLeave": "Credited leave",
   "balance_accountedTime": "Accounted time",
   "balance_plannedTimeSinceBaseline": "Planned time (since baseline)",
-  "balance_differenceVsPlan": "Difference vs plan",
+  "balance_differenceVsPlan": "Change vs plan",
   "balance_countingFrom": "Counting from: {date}",
   "@balance_countingFrom": {
     "placeholders": {
@@ -599,25 +614,41 @@
     }
   },
   "home_fullDay": "Full day",
-  "home_timeBalanceTitle": "Time balance",
+  "home_timeBalanceTitle": "Balance today",
+  "home_balanceSubtitle": "Incl. opening + adjustments",
+  "home_changeVsPlan": "Change vs plan",
   "home_loggedTimeTitle": "Logged time",
   "home_seeMore": "See more →",
   "home_sinceStart": "since start",
   "home_monthProgress": "{month}: {worked} / {planned}  {delta}",
   "@home_monthProgress": {
     "placeholders": {
-      "month": { "type": "String" },
-      "worked": { "type": "String" },
-      "planned": { "type": "String" },
-      "delta": { "type": "String" }
+      "month": {
+        "type": "String"
+      },
+      "worked": {
+        "type": "String"
+      },
+      "planned": {
+        "type": "String"
+      },
+      "delta": {
+        "type": "String"
+      }
     }
   },
   "home_monthProgressNoTarget": "{month} ({since}): {worked}",
   "@home_monthProgressNoTarget": {
     "placeholders": {
-      "month": { "type": "String" },
-      "since": { "type": "String" },
-      "worked": { "type": "String" }
+      "month": {
+        "type": "String"
+      },
+      "since": {
+        "type": "String"
+      },
+      "worked": {
+        "type": "String"
+      }
     }
   },
   "home_thisYear": "This year",
@@ -688,6 +719,9 @@
   },
   "entry_saveEntry": "Save Entry",
   "entry_editEntry": "Edit Entry",
+  "entry_saveChanges": "Save Changes",
+  "entry_calculate": "Calculate",
+  "entry_logTravel": "Log Travel",
   "entry_deleteTitle": "Delete Entry",
   "error_selectBothLocations": "Please select both departure and arrival locations",
   "error_selectWorkLocation": "Please select a work location",
@@ -1143,10 +1177,11 @@
   "overview_loggedPlusCreditedLeave": "Logged + credited leave",
   "overview_plannedTime": "Planned time",
   "overview_scheduledTarget": "Scheduled target",
-  "overview_differenceVsPlan": "Difference vs plan",
+  "overview_differenceVsPlan": "Change vs plan",
   "overview_accountedMinusPlanned": "Accounted - planned",
-  "overview_balanceAfterPeriod": "Your balance after this period",
-  "overview_startPlusAdjPlusDiff": "Start + adjustments + difference",
+  "overview_balanceAfterPeriod": "Balance at end of period",
+  "overview_startPlusAdjPlusDiff": "Start + adjustments + change",
+  "overview_endBalanceFormula": "End balance = Start balance + Adjustments in period + Change vs plan",
   "balance_accountedTooltip": "Logged time + credited leave",
   "location_fullAddress": "Full address",
   "entry_logTravelEntry": "Log Travel Entry",

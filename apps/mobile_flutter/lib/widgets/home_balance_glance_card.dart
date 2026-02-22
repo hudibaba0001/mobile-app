@@ -14,17 +14,19 @@ class HomeBalanceGlanceCard extends StatelessWidget {
     super.key,
     required this.timeBalanceEnabled,
     required this.balanceTodayMinutes,
-    required this.monthAccountedMinutes,
-    required this.monthPlannedMinutes,
     required this.monthDeltaMinutes,
     required this.monthLabel,
     required this.yearDeltaMinutes,
     required this.yearLabel,
     required this.title,
+    required this.balanceSubtitle,
+    required this.changeVsPlanLabel,
     required this.seeMoreLabel,
-    required this.sinceStartLabel,
     required this.localeCode,
     required this.onSeeMore,
+    this.monthAccountedMinutes = 0,
+    this.monthPlannedMinutes = 0,
+    this.sinceStartLabel = '',
   });
 
   final bool timeBalanceEnabled;
@@ -36,6 +38,8 @@ class HomeBalanceGlanceCard extends StatelessWidget {
   final int yearDeltaMinutes;
   final String yearLabel;
   final String title;
+  final String balanceSubtitle;
+  final String changeVsPlanLabel;
   final String seeMoreLabel;
   final String sinceStartLabel;
   final String localeCode;
@@ -78,10 +82,17 @@ class HomeBalanceGlanceCard extends StatelessWidget {
             _buildHeader(theme),
             const SizedBox(height: AppSpacing.md),
 
-            // Row 2: Big balance number (or log-only mode)
-            if (timeBalanceEnabled)
-              _buildBigBalance(theme)
-            else
+            // Row 2: Big balance number + subtitle (or log-only mode)
+            if (timeBalanceEnabled) ...[
+              _buildBigBalance(theme),
+              const SizedBox(height: 2),
+              Text(
+                balanceSubtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ] else
               _buildLogOnlyBalance(theme),
             const SizedBox(height: AppSpacing.md),
 
@@ -91,10 +102,10 @@ class HomeBalanceGlanceCard extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
             ],
 
-            // Row 4: Month one-liner
+            // Row 4: Month change-vs-plan one-liner
             _buildMonthLine(theme),
 
-            // Row 5: Year one-liner (only in time-balance mode)
+            // Row 5: Year change-vs-plan one-liner (only in time-balance mode)
             if (timeBalanceEnabled) ...[
               const SizedBox(height: AppSpacing.xs),
               _buildYearLine(theme),
@@ -206,19 +217,7 @@ class HomeBalanceGlanceCard extends StatelessWidget {
       fontWeight: FontWeight.w500,
     );
 
-    if (monthPlannedMinutes <= 0) {
-      // Planned == 0: show "Feb (since start): 8h 0m"
-      return Text(
-        '$monthLabel ($sinceStartLabel): ${formatMinutes(monthAccountedMinutes, localeCode: localeCode)}',
-        style: style,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    // Normal: "Feb: 124h 25m / 120h 0m  +4h 25m"
-    final worked = formatMinutes(monthAccountedMinutes, localeCode: localeCode);
-    final planned = formatMinutes(monthPlannedMinutes, localeCode: localeCode);
+    // "Feb: Change vs plan +4h 25m"
     final delta = formatMinutes(
       monthDeltaMinutes,
       localeCode: localeCode,
@@ -232,13 +231,12 @@ class HomeBalanceGlanceCard extends StatelessWidget {
       children: [
         Flexible(
           child: Text(
-            '$monthLabel: $worked / $planned',
+            '$monthLabel: $changeVsPlanLabel ',
             style: style,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
         Text(
           delta,
           style: style?.copyWith(
@@ -267,9 +265,13 @@ class HomeBalanceGlanceCard extends StatelessWidget {
 
     return Row(
       children: [
-        Text(
-          '$yearLabel: ',
-          style: style,
+        Flexible(
+          child: Text(
+            '$yearLabel: $changeVsPlanLabel ',
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         Text(
           delta,

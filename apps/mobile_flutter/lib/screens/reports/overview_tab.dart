@@ -294,7 +294,8 @@ class _OverviewTabState extends State<OverviewTab> {
             child: Column(
               children: [
                 ..._buildSegmentCards(context, summary, periodSummary),
-                if (showBalanceDetails) ...[
+                if (showBalanceDetails &&
+                    widget.segment == ReportSegment.all) ...[
                   const SizedBox(height: AppSpacing.lg),
                   _buildBalanceAdjustmentsSection(
                     context,
@@ -452,6 +453,17 @@ class _OverviewTabState extends State<OverviewTab> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          child: Text(
+            t.overview_endBalanceFormula,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
+          ),
         ),
       ],
     ];

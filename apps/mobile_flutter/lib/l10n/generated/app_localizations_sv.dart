@@ -453,6 +453,15 @@ class AppLocalizationsSv extends AppLocalizations {
       'Saldo idag (inkl. startsaldo + justeringar)';
 
   @override
+  String get balance_balanceTodayHeadline => 'Saldo idag';
+
+  @override
+  String balance_balanceTodaySubline(
+      String opening, String adjustments, String yearChange) {
+    return 'Startsaldo $opening • Justeringar $adjustments • Årets ändring $yearChange';
+  }
+
+  @override
   String get balance_adjustments_this_month => 'Justeringar (denna månad)';
 
   @override
@@ -531,7 +540,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get balance_plannedTimeSinceBaseline => 'Planerad tid (hittills)';
 
   @override
-  String get balance_differenceVsPlan => 'Skillnad mot plan';
+  String get balance_differenceVsPlan => 'Ändring mot plan';
 
   @override
   String balance_countingFrom(String date) {
@@ -1060,7 +1069,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get home_fullDay => 'Heldag';
 
   @override
-  String get home_timeBalanceTitle => 'Tidssaldo';
+  String get home_timeBalanceTitle => 'Saldo idag';
+
+  @override
+  String get home_balanceSubtitle => 'Inkl. startsaldo + justeringar';
+
+  @override
+  String get home_changeVsPlan => 'Ändring mot plan';
 
   @override
   String get home_loggedTimeTitle => 'Loggad tid';
@@ -1154,6 +1169,15 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get entry_editEntry => 'Redigera post';
+
+  @override
+  String get entry_saveChanges => 'Save Changes';
+
+  @override
+  String get entry_calculate => 'Beräkna';
+
+  @override
+  String get entry_logTravel => 'Log Travel';
 
   @override
   String get entry_deleteTitle => 'Ta bort post';
@@ -1933,16 +1957,20 @@ class AppLocalizationsSv extends AppLocalizations {
   String get overview_scheduledTarget => 'Schemalagt mål';
 
   @override
-  String get overview_differenceVsPlan => 'Skillnad mot plan';
+  String get overview_differenceVsPlan => 'Ändring mot plan';
 
   @override
   String get overview_accountedMinusPlanned => 'Räknad - planerad';
 
   @override
-  String get overview_balanceAfterPeriod => 'Ditt saldo efter perioden';
+  String get overview_balanceAfterPeriod => 'Saldo vid periodens slut';
 
   @override
-  String get overview_startPlusAdjPlusDiff => 'Start + justeringar + skillnad';
+  String get overview_startPlusAdjPlusDiff => 'Start + justeringar + ändring';
+
+  @override
+  String get overview_endBalanceFormula =>
+      'Slutsaldo = Startsaldo + Justeringar i period + Ändring mot plan';
 
   @override
   String get balance_accountedTooltip => 'Loggad tid + ersatt frånvaro';
