@@ -599,6 +599,31 @@
     }
   },
   "home_fullDay": "Full day",
+  "home_timeBalanceTitle": "Time balance",
+  "home_loggedTimeTitle": "Logged time",
+  "home_seeMore": "See more →",
+  "home_sinceStart": "since start",
+  "home_monthProgress": "{month}: {worked} / {planned}  {delta}",
+  "@home_monthProgress": {
+    "placeholders": {
+      "month": { "type": "String" },
+      "worked": { "type": "String" },
+      "planned": { "type": "String" },
+      "delta": { "type": "String" }
+    }
+  },
+  "home_monthProgressNoTarget": "{month} ({since}): {worked}",
+  "@home_monthProgressNoTarget": {
+    "placeholders": {
+      "month": { "type": "String" },
+      "since": { "type": "String" },
+      "worked": { "type": "String" }
+    }
+  },
+  "home_thisYear": "This year",
+  "home_thisYearSinceStart": "This year (since start)",
+  "home_backfillWarning": "You have entries before your start date. Balance is calculated from the start date.",
+  "home_backfillChange": "Change",
   "entry_deleteEntry": "Delete Entry",
   "entry_deleteConfirm": "Are you sure you want to delete this {type} entry?",
   "@entry_deleteConfirm": {

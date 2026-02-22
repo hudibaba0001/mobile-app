@@ -1934,6 +1934,67 @@ abstract class AppLocalizations {
   /// **'Full day'**
   String get home_fullDay;
 
+  /// No description provided for @home_timeBalanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time balance'**
+  String get home_timeBalanceTitle;
+
+  /// No description provided for @home_loggedTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged time'**
+  String get home_loggedTimeTitle;
+
+  /// No description provided for @home_seeMore.
+  ///
+  /// In en, this message translates to:
+  /// **'See more →'**
+  String get home_seeMore;
+
+  /// No description provided for @home_sinceStart.
+  ///
+  /// In en, this message translates to:
+  /// **'since start'**
+  String get home_sinceStart;
+
+  /// No description provided for @home_monthProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{month}: {worked} / {planned}  {delta}'**
+  String home_monthProgress(
+      String month, String worked, String planned, String delta);
+
+  /// No description provided for @home_monthProgressNoTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{month} ({since}): {worked}'**
+  String home_monthProgressNoTarget(String month, String since, String worked);
+
+  /// No description provided for @home_thisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get home_thisYear;
+
+  /// No description provided for @home_thisYearSinceStart.
+  ///
+  /// In en, this message translates to:
+  /// **'This year (since start)'**
+  String get home_thisYearSinceStart;
+
+  /// No description provided for @home_backfillWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'You have entries before your start date. Balance is calculated from the start date.'**
+  String get home_backfillWarning;
+
+  /// No description provided for @home_backfillChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get home_backfillChange;
+
   /// No description provided for @entry_deleteEntry.
   ///
   /// In en, this message translates to:

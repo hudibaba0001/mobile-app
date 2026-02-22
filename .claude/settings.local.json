@@ -34,7 +34,8 @@
       "Bash(flutter pub get:*)",
       "Bash(dart analyze:*)",
       "Bash(keytool:*)",
-      "Bash(\"C:/Program Files/Android/Android Studio/jbr/bin/keytool.exe\" -genkey -v -keystore \"C:/Users/sanlo/.android/upload-keystore.jks\" -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload -storepass kviktime2024 -keypass kviktime2024 -dname \"CN=KvikTime, OU=Mobile, O=KvikTime, L=Stockholm, ST=Stockholm, C=SE\")"
+      "Bash(\"C:/Program Files/Android/Android Studio/jbr/bin/keytool.exe\" -genkey -v -keystore \"C:/Users/sanlo/.android/upload-keystore.jks\" -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload -storepass kviktime2024 -keypass kviktime2024 -dname \"CN=KvikTime, OU=Mobile, O=KvikTime, L=Stockholm, ST=Stockholm, C=SE\")",
+      "Bash(\"C:/Program Files/Android/Android Studio/jbr/bin/keytool.exe\" -list -v -keystore \"C:/Users/sanlo/.android/upload-keystore.jks\" -storepass kviktime2024)"
     ]
   },
   "enableAllProjectMcpServers": true,

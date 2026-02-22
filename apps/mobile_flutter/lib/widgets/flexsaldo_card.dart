@@ -13,6 +13,7 @@ import '../providers/time_provider.dart';
 import '../providers/contract_provider.dart';
 import '../providers/entry_provider.dart';
 import '../providers/settings_provider.dart';
+import '../reporting/period_summary.dart';
 import '../reporting/period_summary_calculator.dart';
 import '../reporting/time_format.dart';
 import '../reporting/time_range.dart';
@@ -66,7 +67,6 @@ class HomeTrackingRangeText extends StatelessWidget {
   }
 }
 
-@visibleForTesting
 int computeHomeMonthlyStatusMinutes({
   required int monthActualMinutes,
   required int monthCreditMinutes,
@@ -93,8 +93,7 @@ int _sumAdjustmentsInRangeMinutes({
   });
 }
 
-@visibleForTesting
-int computeHomeYearlyBalanceMinutes({
+PeriodSummary computeHomeYearlyPeriodSummary({
   required DateTime now,
   required List<Entry> entries,
   required List<AbsenceEntry> absences,
@@ -111,7 +110,7 @@ int computeHomeYearlyBalanceMinutes({
     range: effectiveYearRange,
   );
 
-  final periodSummaryYear = PeriodSummaryCalculator.compute(
+  return PeriodSummaryCalculator.compute(
     entries: entries,
     absences: absences,
     range: effectiveYearRange,
@@ -122,10 +121,29 @@ int computeHomeYearlyBalanceMinutes({
     startBalanceMinutes: openingBalanceMinutes,
     manualAdjustmentMinutes: adjustmentMinutesYear,
   );
+}
 
-  return periodSummaryYear.startBalanceMinutes +
-      periodSummaryYear.manualAdjustmentMinutes +
-      periodSummaryYear.differenceMinutes;
+int computeHomeYearlyBalanceMinutes({
+  required DateTime now,
+  required List<Entry> entries,
+  required List<AbsenceEntry> absences,
+  required List<BalanceAdjustment> adjustments,
+  required int weeklyTargetMinutes,
+  required DateTime trackingStartDate,
+  required int openingBalanceMinutes,
+  required bool travelEnabled,
+}) {
+  final summary = computeHomeYearlyPeriodSummary(
+    now: now,
+    entries: entries,
+    absences: absences,
+    adjustments: adjustments,
+    weeklyTargetMinutes: weeklyTargetMinutes,
+    trackingStartDate: trackingStartDate,
+    openingBalanceMinutes: openingBalanceMinutes,
+    travelEnabled: travelEnabled,
+  );
+  return summary.endBalanceMinutes;
 }
 
 /// Flexsaldo card for the Home screen.

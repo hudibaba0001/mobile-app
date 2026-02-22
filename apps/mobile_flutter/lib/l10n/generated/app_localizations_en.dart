@@ -1059,6 +1059,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home_fullDay => 'Full day';
 
   @override
+  String get home_timeBalanceTitle => 'Time balance';
+
+  @override
+  String get home_loggedTimeTitle => 'Logged time';
+
+  @override
+  String get home_seeMore => 'See more →';
+
+  @override
+  String get home_sinceStart => 'since start';
+
+  @override
+  String home_monthProgress(
+      String month, String worked, String planned, String delta) {
+    return '$month: $worked / $planned  $delta';
+  }
+
+  @override
+  String home_monthProgressNoTarget(String month, String since, String worked) {
+    return '$month ($since): $worked';
+  }
+
+  @override
+  String get home_thisYear => 'This year';
+
+  @override
+  String get home_thisYearSinceStart => 'This year (since start)';
+
+  @override
+  String get home_backfillWarning =>
+      'You have entries before your start date. Balance is calculated from the start date.';
+
+  @override
+  String get home_backfillChange => 'Change';
+
+  @override
   String get entry_deleteEntry => 'Delete Entry';
 
   @override

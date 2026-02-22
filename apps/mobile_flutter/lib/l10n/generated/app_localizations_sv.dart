@@ -1060,6 +1060,42 @@ class AppLocalizationsSv extends AppLocalizations {
   String get home_fullDay => 'Heldag';
 
   @override
+  String get home_timeBalanceTitle => 'Tidssaldo';
+
+  @override
+  String get home_loggedTimeTitle => 'Loggad tid';
+
+  @override
+  String get home_seeMore => 'Se mer →';
+
+  @override
+  String get home_sinceStart => 'sedan start';
+
+  @override
+  String home_monthProgress(
+      String month, String worked, String planned, String delta) {
+    return '$month: $worked / $planned  $delta';
+  }
+
+  @override
+  String home_monthProgressNoTarget(String month, String since, String worked) {
+    return '$month ($since): $worked';
+  }
+
+  @override
+  String get home_thisYear => 'I år';
+
+  @override
+  String get home_thisYearSinceStart => 'I år (sedan start)';
+
+  @override
+  String get home_backfillWarning =>
+      'Du har poster före ditt startdatum. Saldo beräknas från startdatum.';
+
+  @override
+  String get home_backfillChange => 'Ändra';
+
+  @override
   String get entry_deleteEntry => 'Ta bort post';
 
   @override

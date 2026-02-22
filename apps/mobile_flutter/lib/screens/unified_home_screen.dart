@@ -8,7 +8,8 @@ import '../design/design.dart';
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
 import '../widgets/entry_compact_tile.dart';
-import '../widgets/flexsaldo_card.dart';
+import '../widgets/flexsaldo_card.dart' show computeHomeYearlyPeriodSummary;
+import '../widgets/home_balance_glance_card.dart';
 import '../widgets/absence_entry_dialog.dart';
 import 'dart:async';
 import '../models/entry.dart';
@@ -29,6 +30,8 @@ import '../providers/location_provider.dart';
 import '../providers/network_status_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/contract_provider.dart';
+import '../providers/time_provider.dart';
+import '../providers/balance_adjustment_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../widgets/app_message_banner.dart';
@@ -453,14 +456,141 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                   ),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      // Flexsaldo / Simple summary
-                      if (timeBalanceEnabled) ...[
-                        FlexsaldoCard()
-                            .animate()
-                            .fadeIn(duration: 400.ms)
-                            .slideY(begin: 0.08, end: 0),
-                        const SizedBox(height: AppSpacing.lg),
-                      ],
+                      // Balance glance card (or log-only summary)
+                      Consumer2<TimeProvider, ContractProvider>(
+                        builder: (context, timeProvider, contractProvider, _) {
+                          final now = DateTime.now();
+                          final year = now.year;
+                          final month = now.month;
+                          final localeCode =
+                              Localizations.localeOf(context).toLanguageTag();
+                          final monthName = DateFormat.MMM(
+                            Localizations.localeOf(context).toString(),
+                          ).format(now);
+
+                          // Monthly values
+                          final monthActual =
+                              timeProvider.monthActualMinutesToDate(year, month);
+                          final monthCredit =
+                              timeProvider.monthCreditMinutesToDate(year, month);
+                          final monthTarget =
+                              timeProvider.monthTargetMinutesToDate(year, month);
+                          final monthAccounted = monthActual + monthCredit;
+                          final monthDelta = monthAccounted - monthTarget;
+
+                          // Year summary (single source of truth for both balance + delta)
+                          final entryProvider = context.read<EntryProvider>();
+                          final absenceProvider =
+                              context.read<AbsenceProvider?>();
+                          final adjustmentProvider =
+                              context.read<BalanceAdjustmentProvider?>();
+                          final settingsProvider =
+                              context.read<SettingsProvider?>();
+                          final yearSummary = computeHomeYearlyPeriodSummary(
+                            now: now,
+                            entries: entryProvider.entries,
+                            absences: absenceProvider
+                                    ?.absencesForYear(year) ??
+                                const [],
+                            adjustments: adjustmentProvider?.allAdjustments ??
+                                const [],
+                            weeklyTargetMinutes:
+                                contractProvider.weeklyTargetMinutes,
+                            trackingStartDate:
+                                contractProvider.trackingStartDate,
+                            openingBalanceMinutes:
+                                contractProvider.openingFlexMinutes,
+                            travelEnabled:
+                                settingsProvider?.isTravelLoggingEnabled ??
+                                    true,
+                          );
+
+                          // Year label: "This year" or "This year (since start)"
+                          final trackingStart =
+                              contractProvider.trackingStartDate;
+                          final yearStart = DateTime(year, 1, 1);
+                          final yearLabelSinceStart =
+                              trackingStart.isAfter(yearStart);
+
+                          return HomeBalanceGlanceCard(
+                            timeBalanceEnabled: timeBalanceEnabled,
+                            balanceTodayMinutes:
+                                yearSummary.endBalanceMinutes,
+                            monthAccountedMinutes: monthAccounted,
+                            monthPlannedMinutes: monthTarget,
+                            monthDeltaMinutes: monthDelta,
+                            monthLabel: monthName,
+                            yearDeltaMinutes:
+                                yearSummary.differenceMinutes,
+                            yearLabel: yearLabelSinceStart
+                                ? t.home_thisYearSinceStart
+                                : t.home_thisYear,
+                            title: timeBalanceEnabled
+                                ? t.home_timeBalanceTitle
+                                : t.home_loggedTimeTitle,
+                            seeMoreLabel: t.home_seeMore,
+                            sinceStartLabel: t.home_sinceStart,
+                            localeCode: localeCode,
+                            onSeeMore: () =>
+                                AppRouter.goToTimeBalance(context),
+                          );
+                        },
+                      )
+                          .animate()
+                          .fadeIn(duration: 400.ms)
+                          .slideY(begin: 0.08, end: 0),
+
+                      // Backfill warning banner (entries before tracking start date)
+                      Consumer2<EntryProvider, ContractProvider>(
+                        builder: (context, entryProvider, contractProvider, _) {
+                          final trackingStart = contractProvider.trackingStartDate;
+                          final trackingStartDateOnly = DateTime(
+                            trackingStart.year,
+                            trackingStart.month,
+                            trackingStart.day,
+                          );
+                          final earliest = entryProvider.earliestEntryDate;
+                          if (earliest == null ||
+                              !earliest.isBefore(trackingStartDateOnly)) {
+                            return const SizedBox.shrink();
+                          }
+                          final theme = Theme.of(context);
+                          return Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.sm),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(AppSpacing.sm),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.tertiaryContainer
+                                    .withValues(alpha: 0.5),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.sm),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      t.home_backfillWarning,
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
+                                        color: theme
+                                            .colorScheme.onTertiaryContainer,
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        AppRouter.goToContractSettings(context),
+                                    child: Text(t.home_backfillChange),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
 
                       // Today's Total Card
                       Consumer<EntryProvider>(
