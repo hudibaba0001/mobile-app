@@ -15,6 +15,10 @@ class AbsenceProvider extends ChangeNotifier {
   // In-memory storage: year -> list of absences
   final Map<int, List<AbsenceEntry>> _absencesByYear = {};
 
+  // Secondary index: year -> dayKey -> absences for O(1) date lookup
+  // dayKey = year*10000 + month*100 + day (e.g. 20260215 for Feb 15 2026)
+  final Map<int, Map<int, List<AbsenceEntry>>> _absencesByDate = {};
+
   // Hive local cache
   Box<AbsenceEntry>? _hiveBox;
 
@@ -32,10 +36,27 @@ class AbsenceProvider extends ChangeNotifier {
   Future<void> initHive(Box<AbsenceEntry> box) async {
     _hiveBox = box;
     _absencesByYear.clear();
+    _absencesByDate.clear();
     _loadFromHive();
   }
 
   String _cacheKey(String userId, String absenceId) => '$userId:$absenceId';
+
+  static int _dateKey(DateTime d) => d.year * 10000 + d.month * 100 + d.day;
+
+  /// Rebuild the date-indexed map for a given year from _absencesByYear.
+  void _rebuildDateIndex(int year) {
+    final absences = _absencesByYear[year];
+    if (absences == null || absences.isEmpty) {
+      _absencesByDate.remove(year);
+      return;
+    }
+    final map = <int, List<AbsenceEntry>>{};
+    for (final a in absences) {
+      (map[_dateKey(a.date)] ??= []).add(a);
+    }
+    _absencesByDate[year] = map;
+  }
 
   /// Load cached absences from Hive into memory
   void _loadFromHive() {
@@ -61,6 +82,11 @@ class AbsenceProvider extends ChangeNotifier {
       if (!existing.any((a) => a.id == absence.id)) {
         existing.add(absence);
       }
+    }
+
+    // Rebuild date index for all loaded years
+    for (final year in _absencesByYear.keys) {
+      _rebuildDateIndex(year);
     }
   }
 
@@ -105,6 +131,7 @@ class AbsenceProvider extends ChangeNotifier {
     _activeUserId = currentUserId;
 
     _absencesByYear.clear();
+    _absencesByDate.clear();
     _error = null;
     _isLoading = false;
 
@@ -140,6 +167,7 @@ class AbsenceProvider extends ChangeNotifier {
 
       final absences = await _absenceService.fetchAbsencesForYear(userId, year);
       _absencesByYear[year] = absences;
+      _rebuildDateIndex(year);
       _saveToHive(year);
 
       debugPrint(
@@ -159,17 +187,11 @@ class AbsenceProvider extends ChangeNotifier {
     }
   }
 
-  /// Get all absences for a specific date
+  /// Get all absences for a specific date (O(1) hash lookup)
   List<AbsenceEntry> absencesForDate(DateTime date) {
-    final normalized = DateTime(date.year, date.month, date.day);
-    final year = normalized.year;
-    final absences = _absencesByYear[year] ?? [];
-
-    return absences.where((absence) {
-      return absence.date.year == normalized.year &&
-          absence.date.month == normalized.month &&
-          absence.date.day == normalized.day;
-    }).toList();
+    final yearMap = _absencesByDate[date.year];
+    if (yearMap == null) return const [];
+    return yearMap[_dateKey(date)] ?? const [];
   }
 
   /// Calculate paid absence credit minutes for a specific date

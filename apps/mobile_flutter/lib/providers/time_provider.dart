@@ -312,12 +312,13 @@ class TimeProvider extends ChangeNotifier {
       debugPrint(
           'TimeProvider: Entries for year $targetYear (after $startDate): ${yearEntries.length}');
 
-      // Build map of actual minutes by date (day-by-day)
+      // Build map of actual worked minutes by date (day-by-day)
+      // Uses workDuration to exclude travel — balance targets are work hours only
       final Map<DateTime, int> actualByDate = {};
       for (final entry in yearEntries) {
         final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
         actualByDate[day] =
-            (actualByDate[day] ?? 0) + entry.totalDuration.inMinutes;
+            (actualByDate[day] ?? 0) + entry.workDuration.inMinutes;
       }
 
       // Generate ALL 12 months with day-by-day calculations
@@ -587,18 +588,13 @@ class TimeProvider extends ChangeNotifier {
     return (daysSinceWeek1 ~/ 7) + 1;
   }
 
-  /// Calculate total hours from a list of entries
-  /// Includes BOTH travel time (from travel entries) and work shifts (from work entries)
-  /// Uses Entry.totalDuration which handles both types automatically:
-  /// - Travel entries: uses travelMinutes
-  /// - Work entries: uses shifts duration
+  /// Calculate total worked hours from a list of entries
+  /// Uses workDuration to exclude travel — balance targets are work hours only
   double _calculateTotalHours(List<Entry> entries) {
     double totalHours = 0.0;
 
     for (final entry in entries) {
-      // totalDuration handles both travel (travelMinutes) and work (shifts)
-      final duration = entry.totalDuration;
-      totalHours += duration.inMinutes / 60.0;
+      totalHours += entry.workDuration.inMinutes / 60.0;
     }
 
     return totalHours;
@@ -992,7 +988,7 @@ class TimeProvider extends ChangeNotifier {
           entryDate.month == month &&
           !entryDate.isBefore(effectiveStart) &&
           !entryDate.isAfter(effectiveEnd)) {
-        totalMinutes += entry.totalDuration.inMinutes;
+        totalMinutes += entry.workDuration.inMinutes;
       }
     }
 
@@ -1073,7 +1069,7 @@ class TimeProvider extends ChangeNotifier {
       if (entryDate.year == year &&
           !entryDate.isBefore(effectiveStart) &&
           !entryDate.isAfter(effectiveEnd)) {
-        totalMinutes += entry.totalDuration.inMinutes;
+        totalMinutes += entry.workDuration.inMinutes;
       }
     }
 

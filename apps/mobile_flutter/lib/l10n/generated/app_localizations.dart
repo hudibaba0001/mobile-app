@@ -978,7 +978,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_loggedTime.
   ///
   /// In en, this message translates to:
-  /// **'Logged time'**
+  /// **'Worked time'**
   String get balance_loggedTime;
 
   /// No description provided for @balance_creditedLeave.
@@ -1002,7 +1002,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_differenceVsPlan.
   ///
   /// In en, this message translates to:
-  /// **'Change vs plan'**
+  /// **'Over/under plan'**
   String get balance_differenceVsPlan;
 
   /// No description provided for @balance_countingFrom.
@@ -1962,7 +1962,7 @@ abstract class AppLocalizations {
   /// No description provided for @home_changeVsPlan.
   ///
   /// In en, this message translates to:
-  /// **'Change vs plan'**
+  /// **'Over/under plan'**
   String get home_changeVsPlan;
 
   /// No description provided for @home_loggedTimeTitle.
@@ -3541,7 +3541,7 @@ abstract class AppLocalizations {
   /// No description provided for @overview_differenceVsPlan.
   ///
   /// In en, this message translates to:
-  /// **'Change vs plan'**
+  /// **'Over/under plan'**
   String get overview_differenceVsPlan;
 
   /// No description provided for @overview_accountedMinusPlanned.
@@ -3565,7 +3565,7 @@ abstract class AppLocalizations {
   /// No description provided for @overview_endBalanceFormula.
   ///
   /// In en, this message translates to:
-  /// **'End balance = Start balance + Adjustments in period + Change vs plan'**
+  /// **'End balance = Start balance + Adjustments in period + Over/under plan'**
   String get overview_endBalanceFormula;
 
   /// No description provided for @balance_accountedTooltip.

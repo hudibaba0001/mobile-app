@@ -528,7 +528,7 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
-  String get balance_loggedTime => 'Loggad tid';
+  String get balance_loggedTime => 'Arbetad tid';
 
   @override
   String get balance_creditedLeave => 'Ersatt frånvaro';
@@ -540,7 +540,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get balance_plannedTimeSinceBaseline => 'Planerad tid (hittills)';
 
   @override
-  String get balance_differenceVsPlan => 'Ändring mot plan';
+  String get balance_differenceVsPlan => 'Över/under plan';
 
   @override
   String balance_countingFrom(String date) {
@@ -1957,7 +1957,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get overview_scheduledTarget => 'Schemalagt mål';
 
   @override
-  String get overview_differenceVsPlan => 'Ändring mot plan';
+  String get overview_differenceVsPlan => 'Över/under plan';
 
   @override
   String get overview_accountedMinusPlanned => 'Räknad - planerad';
@@ -1970,7 +1970,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get overview_endBalanceFormula =>
-      'Slutsaldo = Startsaldo + Justeringar i period + Ändring mot plan';
+      'Slutsaldo = Startsaldo + Justeringar i period + Över/under plan';
 
   @override
   String get balance_accountedTooltip => 'Loggad tid + ersatt frånvaro';

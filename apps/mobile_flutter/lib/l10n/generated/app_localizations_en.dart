@@ -527,7 +527,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get balance_loggedTime => 'Logged time';
+  String get balance_loggedTime => 'Worked time';
 
   @override
   String get balance_creditedLeave => 'Credited leave';
@@ -540,7 +540,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Planned time (since baseline)';
 
   @override
-  String get balance_differenceVsPlan => 'Change vs plan';
+  String get balance_differenceVsPlan => 'Over/under plan';
 
   @override
   String balance_countingFrom(String date) {
@@ -1074,7 +1074,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home_balanceSubtitle => 'Incl. opening + adjustments';
 
   @override
-  String get home_changeVsPlan => 'Change vs plan';
+  String get home_changeVsPlan => 'Over/under plan';
 
   @override
   String get home_loggedTimeTitle => 'Logged time';
@@ -1957,7 +1957,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get overview_scheduledTarget => 'Scheduled target';
 
   @override
-  String get overview_differenceVsPlan => 'Change vs plan';
+  String get overview_differenceVsPlan => 'Over/under plan';
 
   @override
   String get overview_accountedMinusPlanned => 'Accounted - planned';
@@ -1970,7 +1970,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get overview_endBalanceFormula =>
-      'End balance = Start balance + Adjustments in period + Change vs plan';
+      'End balance = Start balance + Adjustments in period + Over/under plan';
 
   @override
   String get balance_accountedTooltip => 'Logged time + credited leave';

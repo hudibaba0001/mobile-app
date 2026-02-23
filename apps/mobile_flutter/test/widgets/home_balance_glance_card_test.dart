@@ -33,7 +33,7 @@ void main() {
         yearLabel: 'This year',
         title: 'Balance today',
         balanceSubtitle: 'Incl. opening + adjustments',
-        changeVsPlanLabel: 'Change vs plan',
+        changeVsPlanLabel: 'Over/under plan',
         seeMoreLabel: 'See more →',
         localeCode: 'en',
         onSeeMore: () => seeMoreTapped = true,
@@ -47,11 +47,11 @@ void main() {
       // See more link present
       expect(find.text('See more →'), findsOneWidget);
 
-      // Month line: "Feb: Change vs plan  +4h 25m"
-      expect(find.textContaining('Feb: Change vs plan'), findsOneWidget);
+      // Month line: "Feb: Over/under plan  +4h 25m"
+      expect(find.textContaining('Feb: Over/under plan'), findsOneWidget);
 
-      // Year line: "This year: Change vs plan  +6h 0m"
-      expect(find.textContaining('This year: Change vs plan'), findsOneWidget);
+      // Year line: "This year: Over/under plan  +6h 0m"
+      expect(find.textContaining('This year: Over/under plan'), findsOneWidget);
 
       // Does NOT contain verbose legacy strings
       expect(find.textContaining('Calculated from'), findsNothing);
@@ -82,7 +82,7 @@ void main() {
         yearLabel: 'This year',
         title: 'Balance today',
         balanceSubtitle: 'Incl. opening + adjustments',
-        changeVsPlanLabel: 'Change vs plan',
+        changeVsPlanLabel: 'Over/under plan',
         seeMoreLabel: 'See more →',
         localeCode: 'en',
         onSeeMore: () {},
@@ -106,14 +106,14 @@ void main() {
         yearLabel: 'This year (since start)',
         title: 'Balance today',
         balanceSubtitle: 'Incl. opening + adjustments',
-        changeVsPlanLabel: 'Change vs plan',
+        changeVsPlanLabel: 'Over/under plan',
         seeMoreLabel: 'See more →',
         localeCode: 'en',
         onSeeMore: () {},
       )));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('This year (since start): Change vs plan'),
+      expect(find.textContaining('This year (since start): Over/under plan'),
           findsOneWidget);
     });
 
@@ -128,14 +128,14 @@ void main() {
         yearLabel: 'This year',
         title: 'Balance today',
         balanceSubtitle: 'Incl. opening + adjustments',
-        changeVsPlanLabel: 'Change vs plan',
+        changeVsPlanLabel: 'Over/under plan',
         seeMoreLabel: 'See more →',
         localeCode: 'en',
         onSeeMore: () {},
       )));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('This year: Change vs plan'), findsOneWidget);
+      expect(find.textContaining('This year: Over/under plan'), findsOneWidget);
       // Should NOT contain "since start" in the year label
       expect(find.textContaining('This year (since start)'), findsNothing);
     });
@@ -153,7 +153,7 @@ void main() {
         yearLabel: 'This year',
         title: 'Logged time',
         balanceSubtitle: 'Incl. opening + adjustments',
-        changeVsPlanLabel: 'Change vs plan',
+        changeVsPlanLabel: 'Over/under plan',
         seeMoreLabel: 'See more →',
         localeCode: 'en',
         onSeeMore: () {},

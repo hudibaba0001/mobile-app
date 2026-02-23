@@ -330,11 +330,11 @@
       }
     }
   },
-  "balance_loggedTime": "Logged time",
+  "balance_loggedTime": "Worked time",
   "balance_creditedLeave": "Credited leave",
   "balance_accountedTime": "Accounted time",
   "balance_plannedTimeSinceBaseline": "Planned time (since baseline)",
-  "balance_differenceVsPlan": "Change vs plan",
+  "balance_differenceVsPlan": "Over/under plan",
   "balance_countingFrom": "Counting from: {date}",
   "@balance_countingFrom": {
     "placeholders": {
@@ -616,7 +616,7 @@
   "home_fullDay": "Full day",
   "home_timeBalanceTitle": "Balance today",
   "home_balanceSubtitle": "Incl. opening + adjustments",
-  "home_changeVsPlan": "Change vs plan",
+  "home_changeVsPlan": "Over/under plan",
   "home_loggedTimeTitle": "Logged time",
   "home_seeMore": "See more →",
   "home_sinceStart": "since start",
@@ -1177,11 +1177,11 @@
   "overview_loggedPlusCreditedLeave": "Logged + credited leave",
   "overview_plannedTime": "Planned time",
   "overview_scheduledTarget": "Scheduled target",
-  "overview_differenceVsPlan": "Change vs plan",
+  "overview_differenceVsPlan": "Over/under plan",
   "overview_accountedMinusPlanned": "Accounted - planned",
   "overview_balanceAfterPeriod": "Balance at end of period",
   "overview_startPlusAdjPlusDiff": "Start + adjustments + change",
-  "overview_endBalanceFormula": "End balance = Start balance + Adjustments in period + Change vs plan",
+  "overview_endBalanceFormula": "End balance = Start balance + Adjustments in period + Over/under plan",
   "balance_accountedTooltip": "Logged time + credited leave",
   "location_fullAddress": "Full address",
   "entry_logTravelEntry": "Log Travel Entry",

@@ -194,14 +194,7 @@ class MonthlyStatusCard extends StatelessWidget {
                     AppTypography.caption(theme.colorScheme.onSurfaceVariant),
               ),
             ),
-          if (adjustmentMinutes != 0)
-            _buildInfoRow(context, l10n.balance_adjustments_this_month,
-                adjustmentMinutes, localeCode,
-                isBold: false, isSubtle: false),
           const SizedBox(height: AppSpacing.md),
-          _buildInfoRow(context, l10n.balance_fullMonthTargetValue(''),
-              fullTargetMinutes, localeCode,
-              isSubtle: true),
           _buildCollapsibleDetails(
             context,
             l10n,
@@ -235,7 +228,8 @@ class MonthlyStatusCard extends StatelessWidget {
 
   Widget _buildInfoRow(
       BuildContext context, String label, int minutes, String localeCode,
-      {bool isBold = false, bool isCredit = false, bool isSubtle = false}) {
+      {bool isBold = false, bool isCredit = false, bool isSubtle = false,
+      bool isSigned = false}) {
     final theme = Theme.of(context);
     Color textColor = theme.colorScheme.onSurface;
     if (isSubtle) textColor = theme.colorScheme.onSurfaceVariant;
@@ -257,7 +251,11 @@ class MonthlyStatusCard extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           Text(
-            formatMinutes(minutes, localeCode: localeCode, padMinutes: true),
+            isSigned
+                ? formatSignedMinutes(minutes,
+                    localeCode: localeCode, showPlusForZero: true)
+                : formatMinutes(minutes,
+                    localeCode: localeCode, padMinutes: true),
             style: AppTypography.body(textColor).copyWith(
               fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
               fontSize: isSubtle ? 13 : 15,
@@ -271,7 +269,8 @@ class MonthlyStatusCard extends StatelessWidget {
   Widget _buildCollapsibleDetails(
       BuildContext context, AppLocalizations l10n, String localeCode,
       {required bool travelEnabled}) {
-    // Only show if we have adjustments to explain or we want to show Travel status
+    if (travelEnabled) return const SizedBox.shrink();
+
     return ExpansionTile(
       title: Text(l10n.balance_details,
           style: AppTypography.body(Theme.of(context).colorScheme.primary)),
@@ -279,9 +278,8 @@ class MonthlyStatusCard extends StatelessWidget {
       childrenPadding: const EdgeInsets.only(bottom: AppSpacing.md),
       expandedCrossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!travelEnabled)
-          _buildInfoRow(context, l10n.balance_travelExcluded, 0, localeCode,
-              isSubtle: true),
+        _buildInfoRow(context, l10n.balance_travelExcluded, 0, localeCode,
+            isSubtle: true),
       ],
     );
   }
@@ -321,8 +319,6 @@ class YearlyBalanceCard extends StatelessWidget {
     final accountedMinutes = workedMinutes + (creditMinutes ?? 0);
     final targetForVariance = targetMinutesToDate ?? fullTargetMinutes;
     final varianceMinutes = accountedMinutes - targetForVariance;
-    final netBalanceToday =
-        varianceMinutes + openingBalanceMinutes + adjustmentMinutes;
     final isOverTarget = varianceMinutes >= 0;
 
     final positiveColor =
@@ -351,7 +347,7 @@ class YearlyBalanceCard extends StatelessWidget {
               ),
               if (trackingStartDate != null &&
                   trackingStartDate!.year == year &&
-                  trackingStartDate!.month != DateTime.now().month)
+                  trackingStartDate!.isAfter(DateTime(year, 1, 1)))
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -413,18 +409,10 @@ class YearlyBalanceCard extends StatelessWidget {
                     AppTypography.caption(theme.colorScheme.onSurfaceVariant),
               ),
             ),
-          const SizedBox(height: AppSpacing.md),
-          _buildInfoRow(context, l10n.balance_fullYearTargetValue(''),
-              fullTargetMinutes, localeCode,
-              isSubtle: true),
           if (adjustmentMinutes != 0)
             _buildInfoRow(context, l10n.balance_adjustments_this_year,
                 adjustmentMinutes, localeCode,
-                isBold: false, isSubtle: false),
-          const Divider(height: 16),
-          _buildInfoRow(context, l10n.balance_today_includes_offsets,
-              netBalanceToday, localeCode,
-              isBold: true),
+                isBold: false, isSubtle: false, isSigned: true),
           _buildCollapsibleDetails(
             context,
             l10n,
@@ -459,7 +447,8 @@ class YearlyBalanceCard extends StatelessWidget {
 
   Widget _buildInfoRow(
       BuildContext context, String label, int minutes, String localeCode,
-      {bool isBold = false, bool isCredit = false, bool isSubtle = false}) {
+      {bool isBold = false, bool isCredit = false, bool isSubtle = false,
+      bool isSigned = false}) {
     final theme = Theme.of(context);
     Color textColor = theme.colorScheme.onSurface;
     if (isSubtle) textColor = theme.colorScheme.onSurfaceVariant;
@@ -481,7 +470,11 @@ class YearlyBalanceCard extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           Text(
-            formatMinutes(minutes, localeCode: localeCode, padMinutes: true),
+            isSigned
+                ? formatSignedMinutes(minutes,
+                    localeCode: localeCode, showPlusForZero: true)
+                : formatMinutes(minutes,
+                    localeCode: localeCode, padMinutes: true),
             style: AppTypography.body(textColor).copyWith(
               fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
               fontSize: isSubtle ? 13 : 15,
@@ -495,13 +488,14 @@ class YearlyBalanceCard extends StatelessWidget {
   Widget _buildCollapsibleDetails(
       BuildContext context, AppLocalizations l10n, String localeCode,
       {required bool travelEnabled, required int openingBalanceMinutes}) {
-    // Only show if we have something to explain
     final hasDetails = !travelEnabled || openingBalanceMinutes != 0;
     if (!hasDetails) return const SizedBox.shrink();
 
+    final theme = Theme.of(context);
+
     return ExpansionTile(
       title: Text(l10n.balance_details,
-          style: AppTypography.body(Theme.of(context).colorScheme.primary)),
+          style: AppTypography.body(theme.colorScheme.primary)),
       tilePadding: EdgeInsets.zero,
       childrenPadding: const EdgeInsets.only(bottom: AppSpacing.md),
       expandedCrossAxisAlignment: CrossAxisAlignment.start,
@@ -509,19 +503,26 @@ class YearlyBalanceCard extends StatelessWidget {
         if (!travelEnabled)
           _buildInfoRow(context, l10n.balance_travelExcluded, 0, localeCode,
               isSubtle: true),
-        if (openingBalanceMinutes != 0)
+        if (openingBalanceMinutes != 0) ...[
           _buildInfoRow(
             context,
-            l10n.balance_includesOpening(
-                formatSignedMinutes(openingBalanceMinutes,
-                    localeCode: localeCode, showPlusForZero: true),
-                trackingStartDate != null
-                    ? DateFormat('d MMM yyyy').format(trackingStartDate!)
-                    : l10n.common_unknown),
+            l10n.balance_startingBalance,
             openingBalanceMinutes,
             localeCode,
             isSubtle: true,
+            isSigned: true,
           ),
+          if (trackingStartDate != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4.0),
+              child: Text(
+                l10n.balance_countingFrom(
+                    DateFormat('d MMM yyyy').format(trackingStartDate!)),
+                style:
+                    AppTypography.caption(theme.colorScheme.onSurfaceVariant),
+              ),
+            ),
+        ],
       ],
     );
   }

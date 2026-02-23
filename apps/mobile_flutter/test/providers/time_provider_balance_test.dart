@@ -1,6 +1,7 @@
 // ignore_for_file: dead_code, unused_local_variable
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:myapp/models/entry.dart';
 import 'package:myapp/utils/target_hours_calculator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +15,9 @@ void main() {
 
   // Run tracking start date tests
   trackingStartDateTests();
+
+  // Run travel exclusion regression tests
+  travelExclusionTests();
 
   group('TimeProvider Balance Calculations - Pure Logic', () {
     // These tests use TargetHoursCalculator directly (no SharedPreferences dependency)
@@ -287,6 +291,93 @@ class _MockEntry {
   final int minutes;
 
   _MockEntry(this.date, this.minutes);
+}
+
+/// Regression tests: balance totals must use workDuration, not totalDuration
+void travelExclusionTests() {
+  group('Travel Exclusion from Balance Totals', () {
+    test('Work-only entry: workDuration equals totalDuration', () {
+      final entry = Entry(
+        userId: 'test',
+        type: EntryType.work,
+        date: DateTime(2026, 2, 10),
+        shifts: [
+          Shift(
+            start: DateTime(2026, 2, 10, 8, 0),
+            end: DateTime(2026, 2, 10, 16, 30),
+            unpaidBreakMinutes: 30,
+          ),
+        ],
+      );
+
+      // Work entry: both durations should match (8h worked)
+      expect(entry.workDuration.inMinutes, equals(480));
+      expect(entry.totalDuration.inMinutes, equals(480));
+    });
+
+    test('Travel-only entry: workDuration is zero', () {
+      final entry = Entry(
+        userId: 'test',
+        type: EntryType.travel,
+        date: DateTime(2026, 2, 10),
+        from: 'Stockholm',
+        to: 'Gothenburg',
+        travelMinutes: 180,
+      );
+
+      // Travel entry: workDuration must be 0, totalDuration includes travel
+      expect(entry.workDuration.inMinutes, equals(0));
+      expect(entry.totalDuration.inMinutes, equals(180));
+    });
+
+    test('Mixed entries: summing workDuration excludes travel', () {
+      final entries = [
+        Entry(
+          userId: 'test',
+          type: EntryType.work,
+          date: DateTime(2026, 2, 10),
+          shifts: [
+            Shift(
+              start: DateTime(2026, 2, 10, 8, 0),
+              end: DateTime(2026, 2, 10, 16, 0),
+            ),
+          ],
+        ),
+        Entry(
+          userId: 'test',
+          type: EntryType.travel,
+          date: DateTime(2026, 2, 10),
+          from: 'A',
+          to: 'B',
+          travelMinutes: 120,
+        ),
+        Entry(
+          userId: 'test',
+          type: EntryType.work,
+          date: DateTime(2026, 2, 11),
+          shifts: [
+            Shift(
+              start: DateTime(2026, 2, 11, 9, 0),
+              end: DateTime(2026, 2, 11, 17, 0),
+            ),
+          ],
+        ),
+      ];
+
+      // Using workDuration (what TimeProvider now does): only work entries count
+      final workTotal =
+          entries.fold<int>(0, (sum, e) => sum + e.workDuration.inMinutes);
+      expect(workTotal, equals(960)); // 480 + 0 + 480
+
+      // Using totalDuration (old bug): travel would inflate the total
+      final totalIncludingTravel =
+          entries.fold<int>(0, (sum, e) => sum + e.totalDuration.inMinutes);
+      expect(totalIncludingTravel, equals(1080)); // 480 + 120 + 480
+
+      // The difference is exactly the travel minutes
+      expect(totalIncludingTravel - workTotal, equals(120));
+    });
+  });
 }
 
 void trackingStartDateTests() {

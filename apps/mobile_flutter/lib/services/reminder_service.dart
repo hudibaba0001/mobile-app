@@ -87,8 +87,6 @@ class ReminderService {
         if (androidGranted == false) {
           granted = false;
         }
-        // Request exact alarm permission for Android 12+
-        await android.requestExactAlarmsPermission();
       }
 
       final ios = _notifications.resolvePlatformSpecificImplementation<
@@ -220,7 +218,7 @@ class ReminderService {
         message,
         scheduled,
         details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
