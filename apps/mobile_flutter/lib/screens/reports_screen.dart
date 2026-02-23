@@ -12,8 +12,10 @@ import '../widgets/standard_app_bar.dart';
 import '../widgets/export_dialog.dart';
 import '../widgets/export_share_dialog.dart';
 import '../services/export_service.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../models/entry.dart';
 import '../services/supabase_auth_service.dart';
+import '../providers/absence_provider.dart';
 import '../providers/entry_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/contract_provider.dart';
@@ -425,9 +427,12 @@ class _ReportsScreenState extends State<ReportsScreen>
       final entries = exportConfig['entries'] as List<Entry>;
       final fileName = exportConfig['fileName'] as String;
       final format = exportConfig['format'] as String? ?? 'excel';
+      final mode = exportConfig['mode'] as String? ?? 'both';
+      final startDate = exportConfig['startDate'] as DateTime?;
+      final endDate = exportConfig['endDate'] as DateTime?;
 
-      // Validate entries
-      if (entries.isEmpty) {
+      // Validate entries (leave mode gets data from AbsenceProvider)
+      if (mode != 'leave' && entries.isEmpty) {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(t.export_noEntries),
@@ -453,19 +458,37 @@ class _ReportsScreenState extends State<ReportsScreen>
         ),
       );
 
-      // Generate file based on format
+      // Generate file based on mode + format
       String filePath;
       try {
-        if (format == 'excel') {
-          filePath = await ExportService.exportEntriesToExcel(
-            entries: entries,
-            fileName: fileName,
-          );
-        } else {
-          filePath = await ExportService.exportEntriesToCSV(
-            entries: entries,
-            fileName: fileName,
-          );
+        switch (mode) {
+          case 'travel':
+            filePath = format == 'excel'
+                ? await ExportService.exportTravelMinimalToExcel(
+                    entries: entries, fileName: fileName, t: t)
+                : await ExportService.exportTravelMinimalToCSV(
+                    entries: entries, fileName: fileName, t: t);
+          case 'leave':
+            final absenceProvider = context.read<AbsenceProvider>();
+            final year = startDate?.year ?? DateTime.now().year;
+            var absences = absenceProvider.absencesForYear(year);
+            if (startDate != null && endDate != null) {
+              absences = absences
+                  .where((a) =>
+                      !a.date.isBefore(startDate) && !a.date.isAfter(endDate))
+                  .toList();
+            }
+            filePath = format == 'excel'
+                ? await ExportService.exportLeaveMinimalToExcel(
+                    absences: absences, fileName: fileName, t: t)
+                : await ExportService.exportLeaveMinimalToCSV(
+                    absences: absences, fileName: fileName, t: t);
+          default: // 'work', 'both'
+            filePath = format == 'excel'
+                ? await ExportService.exportEntriesToExcel(
+                    entries: entries, fileName: fileName, t: t)
+                : await ExportService.exportEntriesToCSV(
+                    entries: entries, fileName: fileName, t: t);
         }
       } catch (e) {
         // Close loading dialog

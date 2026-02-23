@@ -1171,13 +1171,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get entry_editEntry => 'Redigera post';
 
   @override
-  String get entry_saveChanges => 'Save Changes';
+  String get entry_saveChanges => 'Spara ändringar';
 
   @override
   String get entry_calculate => 'Beräkna';
 
   @override
-  String get entry_logTravel => 'Log Travel';
+  String get entry_logTravel => 'Logga resa';
 
   @override
   String get entry_deleteTitle => 'Ta bort post';
@@ -1337,6 +1337,12 @@ class AppLocalizationsSv extends AppLocalizations {
   String get export_bothDesc => 'Exportera alla poster (resa + arbete)';
 
   @override
+  String get export_leaveOnly => 'Enbart frånvaro';
+
+  @override
+  String get export_leaveOnlyDesc => 'Exportera enbart frånvaroposter';
+
+  @override
   String get export_formatTitle => 'Exportformat';
 
   @override
@@ -1381,6 +1387,16 @@ class AppLocalizationsSv extends AppLocalizations {
   @override
   String export_totalHours(String hours) {
     return 'Totalt timmar: $hours';
+  }
+
+  @override
+  String export_totalMinutes(int minutes) {
+    return 'Totalt minuter: $minutes';
+  }
+
+  @override
+  String export_leaveEntriesCount(int count) {
+    return 'Frånvaroposter: $count';
   }
 
   @override
@@ -1538,6 +1554,33 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get auth_signInPrompt => 'Logga in på ditt konto';
+
+  @override
+  String get auth_legalRequired => 'Juridisk godkännande krävs';
+
+  @override
+  String get auth_legalDescription =>
+      'Du måste godkänna våra användarvillkor och integritetspolicy för att fortsätta använda appen.';
+
+  @override
+  String get auth_legalVisitSignup =>
+      'Besök vår registreringssida för att slutföra detta steg.';
+
+  @override
+  String get account_createTitle => 'Skapa konto';
+
+  @override
+  String get account_createOnWeb => 'Skapa ditt konto på webben';
+
+  @override
+  String get account_createDescription =>
+      'För att skapa ett konto, besök vår registreringssida i din webbläsare.';
+
+  @override
+  String get account_alreadyHaveAccount => 'Jag har redan ett konto → Logga in';
+
+  @override
+  String get account_openSignupPage => 'Öppna registreringssidan';
 
   @override
   String get auth_emailLabel => 'E-post';
@@ -3402,4 +3445,165 @@ class AppLocalizationsSv extends AppLocalizations {
   String accountStatus_loadFailed(String error) {
     return 'Kunde inte läsa profilen: $error';
   }
+
+  @override
+  String get exportHeader_type => 'Typ';
+
+  @override
+  String get exportHeader_date => 'Datum';
+
+  @override
+  String get exportHeader_from => 'Från';
+
+  @override
+  String get exportHeader_to => 'Till';
+
+  @override
+  String get exportHeader_travelMinutes => 'Restid (min)';
+
+  @override
+  String get exportHeader_travelDistance => 'Ressträcka (km)';
+
+  @override
+  String get exportHeader_shiftNumber => 'Arbetspass nr';
+
+  @override
+  String get exportHeader_shiftStart => 'Starttid pass';
+
+  @override
+  String get exportHeader_shiftEnd => 'Sluttid pass';
+
+  @override
+  String get exportHeader_spanMinutes => 'Längd inkl rast (min)';
+
+  @override
+  String get exportHeader_unpaidBreakMinutes => 'Obetald rast (min)';
+
+  @override
+  String get exportHeader_workedMinutes => 'Arbetade minuter';
+
+  @override
+  String get exportHeader_workedHours => 'Arbetade timmar';
+
+  @override
+  String get exportHeader_shiftLocation => 'Arbetsplats';
+
+  @override
+  String get exportHeader_shiftNotes => 'Anteckningar pass';
+
+  @override
+  String get exportHeader_entryNotes => 'Anteckningar post';
+
+  @override
+  String get exportHeader_createdAt => 'Skapad datum';
+
+  @override
+  String get exportHeader_updatedAt => 'Uppdaterad tid';
+
+  @override
+  String get exportHeader_holidayWork => 'Helgarbete';
+
+  @override
+  String get exportHeader_holidayName => 'Helgdagens namn';
+
+  @override
+  String get exportHeader_minutes => 'Minuter';
+
+  @override
+  String get exportHeader_notes => 'Anteckningar';
+
+  @override
+  String get exportHeader_paidUnpaid => 'Betald/Obetald';
+
+  @override
+  String get exportSummary_generatedAt => 'Genererad den';
+
+  @override
+  String get exportSummary_trackedWork => 'Spårat arbete';
+
+  @override
+  String get exportSummary_trackedTravel => 'Spårad restid';
+
+  @override
+  String get exportSummary_balanceOffsets => 'Saldohändelser';
+
+  @override
+  String get exportSummary_manualAdjustments => 'Manuella justeringar';
+
+  @override
+  String get exportSummary_contractSettings => 'Kontraktsinställningar';
+
+  @override
+  String get exportSummary_carryOver => 'Fört över från tidigare';
+
+  @override
+  String get exportSummary_manualCorrections =>
+      'Manuella korrigeringar denna period';
+
+  @override
+  String get exportSummary_balanceAtStart => 'Saldo vid periodens början';
+
+  @override
+  String get exportSummary_balanceAfterThis => 'Saldo efter denna period';
+
+  @override
+  String get exportSummary_totalTrackedOnly => 'TOTALT (endast spårat)';
+
+  @override
+  String get exportSummary_paidLeaveCredit => 'Ersatt frånvaro';
+
+  @override
+  String exportSummary_paidLeaveCreditNote(String hours) {
+    return 'Tillgodoräknad frånvaro: ${hours}h (ej arbetat)';
+  }
+
+  @override
+  String exportSummary_totalTrackedExcludes(String sheetName) {
+    return 'TOTALT (endast spårat) exkluderar frånvaro och saldohändelser. Se $sheetName.';
+  }
+
+  @override
+  String get export_leaveSick => 'Sjukfrånvaro';
+
+  @override
+  String get export_leaveVab => 'VAB';
+
+  @override
+  String get export_leavePaidVacation => 'Semester';
+
+  @override
+  String get export_leaveUnpaid => 'Obetald frånvaro';
+
+  @override
+  String get export_leaveUnknown => 'Okänd ledighet';
+
+  @override
+  String get export_paid => 'Betald';
+
+  @override
+  String get export_unpaid => 'Obetald';
+
+  @override
+  String get export_yes => 'Ja';
+
+  @override
+  String get export_no => 'Nej';
+
+  @override
+  String get export_total => 'TOTALT';
+
+  @override
+  String get export_errorEmptyData => 'Genererad exportdata är tom';
+
+  @override
+  String get export_errorUnsupportedFormat => 'Exportformatet stöds inte';
+
+  @override
+  String get export_errorMissingConfig => 'Konfiguration saknas';
+
+  @override
+  String get export_summarySheetName => 'Sammanfattning (enkel)';
+
+  @override
+  String get export_balanceEventsSheetName => 'Saldohändelser';
 }

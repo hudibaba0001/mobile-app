@@ -929,48 +929,7 @@ class _OverviewTabState extends State<OverviewTab> {
     );
   }
 
-  ReportExportLabels _reportExportLabels(AppLocalizations t) {
-    final isSwedish = Localizations.localeOf(context).languageCode == 'sv';
-    final summarySheetName =
-        isSwedish ? 'Sammanfattning (enkel)' : 'Summary (Easy)';
-    final balanceEventsSheetName =
-        isSwedish ? 'Saldohändelser' : 'Balance Events';
-
-    return ReportExportLabels(
-      entriesSheetName: t.reportsExport_entriesSheetName,
-      summarySheetName: summarySheetName,
-      balanceEventsSheetName: balanceEventsSheetName,
-      openingBalanceRow: t.reportsExport_openingBalanceRow,
-      timeAdjustmentRow: t.reportsExport_timeAdjustmentRow,
-      timeAdjustmentsTotalRow: t.reportsExport_timeAdjustmentsTotalRow,
-      periodStartBalanceRow: t.reportsExport_periodStartBalanceRow,
-      periodEndBalanceRow: t.reportsExport_periodEndBalanceRow,
-      metricHeader: isSwedish ? 'Mått' : 'Metric',
-      minutesHeader: isSwedish ? 'Minuter' : 'Minutes',
-      hoursHeader: isSwedish ? 'Timmar' : 'Hours',
-      periodRow: isSwedish ? 'Period' : 'Period',
-      quickReadRow: isSwedish ? 'Snabböversikt' : 'Quick read',
-      totalLoggedTimeRow: isSwedish ? 'Totalt loggad tid' : 'Total logged time',
-      paidLeaveRow: isSwedish ? 'Ersatt frånvaro' : 'Credited leave',
-      accountedTimeRow: isSwedish ? 'Räknad tid' : 'Accounted time',
-      plannedTimeRow: isSwedish ? 'Planerad tid' : 'Planned time',
-      differenceVsPlanRow:
-          isSwedish ? 'Skillnad mot plan' : 'Difference vs plan',
-      balanceAfterPeriodRow: isSwedish
-          ? 'Din saldo efter perioden'
-          : 'Your balance after this period',
-      trackedTotalsNote: isSwedish
-          ? 'TOTAL (tracked only) exkluderar frånvaro och saldohändelser. Se $summarySheetName.'
-          : 'TOTAL (tracked only) excludes Leave and Balance events. See $summarySheetName.',
-      colType: t.reportsExport_colType,
-      colDate: t.reportsExport_colDate,
-      colMinutes: t.reportsExport_colMinutes,
-      colHours: t.reportsExport_colHours,
-      colNote: t.reportsExport_colNote,
-    );
-  }
-
-  Future<void> _exportSummary(
+    Future<void> _exportSummary(
     BuildContext context,
     ReportSummary summary,
     _ExportFormat format,
@@ -978,7 +937,7 @@ class _OverviewTabState extends State<OverviewTab> {
     if (!context.mounted) return;
 
     final t = AppLocalizations.of(context);
-    final labels = _reportExportLabels(t);
+    
     final periodSummary = _buildPeriodSummary(summary);
     final navigator = Navigator.of(context, rootNavigator: true);
     final scaffold = ScaffoldMessenger.of(context);
@@ -1012,7 +971,7 @@ class _OverviewTabState extends State<OverviewTab> {
           periodSummary: periodSummary,
           rangeStart: start,
           rangeEnd: end,
-          labels: labels,
+          t: t,
           fileName: t.reportsExport_fileName,
           trackingStartDate: trackingStartDate,
           effectiveRangeStart: effectiveStart,
@@ -1025,7 +984,7 @@ class _OverviewTabState extends State<OverviewTab> {
           periodSummary: periodSummary,
           rangeStart: start,
           rangeEnd: end,
-          labels: labels,
+          t: t,
           fileName: t.reportsExport_fileName,
           trackingStartDate: trackingStartDate,
           effectiveRangeStart: effectiveStart,

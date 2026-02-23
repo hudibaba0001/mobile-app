@@ -1,4 +1,4 @@
-﻿{
+{
   "@@locale": "sv",
   "@@last_modified": "2026-01-14",
   "appTitle": "KvikTime",
@@ -118,17 +118,17 @@
   "contract_modeStandardDesc": "Standard saldospårning",
   "balance_title": "Flexsaldo",
   "balance_myTimeBalance": "Mitt flexsaldo ({year})",
-  "balance_thisYear": "I ÅR: {year}",
-  "balance_thisMonth": "DENNA MÅNAD: {month}",
+  "balance_thisYear": "DETTA ÅRET: {year}",
+  "balance_thisMonth": "DENNA MÅNADEN: {month}",
   "balance_hoursWorkedToDate": "Räknade timmar (hittills): {worked} / {target} h",
   "balance_creditedHours": "Tillgodoräknade timmar: {hours} h",
   "balance_statusOver": "Över",
   "balance_statusUnder": "Under",
   "balance_status": "Status: {variance} h ({status})",
   "balance_percentOfTarget": "{percent}% av mål",
-  "balance_yearlyRunningBalance": "LÖPANDE ÅRSBALANS",
+  "balance_yearlyRunningBalance": "ÅRLIGT LÖPENDE SALDO",
   "balance_totalAccumulation": "Total ackumulering:",
-  "balance_inCredit": "Du har flexkredit",
+  "balance_inCredit": "Du har kredit",
   "balance_underTarget": "Under mål",
   "balance_overTarget": "Över mål",
   "balance_yearBalance": "Årsbalans ({year})",
@@ -158,7 +158,7 @@
   "balance_contractBalanceNoDate": "Kontraktssaldo (sedan start)",
   "balance_today_includes_offsets": "Saldo idag (inkl. startsaldo + justeringar)",
   "balance_balanceTodayHeadline": "Saldo idag",
-  "balance_balanceTodaySubline": "Startsaldo {opening} \u2022 Justeringar {adjustments} \u2022 Årets ändring {yearChange}",
+  "balance_balanceTodaySubline": "Startsaldo {opening} • Justeringar {adjustments} • Årets ändring {yearChange}",
   "balance_adjustments_this_month": "Justeringar (denna månad)",
   "balance_adjustments_this_year": "Justeringar (i år)",
   "balance_recent_adjustments": "Senaste justeringar",
@@ -188,10 +188,10 @@
   "adjustment_add": "Lägg till justering",
   "adjustment_edit": "Redigera justering",
   "adjustment_recent": "Senaste justeringar",
-  "adjustment_effectiveDate": "Gäller från",
+  "adjustment_effectiveDate": "Giltighetsdatum",
   "adjustment_amount": "Belopp",
   "adjustment_noteOptional": "Anteckning (valfri)",
-  "adjustment_noteHint": "t.ex. Chefsjustering",
+  "adjustment_noteHint": "t.ex. Chefskorrigering",
   "adjustment_deleteConfirm": "Är du säker på att du vill ta bort denna justering?",
   "adjustment_saveError": "Kunde inte spara: {error}",
   "adjustment_enterAmount": "Ange ett justeringsbelopp",
@@ -272,9 +272,9 @@
   "travel_total": "Total resa",
   "entry_from": "Från",
   "entry_to": "Till",
-  "entry_duration": "Längd",
+  "entry_duration": "Varaktighet",
   "entry_date": "Datum",
-  "entry_notes": "Anteckningar",
+  "entry_notes": "Anteckningar (Valfritt)",
   "entry_shifts": "Pass",
   "entry_addShift": "Lägg till pass",
   "entry_travelLegUpdateNotice": "Första delen uppdaterar befintlig post; ytterligare delar blir nya poster.",
@@ -379,7 +379,9 @@
   "error_shareFile": "Kunde inte dela fil: {error}",
   "entry_saveEntry": "Spara post",
   "entry_editEntry": "Redigera post",
+  "entry_saveChanges": "Spara ändringar",
   "entry_calculate": "Beräkna",
+  "entry_logTravel": "Logga resa",
   "entry_deleteTitle": "Ta bort post",
   "error_selectBothLocations": "Välj både avgångs- och ankomstplats",
   "error_selectWorkLocation": "Välj en arbetsplats",
@@ -430,8 +432,6 @@
   "form_shiftNotesHint": "Lägg till anteckningar för detta skift (t.ex. specifika uppgifter, problem)",
   "form_sameAsDefault": "Samma som standard",
   "form_dayNotes": "Daganteckningar",
-  "export_title": "Exportera data",
-  "export_dateRange": "Datumintervall",
   "export_includeAllData": "Inkludera all data",
   "export_includeAllDataDesc": "Exportera alla poster oavsett datum",
   "export_startDate": "Startdatum",
@@ -445,6 +445,8 @@
   "export_workOnlyDesc": "Exportera endast arbetsskiftsposter",
   "export_both": "Båda",
   "export_bothDesc": "Exportera alla poster (resa + arbete)",
+  "export_leaveOnly": "Enbart frånvaro",
+  "export_leaveOnlyDesc": "Exportera enbart frånvaroposter",
   "export_formatTitle": "Exportformat",
   "export_excelFormat": "Excel (.xlsx)",
   "export_excelDesc": "Professionellt format med formatering",
@@ -455,9 +457,53 @@
   "export_filenameHint": "Ange anpassat filnamn",
   "export_summary": "Exportsammanfattning",
   "export_totalEntries": "Totalt antal poster: {count}",
+  "@export_totalEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "export_travelEntries": "Reseposter: {count}",
+  "@export_travelEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "export_workEntries": "Arbetsposter: {count}",
+  "@export_workEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "export_totalHours": "Totalt timmar: {hours}",
+  "@export_totalHours": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "export_totalMinutes": "Totalt minuter: {minutes}",
+  "@export_totalMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "export_leaveEntriesCount": "Frånvaroposter: {count}",
+  "@export_leaveEntriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "export_button": "Exportera",
   "export_enterFilename": "Ange ett filnamn",
   "export_noEntriesInRange": "Inga poster hittades för valt datumintervall",
@@ -483,10 +529,6 @@
   "adjustment_update": "Uppdatera",
   "adjustment_failedToSave": "Kunde inte spara: {error}",
   "adjustment_failedToDelete": "Kunde inte ta bort: {error}",
-  "adjustment_effectiveDate": "Giltighetsdatum",
-  "adjustment_amount": "Belopp",
-  "adjustment_noteHint": "t.ex. Chefskorrigering",
-  "adjustment_enterAmount": "Ange ett justeringsbelopp",
   "profile_title": "Profil",
   "profile_notSignedIn": "Inte inloggad",
   "profile_editName": "Redigera namn",
@@ -513,7 +555,6 @@
   "auth_signInButton": "Logga in",
   "auth_noAccount": "Har du inget konto?",
   "auth_signUpLink": "Skapa konto",
-  "balance_myTimeBalance": "Mitt flexsaldo ({year})",
   "password_resetTitle": "Återställ lösenord",
   "password_forgotTitle": "Glömt ditt lösenord?",
   "password_forgotDescription": "Ange din e-postadress så skickar vi en länk för att återställa ditt lösenord.",
@@ -669,7 +710,6 @@
   "trends_total": "totalt",
   "trends_work": "arbete",
   "trends_travel": "resa",
-  "leave_summary": "Ledighetssammanfattning {year}",
   "leave_recentLeaves": "Senaste ledigheter",
   "leave_fullDay": "Heldag",
   "leave_totalLeaveDays": "Totalt antal ledighetsdagar",
@@ -686,24 +726,11 @@
   "form_travelRoute": "Resväg",
   "form_workLocation": "Arbetsplats",
   "form_workDetails": "Arbetsdetaljer",
-  "nav_home": "Hem",
   "nav_history": "Historik",
-  "nav_reports": "Rapporter",
-  "nav_settings": "Inställningar",
   "balance_thisWeek": "DENNA VECKAN: {range}",
-  "balance_thisMonth": "DENNA MÅNADEN: {month}",
-  "balance_thisYear": "DETTA ÅRET: {year}",
   "balance_hoursWorked": "Räknade timmar (hittills): {worked} / {target} h",
-  "balance_creditedHours": "Tillgodoräknade timmar: {hours} h",
-  "balance_status": "Status: {variance} h ({status})",
   "balance_over": "Över",
   "balance_under": "Under",
-  "balance_percentOfTarget": "{percent}% av mål",
-  "balance_yearlyRunningBalance": "ÅRLIGT LÖPENDE SALDO",
-  "balance_totalAccumulation": "Total ackumulering:",
-  "balance_inCredit": "Du har kredit",
-  "balance_underTarget": "Under mål",
-  "balance_overTarget": "Över mål",
   "balance_timeDebt": "Under mål",
   "balance_includesOpeningBalance": "Inkluderar startsaldo ({balance}) per {date}",
   "balance_includesOpeningBalanceShort": "Inkluderar startsaldo ({balance})",
@@ -825,19 +852,14 @@
   "settings_switchToDark": "Växla till mörkt tema",
   "settings_darkModeEnabled": "Mörkt läge aktiverat",
   "settings_lightModeEnabled": "Ljust läge aktiverat",
-  "entry_date": "Datum",
   "entry_endTime": "Sluttid",
-  "entry_from": "Från",
   "entry_fromHint": "Ange avgångsplats",
-  "entry_to": "Till",
   "entry_toHint": "Ange ankomstplats",
   "entry_location": "Plats",
   "entry_locationHint": "Ange arbetsplats",
-  "entry_duration": "Varaktighet",
   "entry_hours": "Timmar",
   "entry_minutes": "Minuter",
   "entry_shift": "Skift",
-  "entry_notes": "Anteckningar (Valfritt)",
   "entry_notesHint": "Lägg till ytterligare detaljer...",
   "entry_calculating": "Beräknar...",
   "entry_calculateTravelTime": "Beräkna restid",
@@ -879,15 +901,10 @@
   "multiSegment_pleaseEnterArrival": "Vänligen ange ankomstplats",
   "multiSegment_pleaseEnterTravelTime": "Vänligen ange restid",
   "entryDetail_workSession": "Arbetspass",
-  "dateRange_startDate": "Startdatum",
-  "dateRange_endDate": "Slutdatum",
   "dateRange_quickSelect": "Snabbval",
   "dateRange_yesterday": "Igår",
   "dateRange_thisWeek": "Denna vecka",
   "dateRange_lastWeek": "Förra veckan",
-  "dateRange_thisMonth": "Denna månad",
-  "dateRange_lastMonth": "Förra månaden",
-  "dateRange_last30Days": "Senaste 30 dagarna",
   "home_workSession": "Arbetspass",
   "home_paidLeave": "Ersatt frånvaro",
   "home_sickLeave": "Sjukledighet",
@@ -922,7 +939,6 @@
       }
     }
   },
-  "common_close": "Stäng",
   "common_swapLocations": "Byt platser",
   "form_departureLocation": "Avgångsplats",
   "form_arrivalLocation": "Ankomstplats",
@@ -960,11 +976,9 @@
     }
   },
   "travel_notesHint": "Lägg till detaljer om din resa...",
-  "form_span": "Spann",
-  "form_break": "Rast",
-  "common_user": "Anv\u00e4ndare",
-  "settings_timeBalanceTracking": "Flexsaldosp\u00e5rning",
-  "settings_timeBalanceTrackingDesc": "St\u00e4ng av om du bara vill logga timmar utan att j\u00e4mf\u00f6ra mot ett m\u00e5l.",
+  "common_user": "Användare",
+  "settings_timeBalanceTracking": "Flexsaldospårning",
+  "settings_timeBalanceTrackingDesc": "Stäng av om du bara vill logga timmar utan att jämföra mot ett mål.",
   "leave_daysDecimal": "{days} dagar",
   "@leave_daysDecimal": {
     "placeholders": {
@@ -974,10 +988,10 @@
     }
   },
   "trends_errorLoadingData": "Fel vid laddning av trenddata",
-  "trends_tryRefreshingPage": "F\u00f6rs\u00f6k uppdatera sidan",
-  "trends_target": "M\u00e5l",
-  "trends_noHoursDataAvailable": "Ingen timdata tillg\u00e4nglig",
-  "network_offlinePending": "Offline - {count} \u00e4ndringar v\u00e4ntar",
+  "trends_tryRefreshingPage": "Försök uppdatera sidan",
+  "trends_target": "Mål",
+  "trends_noHoursDataAvailable": "Ingen timdata tillgänglig",
+  "network_offlinePending": "Offline - {count} ändringar väntar",
   "@network_offlinePending": {
     "placeholders": {
       "count": {
@@ -985,9 +999,9 @@
       }
     }
   },
-  "network_youAreOffline": "Du \u00e4r offline",
-  "network_syncingChanges": "Synkroniserar \u00e4ndringar...",
-  "network_readyToSync": "{count} \u00e4ndringar redo att synkroniseras",
+  "network_youAreOffline": "Du är offline",
+  "network_syncingChanges": "Synkroniserar ändringar...",
+  "network_readyToSync": "{count} ändringar redo att synkroniseras",
   "@network_readyToSync": {
     "placeholders": {
       "count": {
@@ -997,7 +1011,7 @@
   },
   "network_syncNow": "Synka nu",
   "network_offlineTooltip": "Offline",
-  "network_pendingTooltip": "{count} v\u00e4ntar",
+  "network_pendingTooltip": "{count} väntar",
   "@network_pendingTooltip": {
     "placeholders": {
       "count": {
@@ -1005,9 +1019,9 @@
       }
     }
   },
-  "network_offlineSnackbar": "Du \u00e4r offline. \u00c4ndringar synkas n\u00e4r du \u00e4r ansluten.",
+  "network_offlineSnackbar": "Du är offline. Ändringar synkas när du är ansluten.",
   "network_backOnline": "Tillbaka online",
-  "network_syncedChanges": "Synkade {count} \u00e4ndringar",
+  "network_syncedChanges": "Synkade {count} ändringar",
   "@network_syncedChanges": {
     "placeholders": {
       "count": {
@@ -1023,15 +1037,15 @@
       }
     }
   },
-  "network_networkErrorTryAgain": "N\u00e4tverksfel. F\u00f6rs\u00f6k igen.",
+  "network_networkErrorTryAgain": "Nätverksfel. Försök igen.",
   "paywall_notAuthenticated": "Inte inloggad",
   "paywall_title": "KvikTime Premium",
-  "paywall_unlockAllFeatures": "L\u00e5s upp alla KvikTime-funktioner",
-  "paywall_subscribeWithGooglePlay": "Prenumerera med Google Play Billing f\u00f6r att forts\u00e4tta.",
+  "paywall_unlockAllFeatures": "Lås upp alla KvikTime-funktioner",
+  "paywall_subscribeWithGooglePlay": "Prenumerera med Google Play Billing för att fortsätta.",
   "paywall_featureFullHistoryReports": "Full historik och rapporter",
   "paywall_featureCloudSync": "Molnsynk mellan enheter",
-  "paywall_featureSecureSubscription": "S\u00e4ker prenumerationsstatus",
-  "paywall_currentEntitlement": "Aktuell beh\u00f6righet: {status}",
+  "paywall_featureSecureSubscription": "Säker prenumerationsstatus",
+  "paywall_currentEntitlement": "Aktuell behörighet: {status}",
   "@paywall_currentEntitlement": {
     "placeholders": {
       "status": {
@@ -1039,7 +1053,7 @@
       }
     }
   },
-  "paywall_subscriptionUnavailable": "Prenumeration ej tillg\u00e4nglig",
+  "paywall_subscriptionUnavailable": "Prenumeration ej tillgänglig",
   "paywall_subscribe": "Prenumerera {price}",
   "@paywall_subscribe": {
     "placeholders": {
@@ -1048,11 +1062,11 @@
       }
     }
   },
-  "paywall_restorePurchase": "\u00c5terst\u00e4ll k\u00f6p",
+  "paywall_restorePurchase": "Återställ köp",
   "paywall_manageSubscriptionGooglePlay": "Hantera prenumeration i Google Play",
   "paywall_signOut": "Logga ut",
-  "location_addNewLocation": "L\u00e4gg till ny plats",
-  "location_saveFrequentPlace": "Spara en plats du bes\u00f6ker ofta",
+  "location_addNewLocation": "Lägg till ny plats",
+  "location_saveFrequentPlace": "Spara en plats du besöker ofta",
   "location_details": "Platsdetaljer",
   "location_name": "Platsnamn",
   "location_nameHint": "t.ex. Kontor, Hem, Kundplats",
@@ -1062,21 +1076,21 @@
   "location_addedSuccessfully": "Plats tillagd",
   "location_kpiTotal": "Totalt",
   "location_kpiFavorites": "Favoriter",
-  "location_kpiTotalUses": "Totalt antal anv\u00e4ndningar",
-  "location_searchLocations": "S\u00f6k platser...",
-  "location_noLocationsYet": "Inga platser \u00e4nnu",
-  "location_trySearchOrAdd": "Prova att s\u00f6ka eller l\u00e4gga till en ny plats",
-  "location_noMatchesFound": "Inga tr\u00e4ffar",
-  "location_tryDifferentSearch": "Prova ett annat s\u00f6kord",
-  "location_noSavedYet": "Inga sparade platser \u00e4nnu",
-  "location_addFirstToGetStarted": "L\u00e4gg till din f\u00f6rsta plats f\u00f6r att komma ig\u00e5ng",
-  "location_removeFromFavorites": "Ta bort fr\u00e5n favoriter",
-  "location_addToFavorites": "L\u00e4gg till i favoriter",
+  "location_kpiTotalUses": "Totalt antal användningar",
+  "location_searchLocations": "Sök platser...",
+  "location_noLocationsYet": "Inga platser ännu",
+  "location_trySearchOrAdd": "Prova att söka eller lägga till en ny plats",
+  "location_noMatchesFound": "Inga träffar",
+  "location_tryDifferentSearch": "Prova ett annat sökord",
+  "location_noSavedYet": "Inga sparade platser ännu",
+  "location_addFirstToGetStarted": "Lägg till din första plats för att komma igång",
+  "location_removeFromFavorites": "Ta bort från favoriter",
+  "location_addToFavorites": "Lägg till i favoriter",
   "location_savedLocations": "Sparade platser",
-  "location_addressSuggestions": "Adressf\u00f6rslag",
-  "location_searchingAddresses": "S\u00f6ker adresser...",
+  "location_addressSuggestions": "Adressförslag",
+  "location_searchingAddresses": "Söker adresser...",
   "location_recentAddresses": "Senaste adresser",
-  "location_startTypingToAdd": "B\u00f6rja skriva f\u00f6r att l\u00e4gga till en ny plats",
+  "location_startTypingToAdd": "Börja skriva för att lägga till en ny plats",
   "location_recentLocations": "Senaste platser",
   "location_saveAsNew": "Spara \"{address}\" som ny plats",
   "@location_saveAsNew": {
@@ -1088,7 +1102,7 @@
   },
   "location_favorites": "Favoriter",
   "location_recent": "Senaste",
-  "edit_durationAutofilledFromHistory": "Varaktighet autofylld fr\u00e5n historik ({minutes} min)",
+  "edit_durationAutofilledFromHistory": "Varaktighet autofylld från historik ({minutes} min)",
   "@edit_durationAutofilledFromHistory": {
     "placeholders": {
       "minutes": {
@@ -1097,12 +1111,12 @@
     }
   },
   "edit_quickDuration": "Snabb varaktighet",
-  "edit_copyYesterday": "Kopiera ig\u00e5r",
-  "edit_noWorkEntryYesterday": "Ingen arbetspost hittades f\u00f6r ig\u00e5r",
-  "edit_copiedYesterdayShiftTimes": "Kopierade g\u00e5rdagens skifttider",
-  "edit_swapFromTo": "Byt Fr\u00e5n/Till",
-  "home_trackJourneyDetails": "Sp\u00e5ra dina resedetaljer",
-  "home_entryWillBeLoggedFor": "Posten loggas f\u00f6r {date}",
+  "edit_copyYesterday": "Kopiera igår",
+  "edit_noWorkEntryYesterday": "Ingen arbetspost hittades för igår",
+  "edit_copiedYesterdayShiftTimes": "Kopierade gårdagens skifttider",
+  "edit_swapFromTo": "Byt Från/Till",
+  "home_trackJourneyDetails": "Spåra dina resedetaljer",
+  "home_entryWillBeLoggedFor": "Posten loggas för {date}",
   "@home_entryWillBeLoggedFor": {
     "placeholders": {
       "date": {
@@ -1113,37 +1127,37 @@
   "home_travelEntryLoggedSuccess": "Resepost loggad!",
   "home_workEntriesLoggedSuccess": "Arbetsposter loggade!",
   "home_workEntryLoggedSuccess": "Arbetspost loggad!",
-  "nav_navigateAwayTitle": "L\u00e4mna sidan?",
-  "nav_leavePageConfirm": "Vill du verkligen l\u00e4mna den h\u00e4r sidan?",
-  "nav_continue": "Forts\u00e4tt",
+  "nav_navigateAwayTitle": "Lämna sidan?",
+  "nav_leavePageConfirm": "Vill du verkligen lämna den här sidan?",
+  "nav_continue": "Fortsätt",
   "nav_travelEntries": "Reseposter",
   "nav_locations": "Platser",
   "nav_analyticsDashboard": "Analysdashboard",
   "nav_adminOnly": "Endast admin",
-  "location_enterNameAndAddress": "Ange b\u00e5de namn och adress.",
+  "location_enterNameAndAddress": "Ange både namn och adress.",
   "location_deletedSuccessfully": "Plats borttagen!",
-  "analytics_accessDeniedAdminRequired": "\u00c5tkomst nekad. Admin-beh\u00f6righet kr\u00e4vs.",
-  "analytics_accessDeniedRedirecting": "\u00c5tkomst nekad. Omdirigerar...",
+  "analytics_accessDeniedAdminRequired": "Åtkomst nekad. Admin-behörighet krävs.",
+  "analytics_accessDeniedRedirecting": "Åtkomst nekad. Omdirigerar...",
   "analytics_dashboardTitle": "Analysdashboard",
   "analytics_adminBadge": "ADMIN",
   "analytics_errorLoadingDashboard": "Fel vid laddning av dashboard",
-  "analytics_noDataAvailable": "Ingen data tillg\u00e4nglig",
+  "analytics_noDataAvailable": "Ingen data tillgänglig",
   "analytics_kpiSectionTitle": "Nyckeltal",
   "analytics_kpiTotalHoursWeek": "Totalt antal timmar (denna vecka)",
-  "analytics_kpiActiveUsers": "Aktiva anv\u00e4ndare",
-  "analytics_kpiOvertimeBalance": "\u00d6vertidssaldo",
+  "analytics_kpiActiveUsers": "Aktiva användare",
+  "analytics_kpiOvertimeBalance": "Övertidssaldo",
   "analytics_kpiAvgDailyHours": "Genomsnittliga dagliga timmar",
   "analytics_chartsSectionTitle": "Diagram och trender",
   "analytics_dailyTrends7d": "Dagliga trender (7 dagar)",
-  "analytics_userDistribution": "Anv\u00e4ndarf\u00f6rdelning",
-  "adminUsers_title": "Anv\u00e4ndarhantering",
-  "adminUsers_searchHint": "S\u00f6k anv\u00e4ndare...",
+  "analytics_userDistribution": "Användarfördelning",
+  "adminUsers_title": "Användarhantering",
+  "adminUsers_searchHint": "Sök användare...",
   "adminUsers_filterByRole": "Filtrera efter roll",
   "adminUsers_roleAll": "Alla",
   "adminUsers_roleAdmin": "Admin",
-  "adminUsers_roleUser": "Anv\u00e4ndare",
-  "adminUsers_failedLoadUsers": "Kunde inte ladda anv\u00e4ndare",
-  "adminUsers_noUsersFoundQuery": "Inga anv\u00e4ndare hittades som matchar \"{query}\"",
+  "adminUsers_roleUser": "Användare",
+  "adminUsers_failedLoadUsers": "Kunde inte ladda användare",
+  "adminUsers_noUsersFoundQuery": "Inga användare hittades som matchar \"{query}\"",
   "@adminUsers_noUsersFoundQuery": {
     "placeholders": {
       "query": {
@@ -1151,13 +1165,13 @@
       }
     }
   },
-  "adminUsers_noUsersFound": "Inga anv\u00e4ndare hittades",
+  "adminUsers_noUsersFound": "Inga användare hittades",
   "adminUsers_noName": "Inget namn",
   "adminUsers_noEmail": "Ingen e-post",
   "adminUsers_disable": "Inaktivera",
   "adminUsers_enable": "Aktivera",
   "adminUsers_tooltipDetails": "Detaljer",
-  "adminUsers_userDetails": "Anv\u00e4ndardetaljer",
+  "adminUsers_userDetails": "Användardetaljer",
   "adminUsers_labelUid": "UID",
   "adminUsers_labelEmail": "E-post",
   "adminUsers_labelName": "Namn",
@@ -1167,8 +1181,8 @@
   "adminUsers_none": "Ingen",
   "adminUsers_statusDisabled": "Inaktiverad",
   "adminUsers_statusActive": "Aktiv",
-  "adminUsers_disableUserTitle": "Inaktivera anv\u00e4ndare",
-  "adminUsers_disableUserConfirm": "\u00c4r du s\u00e4ker p\u00e5 att du vill inaktivera {name}?",
+  "adminUsers_disableUserTitle": "Inaktivera användare",
+  "adminUsers_disableUserConfirm": "Är du säker på att du vill inaktivera {name}?",
   "@adminUsers_disableUserConfirm": {
     "placeholders": {
       "name": {
@@ -1176,10 +1190,10 @@
       }
     }
   },
-  "adminUsers_thisUser": "den h\u00e4r anv\u00e4ndaren",
-  "adminUsers_userDisabledSuccess": "Anv\u00e4ndaren inaktiverades",
-  "adminUsers_enableUserTitle": "Aktivera anv\u00e4ndare",
-  "adminUsers_enableUserConfirm": "\u00c4r du s\u00e4ker p\u00e5 att du vill aktivera {name}?",
+  "adminUsers_thisUser": "den här användaren",
+  "adminUsers_userDisabledSuccess": "Användaren inaktiverades",
+  "adminUsers_enableUserTitle": "Aktivera användare",
+  "adminUsers_enableUserConfirm": "Är du säker på att du vill aktivera {name}?",
   "@adminUsers_enableUserConfirm": {
     "placeholders": {
       "name": {
@@ -1187,13 +1201,13 @@
       }
     }
   },
-  "adminUsers_userEnabledSuccess": "Anv\u00e4ndaren aktiverades",
-  "adminUsers_confirmPermanentDeletion": "Bekr\u00e4fta permanent borttagning",
-  "adminUsers_deleteWarning": "Varning: Denna \u00e5tg\u00e4rd kan inte \u00e5ngras. All anv\u00e4ndardata raderas permanent.",
-  "adminUsers_typeDeleteToConfirm": "Skriv DELETE f\u00f6r att bekr\u00e4fta:",
-  "adminUsers_typeDeleteHere": "Skriv DELETE h\u00e4r",
-  "adminUsers_userDeletedSuccess": "Anv\u00e4ndaren togs bort",
-  "adminUsers_failedDeleteUser": "Kunde inte ta bort anv\u00e4ndaren: {error}",
+  "adminUsers_userEnabledSuccess": "Användaren aktiverades",
+  "adminUsers_confirmPermanentDeletion": "Bekräfta permanent borttagning",
+  "adminUsers_deleteWarning": "Varning: Denna åtgärd kan inte ångras. All användardata raderas permanent.",
+  "adminUsers_typeDeleteToConfirm": "Skriv DELETE för att bekräfta:",
+  "adminUsers_typeDeleteHere": "Skriv DELETE här",
+  "adminUsers_userDeletedSuccess": "Användaren togs bort",
+  "adminUsers_failedDeleteUser": "Kunde inte ta bort användaren: {error}",
   "@adminUsers_failedDeleteUser": {
     "placeholders": {
       "error": {
@@ -1201,7 +1215,7 @@
       }
     }
   },
-  "auth_newToKvikTime": "Ny p\u00e5 KvikTime?",
+  "auth_newToKvikTime": "Ny på KvikTime?",
   "auth_createAccount": "Skapa konto",
   "auth_redirectNote": "Nya användare omdirigeras till vår kontoregistreringssida",
   "auth_signInInvalidCredentials": "Fel e-post eller lösenord. Kontrollera dina uppgifter.",
@@ -1232,9 +1246,9 @@
   "reportsCustom_periodToday": "Idag",
   "reportsCustom_periodThisWeek": "Denna vecka",
   "reportsCustom_periodLast7Days": "Senaste 7 dagar",
-  "reportsCustom_periodThisMonth": "Denna m\u00e5nad",
-  "reportsCustom_periodLastMonth": "F\u00f6rra m\u00e5naden",
-  "reportsCustom_periodThisYear": "I \u00e5r",
+  "reportsCustom_periodThisMonth": "Denna månad",
+  "reportsCustom_periodLastMonth": "Förra månaden",
+  "reportsCustom_periodThisYear": "I år",
   "reportsCustom_periodCustom": "Eget val...",
   "reportsCustom_filterAll": "Alla",
   "reportsCustom_filterWork": "Arbete",
@@ -1253,7 +1267,7 @@
       }
     }
   },
-  "reportsCustom_longestShift": "L\u00e4ngsta arbetspass",
+  "reportsCustom_longestShift": "Längsta arbetspass",
   "reportsCustom_noLocationProvided": "Ingen plats angiven",
   "reportsCustom_travelTime": "Restid",
   "reportsCustom_totalTravelTime": "Total restid",
@@ -1283,9 +1297,9 @@
   "reportsCustom_paidLeave": "Ersatt frånvaro",
   "reportsCustom_paidLeaveTypes": "Semester/Sjuk/VAB",
   "reportsCustom_unpaidLeave": "Obetald ledighet",
-  "reportsCustom_unpaidLeaveType": "Tj\u00e4nstledighet",
+  "reportsCustom_unpaidLeaveType": "Tjänstledighet",
   "reportsCustom_balanceAdjustments": "Saldojusteringar",
-  "reportsCustom_openingBalanceEffectiveFrom": "\u00d6ppningssaldo: {value} (g\u00e4ller fr\u00e5n {date})",
+  "reportsCustom_openingBalanceEffectiveFrom": "Öppningssaldo: {value} (gäller från {date})",
   "@reportsCustom_openingBalanceEffectiveFrom": {
     "placeholders": {
       "value": {
@@ -1322,10 +1336,10 @@
       }
     }
   },
-  "reportsCustom_periodStartIncludesStartDateAdjustmentsHint": "Justeringar p\u00e5 startdatumet ing\u00e5r i saldo vid periodstart.",
+  "reportsCustom_periodStartIncludesStartDateAdjustmentsHint": "Justeringar på startdatumet ingår i saldo vid periodstart.",
   "reportsCustom_entriesInPeriod": "Poster i perioden",
   "reportsCustom_emptyTitle": "Inga poster i denna period",
-  "reportsCustom_emptySubtitle": "\u00c4ndra period eller filter",
+  "reportsCustom_emptySubtitle": "Ändra period eller filter",
   "reportsCustom_exportCsv": "Exportera CSV",
   "reportsCustom_exportExcel": "Exportera Excel",
   "reportsCustom_exportCsvDone": "Exportera CSV: klar",
@@ -1340,7 +1354,7 @@
   },
   "reportsExport_entriesSheetName": "Poster",
   "reportsExport_adjustmentsSheetName": "Saldojusteringar",
-  "reportsExport_openingBalanceRow": "\u00d6ppningssaldo",
+  "reportsExport_openingBalanceRow": "Öppningssaldo",
   "reportsExport_timeAdjustmentRow": "Tidsjustering",
   "reportsExport_timeAdjustmentsTotalRow": "Tidsjusteringar totalt",
   "reportsExport_periodStartBalanceRow": "Saldo vid periodstart",
@@ -1351,12 +1365,12 @@
   "reportsExport_colHours": "Timmar",
   "reportsExport_colNote": "Anteckning",
   "reportsExport_fileName": "rapport_export",
-  "reportsMetric_tracked": "Sp\u00e5rad tid",
+  "reportsMetric_tracked": "Spårad tid",
   "reportsMetric_leave": "Ledighet",
   "reportsMetric_accounted": "Redovisad tid",
   "reportsMetric_delta": "Differens",
-  "reportsMetric_trackedPlusLeave": "Sp\u00e5rad + ledighet",
-  "reportsMetric_accountedMinusTarget": "Redovisad - m\u00e5l",
+  "reportsMetric_trackedPlusLeave": "Spårad + ledighet",
+  "reportsMetric_accountedMinusTarget": "Redovisad - mål",
   "session_expiredTitle": "Sessionen har gått ut",
   "session_expiredBody": "Din session har gått ut. Vänligen logga in igen för att fortsätta.",
   "session_signInAgain": "Logga in igen",
@@ -1364,17 +1378,6 @@
   "onboarding_step1Title": "Välkommen",
   "onboarding_step2Title": "Kontrakt",
   "onboarding_step3Title": "Startsaldo",
-  "onboarding_stepIndicator": "Steg {step} av {total}",
-  "@onboarding_stepIndicator": {
-    "placeholders": {
-      "step": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    }
-  },
   "onboarding_stepIndicator": "Steg {current} av {total}",
   "@onboarding_stepIndicator": {
     "placeholders": {
@@ -1420,5 +1423,71 @@
         "type": "String"
       }
     }
-  }
+  },
+  "exportHeader_type": "Typ",
+  "exportHeader_date": "Datum",
+  "exportHeader_from": "Från",
+  "exportHeader_to": "Till",
+  "exportHeader_travelMinutes": "Restid (min)",
+  "exportHeader_travelDistance": "Ressträcka (km)",
+  "exportHeader_shiftNumber": "Arbetspass nr",
+  "exportHeader_shiftStart": "Starttid pass",
+  "exportHeader_shiftEnd": "Sluttid pass",
+  "exportHeader_spanMinutes": "Längd inkl rast (min)",
+  "exportHeader_unpaidBreakMinutes": "Obetald rast (min)",
+  "exportHeader_workedMinutes": "Arbetade minuter",
+  "exportHeader_workedHours": "Arbetade timmar",
+  "exportHeader_shiftLocation": "Arbetsplats",
+  "exportHeader_shiftNotes": "Anteckningar pass",
+  "exportHeader_entryNotes": "Anteckningar post",
+  "exportHeader_createdAt": "Skapad datum",
+  "exportHeader_updatedAt": "Uppdaterad tid",
+  "exportHeader_holidayWork": "Helgarbete",
+  "exportHeader_holidayName": "Helgdagens namn",
+  "exportHeader_minutes": "Minuter",
+  "exportHeader_notes": "Anteckningar",
+  "exportHeader_paidUnpaid": "Betald/Obetald",
+  "exportSummary_generatedAt": "Genererad den",
+  "exportSummary_trackedWork": "Spårat arbete",
+  "exportSummary_trackedTravel": "Spårad restid",
+  "exportSummary_balanceOffsets": "Saldohändelser",
+  "exportSummary_manualAdjustments": "Manuella justeringar",
+  "exportSummary_contractSettings": "Kontraktsinställningar",
+  "exportSummary_carryOver": "Fört över från tidigare",
+  "exportSummary_manualCorrections": "Manuella korrigeringar denna period",
+  "exportSummary_balanceAtStart": "Saldo vid periodens början",
+  "exportSummary_balanceAfterThis": "Saldo efter denna period",
+  "exportSummary_totalTrackedOnly": "TOTALT (endast spårat)",
+  "exportSummary_paidLeaveCredit": "Ersatt frånvaro",
+  "exportSummary_paidLeaveCreditNote": "Tillgodoräknad frånvaro: {hours}h (ej arbetat)",
+  "@exportSummary_paidLeaveCreditNote": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "exportSummary_totalTrackedExcludes": "TOTALT (endast spårat) exkluderar frånvaro och saldohändelser. Se {sheetName}.",
+  "@exportSummary_totalTrackedExcludes": {
+    "placeholders": {
+      "sheetName": {
+        "type": "String"
+      }
+    }
+  },
+  "export_leaveSick": "Sjukfrånvaro",
+  "export_leaveVab": "VAB",
+  "export_leavePaidVacation": "Semester",
+  "export_leaveUnpaid": "Obetald frånvaro",
+  "export_leaveUnknown": "Okänd ledighet",
+  "export_paid": "Betald",
+  "export_unpaid": "Obetald",
+  "export_yes": "Ja",
+  "export_no": "Nej",
+  "export_total": "TOTALT",
+  "export_errorEmptyData": "Genererad exportdata är tom",
+  "export_errorUnsupportedFormat": "Exportformatet stöds inte",
+  "export_errorMissingConfig": "Konfiguration saknas",
+  "export_summarySheetName": "Sammanfattning (enkel)",
+  "export_balanceEventsSheetName": "Saldohändelser"
 }

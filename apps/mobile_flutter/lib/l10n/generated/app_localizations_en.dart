@@ -1338,6 +1338,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get export_bothDesc => 'Export all entries (travel + work)';
 
   @override
+  String get export_leaveOnly => 'Leave Entries Only';
+
+  @override
+  String get export_leaveOnlyDesc => 'Export only absence/leave entries';
+
+  @override
   String get export_formatTitle => 'Export Format';
 
   @override
@@ -1382,6 +1388,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String export_totalHours(String hours) {
     return 'Total hours: $hours';
+  }
+
+  @override
+  String export_totalMinutes(int minutes) {
+    return 'Total minutes: $minutes';
+  }
+
+  @override
+  String export_leaveEntriesCount(int count) {
+    return 'Leave entries: $count';
   }
 
   @override
@@ -1539,6 +1555,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get auth_signInPrompt => 'Sign in to your account';
+
+  @override
+  String get auth_legalRequired => 'Legal Acceptance Required';
+
+  @override
+  String get auth_legalDescription =>
+      'You must accept our terms of service and privacy policy to continue.';
+
+  @override
+  String get auth_legalVisitSignup =>
+      'Visit our signup page to complete this step.';
+
+  @override
+  String get account_createTitle => 'Create Account';
+
+  @override
+  String get account_createOnWeb => 'Create your account on the web';
+
+  @override
+  String get account_createDescription =>
+      'To create an account, please visit our registration page.';
+
+  @override
+  String get account_alreadyHaveAccount =>
+      'I already have an account → Sign In';
+
+  @override
+  String get account_openSignupPage => 'Open Registration Page';
 
   @override
   String get auth_emailLabel => 'Email';
@@ -3410,4 +3454,166 @@ class AppLocalizationsEn extends AppLocalizations {
   String accountStatus_loadFailed(String error) {
     return 'Failed to load profile: $error';
   }
+
+  @override
+  String get exportHeader_type => 'Type';
+
+  @override
+  String get exportHeader_date => 'Date';
+
+  @override
+  String get exportHeader_from => 'From';
+
+  @override
+  String get exportHeader_to => 'To';
+
+  @override
+  String get exportHeader_travelMinutes => 'Travel Minutes';
+
+  @override
+  String get exportHeader_travelDistance => 'Travel Distance (km)';
+
+  @override
+  String get exportHeader_shiftNumber => 'Shift Number';
+
+  @override
+  String get exportHeader_shiftStart => 'Shift Start';
+
+  @override
+  String get exportHeader_shiftEnd => 'Shift End';
+
+  @override
+  String get exportHeader_spanMinutes => 'Span Minutes';
+
+  @override
+  String get exportHeader_unpaidBreakMinutes => 'Unpaid Break Minutes';
+
+  @override
+  String get exportHeader_workedMinutes => 'Worked Minutes';
+
+  @override
+  String get exportHeader_workedHours => 'Worked Hours';
+
+  @override
+  String get exportHeader_shiftLocation => 'Shift Location';
+
+  @override
+  String get exportHeader_shiftNotes => 'Shift Notes';
+
+  @override
+  String get exportHeader_entryNotes => 'Entry Notes';
+
+  @override
+  String get exportHeader_createdAt => 'Created At';
+
+  @override
+  String get exportHeader_updatedAt => 'Updated At';
+
+  @override
+  String get exportHeader_holidayWork => 'Holiday Work';
+
+  @override
+  String get exportHeader_holidayName => 'Holiday Name';
+
+  @override
+  String get exportHeader_minutes => 'Minutes';
+
+  @override
+  String get exportHeader_notes => 'Notes';
+
+  @override
+  String get exportHeader_paidUnpaid => 'Paid/Unpaid';
+
+  @override
+  String get exportSummary_generatedAt => 'Generated at';
+
+  @override
+  String get exportSummary_trackedWork => 'Tracked work';
+
+  @override
+  String get exportSummary_trackedTravel => 'Tracked travel';
+
+  @override
+  String get exportSummary_balanceOffsets => 'Balance offsets';
+
+  @override
+  String get exportSummary_manualAdjustments => 'Manual adjustments';
+
+  @override
+  String get exportSummary_contractSettings => 'Contract settings';
+
+  @override
+  String get exportSummary_carryOver => 'Carry-over from earlier';
+
+  @override
+  String get exportSummary_manualCorrections =>
+      'Manual corrections in this period';
+
+  @override
+  String get exportSummary_balanceAtStart =>
+      'Balance at start of selected period';
+
+  @override
+  String get exportSummary_balanceAfterThis => 'Balance after this period';
+
+  @override
+  String get exportSummary_totalTrackedOnly => 'TOTAL (tracked only)';
+
+  @override
+  String get exportSummary_paidLeaveCredit => 'Paid leave credit';
+
+  @override
+  String exportSummary_paidLeaveCreditNote(String hours) {
+    return 'Paid leave credit: ${hours}h (not worked)';
+  }
+
+  @override
+  String exportSummary_totalTrackedExcludes(String sheetName) {
+    return 'TOTAL (tracked only) excludes Leave and Balance events. See $sheetName.';
+  }
+
+  @override
+  String get export_leaveSick => 'Leave (Sick)';
+
+  @override
+  String get export_leaveVab => 'VAB';
+
+  @override
+  String get export_leavePaidVacation => 'Leave (Paid Vacation)';
+
+  @override
+  String get export_leaveUnpaid => 'Unpaid Leave';
+
+  @override
+  String get export_leaveUnknown => 'Leave (Unknown)';
+
+  @override
+  String get export_paid => 'Paid';
+
+  @override
+  String get export_unpaid => 'Unpaid';
+
+  @override
+  String get export_yes => 'Yes';
+
+  @override
+  String get export_no => 'No';
+
+  @override
+  String get export_total => 'TOTAL';
+
+  @override
+  String get export_errorEmptyData => 'Generated export data is empty';
+
+  @override
+  String get export_errorUnsupportedFormat => 'Unsupported export format';
+
+  @override
+  String get export_errorMissingConfig => 'Missing configuration';
+
+  @override
+  String get export_summarySheetName => 'Summary (Easy)';
+
+  @override
+  String get export_balanceEventsSheetName => 'Balance Events';
 }

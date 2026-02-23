@@ -6,7 +6,6 @@ import '../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/settings_provider.dart';
-import '../providers/theme_provider.dart';
 import '../services/holiday_service.dart';
 import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
@@ -24,91 +23,6 @@ class SettingsScreen extends StatelessWidget {
     defaultValue: false,
   );
 
-  Widget _buildThemeModeSelector(
-    BuildContext context,
-    ThemeProvider themeProvider,
-    AppLocalizations t,
-  ) {
-    final theme = Theme.of(context);
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
-    final useDropdown = screenWidth < 360 || textScale > 1.1;
-
-    final options = const [
-      _ThemeOption(ThemeMode.light, Icons.light_mode),
-      _ThemeOption(ThemeMode.system, Icons.brightness_auto),
-      _ThemeOption(ThemeMode.dark, Icons.dark_mode),
-    ];
-
-    if (useDropdown) {
-      final labels = [
-        t.settings_themeLight,
-        t.settings_themeSystem,
-        t.settings_themeDark,
-      ];
-      return DropdownButtonHideUnderline(
-        child: DropdownButton<ThemeMode>(
-          value: themeProvider.themeMode,
-          isDense: true,
-          alignment: AlignmentDirectional.centerEnd,
-          borderRadius: AppRadius.buttonRadius,
-          style: theme.textTheme.labelLarge,
-          items: [
-            for (int i = 0; i < options.length; i++)
-              DropdownMenuItem<ThemeMode>(
-                value: options[i].mode,
-                child: Row(
-                  children: [
-                    Icon(options[i].icon, size: AppIconSize.sm),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(labels[i]),
-                  ],
-                ),
-              ),
-          ],
-          selectedItemBuilder: (context) => [
-            Text(labels[0], style: theme.textTheme.labelLarge),
-            Text(labels[1], style: theme.textTheme.labelLarge),
-            Text(labels[2], style: theme.textTheme.labelLarge),
-          ],
-          onChanged: (value) {
-            if (value != null) {
-              themeProvider.setThemeMode(value);
-            }
-          },
-        ),
-      );
-    }
-
-    return SegmentedButton<ThemeMode>(
-      segments: [
-        ButtonSegment(
-          value: ThemeMode.light,
-          icon: const Icon(Icons.light_mode, size: 18),
-          label: Text(t.settings_themeLight),
-        ),
-        ButtonSegment(
-          value: ThemeMode.system,
-          icon: const Icon(Icons.brightness_auto, size: 18),
-          label: Text(t.settings_themeSystem),
-        ),
-        ButtonSegment(
-          value: ThemeMode.dark,
-          icon: const Icon(Icons.dark_mode, size: 18),
-          label: Text(t.settings_themeDark),
-        ),
-      ],
-      selected: {themeProvider.themeMode},
-      onSelectionChanged: (Set<ThemeMode> selection) {
-        themeProvider.setThemeMode(selection.first);
-      },
-      showSelectedIcon: false,
-      style: const ButtonStyle(
-        visualDensity: VisualDensity.compact,
-      ),
-    );
-  }
-
   String _languageLabel(AppLocalizations t, Locale? locale) {
     switch (locale?.languageCode) {
       case 'sv':
@@ -117,17 +31,6 @@ class SettingsScreen extends StatelessWidget {
         return t.settings_languageEnglish;
       default:
         return t.settings_languageSystem;
-    }
-  }
-
-  String _themeModeLabel(AppLocalizations t, ThemeProvider themeProvider) {
-    switch (themeProvider.themeMode) {
-      case ThemeMode.light:
-        return t.settings_themeLight;
-      case ThemeMode.dark:
-        return t.settings_themeDark;
-      case ThemeMode.system:
-        return t.settings_themeSystem;
     }
   }
 
@@ -732,7 +635,6 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
-    final themeProvider = context.watch<ThemeProvider>();
     final holidayService = context.watch<HolidayService>();
     final authService = context.watch<SupabaseAuthService>();
     final user = authService.currentUser;
@@ -797,45 +699,6 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
           ],
-
-          // Theme Settings
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: AppSpacing.md,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      themeProvider.isDarkMode
-                          ? Icons.dark_mode
-                          : Icons.light_mode,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(t.settings_theme,
-                            style: theme.textTheme.bodyLarge),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          _themeModeLabel(t, themeProvider),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _buildThemeModeSelector(context, themeProvider, t),
-              ],
-            ),
-          ),
 
           // Language Settings
           ListTile(
@@ -1055,11 +918,4 @@ class SettingsScreen extends StatelessWidget {
     ),
     );
   }
-}
-
-class _ThemeOption {
-  final ThemeMode mode;
-  final IconData icon;
-
-  const _ThemeOption(this.mode, this.icon);
 }

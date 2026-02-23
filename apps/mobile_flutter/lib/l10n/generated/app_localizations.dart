@@ -2422,6 +2422,18 @@ abstract class AppLocalizations {
   /// **'Export all entries (travel + work)'**
   String get export_bothDesc;
 
+  /// No description provided for @export_leaveOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Entries Only'**
+  String get export_leaveOnly;
+
+  /// No description provided for @export_leaveOnlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Export only absence/leave entries'**
+  String get export_leaveOnlyDesc;
+
   /// No description provided for @export_formatTitle.
   ///
   /// In en, this message translates to:
@@ -2499,6 +2511,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total hours: {hours}'**
   String export_totalHours(String hours);
+
+  /// No description provided for @export_totalMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Total minutes: {minutes}'**
+  String export_totalMinutes(int minutes);
+
+  /// No description provided for @export_leaveEntriesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave entries: {count}'**
+  String export_leaveEntriesCount(int count);
 
   /// No description provided for @export_button.
   ///
@@ -2769,6 +2793,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to your account'**
   String get auth_signInPrompt;
+
+  /// No description provided for @auth_legalRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal Acceptance Required'**
+  String get auth_legalRequired;
+
+  /// No description provided for @auth_legalDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'You must accept our terms of service and privacy policy to continue.'**
+  String get auth_legalDescription;
+
+  /// No description provided for @auth_legalVisitSignup.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit our signup page to complete this step.'**
+  String get auth_legalVisitSignup;
+
+  /// No description provided for @account_createTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get account_createTitle;
+
+  /// No description provided for @account_createOnWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your account on the web'**
+  String get account_createOnWeb;
+
+  /// No description provided for @account_createDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'To create an account, please visit our registration page.'**
+  String get account_createDescription;
+
+  /// No description provided for @account_alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'I already have an account → Sign In'**
+  String get account_alreadyHaveAccount;
+
+  /// No description provided for @account_openSignupPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Registration Page'**
+  String get account_openSignupPage;
 
   /// No description provided for @auth_emailLabel.
   ///
@@ -6160,6 +6232,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load profile: {error}'**
   String accountStatus_loadFailed(String error);
+
+  /// No description provided for @exportHeader_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get exportHeader_type;
+
+  /// No description provided for @exportHeader_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get exportHeader_date;
+
+  /// No description provided for @exportHeader_from.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get exportHeader_from;
+
+  /// No description provided for @exportHeader_to.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get exportHeader_to;
+
+  /// No description provided for @exportHeader_travelMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Minutes'**
+  String get exportHeader_travelMinutes;
+
+  /// No description provided for @exportHeader_travelDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Distance (km)'**
+  String get exportHeader_travelDistance;
+
+  /// No description provided for @exportHeader_shiftNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Number'**
+  String get exportHeader_shiftNumber;
+
+  /// No description provided for @exportHeader_shiftStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Start'**
+  String get exportHeader_shiftStart;
+
+  /// No description provided for @exportHeader_shiftEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift End'**
+  String get exportHeader_shiftEnd;
+
+  /// No description provided for @exportHeader_spanMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Span Minutes'**
+  String get exportHeader_spanMinutes;
+
+  /// No description provided for @exportHeader_unpaidBreakMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid Break Minutes'**
+  String get exportHeader_unpaidBreakMinutes;
+
+  /// No description provided for @exportHeader_workedMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked Minutes'**
+  String get exportHeader_workedMinutes;
+
+  /// No description provided for @exportHeader_workedHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked Hours'**
+  String get exportHeader_workedHours;
+
+  /// No description provided for @exportHeader_shiftLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Location'**
+  String get exportHeader_shiftLocation;
+
+  /// No description provided for @exportHeader_shiftNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Notes'**
+  String get exportHeader_shiftNotes;
+
+  /// No description provided for @exportHeader_entryNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry Notes'**
+  String get exportHeader_entryNotes;
+
+  /// No description provided for @exportHeader_createdAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Created At'**
+  String get exportHeader_createdAt;
+
+  /// No description provided for @exportHeader_updatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated At'**
+  String get exportHeader_updatedAt;
+
+  /// No description provided for @exportHeader_holidayWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday Work'**
+  String get exportHeader_holidayWork;
+
+  /// No description provided for @exportHeader_holidayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday Name'**
+  String get exportHeader_holidayName;
+
+  /// No description provided for @exportHeader_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get exportHeader_minutes;
+
+  /// No description provided for @exportHeader_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get exportHeader_notes;
+
+  /// No description provided for @exportHeader_paidUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid/Unpaid'**
+  String get exportHeader_paidUnpaid;
+
+  /// No description provided for @exportSummary_generatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated at'**
+  String get exportSummary_generatedAt;
+
+  /// No description provided for @exportSummary_trackedWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked work'**
+  String get exportSummary_trackedWork;
+
+  /// No description provided for @exportSummary_trackedTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked travel'**
+  String get exportSummary_trackedTravel;
+
+  /// No description provided for @exportSummary_balanceOffsets.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance offsets'**
+  String get exportSummary_balanceOffsets;
+
+  /// No description provided for @exportSummary_manualAdjustments.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual adjustments'**
+  String get exportSummary_manualAdjustments;
+
+  /// No description provided for @exportSummary_contractSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract settings'**
+  String get exportSummary_contractSettings;
+
+  /// No description provided for @exportSummary_carryOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry-over from earlier'**
+  String get exportSummary_carryOver;
+
+  /// No description provided for @exportSummary_manualCorrections.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual corrections in this period'**
+  String get exportSummary_manualCorrections;
+
+  /// No description provided for @exportSummary_balanceAtStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance at start of selected period'**
+  String get exportSummary_balanceAtStart;
+
+  /// No description provided for @exportSummary_balanceAfterThis.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance after this period'**
+  String get exportSummary_balanceAfterThis;
+
+  /// No description provided for @exportSummary_totalTrackedOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'TOTAL (tracked only)'**
+  String get exportSummary_totalTrackedOnly;
+
+  /// No description provided for @exportSummary_paidLeaveCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid leave credit'**
+  String get exportSummary_paidLeaveCredit;
+
+  /// No description provided for @exportSummary_paidLeaveCreditNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid leave credit: {hours}h (not worked)'**
+  String exportSummary_paidLeaveCreditNote(String hours);
+
+  /// No description provided for @exportSummary_totalTrackedExcludes.
+  ///
+  /// In en, this message translates to:
+  /// **'TOTAL (tracked only) excludes Leave and Balance events. See {sheetName}.'**
+  String exportSummary_totalTrackedExcludes(String sheetName);
+
+  /// No description provided for @export_leaveSick.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave (Sick)'**
+  String get export_leaveSick;
+
+  /// No description provided for @export_leaveVab.
+  ///
+  /// In en, this message translates to:
+  /// **'VAB'**
+  String get export_leaveVab;
+
+  /// No description provided for @export_leavePaidVacation.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave (Paid Vacation)'**
+  String get export_leavePaidVacation;
+
+  /// No description provided for @export_leaveUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid Leave'**
+  String get export_leaveUnpaid;
+
+  /// No description provided for @export_leaveUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave (Unknown)'**
+  String get export_leaveUnknown;
+
+  /// No description provided for @export_paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get export_paid;
+
+  /// No description provided for @export_unpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get export_unpaid;
+
+  /// No description provided for @export_yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get export_yes;
+
+  /// No description provided for @export_no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get export_no;
+
+  /// No description provided for @export_total.
+  ///
+  /// In en, this message translates to:
+  /// **'TOTAL'**
+  String get export_total;
+
+  /// No description provided for @export_errorEmptyData.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated export data is empty'**
+  String get export_errorEmptyData;
+
+  /// No description provided for @export_errorUnsupportedFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported export format'**
+  String get export_errorUnsupportedFormat;
+
+  /// No description provided for @export_errorMissingConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing configuration'**
+  String get export_errorMissingConfig;
+
+  /// No description provided for @export_summarySheetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary (Easy)'**
+  String get export_summarySheetName;
+
+  /// No description provided for @export_balanceEventsSheetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance Events'**
+  String get export_balanceEventsSheetName;
 }
 
 class _AppLocalizationsDelegate

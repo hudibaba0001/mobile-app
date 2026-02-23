@@ -244,7 +244,7 @@
   "balance_contractBalanceNoDate": "Contract balance (since start)",
   "balance_today_includes_offsets": "Balance today (includes starting balance + adjustments)",
   "balance_balanceTodayHeadline": "Balance today",
-  "balance_balanceTodaySubline": "Opening {opening} \u2022 Adjustments {adjustments} \u2022 Year change {yearChange}",
+  "balance_balanceTodaySubline": "Opening {opening} • Adjustments {adjustments} • Year change {yearChange}",
   "@balance_balanceTodaySubline": {
     "placeholders": {
       "opening": {
@@ -502,7 +502,7 @@
   "entry_to": "To",
   "entry_duration": "Duration",
   "entry_date": "Date",
-  "entry_notes": "Notes",
+  "entry_notes": "Notes (Optional)",
   "entry_shifts": "Shifts",
   "entry_addShift": "Add Shift",
   "entry_travelLegUpdateNotice": "First leg updates the existing entry; extra legs become new entries.",
@@ -550,7 +550,6 @@
   "settings_changePasswordSent": "Password reset link sent to your email",
   "settings_contactSupport": "Contact Support",
   "settings_contactSupportDesc": "Get help or report an issue",
-  "settings_about": "About",
   "settings_deleteAccount": "Delete Account",
   "settings_deleteAccountDesc": "Permanently delete your account and all data",
   "settings_deleteAccountConfirmTitle": "Delete Account?",
@@ -786,8 +785,6 @@
   "form_shiftNotesHint": "Add notes for this shift (e.g., specific tasks, issues)",
   "form_sameAsDefault": "Same as default",
   "form_dayNotes": "Day notes",
-  "export_title": "Export Data",
-  "export_dateRange": "Date Range",
   "export_includeAllData": "Include all data",
   "export_includeAllDataDesc": "Export all entries regardless of date",
   "export_startDate": "Start Date",
@@ -801,6 +798,8 @@
   "export_workOnlyDesc": "Export only work shift entries",
   "export_both": "Both",
   "export_bothDesc": "Export all entries (travel + work)",
+  "export_leaveOnly": "Leave Entries Only",
+  "export_leaveOnlyDesc": "Export only absence/leave entries",
   "export_formatTitle": "Export Format",
   "export_excelFormat": "Excel (.xlsx)",
   "export_excelDesc": "Professional format with formatting",
@@ -839,6 +838,22 @@
     "placeholders": {
       "hours": {
         "type": "String"
+      }
+    }
+  },
+  "export_totalMinutes": "Total minutes: {minutes}",
+  "@export_totalMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "export_leaveEntriesCount": "Leave entries: {count}",
+  "@export_leaveEntriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
@@ -902,10 +917,6 @@
       }
     }
   },
-  "adjustment_effectiveDate": "Effective Date",
-  "adjustment_amount": "Amount",
-  "adjustment_noteHint": "e.g., Manager correction",
-  "adjustment_enterAmount": "Please enter an adjustment amount",
   "profile_title": "Profile",
   "profile_notSignedIn": "Not signed in",
   "profile_editName": "Edit Name",
@@ -954,20 +965,20 @@
   "auth_openSignupPage": "Open Signup Page",
   "auth_signOut": "Sign Out",
   "auth_signInPrompt": "Sign in to your account",
+  "auth_legalRequired": "Legal Acceptance Required",
+  "auth_legalDescription": "You must accept our terms of service and privacy policy to continue.",
+  "auth_legalVisitSignup": "Visit our signup page to complete this step.",
+  "account_createTitle": "Create Account",
+  "account_createOnWeb": "Create your account on the web",
+  "account_createDescription": "To create an account, please visit our registration page.",
+  "account_alreadyHaveAccount": "I already have an account → Sign In",
+  "account_openSignupPage": "Open Registration Page",
   "auth_emailLabel": "Email",
   "auth_passwordLabel": "Password",
   "auth_forgotPassword": "Forgot Password?",
   "auth_signInButton": "Sign In",
   "auth_noAccount": "Don't have an account?",
   "auth_signUpLink": "Sign Up",
-  "balance_myTimeBalance": "My Time Balance ({year})",
-  "@balance_myTimeBalance": {
-    "placeholders": {
-      "year": {
-        "type": "int"
-      }
-    }
-  },
   "password_resetTitle": "Reset Password",
   "password_forgotTitle": "Forgot your password?",
   "password_forgotDescription": "Enter your email address and we'll send you a link to reset your password.",
@@ -1195,14 +1206,6 @@
   "trends_total": "total",
   "trends_work": "work",
   "trends_travel": "travel",
-  "leave_summary": "Leave Summary {year}",
-  "@leave_summary": {
-    "placeholders": {
-      "year": {
-        "type": "int"
-      }
-    }
-  },
   "leave_recentLeaves": "Recent Leaves",
   "leave_fullDay": "Full Day",
   "leave_totalLeaveDays": "Total Leave Days",
@@ -1243,31 +1246,12 @@
   "form_travelRoute": "Travel Route",
   "form_workLocation": "Work Location",
   "form_workDetails": "Work Details",
-  "nav_home": "Home",
   "nav_history": "History",
-  "nav_reports": "Reports",
-  "nav_settings": "Settings",
   "balance_thisWeek": "THIS WEEK: {range}",
   "@balance_thisWeek": {
     "placeholders": {
       "range": {
         "type": "String"
-      }
-    }
-  },
-  "balance_thisMonth": "THIS MONTH: {month}",
-  "@balance_thisMonth": {
-    "placeholders": {
-      "month": {
-        "type": "String"
-      }
-    }
-  },
-  "balance_thisYear": "THIS YEAR: {year}",
-  "@balance_thisYear": {
-    "placeholders": {
-      "year": {
-        "type": "int"
       }
     }
   },
@@ -1282,40 +1266,8 @@
       }
     }
   },
-  "balance_creditedHours": "Credited Hours: {hours} h",
-  "@balance_creditedHours": {
-    "placeholders": {
-      "hours": {
-        "type": "String"
-      }
-    }
-  },
-  "balance_status": "Status: {variance} h ({status})",
-  "@balance_status": {
-    "placeholders": {
-      "variance": {
-        "type": "String"
-      },
-      "status": {
-        "type": "String"
-      }
-    }
-  },
   "balance_over": "Over",
   "balance_under": "Under",
-  "balance_percentOfTarget": "{percent}% of target",
-  "@balance_percentOfTarget": {
-    "placeholders": {
-      "percent": {
-        "type": "String"
-      }
-    }
-  },
-  "balance_yearlyRunningBalance": "YEARLY RUNNING BALANCE",
-  "balance_totalAccumulation": "Total Accumulation:",
-  "balance_inCredit": "You are in credit",
-  "balance_underTarget": "Under target",
-  "balance_overTarget": "Over target",
   "balance_timeDebt": "Under target",
   "balance_includesOpeningBalance": "Includes opening balance ({balance}) as of {date}",
   "@balance_includesOpeningBalance": {
@@ -1473,19 +1425,14 @@
   "settings_switchToDark": "Switch to dark theme",
   "settings_darkModeEnabled": "Dark mode enabled",
   "settings_lightModeEnabled": "Light mode enabled",
-  "entry_date": "Date",
   "entry_endTime": "End time",
-  "entry_from": "From",
   "entry_fromHint": "Enter departure location",
-  "entry_to": "To",
   "entry_toHint": "Enter arrival location",
   "entry_location": "Location",
   "entry_locationHint": "Enter work location",
-  "entry_duration": "Duration",
   "entry_hours": "Hours",
   "entry_minutes": "Minutes",
   "entry_shift": "Shift",
-  "entry_notes": "Notes (Optional)",
   "entry_notesHint": "Add any additional details...",
   "entry_calculating": "Calculating...",
   "entry_calculateTravelTime": "Calculate Travel Time",
@@ -1545,15 +1492,10 @@
   "multiSegment_pleaseEnterArrival": "Please enter arrival location",
   "multiSegment_pleaseEnterTravelTime": "Please enter travel time",
   "entryDetail_workSession": "Work Session",
-  "dateRange_startDate": "Start Date",
-  "dateRange_endDate": "End Date",
   "dateRange_quickSelect": "Quick Select",
   "dateRange_yesterday": "Yesterday",
   "dateRange_thisWeek": "This Week",
   "dateRange_lastWeek": "Last Week",
-  "dateRange_thisMonth": "This Month",
-  "dateRange_lastMonth": "Last Month",
-  "dateRange_last30Days": "Last 30 Days",
   "home_workSession": "Work Session",
   "home_paidLeave": "Credited Leave",
   "home_sickLeave": "Sick Leave",
@@ -1588,7 +1530,6 @@
       }
     }
   },
-  "common_close": "Close",
   "common_swapLocations": "Swap locations",
   "form_departureLocation": "Departure location",
   "form_arrivalLocation": "Arrival location",
@@ -1626,9 +1567,6 @@
     }
   },
   "travel_notesHint": "Add details about your travel...",
-  "form_span": "Span",
-  "form_break": "Break",
-  "form_worked": "Worked",
   "common_user": "User",
   "settings_timeBalanceTracking": "Time balance tracking",
   "settings_timeBalanceTrackingDesc": "Turn off if you only want to log hours without comparing against a target.",
@@ -2076,5 +2014,71 @@
         "type": "String"
       }
     }
-  }
+  },
+  "exportHeader_type": "Type",
+  "exportHeader_date": "Date",
+  "exportHeader_from": "From",
+  "exportHeader_to": "To",
+  "exportHeader_travelMinutes": "Travel Minutes",
+  "exportHeader_travelDistance": "Travel Distance (km)",
+  "exportHeader_shiftNumber": "Shift Number",
+  "exportHeader_shiftStart": "Shift Start",
+  "exportHeader_shiftEnd": "Shift End",
+  "exportHeader_spanMinutes": "Span Minutes",
+  "exportHeader_unpaidBreakMinutes": "Unpaid Break Minutes",
+  "exportHeader_workedMinutes": "Worked Minutes",
+  "exportHeader_workedHours": "Worked Hours",
+  "exportHeader_shiftLocation": "Shift Location",
+  "exportHeader_shiftNotes": "Shift Notes",
+  "exportHeader_entryNotes": "Entry Notes",
+  "exportHeader_createdAt": "Created At",
+  "exportHeader_updatedAt": "Updated At",
+  "exportHeader_holidayWork": "Holiday Work",
+  "exportHeader_holidayName": "Holiday Name",
+  "exportHeader_minutes": "Minutes",
+  "exportHeader_notes": "Notes",
+  "exportHeader_paidUnpaid": "Paid/Unpaid",
+  "exportSummary_generatedAt": "Generated at",
+  "exportSummary_trackedWork": "Tracked work",
+  "exportSummary_trackedTravel": "Tracked travel",
+  "exportSummary_balanceOffsets": "Balance offsets",
+  "exportSummary_manualAdjustments": "Manual adjustments",
+  "exportSummary_contractSettings": "Contract settings",
+  "exportSummary_carryOver": "Carry-over from earlier",
+  "exportSummary_manualCorrections": "Manual corrections in this period",
+  "exportSummary_balanceAtStart": "Balance at start of selected period",
+  "exportSummary_balanceAfterThis": "Balance after this period",
+  "exportSummary_totalTrackedOnly": "TOTAL (tracked only)",
+  "exportSummary_paidLeaveCredit": "Paid leave credit",
+  "exportSummary_paidLeaveCreditNote": "Paid leave credit: {hours}h (not worked)",
+  "@exportSummary_paidLeaveCreditNote": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "exportSummary_totalTrackedExcludes": "TOTAL (tracked only) excludes Leave and Balance events. See {sheetName}.",
+  "@exportSummary_totalTrackedExcludes": {
+    "placeholders": {
+      "sheetName": {
+        "type": "String"
+      }
+    }
+  },
+  "export_leaveSick": "Leave (Sick)",
+  "export_leaveVab": "VAB",
+  "export_leavePaidVacation": "Leave (Paid Vacation)",
+  "export_leaveUnpaid": "Unpaid Leave",
+  "export_leaveUnknown": "Leave (Unknown)",
+  "export_paid": "Paid",
+  "export_unpaid": "Unpaid",
+  "export_yes": "Yes",
+  "export_no": "No",
+  "export_total": "TOTAL",
+  "export_errorEmptyData": "Generated export data is empty",
+  "export_errorUnsupportedFormat": "Unsupported export format",
+  "export_errorMissingConfig": "Missing configuration",
+  "export_summarySheetName": "Summary (Easy)",
+  "export_balanceEventsSheetName": "Balance Events"
 }

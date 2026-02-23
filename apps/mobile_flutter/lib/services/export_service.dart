@@ -13,6 +13,7 @@ import '../reporting/time_format.dart';
 import '../reports/report_aggregator.dart';
 import 'csv_exporter.dart';
 import 'xlsx_exporter.dart';
+import '../l10n/generated/app_localizations.dart';
 
 // Web-specific imports (conditional)
 import 'dart:convert' show utf8;
@@ -20,62 +21,6 @@ import 'dart:convert' show utf8;
 // Conditional import for web download functionality
 import 'web_download_stub.dart' if (dart.library.html) 'web_download_web.dart'
     as web_download;
-
-class ReportExportLabels {
-  final String entriesSheetName;
-  final String summarySheetName;
-  final String balanceEventsSheetName;
-  final String openingBalanceRow;
-  final String timeAdjustmentRow;
-  final String timeAdjustmentsTotalRow;
-  final String periodStartBalanceRow;
-  final String periodEndBalanceRow;
-  final String metricHeader;
-  final String minutesHeader;
-  final String hoursHeader;
-  final String periodRow;
-  final String quickReadRow;
-  final String totalLoggedTimeRow;
-  final String paidLeaveRow;
-  final String accountedTimeRow;
-  final String plannedTimeRow;
-  final String differenceVsPlanRow;
-  final String balanceAfterPeriodRow;
-  final String trackedTotalsNote;
-  final String colType;
-  final String colDate;
-  final String colMinutes;
-  final String colHours;
-  final String colNote;
-
-  const ReportExportLabels({
-    required this.entriesSheetName,
-    required this.summarySheetName,
-    required this.balanceEventsSheetName,
-    required this.openingBalanceRow,
-    required this.timeAdjustmentRow,
-    required this.timeAdjustmentsTotalRow,
-    required this.periodStartBalanceRow,
-    required this.periodEndBalanceRow,
-    required this.metricHeader,
-    required this.minutesHeader,
-    required this.hoursHeader,
-    required this.periodRow,
-    required this.quickReadRow,
-    required this.totalLoggedTimeRow,
-    required this.paidLeaveRow,
-    required this.accountedTimeRow,
-    required this.plannedTimeRow,
-    required this.differenceVsPlanRow,
-    required this.balanceAfterPeriodRow,
-    required this.trackedTotalsNote,
-    required this.colType,
-    required this.colDate,
-    required this.colMinutes,
-    required this.colHours,
-    required this.colNote,
-  });
-}
 
 class ExportService {
   static const String _fileNamePrefix = 'time_tracker_export';
@@ -86,28 +31,28 @@ class ExportService {
 
   // Fixed entry export column contract (order must never change without
   // coordinated migration of readers/tests).
-  static const List<String> _entryExportHeaders = [
-    'Type',
-    'Date',
-    'From',
-    'To',
-    'Travel Minutes',
-    'Travel Distance (km)',
-    'Shift Number',
-    'Shift Start',
-    'Shift End',
-    'Span Minutes',
-    'Unpaid Break Minutes',
-    'Worked Minutes',
-    'Worked Hours',
-    'Shift Location',
-    'Shift Notes',
-    'Entry Notes',
-    'Created At',
-    'Updated At',
-    'Holiday Work',
-    'Holiday Name',
-  ];
+  static List<String> _entryExportHeaders(AppLocalizations t) => [
+        t.exportHeader_type,
+        t.exportHeader_date,
+        t.exportHeader_from,
+        t.exportHeader_to,
+        t.exportHeader_travelMinutes,
+        t.exportHeader_travelDistance,
+        t.exportHeader_shiftNumber,
+        t.exportHeader_shiftStart,
+        t.exportHeader_shiftEnd,
+        t.exportHeader_spanMinutes,
+        t.exportHeader_unpaidBreakMinutes,
+        t.exportHeader_workedMinutes,
+        t.exportHeader_workedHours,
+        t.exportHeader_shiftLocation,
+        t.exportHeader_shiftNotes,
+        t.exportHeader_entryNotes,
+        t.exportHeader_createdAt,
+        t.exportHeader_updatedAt,
+        t.exportHeader_holidayWork,
+        t.exportHeader_holidayName,
+      ];
 
   static const int _colType = 0;
   static const int _colDate = 1;
@@ -132,10 +77,8 @@ class ExportService {
   static const String _hhMmHeader = 'Hh Mm';
   static const String _payrollNoteTitle = 'Payroll note';
 
-  static ExportData prepareExportData(
-    List<Entry> entries, {
-    ReportSummary? summary,
-  }) {
+  static ExportData prepareExportData(List<Entry> entries,
+      {ReportSummary? summary, required AppLocalizations t}) {
     int calculatedTravelMinutes = 0;
     double totalTravelDistanceKm = 0.0;
     int calculatedWorkedMinutes = 0;
@@ -149,23 +92,23 @@ class ExportService {
           final legs = entry.travelLegs!;
           for (var i = 0; i < legs.length; i++) {
             final leg = legs[i];
-            final row = _newEntryExportRow(entry);
+            final row = _newEntryExportRow(entry, t);
             row[_colFrom] = leg.fromText;
             row[_colTo] = leg.toText;
             row[_colTravelMinutes] = leg.minutes;
             row[_colTravelDistanceKm] = leg.distanceKm ?? 0.0;
-            rows.add(_normalizeEntryExportRow(row));
+            rows.add(_normalizeEntryExportRow(row, t));
             calculatedTravelMinutes += leg.minutes;
             totalTravelDistanceKm += (leg.distanceKm ?? 0.0);
           }
         } else {
           // Legacy single travel entry: one row
-          final row = _newEntryExportRow(entry);
+          final row = _newEntryExportRow(entry, t);
           row[_colFrom] = entry.from ?? '';
           row[_colTo] = entry.to ?? '';
           row[_colTravelMinutes] = entry.travelMinutes ?? 0;
           row[_colTravelDistanceKm] = 0.0;
-          rows.add(_normalizeEntryExportRow(row));
+          rows.add(_normalizeEntryExportRow(row, t));
           calculatedTravelMinutes += entry.travelMinutes ?? 0;
         }
       } else if (entry.type == EntryType.work &&
@@ -179,7 +122,7 @@ class ExportService {
           final workedMinutes = shift.workedMinutes;
           final workedHours = workedMinutes / 60.0;
 
-          final row = _newEntryExportRow(entry);
+          final row = _newEntryExportRow(entry, t);
           row[_colShiftNumber] = i + 1;
           row[_colShiftStart] = DateFormat('HH:mm').format(shift.start);
           row[_colShiftEnd] = DateFormat('HH:mm').format(shift.end);
@@ -189,12 +132,12 @@ class ExportService {
           row[_colWorkedHours] = workedHours.toStringAsFixed(2);
           row[_colShiftLocation] = shift.location ?? '';
           row[_colShiftNotes] = shift.notes ?? '';
-          rows.add(_normalizeEntryExportRow(row));
+          rows.add(_normalizeEntryExportRow(row, t));
           calculatedWorkedMinutes += workedMinutes;
         }
       } else {
         // Work entry with no shifts: one row with empty shift data
-        rows.add(_normalizeEntryExportRow(_newEntryExportRow(entry)));
+        rows.add(_normalizeEntryExportRow(_newEntryExportRow(entry, t), t));
         // Without shifts we can't infer worked minutes; leave total unchanged
       }
     }
@@ -205,49 +148,50 @@ class ExportService {
 
     // Add a blank separator before totals for readability.
     if (rows.isNotEmpty) {
-      rows.add(List<dynamic>.filled(_entryExportHeaders.length, ''));
+      rows.add(List<dynamic>.filled(_entryExportHeaders(t).length, ''));
     }
 
     // Append summary row with totals in fixed columns.
-    final summaryRow = List<dynamic>.filled(_entryExportHeaders.length, '');
-    summaryRow[_colType] = 'TOTAL';
+    final summaryRow = List<dynamic>.filled(_entryExportHeaders(t).length, '');
+    summaryRow[_colType] = t.export_total;
     summaryRow[_colTravelMinutes] = totalTravelMinutes;
     summaryRow[_colTravelDistanceKm] =
         double.parse(totalTravelDistanceKm.toStringAsFixed(2));
     summaryRow[_colWorkedMinutes] = totalWorkedMinutes;
     summaryRow[_colWorkedHours] = (totalWorkedMinutes / 60).toStringAsFixed(2);
-    summaryRow[_colEntryNotes] = 'TOTAL';
-    rows.add(_normalizeEntryExportRow(summaryRow));
+    summaryRow[_colEntryNotes] = t.export_total;
+    rows.add(_normalizeEntryExportRow(summaryRow, t));
 
     return ExportData(
       sheetName: 'Poster',
-      headers: List<String>.from(_entryExportHeaders),
+      headers: _entryExportHeaders(t),
       rows: rows,
     );
   }
 
-  static List<dynamic> _newEntryExportRow(Entry entry) {
-    final row = List<dynamic>.filled(_entryExportHeaders.length, '');
+  static List<dynamic> _newEntryExportRow(Entry entry, AppLocalizations t) {
+    final row = List<dynamic>.filled(_entryExportHeaders(t).length, '');
     row[_colType] = entry.type.name;
     row[_colDate] = DateFormat('yyyy-MM-dd').format(entry.date);
     row[_colEntryNotes] = entry.notes ?? '';
     row[_colCreatedAt] = _formatIsoDateTime(entry.createdAt);
     row[_colUpdatedAt] =
         entry.updatedAt != null ? _formatIsoDateTime(entry.updatedAt!) : '';
-    row[_colHolidayWork] = entry.isHolidayWork ? 'Yes' : 'No';
+    row[_colHolidayWork] = entry.isHolidayWork ? t.export_yes : t.export_no;
     row[_colHolidayName] = entry.holidayName ?? '';
     return row;
   }
 
-  static List<dynamic> _normalizeEntryExportRow(List<dynamic> row) {
-    if (row.length == _entryExportHeaders.length) return row;
-    if (row.length < _entryExportHeaders.length) {
+  static List<dynamic> _normalizeEntryExportRow(
+      List<dynamic> row, AppLocalizations t) {
+    if (row.length == _entryExportHeaders(t).length) return row;
+    if (row.length < _entryExportHeaders(t).length) {
       return [
         ...row,
-        ...List<dynamic>.filled(_entryExportHeaders.length - row.length, ''),
+        ...List<dynamic>.filled(_entryExportHeaders(t).length - row.length, ''),
       ];
     }
-    return row.sublist(0, _entryExportHeaders.length);
+    return row.sublist(0, _entryExportHeaders(t).length);
   }
 
   static String _formatIsoDateTime(DateTime value) {
@@ -263,19 +207,109 @@ class ExportService {
         row[_colType].toString().trim().toUpperCase() == 'TOTAL';
   }
 
-  static String _leaveTypeForExport(AbsenceType type) {
+  static String _leaveTypeForExport(AbsenceType type, AppLocalizations t) {
     switch (type) {
       case AbsenceType.sickPaid:
-        return 'Leave (Sick)';
+        return t.export_leaveSick;
       case AbsenceType.vabPaid:
-        return 'VAB';
+        return t.export_leaveVab;
       case AbsenceType.vacationPaid:
-        return 'Leave (Paid Vacation)';
+        return t.export_leavePaidVacation;
       case AbsenceType.unpaid:
-        return 'Obetald frånvaro';
+        return t.export_leaveUnpaid;
       case AbsenceType.unknown:
-        return 'Leave (Unknown)';
+        return t.export_leaveUnknown;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Minimal export: travel-only (5 columns)
+  // ---------------------------------------------------------------------------
+  static List<String> _travelMinimalHeaders(AppLocalizations t) => [
+        t.exportHeader_date,
+        t.exportHeader_from,
+        t.exportHeader_to,
+        t.exportHeader_minutes,
+        t.exportHeader_notes
+      ];
+
+  static ExportData prepareTravelMinimalExportData(
+      List<Entry> entries, AppLocalizations t) {
+    final travelEntries = entries
+        .where((e) => e.type == EntryType.travel)
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    final rows = <List<dynamic>>[];
+    var totalMinutes = 0;
+
+    for (final entry in travelEntries) {
+      if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
+        for (final leg in entry.travelLegs!) {
+          rows.add([
+            DateFormat('yyyy-MM-dd').format(entry.date),
+            leg.fromText,
+            leg.toText,
+            leg.minutes,
+            entry.notes ?? '',
+          ]);
+          totalMinutes += leg.minutes;
+        }
+      } else {
+        rows.add([
+          DateFormat('yyyy-MM-dd').format(entry.date),
+          entry.from ?? '',
+          entry.to ?? '',
+          entry.travelMinutes ?? 0,
+          entry.notes ?? '',
+        ]);
+        totalMinutes += entry.travelMinutes ?? 0;
+      }
+    }
+
+    rows.add([t.export_total, '', '', totalMinutes, '']);
+
+    return ExportData(
+      sheetName: 'Travel',
+      headers: _travelMinimalHeaders(t),
+      rows: rows,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Minimal export: leave-only (4 columns)
+  // ---------------------------------------------------------------------------
+  static List<String> _leaveMinimalHeaders(AppLocalizations t) => [
+        t.exportHeader_date,
+        t.exportHeader_type,
+        t.exportHeader_minutes,
+        t.exportHeader_paidUnpaid
+      ];
+
+  static ExportData prepareLeaveMinimalExportData(
+      List<AbsenceEntry> absences, AppLocalizations t) {
+    final sorted = List<AbsenceEntry>.from(absences)
+      ..sort((a, b) => a.date.compareTo(b.date));
+    final rows = <List<dynamic>>[];
+    var totalMinutes = 0;
+
+    for (final absence in sorted) {
+      final minutes = normalizedLeaveMinutes(absence);
+      rows.add([
+        DateFormat('yyyy-MM-dd').format(absence.date),
+        _leaveTypeForExport(absence.type, t),
+        minutes,
+        absence.isPaid ? t.export_paid : t.export_unpaid,
+      ]);
+      totalMinutes += minutes;
+    }
+
+    rows.add([t.export_total, '', totalMinutes, '']);
+
+    return ExportData(
+      sheetName: 'Leaves',
+      headers: _leaveMinimalHeaders(t),
+      rows: rows,
+    );
   }
 
   static String _formatUnsignedHours(int minutes) {
@@ -302,14 +336,13 @@ class ExportService {
   }
 
   static ExportData _prepareReportEntriesExportData({
+    required AppLocalizations t,
     required ReportSummary summary,
     required String sheetName,
     bool titleCaseType = false,
   }) {
-    final base = prepareExportData(
-      summary.filteredEntries,
-      summary: summary,
-    );
+    final base =
+        prepareExportData(summary.filteredEntries, summary: summary, t: t);
     final rows = <List<dynamic>>[];
     var trackedTravelDistanceKm = 0.0;
 
@@ -341,42 +374,42 @@ class ExportService {
 
     for (final leave in paidLeaves) {
       final leaveMinutes = normalizedLeaveMinutes(leave);
-      final row = List<dynamic>.filled(_entryExportHeaders.length, '');
-      row[_colType] = _leaveTypeForExport(leave.type);
+      final row = List<dynamic>.filled(_entryExportHeaders(t).length, '');
+      row[_colType] = _leaveTypeForExport(leave.type, t);
       row[_colDate] = DateFormat('yyyy-MM-dd').format(leave.date);
       row[_colSpanMinutes] = leaveMinutes;
-      row[_colEntryNotes] =
-          'Paid leave credit: ${_formatUnsignedHours(leaveMinutes)}h (not worked)';
-      row[_colHolidayWork] = 'No';
-      rows.add(_normalizeEntryExportRow(row));
+      row[_colEntryNotes] = t.exportSummary_paidLeaveCreditNote(
+          _formatUnsignedHours(leaveMinutes));
+      row[_colHolidayWork] = t.export_no;
+      rows.add(_normalizeEntryExportRow(row, t));
     }
 
     if (rows.isNotEmpty) {
-      rows.add(List<dynamic>.filled(_entryExportHeaders.length, ''));
+      rows.add(List<dynamic>.filled(_entryExportHeaders(t).length, ''));
     }
 
-    final totalsRow = List<dynamic>.filled(_entryExportHeaders.length, '');
-    totalsRow[_colType] = 'TOTAL (tracked only)';
+    final totalsRow = List<dynamic>.filled(_entryExportHeaders(t).length, '');
+    totalsRow[_colType] = t.exportSummary_totalTrackedOnly;
     totalsRow[_colTravelMinutes] = summary.travelMinutes;
     totalsRow[_colTravelDistanceKm] =
         double.parse(trackedTravelDistanceKm.toStringAsFixed(2));
     totalsRow[_colWorkedMinutes] = summary.workMinutes;
     totalsRow[_colWorkedHours] = _formatUnsignedHours(summary.workMinutes);
-    totalsRow[_colEntryNotes] = 'TOTAL (tracked only)';
-    rows.add(_normalizeEntryExportRow(totalsRow));
+    totalsRow[_colEntryNotes] = t.exportSummary_totalTrackedOnly;
+    rows.add(_normalizeEntryExportRow(totalsRow, t));
 
     return ExportData(
       sheetName: sheetName,
-      headers: List<String>.from(_entryExportHeaders),
+      headers: _entryExportHeaders(t),
       rows: rows,
     );
   }
 
   static ExportData _prepareSummarySheet({
+    required AppLocalizations t,
     required PeriodSummary periodSummary,
     required DateTime rangeStart,
     required DateTime rangeEnd,
-    required ReportExportLabels labels,
     String? sheetNameOverride,
     bool useHhMm = false,
     DateTime? generatedAt,
@@ -394,101 +427,105 @@ class ExportService {
 
     final summaryRows = <List<dynamic>>[
       [
-        labels.periodRow,
+        'Period',
         '${dateFormat.format(rangeStart)} → ${dateFormat.format(rangeEnd)}',
         '',
       ],
-      ['Generated at', dateTimeFormat.format(generatedTimestamp), ''],
       [
-        'Tracked work',
+        t.exportSummary_generatedAt,
+        dateTimeFormat.format(generatedTimestamp),
+        ''
+      ],
+      [
+        t.exportSummary_trackedWork,
         periodSummary.workMinutes,
         useHhMm
             ? formatMinutes(periodSummary.workMinutes)
             : _formatUnsignedHours(periodSummary.workMinutes),
       ],
       [
-        'Tracked travel',
+        t.exportSummary_trackedTravel,
         periodSummary.travelMinutes,
         useHhMm
             ? formatMinutes(periodSummary.travelMinutes)
             : _formatUnsignedHours(periodSummary.travelMinutes),
       ],
       [
-        labels.totalLoggedTimeRow,
+        t.exportSummary_totalTrackedOnly,
         periodSummary.trackedTotalMinutes,
         useHhMm
             ? formatMinutes(periodSummary.trackedTotalMinutes)
             : _formatUnsignedHours(periodSummary.trackedTotalMinutes),
       ],
       [
-        labels.paidLeaveRow,
+        t.exportSummary_paidLeaveCredit,
         periodSummary.paidLeaveMinutes,
         useHhMm
             ? formatMinutes(periodSummary.paidLeaveMinutes)
             : _formatUnsignedHours(periodSummary.paidLeaveMinutes),
       ],
       [
-        labels.accountedTimeRow,
+        'Accounted',
         periodSummary.accountedMinutes,
         useHhMm
             ? formatMinutes(periodSummary.accountedMinutes)
             : _formatUnsignedHours(periodSummary.accountedMinutes),
       ],
       [
-        labels.plannedTimeRow,
+        'Planned',
         periodSummary.targetMinutes,
         useHhMm
             ? formatMinutes(periodSummary.targetMinutes)
             : _formatUnsignedHours(periodSummary.targetMinutes),
       ],
       [
-        labels.differenceVsPlanRow,
+        'Difference',
         periodSummary.differenceMinutes,
         useHhMm
             ? formatMinutes(periodSummary.differenceMinutes, signed: true)
             : _formatSignedHours(periodSummary.differenceMinutes),
       ],
       [
-        'Balance offsets',
+        t.exportSummary_balanceOffsets,
         balanceOffsetsTotal,
         useHhMm
             ? formatMinutes(balanceOffsetsTotal, signed: true)
             : _formatSignedHours(balanceOffsetsTotal),
       ],
       [
-        'Manual adjustments',
+        t.exportSummary_manualAdjustments,
         periodSummary.manualAdjustmentMinutes,
         useHhMm
             ? formatMinutes(periodSummary.manualAdjustmentMinutes, signed: true)
             : _formatSignedHours(periodSummary.manualAdjustmentMinutes),
       ],
       [
-        labels.balanceAfterPeriodRow,
+        t.exportSummary_balanceAfterThis,
         periodSummary.endBalanceMinutes,
         useHhMm
             ? formatMinutes(periodSummary.endBalanceMinutes, signed: true)
             : _formatSignedHours(periodSummary.endBalanceMinutes),
       ],
-      ['Contract settings', contractSummary, ''],
+      [t.exportSummary_contractSettings, contractSummary, ''],
     ];
 
     return ExportData(
-      sheetName: sheetNameOverride ?? labels.summarySheetName,
+      sheetName: sheetNameOverride ?? t.export_summarySheetName,
       headers: [
-        labels.metricHeader,
-        labels.minutesHeader,
-        useHhMm ? _hhMmHeader : labels.hoursHeader,
+        t.exportHeader_type,
+        t.exportHeader_minutes,
+        useHhMm ? _hhMmHeader : t.exportHeader_workedHours,
       ],
       rows: summaryRows,
     );
   }
 
   static ExportData _prepareBalanceEventsSheet({
+    required AppLocalizations t,
     required ReportSummary summary,
     required PeriodSummary periodSummary,
     required DateTime rangeStart,
     required DateTime rangeEnd,
-    required ReportExportLabels labels,
     String? sheetNameOverride,
     bool useHhMm = false,
     bool fillFriendlyNotes = false,
@@ -497,9 +534,9 @@ class ExportService {
     final adjustmentRows = <List<dynamic>>[];
     final opening = summary.balanceOffsets.openingEvent;
     if (opening != null) {
-      final openingNote = fillFriendlyNotes ? 'Carry-over from earlier' : '';
+      final openingNote = fillFriendlyNotes ? t.exportSummary_carryOver : '';
       adjustmentRows.add([
-        labels.openingBalanceRow,
+        t.exportSummary_carryOver,
         dateFormat.format(opening.effectiveDate),
         opening.minutes,
         useHhMm
@@ -511,7 +548,7 @@ class ExportService {
 
     for (final adjustment in summary.balanceOffsets.adjustmentsInRange) {
       adjustmentRows.add([
-        labels.timeAdjustmentRow,
+        t.exportSummary_manualCorrections,
         dateFormat.format(adjustment.effectiveDate),
         adjustment.minutes,
         useHhMm
@@ -522,9 +559,9 @@ class ExportService {
     }
 
     final adjustmentsTotalNote =
-        fillFriendlyNotes ? 'Manual corrections in this period' : '';
+        fillFriendlyNotes ? t.exportSummary_manualCorrections : '';
     adjustmentRows.add([
-      labels.timeAdjustmentsTotalRow,
+      t.exportSummary_manualAdjustments,
       '',
       periodSummary.manualAdjustmentMinutes,
       useHhMm
@@ -533,9 +570,9 @@ class ExportService {
       adjustmentsTotalNote,
     ]);
     final startBalanceNote =
-        fillFriendlyNotes ? 'Balance at start of selected period' : '';
+        fillFriendlyNotes ? t.exportSummary_balanceAtStart : '';
     adjustmentRows.add([
-      labels.periodStartBalanceRow,
+      t.exportSummary_balanceAtStart,
       dateFormat.format(rangeStart),
       periodSummary.startBalanceMinutes,
       useHhMm
@@ -543,9 +580,10 @@ class ExportService {
           : _formatSignedHours(periodSummary.startBalanceMinutes),
       startBalanceNote,
     ]);
-    final endBalanceNote = fillFriendlyNotes ? 'Balance after this period' : '';
+    final endBalanceNote =
+        fillFriendlyNotes ? t.exportSummary_balanceAfterThis : '';
     adjustmentRows.add([
-      labels.periodEndBalanceRow,
+      t.exportSummary_balanceAfterThis,
       dateFormat.format(rangeEnd),
       periodSummary.endBalanceMinutes,
       useHhMm
@@ -555,45 +593,47 @@ class ExportService {
     ]);
 
     return ExportData(
-      sheetName: sheetNameOverride ?? labels.balanceEventsSheetName,
+      sheetName: sheetNameOverride ?? t.export_balanceEventsSheetName,
       headers: [
-        labels.colType,
-        labels.colDate,
-        labels.colMinutes,
-        useHhMm ? _hhMmHeader : labels.colHours,
-        labels.colNote,
+        t.exportHeader_type,
+        t.exportHeader_date,
+        t.exportHeader_minutes,
+        useHhMm ? _hhMmHeader : t.exportHeader_workedHours,
+        t.exportHeader_notes,
       ],
       rows: adjustmentRows,
     );
   }
 
   static List<ExportData> prepareReportExportData({
+    required AppLocalizations t,
     required ReportSummary summary,
     required PeriodSummary periodSummary,
     required DateTime rangeStart,
     required DateTime rangeEnd,
-    required ReportExportLabels labels,
     bool forXlsxPresentation = false,
     int? contractPercent,
     int? fullTimeHours,
   }) {
     final entriesSheetName =
-        forXlsxPresentation ? 'Report' : labels.entriesSheetName;
+        forXlsxPresentation ? 'Report' : t.reportsExport_entriesSheetName;
     final summarySheetName =
-        forXlsxPresentation ? 'Sammanfattning' : labels.summarySheetName;
-    final balanceEventsSheetName =
-        forXlsxPresentation ? 'Balance Events' : labels.balanceEventsSheetName;
+        forXlsxPresentation ? 'Sammanfattning' : t.export_summarySheetName;
+    final balanceEventsSheetName = forXlsxPresentation
+        ? 'Balance Events'
+        : t.export_balanceEventsSheetName;
 
     final entriesSheet = _prepareReportEntriesExportData(
       summary: summary,
       sheetName: entriesSheetName,
       titleCaseType: forXlsxPresentation,
+      t: t,
     );
     final summarySheet = _prepareSummarySheet(
       periodSummary: periodSummary,
       rangeStart: rangeStart,
       rangeEnd: rangeEnd,
-      labels: labels,
+      t: t,
       sheetNameOverride: summarySheetName,
       useHhMm: forXlsxPresentation,
       generatedAt: DateTime.now(),
@@ -605,7 +645,7 @@ class ExportService {
       periodSummary: periodSummary,
       rangeStart: rangeStart,
       rangeEnd: rangeEnd,
-      labels: labels,
+      t: t,
       sheetNameOverride: balanceEventsSheetName,
       useHhMm: forXlsxPresentation,
       fillFriendlyNotes: forXlsxPresentation,
@@ -620,11 +660,11 @@ class ExportService {
 
   @visibleForTesting
   static List<int>? buildReportSummaryWorkbookBytes({
+    required AppLocalizations t,
     required ReportSummary summary,
     required PeriodSummary periodSummary,
     required DateTime rangeStart,
     required DateTime rangeEnd,
-    required ReportExportLabels labels,
     DateTime? trackingStartDate,
     DateTime? effectiveRangeStart,
     int? contractPercent,
@@ -635,14 +675,14 @@ class ExportService {
       periodSummary: periodSummary,
       rangeStart: rangeStart,
       rangeEnd: rangeEnd,
-      labels: labels,
+      t: t,
       forXlsxPresentation: true,
       contractPercent: contractPercent,
       fullTimeHours: fullTimeHours,
     );
     return _buildStyledReportWorkbook(
+      t: t,
       sections: sections,
-      labels: labels,
       rangeStart: rangeStart,
       rangeEnd: rangeEnd,
       effectiveRangeStart: effectiveRangeStart,
@@ -651,8 +691,8 @@ class ExportService {
   }
 
   static List<int>? _buildStyledReportWorkbook({
+    required AppLocalizations t,
     required List<ExportData> sections,
-    required ReportExportLabels labels,
     DateTime? rangeStart,
     DateTime? rangeEnd,
     DateTime? effectiveRangeStart,
@@ -681,14 +721,15 @@ class ExportService {
       final sheet = excel[safeSheetNames[i]];
       final normalizedSheetName = section.sheetName.trim().toLowerCase();
       final normalizedSummaryName =
-          labels.summarySheetName.trim().toLowerCase();
+          t.export_summarySheetName.trim().toLowerCase();
       final normalizedBalanceName =
-          labels.balanceEventsSheetName.trim().toLowerCase();
+          t.export_balanceEventsSheetName.trim().toLowerCase();
 
       if (normalizedSheetName == 'report') {
         _writeStyledReportSheet(
           sheet: sheet,
           section: section,
+          t: t,
         );
       } else if (normalizedSheetName == 'sammanfattning' ||
           normalizedSheetName == 'summary (easy)' ||
@@ -696,7 +737,7 @@ class ExportService {
         _writeStyledSummarySheet(
           sheet: sheet,
           section: section,
-          labels: labels,
+          t: t,
           rangeStart: rangeStart,
           rangeEnd: rangeEnd,
           effectiveRangeStart: effectiveRangeStart,
@@ -740,6 +781,7 @@ class ExportService {
   static void _writeStyledReportSheet({
     required Sheet sheet,
     required ExportData section,
+    required AppLocalizations t,
   }) {
     final titleStyle = CellStyle(
       bold: true,
@@ -768,12 +810,11 @@ class ExportService {
     );
 
     final payrollNote =
-        'Work/Travel = logged time. Leave rows = credited leave (not worked). '
-        'TOTAL (tracked only) excludes Leave and Balance events. See Sammanfattning.';
+        t.exportSummary_totalTrackedExcludes(t.export_summarySheetName);
 
     final startTitle = CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0);
     final endTitle = CellIndex.indexByColumnRow(
-      columnIndex: _entryExportHeaders.length - 1,
+      columnIndex: _entryExportHeaders(t).length - 1,
       rowIndex: 0,
     );
     sheet.merge(startTitle, endTitle);
@@ -784,7 +825,7 @@ class ExportService {
 
     final startNote = CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1);
     final endNote = CellIndex.indexByColumnRow(
-      columnIndex: _entryExportHeaders.length - 1,
+      columnIndex: _entryExportHeaders(t).length - 1,
       rowIndex: 1,
     );
     sheet.merge(startNote, endNote);
@@ -805,12 +846,12 @@ class ExportService {
       final rowIndex = i + 3;
       final row = section.rows[i];
       _writeRow(sheet: sheet, rowIndex: rowIndex, row: row);
-      final isTotalRow =
-          row.length > _colType && row[_colType] == 'TOTAL (tracked only)';
+      final isTotalRow = row.length > _colType &&
+          row[_colType] == t.exportSummary_totalTrackedOnly;
       if (!isTotalRow) {
         continue;
       }
-      for (var col = 0; col < _entryExportHeaders.length; col++) {
+      for (var col = 0; col < _entryExportHeaders(t).length; col++) {
         final cell = sheet.cell(
           CellIndex.indexByColumnRow(columnIndex: col, rowIndex: rowIndex),
         );
@@ -832,9 +873,9 @@ class ExportService {
   }
 
   static void _writeStyledSummarySheet({
+    required AppLocalizations t,
     required Sheet sheet,
     required ExportData section,
-    required ReportExportLabels labels,
     DateTime? rangeStart,
     DateTime? rangeEnd,
     DateTime? effectiveRangeStart,
@@ -933,12 +974,12 @@ class ExportService {
     }
 
     final highlightedMetrics = <String>{
-      labels.totalLoggedTimeRow,
-      labels.paidLeaveRow,
-      labels.accountedTimeRow,
-      labels.plannedTimeRow,
-      labels.differenceVsPlanRow,
-      labels.balanceAfterPeriodRow,
+      t.exportSummary_totalTrackedOnly,
+      t.exportSummary_paidLeaveCredit,
+      'Accounted',
+      'Planned',
+      'Difference',
+      t.exportSummary_balanceAfterThis,
     };
 
     final rowByMetric = <String, List<dynamic>>{};
@@ -961,8 +1002,8 @@ class ExportService {
         }
       }
 
-      final isSignedMetric = metric == labels.differenceVsPlanRow ||
-          metric == labels.balanceAfterPeriodRow;
+      final isSignedMetric =
+          metric == 'Difference' || metric == t.exportSummary_balanceAfterThis;
       if (!isSignedMetric || row.length < 2) {
         continue;
       }
@@ -987,26 +1028,23 @@ class ExportService {
     );
     sheet.merge(quickReadStart, quickReadEnd);
     final quickReadTitleCell = sheet.cell(quickReadStart);
-    quickReadTitleCell.value = TextCellValue(labels.quickReadRow);
+    quickReadTitleCell.value = TextCellValue('Quick Read');
     quickReadTitleCell.cellStyle = quickReadTitleStyle;
     sheet.setMergedCellStyle(quickReadStart, quickReadTitleStyle);
 
     final quickReadRows = <List<String>>[
       [
-        labels.totalLoggedTimeRow,
-        rowByMetric[labels.totalLoggedTimeRow]?[2].toString() ?? ''
+        t.exportSummary_totalTrackedOnly,
+        rowByMetric[t.exportSummary_totalTrackedOnly]?[2].toString() ?? ''
       ],
       [
-        labels.paidLeaveRow,
-        rowByMetric[labels.paidLeaveRow]?[2].toString() ?? ''
+        t.exportSummary_paidLeaveCredit,
+        rowByMetric[t.exportSummary_paidLeaveCredit]?[2].toString() ?? ''
       ],
+      ['Difference', rowByMetric['Difference']?[2].toString() ?? ''],
       [
-        labels.differenceVsPlanRow,
-        rowByMetric[labels.differenceVsPlanRow]?[2].toString() ?? ''
-      ],
-      [
-        labels.balanceAfterPeriodRow,
-        rowByMetric[labels.balanceAfterPeriodRow]?[2].toString() ?? '',
+        t.exportSummary_balanceAfterThis,
+        rowByMetric[t.exportSummary_balanceAfterThis]?[2].toString() ?? '',
       ],
     ];
 
@@ -1138,11 +1176,11 @@ class ExportService {
   }
 
   static Future<String> exportReportSummaryToCSV({
+    required AppLocalizations t,
     required ReportSummary summary,
     required PeriodSummary periodSummary,
     required DateTime rangeStart,
     required DateTime rangeEnd,
-    required ReportExportLabels labels,
     String? fileName,
     DateTime? trackingStartDate,
     DateTime? effectiveRangeStart,
@@ -1164,14 +1202,14 @@ class ExportService {
         periodSummary: periodSummary,
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
-        labels: labels,
+        t: t,
         contractPercent: contractPercent,
         fullTimeHours: fullTimeHours,
       );
       final csvData = CsvExporter.exportMultiple(sections);
 
       if (csvData.isEmpty) {
-        throw Exception('Generated CSV data is empty');
+        throw Exception(t.export_errorEmptyData);
       }
 
       if (kIsWeb) {
@@ -1197,11 +1235,11 @@ class ExportService {
   }
 
   static Future<String> exportReportSummaryToExcel({
+    required AppLocalizations t,
     required ReportSummary summary,
     required PeriodSummary periodSummary,
     required DateTime rangeStart,
     required DateTime rangeEnd,
-    required ReportExportLabels labels,
     String? fileName,
     DateTime? trackingStartDate,
     DateTime? effectiveRangeStart,
@@ -1223,7 +1261,7 @@ class ExportService {
         periodSummary: periodSummary,
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
-        labels: labels,
+        t: t,
         trackingStartDate: trackingStartDate,
         effectiveRangeStart: effectiveRangeStart,
         contractPercent: contractPercent,
@@ -1231,7 +1269,7 @@ class ExportService {
       );
 
       if (excelData == null || excelData.isEmpty) {
-        throw Exception('Generated Excel data is empty');
+        throw Exception(t.export_errorEmptyData);
       }
 
       if (kIsWeb) {
@@ -1264,6 +1302,7 @@ class ExportService {
   /// Export entries to CSV file
   /// Returns the file path of the generated CSV (or empty string on web)
   static Future<String> exportEntriesToCSV({
+    required AppLocalizations t,
     required List<Entry> entries,
     required String fileName,
   }) async {
@@ -1276,11 +1315,11 @@ class ExportService {
       final fullFileName = '${fileName}_$timestamp$_csvFileExtension';
 
       // Create CSV data
-      final exportData = prepareExportData(entries);
+      final exportData = prepareExportData(entries, t: t);
       final csvData = CsvExporter.export(exportData);
 
       if (csvData.isEmpty) {
-        throw Exception('Generated CSV data is empty');
+        throw Exception(t.export_errorEmptyData);
       }
 
       if (kIsWeb) {
@@ -1311,6 +1350,7 @@ class ExportService {
   /// Export entries to Excel file
   /// Returns the file path of the generated Excel file (or empty string on web)
   static Future<String> exportEntriesToExcel({
+    required AppLocalizations t,
     required List<Entry> entries,
     required String fileName,
   }) async {
@@ -1323,11 +1363,11 @@ class ExportService {
       final fullFileName = '${fileName}_$timestamp$_excelFileExtension';
 
       // Create Excel data
-      final exportData = prepareExportData(entries);
+      final exportData = prepareExportData(entries, t: t);
       final excelData = XlsxExporter.export(exportData);
 
       if (excelData == null || excelData.isEmpty) {
-        throw Exception('Generated Excel data is empty');
+        throw Exception(t.export_errorEmptyData);
       }
 
       if (kIsWeb) {
@@ -1354,6 +1394,146 @@ class ExportService {
       }
     } catch (e) {
       throw Exception('Failed to export data: $e');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Minimal export file writers
+  // ---------------------------------------------------------------------------
+
+  /// Export travel entries to a minimal CSV (5 columns)
+  static Future<String> exportTravelMinimalToCSV({
+    required AppLocalizations t,
+    required List<Entry> entries,
+    required String fileName,
+  }) async {
+    try {
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final fullFileName = '${fileName}_$timestamp$_csvFileExtension';
+      final exportData = prepareTravelMinimalExportData(entries, t);
+      final csvData = CsvExporter.export(exportData);
+      if (csvData.isEmpty) throw Exception(t.export_errorEmptyData);
+
+      if (kIsWeb) {
+        _downloadFileWeb(csvData, fullFileName, 'text/csv;charset=utf-8');
+        return '';
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$fullFileName';
+      await File(filePath).writeAsString(csvData);
+      await _saveCopyToDownloads(
+        fileName: fullFileName,
+        mimeType: 'text/csv;charset=utf-8',
+        bytes: Uint8List.fromList(utf8.encode(csvData)),
+      );
+      return filePath;
+    } catch (e) {
+      throw Exception('Failed to export travel CSV: $e');
+    }
+  }
+
+  /// Export travel entries to a minimal Excel (5 columns)
+  static Future<String> exportTravelMinimalToExcel({
+    required AppLocalizations t,
+    required List<Entry> entries,
+    required String fileName,
+  }) async {
+    try {
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final fullFileName = '${fileName}_$timestamp$_excelFileExtension';
+      final exportData = prepareTravelMinimalExportData(entries, t);
+      final excelData = XlsxExporter.export(exportData);
+      if (excelData == null || excelData.isEmpty) {
+        throw Exception(t.export_errorEmptyData);
+      }
+
+      if (kIsWeb) {
+        _downloadFileWeb(excelData, fullFileName,
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        return '';
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$fullFileName';
+      await File(filePath).writeAsBytes(excelData);
+      await _saveCopyToDownloads(
+        fileName: fullFileName,
+        mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        bytes: Uint8List.fromList(excelData),
+      );
+      return filePath;
+    } catch (e) {
+      throw Exception('Failed to export travel Excel: $e');
+    }
+  }
+
+  /// Export leave/absence entries to a minimal CSV (4 columns)
+  static Future<String> exportLeaveMinimalToCSV({
+    required AppLocalizations t,
+    required List<AbsenceEntry> absences,
+    required String fileName,
+  }) async {
+    try {
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final fullFileName = '${fileName}_$timestamp$_csvFileExtension';
+      final exportData = prepareLeaveMinimalExportData(absences, t);
+      final csvData = CsvExporter.export(exportData);
+      if (csvData.isEmpty) throw Exception(t.export_errorEmptyData);
+
+      if (kIsWeb) {
+        _downloadFileWeb(csvData, fullFileName, 'text/csv;charset=utf-8');
+        return '';
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$fullFileName';
+      await File(filePath).writeAsString(csvData);
+      await _saveCopyToDownloads(
+        fileName: fullFileName,
+        mimeType: 'text/csv;charset=utf-8',
+        bytes: Uint8List.fromList(utf8.encode(csvData)),
+      );
+      return filePath;
+    } catch (e) {
+      throw Exception('Failed to export leave CSV: $e');
+    }
+  }
+
+  /// Export leave/absence entries to a minimal Excel (4 columns)
+  static Future<String> exportLeaveMinimalToExcel({
+    required AppLocalizations t,
+    required List<AbsenceEntry> absences,
+    required String fileName,
+  }) async {
+    try {
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final fullFileName = '${fileName}_$timestamp$_excelFileExtension';
+      final exportData = prepareLeaveMinimalExportData(absences, t);
+      final excelData = XlsxExporter.export(exportData);
+      if (excelData == null || excelData.isEmpty) {
+        throw Exception(t.export_errorEmptyData);
+      }
+
+      if (kIsWeb) {
+        _downloadFileWeb(excelData, fullFileName,
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        return '';
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/$fullFileName';
+      await File(filePath).writeAsBytes(excelData);
+      await _saveCopyToDownloads(
+        fileName: fullFileName,
+        mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        bytes: Uint8List.fromList(excelData),
+      );
+      return filePath;
+    } catch (e) {
+      throw Exception('Failed to export leave Excel: $e');
     }
   }
 

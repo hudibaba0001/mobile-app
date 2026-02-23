@@ -30,7 +30,7 @@ class _ExportDialogState extends State<ExportDialog> {
   bool _includeAllData = true;
   bool _isExporting = false;
   String _exportFormat = 'excel'; // 'excel' or 'csv'
-  String _entryTypeFilter = 'both'; // 'travel', 'work', or 'both'
+  String _entryTypeFilter = 'both'; // 'travel', 'work', 'both', or 'leave'
   late TextEditingController _fileNameController;
 
   @override
@@ -57,6 +57,8 @@ class _ExportDialogState extends State<ExportDialog> {
       typePrefix = 'travel_';
     } else if (_entryTypeFilter == 'work') {
       typePrefix = 'work_';
+    } else if (_entryTypeFilter == 'leave') {
+      typePrefix = 'leave_';
     }
 
     if (!_includeAllData && _startDate != null && _endDate != null) {
@@ -188,6 +190,18 @@ class _ExportDialogState extends State<ExportDialog> {
                 });
               },
             ),
+            RadioListTile<String>(
+              title: Text(t.export_leaveOnly),
+              subtitle: Text(t.export_leaveOnlyDesc),
+              value: 'leave',
+              groupValue: _entryTypeFilter,
+              onChanged: (value) {
+                setState(() {
+                  _entryTypeFilter = value!;
+                  _updateDefaultFileName();
+                });
+              },
+            ),
 
             const SizedBox(height: AppSpacing.xl),
 
@@ -257,15 +271,20 @@ class _ExportDialogState extends State<ExportDialog> {
                     style: summaryStyle,
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  Text(t.export_totalEntries(filteredEntries.length)),
-                  Text(t.export_travelEntries(filteredEntries
-                      .where((e) => e.type == EntryType.travel)
-                      .length)),
-                  Text(t.export_workEntries(filteredEntries
-                      .where((e) => e.type == EntryType.work)
-                      .length)),
-                  Text(t.export_totalHours(_calculateTotalHours(filteredEntries)
-                      .toStringAsFixed(2))),
+                  if (_entryTypeFilter == 'leave') ...[
+                    // Leave mode: absence data comes from provider, not entries
+                    Text(t.export_leaveEntriesCount(0)),
+                  ] else ...[
+                    Text(t.export_totalEntries(filteredEntries.length)),
+                    Text(t.export_travelEntries(filteredEntries
+                        .where((e) => e.type == EntryType.travel)
+                        .length)),
+                    Text(t.export_workEntries(filteredEntries
+                        .where((e) => e.type == EntryType.work)
+                        .length)),
+                    Text(t.export_totalMinutes(
+                        _calculatePreviewMinutes(filteredEntries))),
+                  ],
                 ],
               ),
             ),
@@ -324,11 +343,24 @@ class _ExportDialogState extends State<ExportDialog> {
     );
   }
 
-  double _calculateTotalHours(List<Entry> entries) {
-    return entries.fold<double>(
-      0.0,
-      (total, entry) => total + entry.totalDuration.inMinutes / 60.0,
-    );
+  int _calculatePreviewMinutes(List<Entry> entries) {
+    switch (_entryTypeFilter) {
+      case 'travel':
+        return entries.fold<int>(
+          0,
+          (sum, e) => sum + (e.type == EntryType.travel ? e.totalDuration.inMinutes : 0),
+        );
+      case 'work':
+        return entries.fold<int>(
+          0,
+          (sum, e) => sum + (e.type == EntryType.work ? e.workDuration.inMinutes : 0),
+        );
+      default: // 'both'
+        return entries.fold<int>(
+          0,
+          (sum, e) => sum + e.totalDuration.inMinutes,
+        );
+    }
   }
 
   Future<void> _selectDateRange() async {
@@ -375,7 +407,8 @@ class _ExportDialogState extends State<ExportDialog> {
     try {
       final filteredEntries = _getFilteredEntries();
 
-      if (filteredEntries.isEmpty) {
+      // Leave mode gets data from AbsenceProvider, not entries
+      if (_entryTypeFilter != 'leave' && filteredEntries.isEmpty) {
         if (mounted) {
           setState(() {
             _isExporting = false;
@@ -399,6 +432,7 @@ class _ExportDialogState extends State<ExportDialog> {
         'startDate': _startDate,
         'endDate': _endDate,
         'format': _exportFormat,
+        'mode': _entryTypeFilter,
       });
     } catch (e) {
       if (mounted) {

@@ -309,8 +309,7 @@ class MyApp extends StatelessWidget {
             return MaterialApp.router(
               title: 'KvikTime',
               theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: themeProvider.themeMode,
+              themeMode: ThemeMode.light,
               routerConfig: AppRouter.router,
               debugShowCheckedModeBanner: false,
               builder: (context, child) {

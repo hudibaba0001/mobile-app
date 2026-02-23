@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:myapp/l10n/generated/app_localizations.dart';
+import 'package:myapp/l10n/generated/app_localizations_en.dart';
 import 'package:excel/excel.dart';
 import 'package:myapp/calendar/sweden_holidays.dart';
 import 'package:myapp/models/absence.dart';
@@ -55,36 +57,7 @@ const _colUpdatedAt = 17;
 const _colHolidayWork = 18;
 const _colHolidayName = 19;
 
-ReportExportLabels _testReportLabels() {
-  return const ReportExportLabels(
-    entriesSheetName: 'Report',
-    summarySheetName: 'Summary (Easy)',
-    balanceEventsSheetName: 'Balance Events',
-    openingBalanceRow: 'Opening balance',
-    timeAdjustmentRow: 'Manual adjustment',
-    timeAdjustmentsTotalRow: 'Manual adjustments total',
-    periodStartBalanceRow: 'Balance at period start',
-    periodEndBalanceRow: 'Balance at period end',
-    metricHeader: 'Metric',
-    minutesHeader: 'Minutes',
-    hoursHeader: 'Hours',
-    periodRow: 'Period',
-    quickReadRow: 'Quick read',
-    totalLoggedTimeRow: 'Total logged time',
-    paidLeaveRow: 'Paid leave',
-    accountedTimeRow: 'Accounted time',
-    plannedTimeRow: 'Planned time',
-    differenceVsPlanRow: 'Difference vs plan',
-    balanceAfterPeriodRow: 'Your balance after this period',
-    trackedTotalsNote:
-        'TOTAL (tracked only) excludes Leave and Balance events. See Summary (Easy).',
-    colType: 'Type',
-    colDate: 'Date',
-    colMinutes: 'Minutes',
-    colHours: 'Hours',
-    colNote: 'Note',
-  );
-}
+AppLocalizations _testAppLocalizations() => AppLocalizationsEn();
 
 LeavesSummary _buildLeavesSummaryForTest(List<AbsenceEntry> absences) {
   final byType = <AbsenceType, LeaveTypeSummary>{
@@ -128,7 +101,8 @@ void main() {
   group('ExportService Tests', () {
     test('uses fixed column contract for empty export', () {
       final entries = <Entry>[];
-      final exportData = ExportService.prepareExportData(entries);
+      final exportData =
+          ExportService.prepareExportData(entries, t: AppLocalizationsEn());
 
       expect(exportData.headers, equals(_entryHeaders));
       expect(exportData.rows, hasLength(1)); // totals row
@@ -153,7 +127,8 @@ void main() {
         ),
       ];
 
-      final exportData = ExportService.prepareExportData(entries);
+      final exportData =
+          ExportService.prepareExportData(entries, t: AppLocalizationsEn());
       final row = exportData.rows.first;
 
       expect(exportData.headers, equals(_entryHeaders));
@@ -191,7 +166,8 @@ void main() {
         ),
       ];
 
-      final exportData = ExportService.prepareExportData(entries);
+      final exportData =
+          ExportService.prepareExportData(entries, t: AppLocalizationsEn());
       final row = exportData.rows[0];
 
       expect(exportData.headers, equals(_entryHeaders));
@@ -258,7 +234,8 @@ void main() {
       );
 
       final entries = [workEntry1, workEntry2, travelEntry1, travelEntry2];
-      final exportData = ExportService.prepareExportData(entries);
+      final exportData =
+          ExportService.prepareExportData(entries, t: AppLocalizationsEn());
 
       // 4 atomic rows + 1 separator row + 1 totals row
       expect(exportData.rows.length, 6);
@@ -313,8 +290,9 @@ void main() {
         minutes: 40,
       );
 
-      final exportData =
-          ExportService.prepareExportData([workEntry, travelEntry]);
+      final exportData = ExportService.prepareExportData(
+          [workEntry, travelEntry],
+          t: AppLocalizationsEn());
       final bytes = XlsxExporter.export(exportData)!;
       final excel = Excel.decodeBytes(bytes);
       final sheet = excel[excel.getDefaultSheet()!];
@@ -450,16 +428,17 @@ void main() {
         ),
       );
 
+      final labels = _testAppLocalizations();
       final sections = ExportService.prepareReportExportData(
         summary: reportSummary,
         periodSummary: periodSummary,
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
-        labels: _testReportLabels(),
+        t: labels,
       );
 
       expect(sections, hasLength(3));
-      expect(sections[0].sheetName, 'Report');
+      expect(sections[0].sheetName, 'Entries');
       expect(sections[1].sheetName, 'Summary (Easy)');
       expect(sections[2].sheetName, 'Balance Events');
 
@@ -492,21 +471,21 @@ void main() {
         for (final row in summaryRows) row.first.toString(): row,
       };
       expect(
-        summaryByMetric['Total logged time']?[1],
+        summaryByMetric[labels.exportSummary_totalTrackedOnly]?[1],
         periodSummary.trackedTotalMinutes,
       );
-      expect(summaryByMetric['Paid leave']?[1], periodSummary.paidLeaveMinutes);
+      expect(summaryByMetric[labels.exportSummary_paidLeaveCredit]?[1], periodSummary.paidLeaveMinutes);
       expect(
-        summaryByMetric['Accounted time']?[1],
+        summaryByMetric['Accounted']?[1],
         periodSummary.accountedMinutes,
       );
-      expect(summaryByMetric['Planned time']?[1], periodSummary.targetMinutes);
+      expect(summaryByMetric['Planned']?[1], periodSummary.targetMinutes);
       expect(
-        summaryByMetric['Difference vs plan']?[1],
+        summaryByMetric['Difference']?[1],
         periodSummary.differenceMinutes,
       );
       expect(
-        summaryByMetric['Your balance after this period']?[1],
+        summaryByMetric[labels.exportSummary_balanceAfterThis]?[1],
         periodSummary.endBalanceMinutes,
       );
     });
@@ -514,7 +493,7 @@ void main() {
     test(
         'xlsx report workbook keeps Report/Balance order and appends Sammanfattning',
         () {
-      final labels = _testReportLabels();
+      final labels = _testAppLocalizations();
       final rangeStart = DateTime(2026, 2, 1);
       final rangeEnd = DateTime(2026, 2, 19);
       final entries = <Entry>[
@@ -578,7 +557,7 @@ void main() {
         periodSummary: periodSummary,
         rangeStart: rangeStart,
         rangeEnd: rangeEnd,
-        labels: labels,
+        t: labels,
       );
 
       expect(bytes, isNotNull);
@@ -613,12 +592,12 @@ void main() {
       expect(readCell(summarySheet, 2, 0), 'Hh Mm');
 
       final totalLoggedRow =
-          findRowByFirstColumn(summarySheet, 'Total logged time');
+          findRowByFirstColumn(summarySheet, labels.exportSummary_totalTrackedOnly);
       expect(totalLoggedRow, greaterThanOrEqualTo(0));
       expect(readCell(summarySheet, 1, totalLoggedRow), '7035');
       expect(readCell(summarySheet, 2, totalLoggedRow), '117h 15m');
 
-      final diffRow = findRowByFirstColumn(summarySheet, 'Difference vs plan');
+      final diffRow = findRowByFirstColumn(summarySheet, 'Difference');
       expect(diffRow, greaterThanOrEqualTo(0));
       expect(readCell(summarySheet, 1, diffRow), '315');
       expect(readCell(summarySheet, 2, diffRow), '+5h 15m');
@@ -626,7 +605,7 @@ void main() {
       final balanceSheet = excel['Balance Events'];
       expect(readCell(balanceSheet, 3, 0), 'Hh Mm');
       final periodEndRow =
-          findRowByFirstColumn(balanceSheet, 'Balance at period end');
+          findRowByFirstColumn(balanceSheet, labels.exportSummary_balanceAfterThis);
       expect(periodEndRow, greaterThanOrEqualTo(0));
       expect(readCell(balanceSheet, 3, periodEndRow), '+5h 15m');
 
@@ -642,7 +621,7 @@ void main() {
     test(
       'xlsx summary uses effective tracking range metadata and keeps minute parity',
       () {
-        final labels = _testReportLabels();
+        final labels = _testAppLocalizations();
         final selectedStart = DateTime(2026, 1, 1);
         final selectedEnd = DateTime(2026, 1, 31);
         final selectedRange = TimeRange.custom(selectedStart, selectedEnd);
@@ -726,7 +705,7 @@ void main() {
           periodSummary: periodSummary,
           rangeStart: selectedStart,
           rangeEnd: selectedEnd,
-          labels: labels,
+          t: labels,
           trackingStartDate: trackingStartDate,
           effectiveRangeStart: effectiveStart,
         );
@@ -768,7 +747,7 @@ void main() {
         expect(readCell(summarySheet, 2, 3), 'Hh Mm');
 
         final totalLoggedRow =
-            findRowByFirstColumn(summarySheet, 'Total logged time');
+            findRowByFirstColumn(summarySheet, labels.exportSummary_totalTrackedOnly);
         expect(totalLoggedRow, greaterThanOrEqualTo(0));
         expect(
           readCell(summarySheet, 1, totalLoggedRow),
@@ -820,6 +799,185 @@ void main() {
       final fileName = ExportService.generateFileName();
 
       expect(fileName, 'time_tracker_export');
+    });
+  });
+
+  group('Travel minimal export', () {
+    test('produces 5-column headers and TOTAL row', () {
+      final date = DateTime(2026, 2, 10);
+      final entries = [
+        Entry.makeTravelAtomicFromLeg(
+          userId: 'u1',
+          date: date,
+          from: 'Home',
+          to: 'Office',
+          minutes: 30,
+        ),
+        Entry.makeTravelAtomicFromLeg(
+          userId: 'u1',
+          date: date,
+          from: 'Office',
+          to: 'Client',
+          minutes: 45,
+        ),
+        // Work entry should be excluded
+        Entry.makeWorkAtomicFromShift(
+          userId: 'u1',
+          date: date,
+          shift: Shift(
+            start: DateTime(2026, 2, 10, 8, 0),
+            end: DateTime(2026, 2, 10, 16, 0),
+          ),
+        ),
+      ];
+
+      final exportData = ExportService.prepareTravelMinimalExportData(
+          entries, AppLocalizationsEn());
+
+      expect(exportData.headers, [
+        'Date',
+        'From',
+        'To',
+        'Minutes',
+        'Notes',
+      ]);
+      // 2 travel rows + 1 TOTAL
+      expect(exportData.rows, hasLength(3));
+      for (final row in exportData.rows) {
+        expect(row.length, 5);
+      }
+
+      // TOTAL row
+      final totalRow = exportData.rows.last;
+      expect(totalRow[0], 'TOTAL');
+      expect(totalRow[3], 75); // 30 + 45
+    });
+
+    test('expands travel legs into separate rows', () {
+      final date = DateTime(2026, 3, 1);
+      final entry = Entry(
+        userId: 'u1',
+        type: EntryType.travel,
+        date: date,
+        travelLegs: [
+          TravelLeg(fromText: 'A', toText: 'B', minutes: 20),
+          TravelLeg(fromText: 'B', toText: 'C', minutes: 35),
+        ],
+        createdAt: date,
+      );
+
+      final exportData = ExportService.prepareTravelMinimalExportData(
+          [entry], AppLocalizationsEn());
+
+      // 2 leg rows + 1 TOTAL
+      expect(exportData.rows, hasLength(3));
+      expect(exportData.rows[0][1], 'A');
+      expect(exportData.rows[0][2], 'B');
+      expect(exportData.rows[0][3], 20);
+      expect(exportData.rows[1][1], 'B');
+      expect(exportData.rows[1][2], 'C');
+      expect(exportData.rows[1][3], 35);
+
+      final totalRow = exportData.rows.last;
+      expect(totalRow[0], 'TOTAL');
+      expect(totalRow[3], 55);
+    });
+
+    test('empty travel entries produce only TOTAL row', () {
+      final exportData = ExportService.prepareTravelMinimalExportData(
+          <Entry>[], AppLocalizationsEn());
+
+      expect(exportData.headers, hasLength(5));
+      expect(exportData.rows, hasLength(1));
+      expect(exportData.rows.first[0], 'TOTAL');
+      expect(exportData.rows.first[3], 0);
+    });
+  });
+
+  group('Leave minimal export', () {
+    test('produces 4-column headers and TOTAL row', () {
+      final absences = <AbsenceEntry>[
+        AbsenceEntry(
+          date: DateTime(2026, 2, 5),
+          minutes: 0, // full day = 480
+          type: AbsenceType.vacationPaid,
+        ),
+        AbsenceEntry(
+          date: DateTime(2026, 2, 10),
+          minutes: 240,
+          type: AbsenceType.sickPaid,
+        ),
+        AbsenceEntry(
+          date: DateTime(2026, 2, 15),
+          minutes: 480,
+          type: AbsenceType.unpaid,
+        ),
+      ];
+
+      final exportData = ExportService.prepareLeaveMinimalExportData(
+          absences, AppLocalizationsEn());
+
+      expect(exportData.headers, [
+        'Date',
+        'Type',
+        'Minutes',
+        'Paid/Unpaid',
+      ]);
+      // 3 absence rows + 1 TOTAL
+      expect(exportData.rows, hasLength(4));
+      for (final row in exportData.rows) {
+        expect(row.length, 4);
+      }
+
+      // First row: vacation full day normalized to 480
+      expect(exportData.rows[0][0], '2026-02-05');
+      expect(exportData.rows[0][2], 480);
+      expect(exportData.rows[0][3], 'Paid');
+
+      // Second row: sick 240 min
+      expect(exportData.rows[1][2], 240);
+      expect(exportData.rows[1][3], 'Paid');
+
+      // Third row: unpaid 480 min
+      expect(exportData.rows[2][2], 480);
+      expect(exportData.rows[2][3], 'Unpaid');
+
+      // TOTAL row
+      final totalRow = exportData.rows.last;
+      expect(totalRow[0], 'TOTAL');
+      expect(totalRow[2], 1200); // 480 + 240 + 480
+    });
+
+    test('sorts absences by date', () {
+      final absences = <AbsenceEntry>[
+        AbsenceEntry(
+          date: DateTime(2026, 3, 20),
+          minutes: 60,
+          type: AbsenceType.sickPaid,
+        ),
+        AbsenceEntry(
+          date: DateTime(2026, 3, 5),
+          minutes: 120,
+          type: AbsenceType.vabPaid,
+        ),
+      ];
+
+      final exportData = ExportService.prepareLeaveMinimalExportData(
+          absences, AppLocalizationsEn());
+
+      // Sorted: Mar 5 before Mar 20
+      expect(exportData.rows[0][0], '2026-03-05');
+      expect(exportData.rows[1][0], '2026-03-20');
+    });
+
+    test('empty absences produce only TOTAL row', () {
+      final exportData = ExportService.prepareLeaveMinimalExportData(
+          <AbsenceEntry>[], AppLocalizationsEn());
+
+      expect(exportData.headers, hasLength(4));
+      expect(exportData.rows, hasLength(1));
+      expect(exportData.rows.first[0], 'TOTAL');
+      expect(exportData.rows.first[2], 0);
     });
   });
 }
