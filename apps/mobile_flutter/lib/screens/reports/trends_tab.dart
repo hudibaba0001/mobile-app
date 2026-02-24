@@ -8,9 +8,9 @@ import '../../models/absence.dart';
 import '../../providers/absence_provider.dart';
 import '../../providers/contract_provider.dart';
 import '../../reporting/accounted_time_calculator.dart';
-import '../../reporting/leave_minutes.dart';
 import '../../reporting/time_format.dart';
 import '../../reporting/time_range.dart';
+import '../../services/holiday_service.dart';
 import '../../utils/target_hours_calculator.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -107,6 +107,7 @@ class _TrendsTabState extends State<TrendsTab> {
     final viewModel = context.watch<CustomerAnalyticsViewModel>();
     final absenceProvider = context.watch<AbsenceProvider>();
     final contractProvider = context.watch<ContractProvider>();
+    final holidayService = context.watch<HolidayService?>();
 
     if (viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -143,8 +144,12 @@ class _TrendsTabState extends State<TrendsTab> {
     try {
       final trendsData = viewModel.trendsData;
       final monthlyBreakdown = viewModel.monthlyBreakdown;
-      final leaveSummaries =
-          _buildMonthlyLeaveSummaries(monthlyBreakdown, absenceProvider);
+      final leaveSummaries = _buildMonthlyLeaveSummaries(
+        monthlyBreakdown,
+        absenceProvider,
+        weeklyTargetMinutes: contractProvider.weeklyTargetMinutes,
+        holidayService: holidayService,
+      );
       final visibleMonths = monthlyBreakdown;
 
       return ListView(
@@ -283,8 +288,10 @@ class _TrendsTabState extends State<TrendsTab> {
 
   Map<String, _MonthlyLeaveSummary> _buildMonthlyLeaveSummaries(
     List<MonthlyBreakdown> months,
-    AbsenceProvider absenceProvider,
-  ) {
+    AbsenceProvider absenceProvider, {
+    required int weeklyTargetMinutes,
+    HolidayService? holidayService,
+  }) {
     final summaries = <String, _MonthlyLeaveSummary>{};
     final years = months.map((m) => m.month.year).toSet();
     final absencesByYear = <int, List<AbsenceEntry>>{
@@ -301,31 +308,50 @@ class _TrendsTabState extends State<TrendsTab> {
       var vabMinutes = 0;
       var unpaidCount = 0;
       var unpaidMinutes = 0;
+      final byDate = <DateTime, List<AbsenceEntry>>{};
 
       for (final absence in absences) {
         if (absence.date.month != month.month.month) continue;
-        final minutes = normalizedLeaveMinutes(absence);
+        final date =
+            DateTime(absence.date.year, absence.date.month, absence.date.day);
+        byDate.putIfAbsent(date, () => <AbsenceEntry>[]).add(absence);
         switch (absence.type) {
           case AbsenceType.vacationPaid:
             paidVacationCount += 1;
-            paidVacationMinutes += minutes;
             break;
           case AbsenceType.sickPaid:
             sickLeaveCount += 1;
-            sickLeaveMinutes += minutes;
             break;
           case AbsenceType.vabPaid:
             vabCount += 1;
-            vabMinutes += minutes;
             break;
           case AbsenceType.unpaid:
             unpaidCount += 1;
-            unpaidMinutes += minutes;
             break;
           case AbsenceType.unknown:
             // Skip or log unknown types for trends
             break;
         }
+      }
+
+      final orderedDates = byDate.keys.toList()..sort();
+      for (final date in orderedDates) {
+        final dayAbsences = byDate[date]!;
+        final scheduled = _scheduledMinutesForDate(
+          date: date,
+          weeklyTargetMinutes: weeklyTargetMinutes,
+          holidayService: holidayService,
+        );
+
+        final credited =
+            absenceProvider.paidAbsenceMinutesForDate(date, scheduled);
+        final paidAllocations =
+            _allocatePaidCreditedMinutesByType(dayAbsences, credited);
+        paidVacationMinutes += paidAllocations[AbsenceType.vacationPaid] ?? 0;
+        sickLeaveMinutes += paidAllocations[AbsenceType.sickPaid] ?? 0;
+        vabMinutes += paidAllocations[AbsenceType.vabPaid] ?? 0;
+
+        unpaidMinutes += _unpaidMinutesForDate(dayAbsences, scheduled);
       }
 
       summaries[_monthKey(month.month)] = _MonthlyLeaveSummary(
@@ -341,6 +367,107 @@ class _TrendsTabState extends State<TrendsTab> {
     }
 
     return summaries;
+  }
+
+  int _scheduledMinutesForDate({
+    required DateTime date,
+    required int weeklyTargetMinutes,
+    HolidayService? holidayService,
+  }) {
+    if (holidayService != null) {
+      final redDayInfo = holidayService.getRedDayInfo(date);
+      if (redDayInfo.isRedDay) {
+        return TargetHoursCalculator.scheduledMinutesWithRedDayInfo(
+          date: date,
+          weeklyTargetMinutes: weeklyTargetMinutes,
+          isFullRedDay: redDayInfo.isFullDay,
+          isHalfRedDay: redDayInfo.halfDay != null,
+        );
+      }
+    }
+
+    return TargetHoursCalculator.scheduledMinutesForDate(
+      date: date,
+      weeklyTargetMinutes: weeklyTargetMinutes,
+      holidays: _holidays,
+    );
+  }
+
+  Map<AbsenceType, int> _allocatePaidCreditedMinutesByType(
+    List<AbsenceEntry> dayAbsences,
+    int creditedMinutes,
+  ) {
+    final allocations = <AbsenceType, int>{
+      AbsenceType.vacationPaid: 0,
+      AbsenceType.sickPaid: 0,
+      AbsenceType.vabPaid: 0,
+    };
+    if (creditedMinutes <= 0) {
+      return allocations;
+    }
+
+    final paidAbsences =
+        dayAbsences.where((absence) => absence.isPaid).toList();
+    if (paidAbsences.isEmpty) {
+      return allocations;
+    }
+
+    final hasFullDay = paidAbsences.any((absence) => absence.minutes == 0);
+    if (hasFullDay) {
+      final firstType = paidAbsences.first.type;
+      allocations[firstType] = (allocations[firstType] ?? 0) + creditedMinutes;
+      return allocations;
+    }
+
+    final totalRawPaidMinutes = paidAbsences.fold<int>(
+      0,
+      (sum, absence) => sum + absence.minutes,
+    );
+    if (totalRawPaidMinutes <= 0) {
+      final firstType = paidAbsences.first.type;
+      allocations[firstType] = (allocations[firstType] ?? 0) + creditedMinutes;
+      return allocations;
+    }
+
+    var remaining = creditedMinutes;
+    for (var i = 0; i < paidAbsences.length; i++) {
+      final absence = paidAbsences[i];
+      final isLast = i == paidAbsences.length - 1;
+      var allocated = isLast
+          ? remaining
+          : ((creditedMinutes * absence.minutes) / totalRawPaidMinutes).round();
+      if (allocated < 0) allocated = 0;
+      if (allocated > remaining) allocated = remaining;
+
+      allocations[absence.type] = (allocations[absence.type] ?? 0) + allocated;
+      remaining -= allocated;
+      if (remaining <= 0) break;
+    }
+
+    return allocations;
+  }
+
+  int _unpaidMinutesForDate(
+      List<AbsenceEntry> dayAbsences, int scheduledMinutes) {
+    final unpaidAbsences = dayAbsences
+        .where((absence) => absence.type == AbsenceType.unpaid)
+        .toList();
+    if (unpaidAbsences.isEmpty) {
+      return 0;
+    }
+
+    final hasFullDay = unpaidAbsences.any((absence) => absence.minutes == 0);
+    if (hasFullDay) {
+      return scheduledMinutes;
+    }
+
+    final totalUnpaidMinutes = unpaidAbsences.fold<int>(
+      0,
+      (sum, absence) => sum + absence.minutes,
+    );
+    return totalUnpaidMinutes < scheduledMinutes
+        ? totalUnpaidMinutes
+        : scheduledMinutes;
   }
 
   Widget _buildMonthlyBreakdownCard(

@@ -298,7 +298,6 @@ class TimeProvider extends ChangeNotifier {
 
       // Load personal red days for the year if HolidayService is available
       await _holidayService?.loadPersonalRedDays(targetYear);
-
       // Filter entries for the target year AND on/after tracking start date
       final yearEntries = allEntries.where((entry) {
         if (entry.date.year != targetYear) return false;
@@ -312,13 +311,12 @@ class TimeProvider extends ChangeNotifier {
       debugPrint(
           'TimeProvider: Entries for year $targetYear (after $startDate): ${yearEntries.length}');
 
-      // Build map of actual worked minutes by date (day-by-day)
-      // Uses workDuration to exclude travel — balance targets are work hours only
+      // Build map of actual logged minutes by date (day-by-day).
       final Map<DateTime, int> actualByDate = {};
       for (final entry in yearEntries) {
         final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
         actualByDate[day] =
-            (actualByDate[day] ?? 0) + entry.workDuration.inMinutes;
+            (actualByDate[day] ?? 0) + entry.totalDuration.inMinutes;
       }
 
       // Generate ALL 12 months with day-by-day calculations
@@ -588,13 +586,12 @@ class TimeProvider extends ChangeNotifier {
     return (daysSinceWeek1 ~/ 7) + 1;
   }
 
-  /// Calculate total worked hours from a list of entries
-  /// Uses workDuration to exclude travel — balance targets are work hours only
+  /// Calculate total logged hours from a list of entries.
   double _calculateTotalHours(List<Entry> entries) {
     double totalHours = 0.0;
 
     for (final entry in entries) {
-      totalHours += entry.workDuration.inMinutes / 60.0;
+      totalHours += entry.totalDuration.inMinutes / 60.0;
     }
 
     return totalHours;
@@ -955,7 +952,7 @@ class TimeProvider extends ChangeNotifier {
     return yearTargetMinutesToDate(year) / 60.0;
   }
 
-  /// Get actual worked minutes up to today for a month
+  /// Get actual logged minutes up to today for a month.
   ///
   /// [year] The year
   /// [month] The month (1-12)
@@ -988,7 +985,7 @@ class TimeProvider extends ChangeNotifier {
           entryDate.month == month &&
           !entryDate.isBefore(effectiveStart) &&
           !entryDate.isAfter(effectiveEnd)) {
-        totalMinutes += entry.workDuration.inMinutes;
+        totalMinutes += entry.totalDuration.inMinutes;
       }
     }
 
@@ -1039,7 +1036,7 @@ class TimeProvider extends ChangeNotifier {
     return totalCredit;
   }
 
-  /// Get year actual minutes up to today
+  /// Get year actual logged minutes up to today.
   ///
   /// [year] The year
   /// Respects trackingStartDate - only includes entries on/after tracking start
@@ -1069,7 +1066,7 @@ class TimeProvider extends ChangeNotifier {
       if (entryDate.year == year &&
           !entryDate.isBefore(effectiveStart) &&
           !entryDate.isAfter(effectiveEnd)) {
-        totalMinutes += entry.workDuration.inMinutes;
+        totalMinutes += entry.totalDuration.inMinutes;
       }
     }
 
