@@ -330,7 +330,7 @@
       }
     }
   },
-  "balance_loggedTime": "Worked time",
+  "balance_loggedTime": "Logged time",
   "balance_creditedLeave": "Credited leave",
   "balance_accountedTime": "Accounted time",
   "balance_plannedTimeSinceBaseline": "Planned time (since baseline)",

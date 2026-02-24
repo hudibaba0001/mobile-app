@@ -476,6 +476,7 @@ class _TrendsTabState extends State<TrendsTab> {
         isAhead ? FlexsaldoColors.positive : FlexsaldoColors.negative;
 
     return AppCard(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.lg),
       borderRadius: BorderRadius.circular(AppRadius.md),
       child: Column(
@@ -520,42 +521,56 @@ class _TrendsTabState extends State<TrendsTab> {
           ),
           const SizedBox(height: AppSpacing.md),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildMonthlyMetric(
-                theme,
-                value:
-                    _formatTrackedMinutes(context, accounted.accountedMinutes),
-                label: t.reportsMetric_accounted,
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value: _formatTrackedMinutes(
+                      context, accounted.accountedMinutes),
+                  label: t.reportsMetric_accounted,
+                ),
               ),
-              _buildMonthlyMetric(
-                theme,
-                value: _formatTrackedMinutes(context, accounted.targetMinutes),
-                label: t.trends_target,
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value:
+                      _formatTrackedMinutes(context, accounted.targetMinutes),
+                  label: t.trends_target,
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.1)),
           const SizedBox(height: AppSpacing.md),
-          Wrap(
-            spacing: AppSpacing.lg,
-            runSpacing: AppSpacing.sm,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildMonthlyMetric(
-                theme,
-                value: _formatTrackedMinutes(context, month.workMinutes),
-                label: t.trends_work,
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value: _formatTrackedMinutes(context, month.workMinutes),
+                  label: t.trends_work,
+                ),
               ),
-              _buildMonthlyMetric(
-                theme,
-                value: _formatTrackedMinutes(context, month.travelMinutes),
-                label: t.trends_travel,
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value: _formatTrackedMinutes(context, month.travelMinutes),
+                  label: t.trends_travel,
+                ),
               ),
-              _buildMonthlyMetric(
-                theme,
-                value: _formatTrackedMinutes(context, accounted.leaveMinutes),
-                label: t.reportsMetric_leave,
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value: _formatTrackedMinutes(context, accounted.leaveMinutes),
+                  label: t.reportsMetric_leave,
+                ),
               ),
             ],
           ),
@@ -599,27 +614,24 @@ class _TrendsTabState extends State<TrendsTab> {
     required String label,
   }) {
     final colorScheme = theme.colorScheme;
-    return SizedBox(
-      width: 92,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: colorScheme.onSurface,
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -722,7 +734,7 @@ class _TrendsTabState extends State<TrendsTab> {
               BarChartRodData(
                 toY: entry.value,
                 color: colorScheme.secondary,
-                width: 20,
+                width: 24,
                 borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(AppSpacing.xs)),
               ),
@@ -811,7 +823,7 @@ class _TrendsTabState extends State<TrendsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${_formatTrackedMinutes(context, totalMinutes)}',
+                    _formatTrackedMinutes(context, totalMinutes),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: colorScheme.onSurface,
@@ -832,34 +844,34 @@ class _TrendsTabState extends State<TrendsTab> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Icon(Icons.work_rounded,
+                        size: AppIconSize.xs,
+                        color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: AppSpacing.xs),
                     Text(
-                      '${_formatTrackedMinutes(context, workMinutes)}',
+                      _formatTrackedMinutes(context, workMinutes),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Icon(Icons.work_rounded,
-                        size: AppIconSize.xs,
-                        color: colorScheme.onSurfaceVariant),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Icon(Icons.directions_car_rounded,
+                        size: AppIconSize.xs,
+                        color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: AppSpacing.xs),
                     Text(
-                      '${_formatTrackedMinutes(context, travelMinutes)}',
+                      _formatTrackedMinutes(context, travelMinutes),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Icon(Icons.directions_car_rounded,
-                        size: AppIconSize.xs,
-                        color: colorScheme.onSurfaceVariant),
                   ],
                 ),
               ],
