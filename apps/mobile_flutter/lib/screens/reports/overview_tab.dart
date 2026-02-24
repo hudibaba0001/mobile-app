@@ -8,6 +8,7 @@ import '../../design/app_theme.dart';
 import '../../design/components/components.dart';
 import '../../models/absence.dart';
 import '../../models/entry.dart';
+import '../../providers/absence_provider.dart';
 import '../../providers/contract_provider.dart';
 import '../../repositories/balance_adjustment_repository.dart';
 import '../../reports/report_aggregator.dart';
@@ -17,6 +18,7 @@ import '../../reporting/period_summary_calculator.dart';
 import '../../reporting/time_format.dart';
 import '../../reporting/time_range.dart';
 import '../../services/export_service.dart';
+import '../../services/holiday_service.dart';
 import '../../services/supabase_auth_service.dart';
 import '../../providers/settings_provider.dart';
 import '../../widgets/export_share_dialog.dart';
@@ -90,12 +92,19 @@ class _OverviewTabState extends State<OverviewTab> {
         TimeRange.custom(widget.range.start, widget.range.end);
     final endInclusive =
         selectedRange.endExclusive.subtract(const Duration(days: 1));
+    final contractProvider = context.read<ContractProvider>();
     final queryService = ReportQueryService(
       authService: context.read<SupabaseAuthService>(),
       adjustmentRepository: BalanceAdjustmentRepository(SupabaseConfig.client),
     );
 
-    final aggregator = ReportAggregator(queryService: queryService);
+    final aggregator = ReportAggregator(
+      queryService: queryService,
+      absenceProvider: context.read<AbsenceProvider>(),
+      holidayService: context.read<HolidayService>(),
+      weeklyTargetMinutes: contractProvider.weeklyTargetMinutes,
+      contractPercent: contractProvider.contractPercent.toDouble(),
+    );
 
     final summary = await aggregator.buildSummary(
       start: selectedRange.startInclusive,
@@ -929,7 +938,7 @@ class _OverviewTabState extends State<OverviewTab> {
     );
   }
 
-    Future<void> _exportSummary(
+  Future<void> _exportSummary(
     BuildContext context,
     ReportSummary summary,
     _ExportFormat format,
@@ -937,7 +946,7 @@ class _OverviewTabState extends State<OverviewTab> {
     if (!context.mounted) return;
 
     final t = AppLocalizations.of(context);
-    
+
     final periodSummary = _buildPeriodSummary(summary);
     final navigator = Navigator.of(context, rootNavigator: true);
     final scaffold = ScaffoldMessenger.of(context);

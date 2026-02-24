@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/monthly_summary.dart';
 import '../models/weekly_summary.dart';
+import '../utils/scheduled_minutes_resolver.dart' as scheduled_minutes_resolver;
 import '../utils/time_balance_calculator.dart';
 import '../utils/target_hours_calculator.dart';
 import '../models/entry.dart';
@@ -155,35 +156,12 @@ class TimeProvider extends ChangeNotifier {
     required DateTime date,
     required int weeklyTargetMinutes,
   }) {
-    // If HolidayService is available, use it for ALL holiday checks
-    // (both auto holidays and personal red days) to ensure consistency
-    if (_holidayService != null) {
-      final redDayInfo = _holidayService.getRedDayInfo(date);
-
-      if (redDayInfo.isRedDay) {
-        // Use scheduledMinutesWithRedDayInfo for half-day support
-        return TargetHoursCalculator.scheduledMinutesWithRedDayInfo(
-          date: date,
-          weeklyTargetMinutes: weeklyTargetMinutes,
-          isFullRedDay: redDayInfo.isFullDay,
-          isHalfRedDay: redDayInfo.halfDay != null,
-        );
-      }
-
-      // Not a red day — return normal scheduled minutes for weekday
-      // (weekend check is handled inside scheduledMinutesForDate)
-      return TargetHoursCalculator.scheduledMinutesForDate(
-        date: date,
-        weeklyTargetMinutes: weeklyTargetMinutes,
-        holidays: _holidays,
-      );
-    }
-
-    // Fallback: Use basic holiday calendar (auto holidays only)
-    return TargetHoursCalculator.scheduledMinutesForDate(
+    // Thin wrapper around shared scheduling rules used by reports too.
+    return scheduled_minutes_resolver.scheduledMinutesForDate(
       date: date,
       weeklyTargetMinutes: weeklyTargetMinutes,
-      holidays: _holidays,
+      contractPercent: _contractProvider.contractPercent.toDouble(),
+      holidayService: _holidayService,
     );
   }
 

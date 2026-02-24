@@ -194,28 +194,21 @@ class AbsenceProvider extends ChangeNotifier {
     return yearMap[_dateKey(date)] ?? const [];
   }
 
-  /// Calculate paid absence credit minutes for a specific date
-  int paidAbsenceMinutesForDate(DateTime date, int scheduledMinutes) {
-    final absences = absencesForDate(date);
-
-    if (absences.isEmpty) {
-      return 0;
-    }
-
-    // Filter to paid absences only
-    final paidAbsences = absences.where((a) => a.isPaid).toList();
-
+  /// Shared paid-credit rule used by all balance/reporting calculations.
+  static int paidAbsenceMinutesForAbsences({
+    required Iterable<AbsenceEntry> absencesForDate,
+    required int scheduledMinutes,
+  }) {
+    final paidAbsences = absencesForDate.where((absence) => absence.isPaid);
     if (paidAbsences.isEmpty) {
       return 0;
     }
 
-    // Check if any paid absence has minutes == 0 (full day)
-    final hasFullDay = paidAbsences.any((a) => a.minutes == 0);
+    final hasFullDay = paidAbsences.any((absence) => absence.minutes == 0);
     if (hasFullDay) {
       return scheduledMinutes;
     }
 
-    // Sum all paid absence minutes
     final totalPaidMinutes = paidAbsences.fold<int>(
       0,
       (sum, absence) => sum + absence.minutes,
@@ -224,6 +217,14 @@ class AbsenceProvider extends ChangeNotifier {
     return totalPaidMinutes < scheduledMinutes
         ? totalPaidMinutes
         : scheduledMinutes;
+  }
+
+  /// Calculate paid absence credit minutes for a specific date
+  int paidAbsenceMinutesForDate(DateTime date, int scheduledMinutes) {
+    return paidAbsenceMinutesForAbsences(
+      absencesForDate: absencesForDate(date),
+      scheduledMinutes: scheduledMinutes,
+    );
   }
 
   /// Add an absence entry
