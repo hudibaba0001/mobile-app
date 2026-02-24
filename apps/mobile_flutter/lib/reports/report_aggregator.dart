@@ -1,8 +1,14 @@
 import '../models/absence.dart';
 import '../models/entry.dart';
+import '../calendar/sweden_holidays.dart';
+import '../config/supabase_config.dart';
+import '../repositories/user_red_day_repository.dart';
 import '../reporting/leave_minutes.dart';
 import '../reporting/time_range.dart';
 import '../reporting/tracked_time_calculator.dart';
+import '../services/holiday_service.dart';
+import '../services/profile_service.dart';
+import '../utils/target_hours_calculator.dart';
 import 'report_query_service.dart';
 
 class ReportSummary {
@@ -214,6 +220,7 @@ class BalanceOffsetEvent {
 /// - Opening balance and adjustments are represented separately as saldo offsets.
 class ReportAggregator {
   final ReportQueryService _queryService;
+  final SwedenHolidayCalendar _holidays = SwedenHolidayCalendar();
 
   ReportAggregator({
     required ReportQueryService queryService,
@@ -227,6 +234,199 @@ class ReportAggregator {
 
   bool _isAfter(DateTime a, DateTime b) {
     return a.isAfter(b);
+  }
+
+  Future<int> _resolveWeeklyTargetMinutes() async {
+    try {
+      final profile = await ProfileService().fetchProfile();
+      if (profile != null) {
+        final fullTimeHours = profile.fullTimeHours;
+        final contractPercent = profile.contractPercent;
+        final weeklyTargetMinutes =
+            (fullTimeHours * 60.0 * contractPercent / 100.0).round();
+        if (weeklyTargetMinutes >= 0) {
+          return weeklyTargetMinutes;
+        }
+      }
+    } catch (_) {
+      // Fall through to default.
+    }
+
+    // Default to 40h/week when profile data is unavailable.
+    return 40 * 60;
+  }
+
+  Future<HolidayService?> _loadHolidayServiceForYears(Set<int> years) async {
+    if (years.isEmpty) return null;
+
+    try {
+      final client = SupabaseConfig.client;
+      final userId = client.auth.currentUser?.id;
+      if (userId == null) return null;
+
+      final holidayService = HolidayService();
+      holidayService.initialize(
+        repository: UserRedDayRepository(supabase: client),
+        userId: userId,
+      );
+
+      final sortedYears = years.toList()..sort();
+      for (final year in sortedYears) {
+        await holidayService.loadPersonalRedDays(year);
+      }
+
+      return holidayService;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int _scheduledMinutesForDate({
+    required DateTime date,
+    required int weeklyTargetMinutes,
+    HolidayService? holidayService,
+  }) {
+    if (holidayService != null) {
+      final redDayInfo = holidayService.getRedDayInfo(date);
+      if (redDayInfo.isRedDay) {
+        return TargetHoursCalculator.scheduledMinutesWithRedDayInfo(
+          date: date,
+          weeklyTargetMinutes: weeklyTargetMinutes,
+          isFullRedDay: redDayInfo.isFullDay,
+          isHalfRedDay: redDayInfo.halfDay != null,
+        );
+      }
+    }
+
+    return TargetHoursCalculator.scheduledMinutesForDate(
+      date: date,
+      weeklyTargetMinutes: weeklyTargetMinutes,
+      holidays: _holidays,
+    );
+  }
+
+  int _paidAbsenceMinutesForDate({
+    required List<AbsenceEntry> absencesForDate,
+    required int scheduledMinutes,
+  }) {
+    final paidAbsences = absencesForDate.where((absence) => absence.isPaid);
+    if (paidAbsences.isEmpty) {
+      return 0;
+    }
+
+    final hasFullDay = paidAbsences.any((absence) => absence.minutes == 0);
+    if (hasFullDay) {
+      return scheduledMinutes;
+    }
+
+    final totalPaidMinutes = paidAbsences.fold<int>(
+      0,
+      (sum, absence) => sum + absence.minutes,
+    );
+
+    return totalPaidMinutes < scheduledMinutes
+        ? totalPaidMinutes
+        : scheduledMinutes;
+  }
+
+  List<AbsenceEntry> _allocateCreditedMinutesToAbsences({
+    required List<AbsenceEntry> paidAbsences,
+    required int creditedMinutes,
+  }) {
+    final creditedAbsences = <AbsenceEntry>[];
+    var remaining = creditedMinutes;
+
+    for (final absence in paidAbsences) {
+      if (remaining <= 0) break;
+
+      final requestedMinutes =
+          absence.minutes == 0 ? remaining : absence.minutes;
+      final allocatedMinutes =
+          requestedMinutes < remaining ? requestedMinutes : remaining;
+
+      if (allocatedMinutes <= 0) {
+        continue;
+      }
+
+      creditedAbsences.add(
+        AbsenceEntry(
+          id: absence.id,
+          date: absence.date,
+          minutes: allocatedMinutes,
+          type: absence.type,
+          rawType: absence.rawType,
+        ),
+      );
+      remaining -= allocatedMinutes;
+    }
+
+    return creditedAbsences;
+  }
+
+  Future<List<AbsenceEntry>> _buildCreditedLeaveProjection(
+    List<AbsenceEntry> absences,
+  ) async {
+    if (absences.isEmpty) {
+      return const [];
+    }
+
+    final weeklyTargetMinutes = await _resolveWeeklyTargetMinutes();
+    final holidayService = await _loadHolidayServiceForYears(
+      absences.map((absence) => absence.date.year).toSet(),
+    );
+
+    final groupedByDate = <DateTime, List<AbsenceEntry>>{};
+    for (final absence in absences) {
+      final date = _dateOnly(absence.date);
+      groupedByDate.putIfAbsent(date, () => <AbsenceEntry>[]).add(absence);
+    }
+
+    final projected = <AbsenceEntry>[];
+    final orderedDates = groupedByDate.keys.toList()..sort();
+
+    for (final date in orderedDates) {
+      final dayAbsences = groupedByDate[date]!;
+      final paidAbsences =
+          dayAbsences.where((absence) => absence.isPaid).toList();
+
+      final creditedPaidAbsences = <AbsenceEntry>[];
+      if (paidAbsences.isNotEmpty) {
+        final scheduledMinutes = _scheduledMinutesForDate(
+          date: date,
+          weeklyTargetMinutes: weeklyTargetMinutes,
+          holidayService: holidayService,
+        );
+        final creditedMinutes = _paidAbsenceMinutesForDate(
+          absencesForDate: paidAbsences,
+          scheduledMinutes: scheduledMinutes,
+        );
+        if (creditedMinutes > 0) {
+          creditedPaidAbsences.addAll(
+            _allocateCreditedMinutesToAbsences(
+              paidAbsences: paidAbsences,
+              creditedMinutes: creditedMinutes,
+            ),
+          );
+        }
+      }
+
+      var paidIndex = 0;
+      for (final absence in dayAbsences) {
+        if (!absence.isPaid) {
+          projected.add(absence);
+          continue;
+        }
+
+        if (paidIndex >= creditedPaidAbsences.length) {
+          continue;
+        }
+
+        projected.add(creditedPaidAbsences[paidIndex]);
+        paidIndex += 1;
+      }
+    }
+
+    return projected;
   }
 
   Future<ReportSummary> buildSummary({
@@ -339,6 +539,7 @@ class ReportAggregator {
     );
     final closingBalanceMinutes = startingBalanceMinutes +
         eventsInRange.fold<int>(0, (sum, event) => sum + event.minutes);
+    final leavesSummary = await _buildLeavesSummary(absences);
 
     return ReportSummary(
       filteredEntries: sortedEntries,
@@ -347,7 +548,7 @@ class ReportAggregator {
       totalTrackedMinutes: workMinutes + travelMinutes,
       workInsights: _buildWorkInsights(sortedEntries),
       travelInsights: _buildTravelInsights(sortedEntries),
-      leavesSummary: _buildLeavesSummary(absences),
+      leavesSummary: leavesSummary,
       balanceOffsets: BalanceOffsetSummary(
         openingEvent:
             openingEvent.effectiveDate.isAfter(endDate) ? null : openingEvent,
@@ -483,9 +684,11 @@ class ReportAggregator {
     return '$normalizedFrom->$normalizedTo';
   }
 
-  LeavesSummary _buildLeavesSummary(List<AbsenceEntry> absences) {
+  Future<LeavesSummary> _buildLeavesSummary(List<AbsenceEntry> absences) async {
     final sortedAbsences = List<AbsenceEntry>.from(absences)
       ..sort((a, b) => a.date.compareTo(b.date));
+    final projectedAbsences =
+        await _buildCreditedLeaveProjection(sortedAbsences);
 
     final byType = <AbsenceType, LeaveTypeSummary>{};
     for (final type in AbsenceType.values) {
@@ -500,7 +703,7 @@ class ReportAggregator {
     var totalMinutes = 0;
     var totalDays = 0.0;
 
-    for (final absence in sortedAbsences) {
+    for (final absence in projectedAbsences) {
       final isFullDay = absence.minutes == 0;
       final minutes = normalizedLeaveMinutes(absence);
       final days = isFullDay ? 1.0 : minutes / kDefaultFullLeaveDayMinutes;
@@ -518,9 +721,9 @@ class ReportAggregator {
     }
 
     return LeavesSummary(
-      absences: sortedAbsences,
+      absences: projectedAbsences,
       byType: byType,
-      totalEntries: sortedAbsences.length,
+      totalEntries: projectedAbsences.length,
       totalMinutes: totalMinutes,
       totalDays: totalDays,
     );
