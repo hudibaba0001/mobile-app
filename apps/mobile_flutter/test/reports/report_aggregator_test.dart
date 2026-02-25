@@ -382,5 +382,42 @@ void main() {
       expect(accounted.accountedMinutes, 540);
       expect(accounted.deltaMinutes, 0);
     });
+
+    test('75% contract credits full-day leave as 360 minutes', () async {
+      final queryService = _queryService(
+        entries: const [],
+        leavesByYear: {
+          2026: [
+            _leave(
+              DateTime(2026, 2, 10),
+              minutes: 0,
+              type: AbsenceType.vacationPaid,
+            ),
+          ],
+        },
+        profile: UserProfile(
+          id: 'user-1',
+          trackingStartDate: DateTime(2025, 1, 1),
+          openingFlexMinutes: 0,
+        ),
+        adjustments: const [],
+      );
+
+      final aggregator = ReportAggregator(
+        queryService: queryService,
+        weeklyTargetMinutes: 1800, // 75% of 40h/week
+        contractPercent: 75,
+      );
+      final summary = await aggregator.buildSummary(
+        start: DateTime(2026, 2, 1),
+        end: DateTime(2026, 2, 28),
+        travelEnabled: true,
+      );
+
+      expect(summary.leavesSummary.creditedMinutes, 360);
+      expect(summary.leavesSummary.totalMinutes, 360);
+      expect(summary.leavesSummary.absences, hasLength(1));
+      expect(summary.leavesSummary.absences.first.minutes, 360);
+    });
   });
 }
