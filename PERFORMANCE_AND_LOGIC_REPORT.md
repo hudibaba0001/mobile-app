@@ -68,3 +68,27 @@
 - **Location:** `apps/web_api/lib/balance-calculator.ts`
 - **Issue:** `calculateUserBalances` fetches the profile, and then calls `calculateYearlyBalance` which fetches the profile again.
 - **Recommendation:** Pass the profile object to `calculateYearlyBalance`.
+
+## Business Logic Deep Dive
+
+### 1. Single Source of Truth Violation (Calculations)
+- **Location:** `apps/mobile_flutter/lib/utils/target_hours_calculator.dart` (Mobile) vs `apps/web_api/lib/balance-calculator.ts` (Web API)
+- **Issue:** The Mobile App uses a robust, holiday-aware calculation for target minutes (respecting public holidays and personal red days). The Web API, however, explicitly **ignores holidays and red days** (as noted in its comments: "Simplified version for Sprint 1 - excludes holidays, absences, and red days").
+- **Impact:** The Web API will consistently report a balance deficit for any month containing holidays, as it expects work on those days, whereas the Mobile App will correctly report 0 variance (or credit). This leads to inconsistent data between the app and the admin dashboard.
+- **Recommendation:** Port the `TargetHoursCalculator` logic (specifically `scheduledMinutesForDate` and holiday handling) to the Web API or move the calculation logic to a shared Supabase Edge Function to ensure a single source of truth.
+
+### 2. Custom Red Days Logic Consistency
+- **Location:** `apps/mobile_flutter/lib/services/holiday_service.dart` vs `apps/web_api/lib/balance-calculator.ts`
+- **Issue:** The Mobile App fully supports "Custom Red Days" (personal holidays/half-days) via `HolidayService` and `UserRedDayRepository`. The Web API has **no knowledge** of these tables or logic.
+- **Impact:** Any personal red days defined by the user in the app will be treated as normal workdays by the Web API, causing further discrepancies in balance calculations.
+- **Recommendation:** The Web API must be updated to query the `user_red_days` table and factor these into its target calculation.
+
+### 3. Contract Percentage & Leave Credit
+- **Location:** `apps/mobile_flutter/lib/providers/contract_provider.dart` & `apps/mobile_flutter/lib/providers/absence_provider.dart`
+- **Finding:** The Mobile App logic appears correct. `ContractProvider` manages `contractPercent`, which scales `weeklyTargetMinutes`. This flows into `TimeProvider` → `scheduled_minutes_resolver.dart`, reducing the daily scheduled minutes. `AbsenceProvider` uses this reduced scheduled amount to calculate paid leave credits.
+- **Result:** A user with a 75% contract who takes a full day of leave will correctly be credited for 75% of a full-time day (matching their scheduled obligation).
+
+### 4. Core Formulas
+- **Location:** `apps/mobile_flutter/lib/utils/target_hours_calculator.dart`
+- **Finding:** The formula `((weeklyTargetMinutes * weekdayCount) / 5.0).round()` is used in both the Mobile App and Web API (for the base calculation). This prevents rounding drift and is correct for standard Monday-Friday schedules.
+- **Note:** The divergence lies entirely in the *exceptions* to this formula (holidays/red days), not the base formula itself.
