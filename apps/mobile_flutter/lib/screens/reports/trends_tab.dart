@@ -394,8 +394,12 @@ class _TrendsTabState extends State<TrendsTab> {
 
     final hasFullDay = paidAbsences.any((absence) => absence.minutes == 0);
     if (hasFullDay) {
-      final firstType = paidAbsences.first.type;
-      allocations[firstType] = (allocations[firstType] ?? 0) + creditedMinutes;
+      final fullDay = paidAbsences.firstWhere(
+        (absence) => absence.minutes == 0,
+        orElse: () => paidAbsences.first,
+      );
+      final type = fullDay.type;
+      allocations[type] = (allocations[type] ?? 0) + creditedMinutes;
       return allocations;
     }
 
