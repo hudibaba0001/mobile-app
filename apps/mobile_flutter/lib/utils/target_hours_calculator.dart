@@ -309,7 +309,8 @@ class TargetHoursCalculator {
     }
 
     int totalMinutes = 0;
-    DateTime current = startNormalized;
+    DateTime current = DateTime(
+        startNormalized.year, startNormalized.month, startNormalized.day);
 
     while (!current.isAfter(endNormalized)) {
       totalMinutes += scheduledMinutesForDate(
@@ -318,7 +319,7 @@ class TargetHoursCalculator {
         holidays: holidays,
         workWeekdays: workWeekdays,
       );
-      current = current.add(const Duration(days: 1));
+      current = DateTime(current.year, current.month, current.day + 1);
     }
 
     return totalMinutes;

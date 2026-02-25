@@ -140,5 +140,34 @@ void main() {
       // Should be 480 minutes (8 hours)
       expect(scheduled, 480);
     });
+
+    test(
+        'scheduledMinutesInRange matches explicit calendar-day stepping across DST boundary dates',
+        () {
+      final weeklyTargetMinutes = 40 * 60; // 2400
+      final start = DateTime(2026, 10, 24, 23, 30);
+      final end = DateTime(2026, 10, 27, 1, 15);
+
+      final scheduled = TargetHoursCalculator.scheduledMinutesInRange(
+        start: start,
+        endInclusive: end,
+        weeklyTargetMinutes: weeklyTargetMinutes,
+        holidays: holidays,
+      );
+
+      int expected = 0;
+      var current = DateTime(start.year, start.month, start.day);
+      final endDay = DateTime(end.year, end.month, end.day);
+      while (!current.isAfter(endDay)) {
+        expected += TargetHoursCalculator.scheduledMinutesForDate(
+          date: current,
+          weeklyTargetMinutes: weeklyTargetMinutes,
+          holidays: holidays,
+        );
+        current = DateTime(current.year, current.month, current.day + 1);
+      }
+
+      expect(scheduled, expected);
+    });
   });
 }
