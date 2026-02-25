@@ -367,154 +367,382 @@ class _TrendsTabState extends State<TrendsTab> {
     final isAhead = accounted.deltaMinutes >= 0;
     final statusColor =
         isAhead ? FlexsaldoColors.positive : FlexsaldoColors.negative;
+    final deltaValue = _formatTrackedMinutes(
+      context,
+      accounted.deltaMinutes,
+      signed: true,
+      showPlusForZero: true,
+    );
+    final workMinutes = month.workMinutes;
+    final travelMinutes = month.travelMinutes;
+    final leaveMinutes = accounted.leaveMinutes;
+    final compositionTotal = workMinutes + travelMinutes + leaveMinutes;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
+        vertical: AppSpacing.sm,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              statusColor.withValues(alpha: 0.08),
+              colorScheme.surface,
+            ],
+          ),
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.14),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                monthLabel,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.primary,
-                ),
-              ),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _formatTrackedMinutes(
-                      context,
-                      accounted.deltaMinutes,
-                      signed: true,
-                      showPlusForZero: true,
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: statusColor,
+                    alignment: Alignment.center,
+                    child: Text(
+                      monthLabel.substring(0, 1).toUpperCase(),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.primary,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    t.reportsMetric_delta,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      monthLabel,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        t.overview_differenceVsPlan,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        deltaValue,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: statusColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMonthlyStatTile(
+                      theme,
+                      label: t.overview_accountedTime,
+                      value: _formatTrackedMinutes(
+                        context,
+                        accounted.accountedMinutes,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _buildMonthlyStatTile(
+                      theme,
+                      label: t.overview_plannedTime,
+                      value: _formatTrackedMinutes(
+                        context,
+                        accounted.targetMinutes,
+                      ),
+                      alignEnd: true,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: AppSpacing.lg,
-            runSpacing: AppSpacing.sm,
-            children: [
-              _buildMonthlyMetric(
-                theme,
-                value: _formatTrackedMinutes(context, month.workMinutes),
-                label: t.trends_work,
-              ),
-              _buildMonthlyMetric(
-                theme,
-                value: _formatTrackedMinutes(context, month.travelMinutes),
-                label: t.trends_travel,
-              ),
-              _buildMonthlyMetric(
-                theme,
-                value: _formatTrackedMinutes(context, accounted.leaveMinutes),
-                label: t.reportsMetric_leave,
-              ),
-              _buildMonthlyMetric(
-                theme,
-                value:
-                    _formatTrackedMinutes(context, accounted.accountedMinutes),
-                label: t.reportsMetric_accounted,
-              ),
-              _buildMonthlyMetric(
-                theme,
-                value: _formatTrackedMinutes(context, accounted.targetMinutes),
-                label: t.trends_target,
-              ),
-            ],
-          ),
-          if (leaves.hasAny) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.xs,
-              children: [
-                if (leaves.paidVacationCount > 0)
-                  _buildLeaveLabel(
-                    theme,
-                    '${_formatTrackedMinutes(context, leaves.paidVacationMinutes)} ${t.leave_paidVacation}',
+              const SizedBox(height: AppSpacing.sm),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                child: SizedBox(
+                  height: 8,
+                  child: Row(
+                    children: [
+                      if (workMinutes > 0)
+                        Expanded(
+                          flex: workMinutes,
+                          child: ColoredBox(
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      if (travelMinutes > 0)
+                        Expanded(
+                          flex: travelMinutes,
+                          child: ColoredBox(
+                            color: colorScheme.tertiary,
+                          ),
+                        ),
+                      if (leaveMinutes > 0)
+                        Expanded(
+                          flex: leaveMinutes,
+                          child: ColoredBox(
+                            color: colorScheme.secondary,
+                          ),
+                        ),
+                      if (compositionTotal == 0)
+                        Expanded(
+                          child: ColoredBox(
+                            color: colorScheme.outline.withValues(alpha: 0.2),
+                          ),
+                        ),
+                    ],
                   ),
-                if (leaves.sickLeaveCount > 0)
-                  _buildLeaveLabel(
-                    theme,
-                    '${_formatTrackedMinutes(context, leaves.sickLeaveMinutes)} ${t.leave_sickLeave}',
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMonthlyLegendItem(
+                      theme,
+                      dotColor: colorScheme.primary,
+                      label: t.trends_work,
+                      value: _formatTrackedMinutes(context, workMinutes),
+                    ),
                   ),
-                if (leaves.vabCount > 0)
-                  _buildLeaveLabel(
-                    theme,
-                    '${_formatTrackedMinutes(context, leaves.vabMinutes)} ${t.leave_vab}',
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: _buildMonthlyLegendItem(
+                      theme,
+                      dotColor: colorScheme.tertiary,
+                      label: t.trends_travel,
+                      value: _formatTrackedMinutes(context, travelMinutes),
+                    ),
                   ),
-                if (leaves.unpaidCount > 0)
-                  _buildLeaveLabel(
-                    theme,
-                    '${_formatTrackedMinutes(context, leaves.unpaidMinutes)} ${t.leave_unpaid}',
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: _buildMonthlyLegendItem(
+                      theme,
+                      dotColor: colorScheme.secondary,
+                      label: t.reportsMetric_leave,
+                      value: _formatTrackedMinutes(context, leaveMinutes),
+                      alignEnd: true,
+                    ),
                   ),
+                ],
+              ),
+              if (leaves.hasAny) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (leaves.paidVacationCount > 0)
+                        _buildLeaveLine(
+                          theme,
+                          label: t.leave_paidVacation,
+                          value: _formatTrackedMinutes(
+                            context,
+                            leaves.paidVacationMinutes,
+                          ),
+                        ),
+                      if (leaves.sickLeaveCount > 0)
+                        _buildLeaveLine(
+                          theme,
+                          label: t.leave_sickLeave,
+                          value: _formatTrackedMinutes(
+                            context,
+                            leaves.sickLeaveMinutes,
+                          ),
+                        ),
+                      if (leaves.vabCount > 0)
+                        _buildLeaveLine(
+                          theme,
+                          label: t.leave_vab,
+                          value: _formatTrackedMinutes(
+                            context,
+                            leaves.vabMinutes,
+                          ),
+                        ),
+                      if (leaves.unpaidCount > 0)
+                        _buildLeaveLine(
+                          theme,
+                          label: t.leave_unpaid,
+                          value: _formatTrackedMinutes(
+                            context,
+                            leaves.unpaidMinutes,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ],
-            ),
-          ],
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildMonthlyMetric(
+  Widget _buildMonthlyStatTile(
     ThemeData theme, {
-    required String value,
     required String label,
+    required String value,
+    bool alignEnd = false,
   }) {
     final colorScheme = theme.colorScheme;
-    return SizedBox(
-      width: 92,
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.1),
+        ),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          Text(
-            value,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            value,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildLeaveLabel(ThemeData theme, String text) {
-    return Text(
-      text,
-      style: theme.textTheme.labelSmall?.copyWith(
-        color: theme.colorScheme.onSurfaceVariant,
+  Widget _buildMonthlyLegendItem(
+    ThemeData theme, {
+    required Color dotColor,
+    required String label,
+    required String value,
+    bool alignEnd = false,
+  }) {
+    final colorScheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment:
+              alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: dotColor,
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLeaveLine(
+    ThemeData theme, {
+    required String label,
+    required String value,
+  }) {
+    final colorScheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.xs),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 4,
+            decoration: BoxDecoration(
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.65),
+              borderRadius: BorderRadius.circular(100),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            value,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

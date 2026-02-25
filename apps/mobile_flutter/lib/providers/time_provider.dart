@@ -13,6 +13,7 @@ import 'entry_provider.dart';
 import 'contract_provider.dart';
 import 'absence_provider.dart';
 import 'balance_adjustment_provider.dart';
+import 'settings_provider.dart';
 
 /// Provider for managing time balance calculations and data
 /// Uses EntryProvider to get entries and ContractProvider for target hours
@@ -35,6 +36,8 @@ class TimeProvider extends ChangeNotifier {
       _adjustmentProvider; // Optional for balance adjustments
   final HolidayService?
       _holidayService; // For personal red days + half-day support
+  final SettingsProvider?
+      _settingsProvider; // Optional for travel logging toggle
   final SwedenHolidayCalendar _holidays = SwedenHolidayCalendar();
 
   // Listener tracking for auto-refresh
@@ -68,6 +71,7 @@ class TimeProvider extends ChangeNotifier {
     this._absenceProvider,
     this._adjustmentProvider,
     this._holidayService,
+    this._settingsProvider,
   ]) {
     // Auto-refresh: Listen to EntryProvider changes
     _setupListeners();
@@ -86,6 +90,9 @@ class TimeProvider extends ChangeNotifier {
 
     // Listen to contract changes (target hours/start date)
     _contractProvider.addListener(_onContractChanged);
+
+    // Listen to settings changes (travel logging toggle)
+    _settingsProvider?.addListener(_onSettingsChanged);
 
     debugPrint('TimeProvider: Auto-refresh listeners enabled');
   }
@@ -123,6 +130,16 @@ class TimeProvider extends ChangeNotifier {
     }
   }
 
+  /// Handle settings changes - debounced recalculation
+  void _onSettingsChanged() {
+    // Notify immediately so widgets using methods like monthActualMinutesToDate
+    // and yearActualMinutesToDate reflect travel toggle changes.
+    notifyListeners();
+    if (_monthlySummaries.isNotEmpty) {
+      _scheduleRecalculation('Travel logging setting changed');
+    }
+  }
+
   /// Schedule a debounced recalculation to avoid multiple rapid calls
   void _scheduleRecalculation(String reason) {
     _recalculateDebounce?.cancel();
@@ -140,6 +157,7 @@ class TimeProvider extends ChangeNotifier {
     _entryProvider.removeListener(_onEntriesChanged);
     _holidayService?.removeListener(_onHolidaysChanged);
     _contractProvider.removeListener(_onContractChanged);
+    _settingsProvider?.removeListener(_onSettingsChanged);
     _isListening = false;
     super.dispose();
   }
@@ -178,6 +196,17 @@ class TimeProvider extends ChangeNotifier {
 
   /// Helper: Get date-only (strip time component)
   DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  /// Actual minutes used in balance math.
+  ///
+  /// If travel logging is enabled, include travel in totals.
+  /// If disabled, count work minutes only.
+  int _getActualMinutesForEntry(Entry entry) {
+    final travelEnabled = _settingsProvider?.isTravelLoggingEnabled ?? true;
+    return travelEnabled
+        ? entry.totalDuration.inMinutes
+        : entry.workDuration.inMinutes;
+  }
 
   /// Helper: Get tracking start date as date-only
   DateTime get _trackingDateOnly =>
@@ -290,13 +319,12 @@ class TimeProvider extends ChangeNotifier {
       debugPrint(
           'TimeProvider: Entries for year $targetYear (after $startDate): ${yearEntries.length}');
 
-      // Build map of actual worked minutes by date (day-by-day)
-      // Uses workDuration to exclude travel — balance targets are work hours only
+      // Build map of actual minutes by date (day-by-day).
       final Map<DateTime, int> actualByDate = {};
       for (final entry in yearEntries) {
         final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
         actualByDate[day] =
-            (actualByDate[day] ?? 0) + entry.workDuration.inMinutes;
+            (actualByDate[day] ?? 0) + _getActualMinutesForEntry(entry);
       }
 
       // Generate ALL 12 months with day-by-day calculations
@@ -566,13 +594,12 @@ class TimeProvider extends ChangeNotifier {
     return (daysSinceWeek1 ~/ 7) + 1;
   }
 
-  /// Calculate total worked hours from a list of entries
-  /// Uses workDuration to exclude travel — balance targets are work hours only
+  /// Calculate total actual hours from a list of entries.
   double _calculateTotalHours(List<Entry> entries) {
     double totalHours = 0.0;
 
     for (final entry in entries) {
-      totalHours += entry.workDuration.inMinutes / 60.0;
+      totalHours += _getActualMinutesForEntry(entry) / 60.0;
     }
 
     return totalHours;
@@ -966,7 +993,7 @@ class TimeProvider extends ChangeNotifier {
           entryDate.month == month &&
           !entryDate.isBefore(effectiveStart) &&
           !entryDate.isAfter(effectiveEnd)) {
-        totalMinutes += entry.workDuration.inMinutes;
+        totalMinutes += _getActualMinutesForEntry(entry);
       }
     }
 
@@ -1047,7 +1074,7 @@ class TimeProvider extends ChangeNotifier {
       if (entryDate.year == year &&
           !entryDate.isBefore(effectiveStart) &&
           !entryDate.isAfter(effectiveEnd)) {
-        totalMinutes += entry.workDuration.inMinutes;
+        totalMinutes += _getActualMinutesForEntry(entry);
       }
     }
 
