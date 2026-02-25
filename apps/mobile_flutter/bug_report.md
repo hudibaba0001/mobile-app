@@ -97,3 +97,15 @@ DateTime d1 = DateTime.utc(_startDate!.year, _startDate!.month, _startDate!.day)
 DateTime d2 = DateTime.utc(_endDate!.year, _endDate!.month, _endDate!.day);
 int days = d2.difference(d1).inDays + 1;
 ```
+
+---
+
+### Bug 11: SetState Race Conditions on Unmounted Forms
+**Location:** `UnifiedEntryForm` (`_saveEntry` function) and various other UI Dialogs calling long-running backend providers (e.g. `_loadRecentLocations` in `LocationSelector`).
+
+**Description:** Forms handling asynchronous data fetches, location retrieval (via `await _locationProvider.fetch...`), or heavy database operations (via `await _entryProvider.addEntries(...)`) routinely wrap UI updates inside `setState(() { ... })` *after* an `await` gap. However, the majority of these callbacks are missing the critical `if (!mounted) return;` check.
+
+**Impact:** HIGH. If the user navigates away from a form (e.g. presses the back button or home tab) *while* a save or location fetch operation is pending globally, the `await` finishes execution and immediately attempts to call `setState` on a disposed widget. Flutter will throw a `FlutterError: setState() called after dispose()` which crashes the rendering pipeline or causes unhandled promise rejections on the screen. 
+
+**Suggested Fix:**
+Enforce strict `if (!mounted) return;` safety checks directly after *every* `await` statement inside any `StatefulWidget` prior to accessing context, modifying local variable state, or calling `setState`.
