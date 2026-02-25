@@ -219,11 +219,17 @@ class BalanceOffsetEvent {
 /// - Opening balance and adjustments are represented separately as saldo offsets.
 class ReportAggregator {
   final ReportQueryService _queryService;
+  final int? _weeklyTargetMinutesOverride;
+  final int? _contractPercentOverride;
   final SwedenHolidayCalendar _holidays = SwedenHolidayCalendar();
 
   ReportAggregator({
     required ReportQueryService queryService,
-  }) : _queryService = queryService;
+    int? weeklyTargetMinutes,
+    int? contractPercent,
+  })  : _queryService = queryService,
+        _weeklyTargetMinutesOverride = weeklyTargetMinutes,
+        _contractPercentOverride = contractPercent;
 
   DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
@@ -236,11 +242,17 @@ class ReportAggregator {
   }
 
   Future<int> _resolveWeeklyTargetMinutes() async {
+    final override = _weeklyTargetMinutesOverride;
+    if (override != null && override >= 0) {
+      return override;
+    }
+
     try {
       final profile = await ProfileService().fetchProfile();
       if (profile != null) {
         final fullTimeHours = profile.fullTimeHours;
-        final contractPercent = profile.contractPercent;
+        final contractPercent =
+            _contractPercentOverride ?? profile.contractPercent;
         final weeklyTargetMinutes =
             (fullTimeHours * 60.0 * contractPercent / 100.0).round();
         if (weeklyTargetMinutes >= 0) {
@@ -249,6 +261,10 @@ class ReportAggregator {
       }
     } catch (_) {
       // Fall through to default.
+    }
+
+    if (_contractPercentOverride != null) {
+      return (40 * 60 * _contractPercentOverride! / 100.0).round();
     }
 
     // Default to 40h/week when profile data is unavailable.
