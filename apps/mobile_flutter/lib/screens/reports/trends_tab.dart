@@ -4,13 +4,14 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../calendar/sweden_holidays.dart';
 import '../../design/app_theme.dart';
+import '../../design/components/components.dart';
 import '../../models/absence.dart';
 import '../../providers/absence_provider.dart';
 import '../../providers/contract_provider.dart';
 import '../../reporting/accounted_time_calculator.dart';
-import '../../reporting/leave_minutes.dart';
 import '../../reporting/time_format.dart';
 import '../../reporting/time_range.dart';
+import '../../services/holiday_service.dart';
 import '../../utils/target_hours_calculator.dart';
 import '../../viewmodels/customer_analytics_viewmodel.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -107,6 +108,7 @@ class _TrendsTabState extends State<TrendsTab> {
     final viewModel = context.watch<CustomerAnalyticsViewModel>();
     final absenceProvider = context.watch<AbsenceProvider>();
     final contractProvider = context.watch<ContractProvider>();
+    final holidayService = context.watch<HolidayService?>();
 
     if (viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -143,8 +145,12 @@ class _TrendsTabState extends State<TrendsTab> {
     try {
       final trendsData = viewModel.trendsData;
       final monthlyBreakdown = viewModel.monthlyBreakdown;
-      final leaveSummaries =
-          _buildMonthlyLeaveSummaries(monthlyBreakdown, absenceProvider);
+      final leaveSummaries = _buildMonthlyLeaveSummaries(
+        monthlyBreakdown,
+        absenceProvider,
+        weeklyTargetMinutes: contractProvider.weeklyTargetMinutes,
+        holidayService: holidayService,
+      );
       final visibleMonths = monthlyBreakdown;
 
       return ListView(
@@ -178,39 +184,24 @@ class _TrendsTabState extends State<TrendsTab> {
               ),
             )
           else
-            Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: AppRadius.buttonRadius,
-                border: Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.12),
-                ),
-              ),
-              child: Column(
-                children: visibleMonths.asMap().entries.map((mapEntry) {
-                  final index = mapEntry.key;
-                  final month = mapEntry.value;
-                  final leaves = leaveSummaries[_monthKey(month.month)] ??
-                      _MonthlyLeaveSummary.empty;
-                  final isLast = index == visibleMonths.length - 1;
-                  return Column(
-                    children: [
-                      _buildMonthlyBreakdownCard(
-                        context,
-                        theme,
-                        month,
-                        leaves,
-                        contractProvider,
-                      ),
-                      if (!isLast)
-                        Divider(
-                          height: 1,
-                          color: colorScheme.outline.withValues(alpha: 0.1),
-                        ),
-                    ],
-                  );
-                }).toList(),
-              ),
+            Column(
+              children: visibleMonths.asMap().entries.map((mapEntry) {
+                final index = mapEntry.key;
+                final month = mapEntry.value;
+                final leaves = leaveSummaries[_monthKey(month.month)] ??
+                    _MonthlyLeaveSummary.empty;
+                final isLast = index == visibleMonths.length - 1;
+                return Padding(
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.md),
+                  child: _buildMonthlyBreakdownCard(
+                    context,
+                    theme,
+                    month,
+                    leaves,
+                    contractProvider,
+                  ),
+                );
+              }).toList(),
             ),
           const SizedBox(height: AppSpacing.xl),
 
@@ -222,15 +213,9 @@ class _TrendsTabState extends State<TrendsTab> {
           const SizedBox(height: AppSpacing.md),
           AspectRatio(
             aspectRatio: 1.8,
-            child: Container(
+            child: AppCard(
               padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: AppRadius.buttonRadius,
-                border: Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.12),
-                ),
-              ),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: _buildWeeklyHoursChart(
                   theme,
                   trendsData['weeklyMinutes'] as List<int>? ??
@@ -283,8 +268,10 @@ class _TrendsTabState extends State<TrendsTab> {
 
   Map<String, _MonthlyLeaveSummary> _buildMonthlyLeaveSummaries(
     List<MonthlyBreakdown> months,
-    AbsenceProvider absenceProvider,
-  ) {
+    AbsenceProvider absenceProvider, {
+    required int weeklyTargetMinutes,
+    HolidayService? holidayService,
+  }) {
     final summaries = <String, _MonthlyLeaveSummary>{};
     final years = months.map((m) => m.month.year).toSet();
     final absencesByYear = <int, List<AbsenceEntry>>{
@@ -301,31 +288,50 @@ class _TrendsTabState extends State<TrendsTab> {
       var vabMinutes = 0;
       var unpaidCount = 0;
       var unpaidMinutes = 0;
+      final byDate = <DateTime, List<AbsenceEntry>>{};
 
       for (final absence in absences) {
         if (absence.date.month != month.month.month) continue;
-        final minutes = normalizedLeaveMinutes(absence);
+        final date =
+            DateTime(absence.date.year, absence.date.month, absence.date.day);
+        byDate.putIfAbsent(date, () => <AbsenceEntry>[]).add(absence);
         switch (absence.type) {
           case AbsenceType.vacationPaid:
             paidVacationCount += 1;
-            paidVacationMinutes += minutes;
             break;
           case AbsenceType.sickPaid:
             sickLeaveCount += 1;
-            sickLeaveMinutes += minutes;
             break;
           case AbsenceType.vabPaid:
             vabCount += 1;
-            vabMinutes += minutes;
             break;
           case AbsenceType.unpaid:
             unpaidCount += 1;
-            unpaidMinutes += minutes;
             break;
           case AbsenceType.unknown:
             // Skip or log unknown types for trends
             break;
         }
+      }
+
+      final orderedDates = byDate.keys.toList()..sort();
+      for (final date in orderedDates) {
+        final dayAbsences = byDate[date]!;
+        final scheduled = _scheduledMinutesForDate(
+          date: date,
+          weeklyTargetMinutes: weeklyTargetMinutes,
+          holidayService: holidayService,
+        );
+
+        final credited =
+            absenceProvider.paidAbsenceMinutesForDate(date, scheduled);
+        final paidAllocations =
+            _allocatePaidCreditedMinutesByType(dayAbsences, credited);
+        paidVacationMinutes += paidAllocations[AbsenceType.vacationPaid] ?? 0;
+        sickLeaveMinutes += paidAllocations[AbsenceType.sickPaid] ?? 0;
+        vabMinutes += paidAllocations[AbsenceType.vabPaid] ?? 0;
+
+        unpaidMinutes += _unpaidMinutesForDate(dayAbsences, scheduled);
       }
 
       summaries[_monthKey(month.month)] = _MonthlyLeaveSummary(
@@ -341,6 +347,111 @@ class _TrendsTabState extends State<TrendsTab> {
     }
 
     return summaries;
+  }
+
+  int _scheduledMinutesForDate({
+    required DateTime date,
+    required int weeklyTargetMinutes,
+    HolidayService? holidayService,
+  }) {
+    if (holidayService != null) {
+      final redDayInfo = holidayService.getRedDayInfo(date);
+      if (redDayInfo.isRedDay) {
+        return TargetHoursCalculator.scheduledMinutesWithRedDayInfo(
+          date: date,
+          weeklyTargetMinutes: weeklyTargetMinutes,
+          isFullRedDay: redDayInfo.isFullDay,
+          isHalfRedDay: redDayInfo.halfDay != null,
+        );
+      }
+    }
+
+    return TargetHoursCalculator.scheduledMinutesForDate(
+      date: date,
+      weeklyTargetMinutes: weeklyTargetMinutes,
+      holidays: _holidays,
+    );
+  }
+
+  Map<AbsenceType, int> _allocatePaidCreditedMinutesByType(
+    List<AbsenceEntry> dayAbsences,
+    int creditedMinutes,
+  ) {
+    final allocations = <AbsenceType, int>{
+      AbsenceType.vacationPaid: 0,
+      AbsenceType.sickPaid: 0,
+      AbsenceType.vabPaid: 0,
+    };
+    if (creditedMinutes <= 0) {
+      return allocations;
+    }
+
+    final paidAbsences =
+        dayAbsences.where((absence) => absence.isPaid).toList();
+    if (paidAbsences.isEmpty) {
+      return allocations;
+    }
+
+    final hasFullDay = paidAbsences.any((absence) => absence.minutes == 0);
+    if (hasFullDay) {
+      final fullDay = paidAbsences.firstWhere(
+        (absence) => absence.minutes == 0,
+        orElse: () => paidAbsences.first,
+      );
+      final type = fullDay.type;
+      allocations[type] = (allocations[type] ?? 0) + creditedMinutes;
+      return allocations;
+    }
+
+    final totalRawPaidMinutes = paidAbsences.fold<int>(
+      0,
+      (sum, absence) => sum + absence.minutes,
+    );
+    if (totalRawPaidMinutes <= 0) {
+      final firstType = paidAbsences.first.type;
+      allocations[firstType] = (allocations[firstType] ?? 0) + creditedMinutes;
+      return allocations;
+    }
+
+    var remaining = creditedMinutes;
+    for (var i = 0; i < paidAbsences.length; i++) {
+      final absence = paidAbsences[i];
+      final isLast = i == paidAbsences.length - 1;
+      var allocated = isLast
+          ? remaining
+          : ((creditedMinutes * absence.minutes) / totalRawPaidMinutes).round();
+      if (allocated < 0) allocated = 0;
+      if (allocated > remaining) allocated = remaining;
+
+      allocations[absence.type] = (allocations[absence.type] ?? 0) + allocated;
+      remaining -= allocated;
+      if (remaining <= 0) break;
+    }
+
+    return allocations;
+  }
+
+  int _unpaidMinutesForDate(
+      List<AbsenceEntry> dayAbsences, int scheduledMinutes) {
+    final unpaidAbsences = dayAbsences
+        .where((absence) => absence.type == AbsenceType.unpaid)
+        .toList();
+    if (unpaidAbsences.isEmpty) {
+      return 0;
+    }
+
+    final hasFullDay = unpaidAbsences.any((absence) => absence.minutes == 0);
+    if (hasFullDay) {
+      return scheduledMinutes;
+    }
+
+    final totalUnpaidMinutes = unpaidAbsences.fold<int>(
+      0,
+      (sum, absence) => sum + absence.minutes,
+    );
+    return totalUnpaidMinutes < scheduledMinutes
+        ? totalUnpaidMinutes
+        : scheduledMinutes;
   }
 
   Widget _buildMonthlyBreakdownCard(
@@ -367,382 +478,172 @@ class _TrendsTabState extends State<TrendsTab> {
     final isAhead = accounted.deltaMinutes >= 0;
     final statusColor =
         isAhead ? FlexsaldoColors.positive : FlexsaldoColors.negative;
-    final deltaValue = _formatTrackedMinutes(
-      context,
-      accounted.deltaMinutes,
-      signed: true,
-      showPlusForZero: true,
-    );
-    final workMinutes = month.workMinutes;
-    final travelMinutes = month.travelMinutes;
-    final leaveMinutes = accounted.leaveMinutes;
-    final compositionTotal = workMinutes + travelMinutes + leaveMinutes;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              statusColor.withValues(alpha: 0.08),
-              colorScheme.surface,
-            ],
-          ),
-          border: Border.all(
-            color: colorScheme.outline.withValues(alpha: 0.14),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      monthLabel.substring(0, 1).toUpperCase(),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      monthLabel,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        t.overview_differenceVsPlan,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        deltaValue,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: statusColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildMonthlyStatTile(
-                      theme,
-                      label: t.overview_accountedTime,
-                      value: _formatTrackedMinutes(
-                        context,
-                        accounted.accountedMinutes,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: _buildMonthlyStatTile(
-                      theme,
-                      label: t.overview_plannedTime,
-                      value: _formatTrackedMinutes(
-                        context,
-                        accounted.targetMinutes,
-                      ),
-                      alignEnd: true,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                child: SizedBox(
-                  height: 8,
-                  child: Row(
-                    children: [
-                      if (workMinutes > 0)
-                        Expanded(
-                          flex: workMinutes,
-                          child: ColoredBox(
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      if (travelMinutes > 0)
-                        Expanded(
-                          flex: travelMinutes,
-                          child: ColoredBox(
-                            color: colorScheme.tertiary,
-                          ),
-                        ),
-                      if (leaveMinutes > 0)
-                        Expanded(
-                          flex: leaveMinutes,
-                          child: ColoredBox(
-                            color: colorScheme.secondary,
-                          ),
-                        ),
-                      if (compositionTotal == 0)
-                        Expanded(
-                          child: ColoredBox(
-                            color: colorScheme.outline.withValues(alpha: 0.2),
-                          ),
-                        ),
-                    ],
-                  ),
+              Text(
+                monthLabel,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.primary,
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
+              const Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Expanded(
-                    child: _buildMonthlyLegendItem(
-                      theme,
-                      dotColor: colorScheme.primary,
-                      label: t.trends_work,
-                      value: _formatTrackedMinutes(context, workMinutes),
+                  Text(
+                    _formatTrackedMinutes(
+                      context,
+                      accounted.deltaMinutes,
+                      signed: true,
+                      showPlusForZero: true,
+                    ),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: statusColor,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: _buildMonthlyLegendItem(
-                      theme,
-                      dotColor: colorScheme.tertiary,
-                      label: t.trends_travel,
-                      value: _formatTrackedMinutes(context, travelMinutes),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: _buildMonthlyLegendItem(
-                      theme,
-                      dotColor: colorScheme.secondary,
-                      label: t.reportsMetric_leave,
-                      value: _formatTrackedMinutes(context, leaveMinutes),
-                      alignEnd: true,
+                  const SizedBox(height: 2),
+                  Text(
+                    t.reportsMetric_delta,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
-              if (leaves.hasAny) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface.withValues(alpha: 0.65),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                    border: Border.all(
-                      color: colorScheme.outline.withValues(alpha: 0.1),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (leaves.paidVacationCount > 0)
-                        _buildLeaveLine(
-                          theme,
-                          label: t.leave_paidVacation,
-                          value: _formatTrackedMinutes(
-                            context,
-                            leaves.paidVacationMinutes,
-                          ),
-                        ),
-                      if (leaves.sickLeaveCount > 0)
-                        _buildLeaveLine(
-                          theme,
-                          label: t.leave_sickLeave,
-                          value: _formatTrackedMinutes(
-                            context,
-                            leaves.sickLeaveMinutes,
-                          ),
-                        ),
-                      if (leaves.vabCount > 0)
-                        _buildLeaveLine(
-                          theme,
-                          label: t.leave_vab,
-                          value: _formatTrackedMinutes(
-                            context,
-                            leaves.vabMinutes,
-                          ),
-                        ),
-                      if (leaves.unpaidCount > 0)
-                        _buildLeaveLine(
-                          theme,
-                          label: t.leave_unpaid,
-                          value: _formatTrackedMinutes(
-                            context,
-                            leaves.unpaidMinutes,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMonthlyStatTile(
-    ThemeData theme, {
-    required String label,
-    required String value,
-    bool alignEnd = false,
-  }) {
-    final colorScheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.1),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment:
-            alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value: _formatTrackedMinutes(
+                      context, accounted.accountedMinutes),
+                  label: t.reportsMetric_accounted,
+                ),
+              ),
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value:
+                      _formatTrackedMinutes(context, accounted.targetMinutes),
+                  label: t.trends_target,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            value,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w700,
-            ),
+          const SizedBox(height: AppSpacing.md),
+          Divider(height: 1, color: colorScheme.outline.withValues(alpha: 0.1)),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value: _formatTrackedMinutes(context, month.workMinutes),
+                  label: t.trends_work,
+                ),
+              ),
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value: _formatTrackedMinutes(context, month.travelMinutes),
+                  label: t.trends_travel,
+                ),
+              ),
+              SizedBox(
+                width: 120,
+                child: _buildMonthlyMetric(
+                  theme,
+                  value: _formatTrackedMinutes(context, accounted.leaveMinutes),
+                  label: t.reportsMetric_leave,
+                ),
+              ),
+            ],
           ),
+          if (leaves.hasAny) ...[
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
+              children: [
+                if (leaves.paidVacationCount > 0)
+                  _buildLeaveLabel(
+                    theme,
+                    '${_formatTrackedMinutes(context, leaves.paidVacationMinutes)} ${t.leave_paidVacation}',
+                  ),
+                if (leaves.sickLeaveCount > 0)
+                  _buildLeaveLabel(
+                    theme,
+                    '${_formatTrackedMinutes(context, leaves.sickLeaveMinutes)} ${t.leave_sickLeave}',
+                  ),
+                if (leaves.vabCount > 0)
+                  _buildLeaveLabel(
+                    theme,
+                    '${_formatTrackedMinutes(context, leaves.vabMinutes)} ${t.leave_vab}',
+                  ),
+                if (leaves.unpaidCount > 0)
+                  _buildLeaveLabel(
+                    theme,
+                    '${_formatTrackedMinutes(context, leaves.unpaidMinutes)} ${t.leave_unpaid}',
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildMonthlyLegendItem(
+  Widget _buildMonthlyMetric(
     ThemeData theme, {
-    required Color dotColor,
-    required String label,
     required String value,
-    bool alignEnd = false,
+    required String label,
   }) {
     final colorScheme = theme.colorScheme;
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment:
-              alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
-          children: [
-            Container(
-              width: 7,
-              height: 7,
-              decoration: BoxDecoration(
-                color: dotColor,
-                borderRadius: BorderRadius.circular(100),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-              ),
-            ),
-          ],
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: colorScheme.onSurface,
+          ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.w600,
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
-          textAlign: alignEnd ? TextAlign.right : TextAlign.left,
         ),
       ],
     );
   }
 
-  Widget _buildLeaveLine(
-    ThemeData theme, {
-    required String label,
-    required String value,
-  }) {
-    final colorScheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.xs),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 4,
-            decoration: BoxDecoration(
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.65),
-              borderRadius: BorderRadius.circular(100),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Expanded(
-            child: Text(
-              label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            value,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+  Widget _buildLeaveLabel(ThemeData theme, String text) {
+    return Text(
+      text,
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -837,7 +738,7 @@ class _TrendsTabState extends State<TrendsTab> {
               BarChartRodData(
                 toY: entry.value,
                 color: colorScheme.secondary,
-                width: 20,
+                width: 24,
                 borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(AppSpacing.xs)),
               ),
@@ -867,20 +768,16 @@ class _TrendsTabState extends State<TrendsTab> {
 
     // Handle null dayData
     if (dayData == null) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.md),
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        child: AppCard(
+          padding: const EdgeInsets.all(AppSpacing.lg),
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(
-            color: colorScheme.outline.withValues(alpha: 0.12),
-          ),
-        ),
-        child: Text(
-          AppLocalizations.of(context).overview_noDataAvailable,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
+          child: Text(
+            AppLocalizations.of(context).overview_noDataAvailable,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       );
@@ -891,74 +788,100 @@ class _TrendsTabState extends State<TrendsTab> {
     final travelMinutes = (dayData['travelMinutes'] as int?) ?? 0;
     final totalMinutes = (dayData['totalMinutes'] as int?) ?? 0;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: AppCard(
+        padding: const EdgeInsets.all(AppSpacing.lg),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Text(
-              _getDayAbbreviation(context, date.weekday),
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md, vertical: 10),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    _getDayAbbreviation(context, date.weekday),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  Text(
+                    '${date.day}/${date.month}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${date.month}/${date.day}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _formatTrackedMinutes(context, totalMinutes),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
+                  Text(
+                    AppLocalizations.of(context).trends_total,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.work_rounded,
+                        size: AppIconSize.xs,
+                        color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      _formatTrackedMinutes(context, workMinutes),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                Text(
-                  '${_formatTrackedMinutes(context, totalMinutes)} ${AppLocalizations.of(context).trends_total}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.directions_car_rounded,
+                        size: AppIconSize.xs,
+                        color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      _formatTrackedMinutes(context, travelMinutes),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${_formatTrackedMinutes(context, workMinutes)} ${AppLocalizations.of(context).trends_work}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.error,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                '${_formatTrackedMinutes(context, travelMinutes)} ${AppLocalizations.of(context).trends_travel}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.tertiary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

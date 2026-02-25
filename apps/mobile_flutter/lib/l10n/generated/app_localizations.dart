@@ -978,7 +978,7 @@ abstract class AppLocalizations {
   /// No description provided for @balance_loggedTime.
   ///
   /// In en, this message translates to:
-  /// **'Worked time'**
+  /// **'Logged time'**
   String get balance_loggedTime;
 
   /// No description provided for @balance_creditedLeave.

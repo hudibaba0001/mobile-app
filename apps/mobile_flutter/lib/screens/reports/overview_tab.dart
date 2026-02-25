@@ -8,7 +8,6 @@ import '../../design/app_theme.dart';
 import '../../design/components/components.dart';
 import '../../models/absence.dart';
 import '../../models/entry.dart';
-import '../../providers/absence_provider.dart';
 import '../../providers/contract_provider.dart';
 import '../../repositories/balance_adjustment_repository.dart';
 import '../../reports/report_aggregator.dart';
@@ -18,7 +17,6 @@ import '../../reporting/period_summary_calculator.dart';
 import '../../reporting/time_format.dart';
 import '../../reporting/time_range.dart';
 import '../../services/export_service.dart';
-import '../../services/holiday_service.dart';
 import '../../services/supabase_auth_service.dart';
 import '../../providers/settings_provider.dart';
 import '../../widgets/export_share_dialog.dart';
@@ -92,19 +90,12 @@ class _OverviewTabState extends State<OverviewTab> {
         TimeRange.custom(widget.range.start, widget.range.end);
     final endInclusive =
         selectedRange.endExclusive.subtract(const Duration(days: 1));
-    final contractProvider = context.read<ContractProvider>();
     final queryService = ReportQueryService(
       authService: context.read<SupabaseAuthService>(),
       adjustmentRepository: BalanceAdjustmentRepository(SupabaseConfig.client),
     );
 
-    final aggregator = ReportAggregator(
-      queryService: queryService,
-      absenceProvider: context.read<AbsenceProvider>(),
-      holidayService: context.read<HolidayService>(),
-      weeklyTargetMinutes: contractProvider.weeklyTargetMinutes,
-      contractPercent: contractProvider.contractPercent.toDouble(),
-    );
+    final aggregator = ReportAggregator(queryService: queryService);
 
     final summary = await aggregator.buildSummary(
       start: selectedRange.startInclusive,
@@ -947,7 +938,6 @@ class _OverviewTabState extends State<OverviewTab> {
 
     final t = AppLocalizations.of(context);
 
-    final periodSummary = _buildPeriodSummary(summary);
     final navigator = Navigator.of(context, rootNavigator: true);
     final scaffold = ScaffoldMessenger.of(context);
     final errorColor = Theme.of(context).colorScheme.error;
@@ -974,32 +964,50 @@ class _OverviewTabState extends State<OverviewTab> {
       late final String filePath;
       final formatValue = format == _ExportFormat.csv ? 'csv' : 'excel';
 
-      if (format == _ExportFormat.csv) {
-        filePath = await ExportService.exportReportSummaryToCSV(
-          summary: summary,
-          periodSummary: periodSummary,
-          rangeStart: start,
-          rangeEnd: end,
-          t: t,
-          fileName: t.reportsExport_fileName,
-          trackingStartDate: trackingStartDate,
-          effectiveRangeStart: effectiveStart,
-          contractPercent: contractProvider.contractPercent,
-          fullTimeHours: contractProvider.fullTimeHours,
-        );
+      if (widget.segment == ReportSegment.travel) {
+        if (format == _ExportFormat.csv) {
+          filePath = await ExportService.exportTravelMinimalToCSV(
+            entries: summary.filteredEntries,
+            fileName: t.reportsExport_fileName,
+            t: t,
+          );
+        } else {
+          filePath = await ExportService.exportTravelMinimalToExcel(
+            entries: summary.filteredEntries,
+            fileName: t.reportsExport_fileName,
+            t: t,
+          );
+        }
       } else {
-        filePath = await ExportService.exportReportSummaryToExcel(
-          summary: summary,
-          periodSummary: periodSummary,
-          rangeStart: start,
-          rangeEnd: end,
-          t: t,
-          fileName: t.reportsExport_fileName,
-          trackingStartDate: trackingStartDate,
-          effectiveRangeStart: effectiveStart,
-          contractPercent: contractProvider.contractPercent,
-          fullTimeHours: contractProvider.fullTimeHours,
-        );
+        final periodSummary = _buildPeriodSummary(summary);
+
+        if (format == _ExportFormat.csv) {
+          filePath = await ExportService.exportReportSummaryToCSV(
+            summary: summary,
+            periodSummary: periodSummary,
+            rangeStart: start,
+            rangeEnd: end,
+            t: t,
+            fileName: t.reportsExport_fileName,
+            trackingStartDate: trackingStartDate,
+            effectiveRangeStart: effectiveStart,
+            contractPercent: contractProvider.contractPercent,
+            fullTimeHours: contractProvider.fullTimeHours,
+          );
+        } else {
+          filePath = await ExportService.exportReportSummaryToExcel(
+            summary: summary,
+            periodSummary: periodSummary,
+            rangeStart: start,
+            rangeEnd: end,
+            t: t,
+            fileName: t.reportsExport_fileName,
+            trackingStartDate: trackingStartDate,
+            effectiveRangeStart: effectiveStart,
+            contractPercent: contractProvider.contractPercent,
+            fullTimeHours: contractProvider.fullTimeHours,
+          );
+        }
       }
 
       if (navigator.canPop()) {

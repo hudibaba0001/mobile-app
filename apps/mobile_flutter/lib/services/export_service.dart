@@ -226,11 +226,11 @@ class ExportService {
   // Minimal export: travel-only (5 columns)
   // ---------------------------------------------------------------------------
   static List<String> _travelMinimalHeaders(AppLocalizations t) => [
+        t.exportHeader_type,
         t.exportHeader_date,
         t.exportHeader_from,
         t.exportHeader_to,
-        t.exportHeader_minutes,
-        t.exportHeader_notes
+        t.exportHeader_travelMinutes,
       ];
 
   static ExportData prepareTravelMinimalExportData(
@@ -246,27 +246,27 @@ class ExportService {
       if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
         for (final leg in entry.travelLegs!) {
           rows.add([
+            EntryType.travel.name,
             DateFormat('yyyy-MM-dd').format(entry.date),
             leg.fromText,
             leg.toText,
             leg.minutes,
-            entry.notes ?? '',
           ]);
           totalMinutes += leg.minutes;
         }
       } else {
         rows.add([
+          EntryType.travel.name,
           DateFormat('yyyy-MM-dd').format(entry.date),
           entry.from ?? '',
           entry.to ?? '',
           entry.travelMinutes ?? 0,
-          entry.notes ?? '',
         ]);
         totalMinutes += entry.travelMinutes ?? 0;
       }
     }
 
-    rows.add([t.export_total, '', '', totalMinutes, '']);
+    rows.add([t.export_total, '', '', '', totalMinutes]);
 
     return ExportData(
       sheetName: 'Travel',

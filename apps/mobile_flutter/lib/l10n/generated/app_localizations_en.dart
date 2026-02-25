@@ -527,7 +527,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get balance_loggedTime => 'Worked time';
+  String get balance_loggedTime => 'Logged time';
 
   @override
   String get balance_creditedLeave => 'Credited leave';

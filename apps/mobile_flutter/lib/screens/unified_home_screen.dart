@@ -8,7 +8,6 @@ import '../design/design.dart';
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
 import '../widgets/entry_compact_tile.dart';
-import '../widgets/flexsaldo_card.dart' show computeHomeYearlyPeriodSummary;
 import '../widgets/home_balance_glance_card.dart';
 import '../widgets/absence_entry_dialog.dart';
 import 'dart:async';
@@ -31,7 +30,6 @@ import '../providers/network_status_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/contract_provider.dart';
 import '../providers/time_provider.dart';
-import '../providers/balance_adjustment_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../widgets/app_message_banner.dart';
@@ -469,41 +467,28 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                           ).format(now);
 
                           // Monthly values
-                          final monthActual =
-                              timeProvider.monthActualMinutesToDate(year, month);
-                          final monthCredit =
-                              timeProvider.monthCreditMinutesToDate(year, month);
-                          final monthTarget =
-                              timeProvider.monthTargetMinutesToDate(year, month);
+                          final monthActual = timeProvider
+                              .monthActualMinutesToDate(year, month);
+                          final monthCredit = timeProvider
+                              .monthCreditMinutesToDate(year, month);
+                          final monthTarget = timeProvider
+                              .monthTargetMinutesToDate(year, month);
                           final monthAccounted = monthActual + monthCredit;
                           final monthDelta = monthAccounted - monthTarget;
 
-                          // Year summary (single source of truth for both balance + delta)
-                          final entryProvider = context.read<EntryProvider>();
-                          final absenceProvider =
-                              context.read<AbsenceProvider?>();
-                          final adjustmentProvider =
-                              context.read<BalanceAdjustmentProvider?>();
-                          final settingsProvider =
-                              context.read<SettingsProvider?>();
-                          final yearSummary = computeHomeYearlyPeriodSummary(
-                            now: now,
-                            entries: entryProvider.entries,
-                            absences: absenceProvider
-                                    ?.absencesForYear(year) ??
-                                const [],
-                            adjustments: adjustmentProvider?.allAdjustments ??
-                                const [],
-                            weeklyTargetMinutes:
-                                contractProvider.weeklyTargetMinutes,
-                            trackingStartDate:
-                                contractProvider.trackingStartDate,
-                            openingBalanceMinutes:
-                                contractProvider.openingFlexMinutes,
-                            travelEnabled:
-                                settingsProvider?.isTravelLoggingEnabled ??
-                                    true,
-                          );
+                          // Year values (from TimeProvider)
+                          final yearActual =
+                              timeProvider.yearActualMinutesToDate(year);
+                          final yearCredit =
+                              timeProvider.yearCreditMinutesToDate(year);
+                          final yearTarget =
+                              timeProvider.yearTargetMinutesToDate(year);
+                          final yearDelta =
+                              (yearActual + yearCredit) - yearTarget;
+                          final balanceTodayMinutes = contractProvider
+                                  .openingFlexMinutes +
+                              timeProvider.yearAdjustmentMinutesToDate(year) +
+                              yearDelta;
 
                           // Year label: "This year" or "This year (since start)"
                           final trackingStart =
@@ -514,12 +499,10 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
                           return HomeBalanceGlanceCard(
                             timeBalanceEnabled: timeBalanceEnabled,
-                            balanceTodayMinutes:
-                                yearSummary.endBalanceMinutes,
+                            balanceTodayMinutes: balanceTodayMinutes,
                             monthDeltaMinutes: monthDelta,
                             monthLabel: monthName,
-                            yearDeltaMinutes:
-                                yearSummary.differenceMinutes,
+                            yearDeltaMinutes: yearDelta,
                             yearLabel: yearLabelSinceStart
                                 ? t.home_thisYearSinceStart
                                 : t.home_thisYear,
@@ -530,8 +513,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                             changeVsPlanLabel: t.home_changeVsPlan,
                             seeMoreLabel: t.home_seeMore,
                             localeCode: localeCode,
-                            onSeeMore: () =>
-                                AppRouter.goToTimeBalance(context),
+                            onSeeMore: () => AppRouter.goToTimeBalance(context),
                           );
                         },
                       )
@@ -542,7 +524,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
                       // Backfill warning banner (entries before tracking start date)
                       Consumer2<EntryProvider, ContractProvider>(
                         builder: (context, entryProvider, contractProvider, _) {
-                          final trackingStart = contractProvider.trackingStartDate;
+                          final trackingStart =
+                              contractProvider.trackingStartDate;
                           final trackingStartDateOnly = DateTime(
                             trackingStart.year,
                             trackingStart.month,

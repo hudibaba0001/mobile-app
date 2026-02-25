@@ -528,7 +528,7 @@ class AppLocalizationsSv extends AppLocalizations {
   }
 
   @override
-  String get balance_loggedTime => 'Arbetad tid';
+  String get balance_loggedTime => 'Loggad tid';
 
   @override
   String get balance_creditedLeave => 'Ersatt frånvaro';
@@ -1075,7 +1075,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get home_balanceSubtitle => 'Inkl. startsaldo + justeringar';
 
   @override
-  String get home_changeVsPlan => 'Ändring mot plan';
+  String get home_changeVsPlan => 'Över/under plan';
 
   @override
   String get home_loggedTimeTitle => 'Loggad tid';
