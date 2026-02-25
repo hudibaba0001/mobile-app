@@ -929,7 +929,7 @@ class _OverviewTabState extends State<OverviewTab> {
     );
   }
 
-    Future<void> _exportSummary(
+  Future<void> _exportSummary(
     BuildContext context,
     ReportSummary summary,
     _ExportFormat format,
@@ -937,8 +937,7 @@ class _OverviewTabState extends State<OverviewTab> {
     if (!context.mounted) return;
 
     final t = AppLocalizations.of(context);
-    
-    final periodSummary = _buildPeriodSummary(summary);
+
     final navigator = Navigator.of(context, rootNavigator: true);
     final scaffold = ScaffoldMessenger.of(context);
     final errorColor = Theme.of(context).colorScheme.error;
@@ -965,32 +964,50 @@ class _OverviewTabState extends State<OverviewTab> {
       late final String filePath;
       final formatValue = format == _ExportFormat.csv ? 'csv' : 'excel';
 
-      if (format == _ExportFormat.csv) {
-        filePath = await ExportService.exportReportSummaryToCSV(
-          summary: summary,
-          periodSummary: periodSummary,
-          rangeStart: start,
-          rangeEnd: end,
-          t: t,
-          fileName: t.reportsExport_fileName,
-          trackingStartDate: trackingStartDate,
-          effectiveRangeStart: effectiveStart,
-          contractPercent: contractProvider.contractPercent,
-          fullTimeHours: contractProvider.fullTimeHours,
-        );
+      if (widget.segment == ReportSegment.travel) {
+        if (format == _ExportFormat.csv) {
+          filePath = await ExportService.exportTravelMinimalToCSV(
+            entries: summary.filteredEntries,
+            fileName: t.reportsExport_fileName,
+            t: t,
+          );
+        } else {
+          filePath = await ExportService.exportTravelMinimalToExcel(
+            entries: summary.filteredEntries,
+            fileName: t.reportsExport_fileName,
+            t: t,
+          );
+        }
       } else {
-        filePath = await ExportService.exportReportSummaryToExcel(
-          summary: summary,
-          periodSummary: periodSummary,
-          rangeStart: start,
-          rangeEnd: end,
-          t: t,
-          fileName: t.reportsExport_fileName,
-          trackingStartDate: trackingStartDate,
-          effectiveRangeStart: effectiveStart,
-          contractPercent: contractProvider.contractPercent,
-          fullTimeHours: contractProvider.fullTimeHours,
-        );
+        final periodSummary = _buildPeriodSummary(summary);
+
+        if (format == _ExportFormat.csv) {
+          filePath = await ExportService.exportReportSummaryToCSV(
+            summary: summary,
+            periodSummary: periodSummary,
+            rangeStart: start,
+            rangeEnd: end,
+            t: t,
+            fileName: t.reportsExport_fileName,
+            trackingStartDate: trackingStartDate,
+            effectiveRangeStart: effectiveStart,
+            contractPercent: contractProvider.contractPercent,
+            fullTimeHours: contractProvider.fullTimeHours,
+          );
+        } else {
+          filePath = await ExportService.exportReportSummaryToExcel(
+            summary: summary,
+            periodSummary: periodSummary,
+            rangeStart: start,
+            rangeEnd: end,
+            t: t,
+            fileName: t.reportsExport_fileName,
+            trackingStartDate: trackingStartDate,
+            effectiveRangeStart: effectiveStart,
+            contractPercent: contractProvider.contractPercent,
+            fullTimeHours: contractProvider.fullTimeHours,
+          );
+        }
       }
 
       if (navigator.canPop()) {

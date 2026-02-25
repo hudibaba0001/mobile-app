@@ -474,7 +474,8 @@ void main() {
         summaryByMetric[labels.exportSummary_totalTrackedOnly]?[1],
         periodSummary.trackedTotalMinutes,
       );
-      expect(summaryByMetric[labels.exportSummary_paidLeaveCredit]?[1], periodSummary.paidLeaveMinutes);
+      expect(summaryByMetric[labels.exportSummary_paidLeaveCredit]?[1],
+          periodSummary.paidLeaveMinutes);
       expect(
         summaryByMetric['Accounted']?[1],
         periodSummary.accountedMinutes,
@@ -591,8 +592,8 @@ void main() {
       final summarySheet = excel['Sammanfattning'];
       expect(readCell(summarySheet, 2, 0), 'Hh Mm');
 
-      final totalLoggedRow =
-          findRowByFirstColumn(summarySheet, labels.exportSummary_totalTrackedOnly);
+      final totalLoggedRow = findRowByFirstColumn(
+          summarySheet, labels.exportSummary_totalTrackedOnly);
       expect(totalLoggedRow, greaterThanOrEqualTo(0));
       expect(readCell(summarySheet, 1, totalLoggedRow), '7035');
       expect(readCell(summarySheet, 2, totalLoggedRow), '117h 15m');
@@ -604,8 +605,8 @@ void main() {
 
       final balanceSheet = excel['Balance Events'];
       expect(readCell(balanceSheet, 3, 0), 'Hh Mm');
-      final periodEndRow =
-          findRowByFirstColumn(balanceSheet, labels.exportSummary_balanceAfterThis);
+      final periodEndRow = findRowByFirstColumn(
+          balanceSheet, labels.exportSummary_balanceAfterThis);
       expect(periodEndRow, greaterThanOrEqualTo(0));
       expect(readCell(balanceSheet, 3, periodEndRow), '+5h 15m');
 
@@ -746,8 +747,8 @@ void main() {
         );
         expect(readCell(summarySheet, 2, 3), 'Hh Mm');
 
-        final totalLoggedRow =
-            findRowByFirstColumn(summarySheet, labels.exportSummary_totalTrackedOnly);
+        final totalLoggedRow = findRowByFirstColumn(
+            summarySheet, labels.exportSummary_totalTrackedOnly);
         expect(totalLoggedRow, greaterThanOrEqualTo(0));
         expect(
           readCell(summarySheet, 1, totalLoggedRow),
@@ -835,11 +836,11 @@ void main() {
           entries, AppLocalizationsEn());
 
       expect(exportData.headers, [
+        'Type',
         'Date',
         'From',
         'To',
-        'Minutes',
-        'Notes',
+        'Travel Minutes',
       ]);
       // 2 travel rows + 1 TOTAL
       expect(exportData.rows, hasLength(3));
@@ -850,7 +851,7 @@ void main() {
       // TOTAL row
       final totalRow = exportData.rows.last;
       expect(totalRow[0], 'TOTAL');
-      expect(totalRow[3], 75); // 30 + 45
+      expect(totalRow[4], 75); // 30 + 45
     });
 
     test('expands travel legs into separate rows', () {
@@ -871,16 +872,18 @@ void main() {
 
       // 2 leg rows + 1 TOTAL
       expect(exportData.rows, hasLength(3));
-      expect(exportData.rows[0][1], 'A');
-      expect(exportData.rows[0][2], 'B');
-      expect(exportData.rows[0][3], 20);
-      expect(exportData.rows[1][1], 'B');
-      expect(exportData.rows[1][2], 'C');
-      expect(exportData.rows[1][3], 35);
+      expect(exportData.rows[0][0], 'travel');
+      expect(exportData.rows[0][2], 'A');
+      expect(exportData.rows[0][3], 'B');
+      expect(exportData.rows[0][4], 20);
+      expect(exportData.rows[1][0], 'travel');
+      expect(exportData.rows[1][2], 'B');
+      expect(exportData.rows[1][3], 'C');
+      expect(exportData.rows[1][4], 35);
 
       final totalRow = exportData.rows.last;
       expect(totalRow[0], 'TOTAL');
-      expect(totalRow[3], 55);
+      expect(totalRow[4], 55);
     });
 
     test('empty travel entries produce only TOTAL row', () {
@@ -890,7 +893,7 @@ void main() {
       expect(exportData.headers, hasLength(5));
       expect(exportData.rows, hasLength(1));
       expect(exportData.rows.first[0], 'TOTAL');
-      expect(exportData.rows.first[3], 0);
+      expect(exportData.rows.first[4], 0);
     });
   });
 

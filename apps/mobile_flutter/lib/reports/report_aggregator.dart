@@ -686,6 +686,13 @@ class ReportAggregator {
   Future<LeavesSummary> _buildLeavesSummary(List<AbsenceEntry> absences) async {
     final sortedAbsences = List<AbsenceEntry>.from(absences)
       ..sort((a, b) => a.date.compareTo(b.date));
+    final fullDayCountsByType = <AbsenceType, int>{};
+    for (final absence in sortedAbsences) {
+      if (absence.minutes == 0) {
+        fullDayCountsByType[absence.type] =
+            (fullDayCountsByType[absence.type] ?? 0) + 1;
+      }
+    }
     final projectedAbsences =
         await _buildCreditedLeaveProjection(sortedAbsences);
     final weeklyTargetMinutes = await _resolveWeeklyTargetMinutes();
@@ -700,9 +707,9 @@ class ReportAggregator {
 
     final byType = <AbsenceType, LeaveTypeSummary>{};
     for (final type in AbsenceType.values) {
-      byType[type] = const LeaveTypeSummary(
+      byType[type] = LeaveTypeSummary(
         entryCount: 0,
-        fullDayCount: 0,
+        fullDayCount: fullDayCountsByType[type] ?? 0,
         totalMinutes: 0,
         totalDays: 0,
       );
@@ -712,7 +719,7 @@ class ReportAggregator {
       final current = byType[absence.type]!;
       byType[absence.type] = LeaveTypeSummary(
         entryCount: current.entryCount + 1,
-        fullDayCount: current.fullDayCount + (absence.minutes == 0 ? 1 : 0),
+        fullDayCount: current.fullDayCount,
         totalMinutes: current.totalMinutes + absence.minutes,
         totalDays: current.totalDays,
       );
