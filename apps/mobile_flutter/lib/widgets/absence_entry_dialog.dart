@@ -44,6 +44,7 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
   late AbsenceType _selectedType;
   late int _selectedMinutes;
   late bool _isFullDay;
+  bool _isSaving = false;
 
   bool get _isEditing => widget.absence != null;
 
@@ -183,8 +184,14 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _saveAbsence,
-                    child: Text(_isEditing ? t.common_save : t.common_add),
+                    onPressed: _isSaving ? null : _saveAbsence,
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(_isEditing ? t.common_save : t.common_add),
                   ),
                 ),
               ],
@@ -289,6 +296,9 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
   }
 
   Future<void> _saveAbsence() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
     final t = AppLocalizations.of(context);
     final absenceProvider = context.read<AbsenceProvider>();
     final entry = AbsenceEntry(
@@ -323,6 +333,10 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
           backgroundColor: colorScheme.error,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 }

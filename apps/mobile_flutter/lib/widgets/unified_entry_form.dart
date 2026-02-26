@@ -2060,6 +2060,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               updatedAt: DateTime.now(),
             );
             await entryProvider.updateEntry(updatedEntry);
+            if (!mounted) return;
           }
 
           if (shiftDrafts.length > 1) {
@@ -2071,6 +2072,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                 dayNotes: dayNotes,
               );
               await entryProvider.addEntry(newEntry);
+              if (!mounted) return;
             }
           }
         } else {
@@ -2086,6 +2088,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
           // Save all entries in batch
           await entryProvider.addEntries(workEntries);
+          if (!mounted) return;
         }
       } else {
         // TRAVEL MODE: Save one Entry per leg (atomic entries)
@@ -2114,6 +2117,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
               updatedAt: DateTime.now(),
             );
             await entryProvider.updateEntry(updatedEntry);
+            if (!mounted) return;
 
             // Additional legs become new entries
             if (_travelLegs.length > 1) {
@@ -2135,6 +2139,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                   totalSegments: _travelLegs.length,
                 );
                 await entryProvider.addEntry(newEntry);
+                if (!mounted) return;
               }
             }
           }
@@ -2162,6 +2167,7 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
           // Save all entries in batch
           await entryProvider.addEntries(travelEntries);
+          if (!mounted) return;
         }
       }
 

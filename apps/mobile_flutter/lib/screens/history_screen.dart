@@ -1,9 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../design/app_theme.dart';
+import '../models/absence.dart';
 import '../models/entry.dart';
+import '../providers/absence_provider.dart';
 import '../providers/entry_provider.dart';
+import '../widgets/absence_entry_dialog.dart';
 import '../widgets/standard_app_bar.dart';
 import '../widgets/unified_entry_form.dart';
 import '../widgets/entry_detail_sheet.dart';
@@ -40,6 +44,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
         entryProvider.loadEntries();
       }
+      _loadAbsencesForVisibleRange();
     });
   }
 
@@ -71,11 +76,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
       // If needed in future, implement pagination in EntryProvider
       final entryProvider = context.read<EntryProvider>();
       await entryProvider.loadEntries();
+      await _loadAbsencesForVisibleRange();
     } finally {
       setState(() {
         _isLoadingMore = false;
       });
     }
+  }
+
+  Future<void> _loadAbsencesForVisibleRange() async {
+    final absenceProvider = context.read<AbsenceProvider>();
+    final now = DateTime.now();
+    await absenceProvider.loadAbsences(year: now.year);
+    await absenceProvider.loadAbsences(year: now.year - 1);
   }
 
   @override
@@ -364,10 +377,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Consumer<EntryProvider>(
-      builder: (context, entryProvider, child) {
+    return Consumer2<EntryProvider, AbsenceProvider>(
+      builder: (context, entryProvider, absenceProvider, child) {
         // Show loading indicator when loading entries
-        if (entryProvider.isLoading) {
+        if (entryProvider.isLoading || absenceProvider.isLoading) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -387,25 +400,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
           );
         }
 
-        final entries = entryProvider.filteredEntries;
+        final items = _buildTimelineItems(
+          context,
+          entries: entryProvider.filteredEntries,
+          absenceProvider: absenceProvider,
+        );
 
-        if (entries.isEmpty) {
+        if (items.isEmpty) {
           return _buildEmptyState(context);
         }
 
         return ListView.separated(
           controller: _scrollController,
           padding: const EdgeInsets.all(AppSpacing.lg),
-          itemCount: entries.length + (_isLoadingMore ? 1 : 0),
+          itemCount: items.length + (_isLoadingMore ? 1 : 0),
           separatorBuilder: (_, __) =>
               const SizedBox(height: AppSpacing.sm + 2),
           itemBuilder: (context, index) {
-            if (index == entries.length) {
+            if (index == items.length) {
               return _buildLoadingIndicator(context);
             }
 
-            final entry = entries[index];
-            return _buildEntryCard(context, entry);
+            final item = items[index];
+            return item.when(
+              entry: (entry) => _buildEntryCard(context, entry),
+              absence: (absence) => _buildAbsenceCard(context, absence),
+            );
           },
         );
       },
@@ -422,6 +442,124 @@ class _HistoryScreenState extends State<HistoryScreen> {
       dense: true,
       heroTag: 'entry-${entry.id}',
     );
+  }
+
+  Widget _buildAbsenceCard(BuildContext context, AbsenceEntry absence) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final t = AppLocalizations.of(context);
+    final (label, icon, color) = _absenceTypeInfo(context, absence.type);
+    final durationLabel = absence.minutes == 0
+        ? t.absence_fullDay
+        : '${(absence.minutes / 60.0).toStringAsFixed(1)}h';
+
+    return Card(
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: color.withValues(alpha: 0.14),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        title: Text(label),
+        subtitle: Text(
+          '${DateFormat('yyyy-MM-dd').format(absence.date)} • $durationLabel',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        trailing: Icon(
+          Icons.event_note_outlined,
+          color: colorScheme.onSurfaceVariant,
+          size: 18,
+        ),
+        onTap: () => _openAbsenceEdit(absence),
+      ),
+    );
+  }
+
+  List<_HistoryItem> _buildTimelineItems(
+    BuildContext context, {
+    required List<Entry> entries,
+    required AbsenceProvider absenceProvider,
+  }) {
+    final dateRange = _getDateRangeFilter();
+    final query = _searchController.text.trim().toLowerCase();
+
+    final filteredAbsences = _selectedTypeNotifier.value != null
+        ? const <AbsenceEntry>[]
+        : _allLoadedAbsences(absenceProvider).where((absence) {
+            if (dateRange != null) {
+              final start = DateTime(
+                dateRange.start.year,
+                dateRange.start.month,
+                dateRange.start.day,
+              );
+              final end = DateTime(
+                dateRange.end.year,
+                dateRange.end.month,
+                dateRange.end.day,
+                23,
+                59,
+                59,
+              );
+              if (absence.date.isBefore(start) || absence.date.isAfter(end)) {
+                return false;
+              }
+            }
+
+            if (query.isEmpty) return true;
+            final typeLabel = _absenceTypeLabel(context, absence.type);
+            final dateLabel = DateFormat('yyyy-MM-dd').format(absence.date);
+            return typeLabel.toLowerCase().contains(query) ||
+                dateLabel.contains(query);
+          }).toList();
+
+    final items = <_HistoryItem>[
+      ...entries.map(_HistoryItem.entry),
+      ...filteredAbsences.map(_HistoryItem.absence),
+    ]..sort((a, b) => b.date.compareTo(a.date));
+
+    return items;
+  }
+
+  List<AbsenceEntry> _allLoadedAbsences(AbsenceProvider absenceProvider) {
+    final now = DateTime.now();
+    final absences = <AbsenceEntry>[
+      ...absenceProvider.absencesForYear(now.year),
+      ...absenceProvider.absencesForYear(now.year - 1),
+    ];
+    absences.sort((a, b) => b.date.compareTo(a.date));
+    return absences;
+  }
+
+  Future<void> _openAbsenceEdit(AbsenceEntry absence) async {
+    await showAbsenceEntryDialog(
+      context,
+      year: absence.date.year,
+      absence: absence,
+    );
+  }
+
+  (String, IconData, Color) _absenceTypeInfo(
+      BuildContext context, AbsenceType type) {
+    final t = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    switch (type) {
+      case AbsenceType.vacationPaid:
+        return (t.leave_paidVacation, Icons.beach_access, colorScheme.primary);
+      case AbsenceType.sickPaid:
+        return (t.leave_sickLeave, Icons.healing, AppColors.error);
+      case AbsenceType.vabPaid:
+        return (t.leave_vab, Icons.child_care, AppColors.warning);
+      case AbsenceType.unpaid:
+        return (t.leave_unpaid, Icons.money_off, colorScheme.onSurfaceVariant);
+      case AbsenceType.unknown:
+        return (t.leave_unknownType, Icons.help_outline, colorScheme.outline);
+    }
+  }
+
+  String _absenceTypeLabel(BuildContext context, AbsenceType type) {
+    final (label, _, __) = _absenceTypeInfo(context, type);
+    return label;
   }
 
   void _openQuickView(Entry entry) {
@@ -586,5 +724,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
       case DateRange.custom:
         return _customDateRange;
     }
+  }
+}
+
+class _HistoryItem {
+  final DateTime date;
+  final Entry? entry;
+  final AbsenceEntry? absence;
+
+  const _HistoryItem._({
+    required this.date,
+    this.entry,
+    this.absence,
+  });
+
+  factory _HistoryItem.entry(Entry entry) => _HistoryItem._(
+        date: entry.date,
+        entry: entry,
+      );
+
+  factory _HistoryItem.absence(AbsenceEntry absence) => _HistoryItem._(
+        date: absence.date,
+        absence: absence,
+      );
+
+  T when<T>({
+    required T Function(Entry entry) entry,
+    required T Function(AbsenceEntry absence) absence,
+  }) {
+    if (this.entry != null) return entry(this.entry!);
+    return absence(this.absence!);
   }
 }

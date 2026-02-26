@@ -252,6 +252,13 @@ class SyncQueueService extends ChangeNotifier {
 
     for (final operation in operations) {
       processed++;
+      if (operation.retryCount >= maxRetries) {
+        failed++;
+        debugPrint(
+            'SyncQueueService: Operation ${operation.type.name} for ${operation.entryId} is exhausted (retry ${operation.retryCount}/$maxRetries), keeping in queue');
+        continue;
+      }
+
       try {
         await RetryHelper.executeWithRetry(
           () => executor(operation),
@@ -271,8 +278,7 @@ class SyncQueueService extends ChangeNotifier {
 
         if (operation.retryCount >= maxRetries) {
           debugPrint(
-              'SyncQueueService: Max retries reached for ${operation.entryId}, removing from queue');
-          toRemove.add(operation);
+              'SyncQueueService: Max retries reached for ${operation.entryId}, keeping operation in queue for manual recovery');
         } else {
           debugPrint(
               'SyncQueueService: Failed to process ${operation.type.name} for ${operation.entryId}: $e (retry ${operation.retryCount}/$maxRetries)');

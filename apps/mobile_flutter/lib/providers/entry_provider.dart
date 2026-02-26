@@ -18,8 +18,8 @@ enum ConflictStrategy {
 
 class EntryProvider extends ChangeNotifier {
   final SupabaseAuthService _authService;
-  final SupabaseEntryService _supabaseService = SupabaseEntryService();
-  final SyncQueueService _syncQueue = SyncQueueService();
+  final SupabaseEntryService _supabaseService;
+  final SyncQueueService _syncQueue;
   String? _activeUserId;
 
   List<Entry> _entries = [];
@@ -43,7 +43,12 @@ class EntryProvider extends ChangeNotifier {
 
   late final Future<void> _syncQueueReady;
 
-  EntryProvider(this._authService) {
+  EntryProvider(
+    this._authService, {
+    SupabaseEntryService? supabaseService,
+    SyncQueueService? syncQueue,
+  })  : _supabaseService = supabaseService ?? SupabaseEntryService(),
+        _syncQueue = syncQueue ?? SyncQueueService() {
     _activeUserId = _authService.currentUser?.id;
     _syncQueueReady = _syncQueue.init();
   }
@@ -349,8 +354,8 @@ class EntryProvider extends ChangeNotifier {
   }
 
   /// Add multiple entries in a batch (for atomic entries from unified form)
-  /// Saves entries sequentially to maintain deterministic ordering
-  /// Shows a single success message for the batch
+  /// Saves entries sequentially with all-or-fail semantics.
+  /// If one insert fails after partial remote success, attempts rollback.
   Future<void> addEntries(List<Entry> entries) async {
     if (entries.isEmpty) return;
 
@@ -363,64 +368,61 @@ class EntryProvider extends ChangeNotifier {
       debugPrint('EntryProvider: Adding ${entries.length} entries in batch...');
 
       final List<Entry> savedEntries = [];
-      int successCount = 0;
-      int failureCount = 0;
+      final List<String> createdRemoteIds = [];
 
-      // Save entries sequentially (deterministic ordering)
+      // Save entries sequentially (deterministic ordering).
+      // Do not persist local cache incrementally.
       for (final entry in entries) {
+        final entryWithTimestamp = entry.updatedAt == null
+            ? entry.copyWith(updatedAt: DateTime.now())
+            : entry;
+
         try {
-          Entry savedEntry;
+          debugPrint(
+              'EntryProvider: Saving entry ${entry.type} to Supabase...');
+          final savedEntry =
+              await _supabaseService.addEntry(entryWithTimestamp);
+          debugPrint(
+              'EntryProvider: Entry saved to Supabase successfully with ID: ${savedEntry.id}');
+          savedEntries.add(savedEntry);
+          if (savedEntry.id.isNotEmpty) {
+            createdRemoteIds.add(savedEntry.id);
+          }
+        } catch (insertError) {
+          debugPrint('EntryProvider: Batch insert failed: $insertError');
+          debugPrint(
+              'EntryProvider: Attempting rollback for ${createdRemoteIds.length} created entries...');
 
-          try {
-            debugPrint(
-                'EntryProvider: Saving entry ${entry.type} to Supabase...');
-            savedEntry = await _supabaseService.addEntry(entry);
-            debugPrint(
-                'EntryProvider: Entry saved to Supabase successfully with ID: ${savedEntry.id}');
-
-            // CACHE: Save to local Hive cache
-            await _saveToLocalCache(savedEntry, userId);
-          } catch (e) {
-            debugPrint('EntryProvider: ❌ ERROR saving entry to Supabase: $e');
-
-            // If Supabase fails, save locally and queue for sync
-            final entryWithTimestamp = entry.updatedAt == null
-                ? entry.copyWith(updatedAt: DateTime.now())
-                : entry;
-            await _saveToLocalCache(entryWithTimestamp, userId);
-            savedEntry = entryWithTimestamp;
-            _pendingOfflineOperations++;
-
-            // Queue for later sync (ensure queue is ready first)
-            await _ensureSyncQueueReady();
-            await _syncQueue.queueCreate(entryWithTimestamp, userId);
-
-            debugPrint(
-                'EntryProvider: ⚠️ Saved to local cache only (offline mode)');
-            debugPrint('EntryProvider: Entry queued for sync when online');
+          int rollbackFailures = 0;
+          for (final createdId in createdRemoteIds) {
+            try {
+              await _supabaseService.deleteEntry(createdId, userId);
+            } catch (rollbackError) {
+              rollbackFailures++;
+              debugPrint(
+                  'EntryProvider: Rollback delete failed for $createdId: $rollbackError');
+            }
           }
 
-          savedEntries.add(savedEntry);
-          successCount++;
-        } catch (e) {
-          failureCount++;
-          debugPrint('EntryProvider: Error adding entry in batch: $e');
-          // Continue with other entries even if one fails
+          if (rollbackFailures > 0) {
+            throw Exception(
+                'Unable to save batch entries. Save failed and rollback was attempted, but some parts may still be saved remotely.');
+          }
+          throw Exception(
+              'Unable to save batch entries. Save failed and rollback was attempted.');
         }
       }
 
-      // Add all saved entries to local list
+      // Cache and in-memory updates happen only after all remote inserts succeed.
+      for (final savedEntry in savedEntries) {
+        await _saveToLocalCache(savedEntry, userId);
+      }
       _entries.addAll(savedEntries);
       _applyFilters();
       notifyListeners();
 
       debugPrint(
-          'EntryProvider: Batch add complete - Success: $successCount, Failed: $failureCount');
-
-      if (failureCount > 0) {
-        throw Exception(
-            'Some entries failed to save ($failureCount of ${entries.length})');
-      }
+          'EntryProvider: Batch add complete - Success: ${savedEntries.length}');
     } catch (e) {
       debugPrint('EntryProvider: Error adding entries in batch: $e');
       rethrow;
@@ -721,6 +723,7 @@ class EntryProvider extends ChangeNotifier {
             'EntryProvider: Entries box not available, skipping cache sync');
         return;
       }
+      await _ensureSyncQueueReady();
 
       // Build set of cloud entry IDs for stale-detection
       final cloudIds = entries.map((e) => e.id).toSet();
@@ -728,6 +731,15 @@ class EntryProvider extends ChangeNotifier {
       for (final entry in entries) {
         // Store Entry directly in Hive (preserves all fields: shifts, unpaid breaks, notes, travel legs, etc.)
         await _entriesBox!.put(entry.id, entry);
+      }
+
+      final hasPendingQueueOps = _syncQueue.pendingCountForUser(userId) > 0;
+      if (hasPendingQueueOps) {
+        debugPrint(
+            'EntryProvider: Pending sync operations detected, skipping stale cache deletions to avoid offline data loss');
+        debugPrint(
+            'EntryProvider: Synced ${entries.length} entries to local cache');
+        return;
       }
 
       // Remove stale Hive entries that no longer exist on the server

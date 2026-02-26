@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myapp/l10n/generated/app_localizations.dart';
 import 'package:myapp/l10n/generated/app_localizations_en.dart';
+import 'package:myapp/l10n/generated/app_localizations_sv.dart';
 import 'package:excel/excel.dart';
 import 'package:myapp/calendar/sweden_holidays.dart';
 import 'package:myapp/models/absence.dart';
@@ -465,6 +466,11 @@ void main() {
       expect(totalsRow[_colType], 'TOTAL (tracked only)');
       expect(totalsRow[_colWorkedMinutes], 480);
       expect(totalsRow[_colTravelMinutes], 60);
+      final trackedTotalsRows = reportRows
+          .where((row) =>
+              row[_colType].toString() == labels.exportSummary_totalTrackedOnly)
+          .toList();
+      expect(trackedTotalsRows, hasLength(1));
 
       final summaryRows = sections[1].rows;
       final summaryByMetric = <String, List<dynamic>>{
@@ -488,6 +494,100 @@ void main() {
       expect(
         summaryByMetric[labels.exportSummary_balanceAfterThis]?[1],
         periodSummary.endBalanceMinutes,
+      );
+    });
+
+    test(
+        'localized export_total label is not treated as a normal entry row in report entries',
+        () {
+      final labels = AppLocalizationsSv();
+      final rangeStart = DateTime(2026, 2, 1);
+      final rangeEnd = DateTime(2026, 2, 28);
+
+      final entries = <Entry>[
+        Entry.makeWorkAtomicFromShift(
+          userId: 'user-sv',
+          date: DateTime(2026, 2, 10),
+          shift: Shift(
+            start: DateTime(2026, 2, 10, 8, 0),
+            end: DateTime(2026, 2, 10, 16, 0),
+          ),
+        ),
+        Entry.makeTravelAtomicFromLeg(
+          userId: 'user-sv',
+          date: DateTime(2026, 2, 10),
+          from: 'A',
+          to: 'B',
+          minutes: 60,
+        ),
+      ];
+
+      final reportSummary = ReportSummary(
+        filteredEntries: entries,
+        workMinutes: 480,
+        travelMinutes: 60,
+        totalTrackedMinutes: 540,
+        workInsights: const WorkInsights(
+          longestShift: null,
+          averageWorkedMinutesPerDay: 0,
+          totalBreakMinutes: 0,
+          averageBreakMinutesPerShift: 0,
+          shiftCount: 0,
+          activeWorkDays: 0,
+        ),
+        travelInsights: const TravelInsights(
+          tripCount: 0,
+          averageMinutesPerTrip: 0,
+          topRoutes: [],
+        ),
+        leavesSummary: _buildLeavesSummaryForTest(const []),
+        balanceOffsets: const BalanceOffsetSummary(
+          openingEvent: null,
+          adjustmentsInRange: [],
+          eventsBeforeStart: [],
+          eventsInRange: [],
+          startingBalanceMinutes: 0,
+          closingBalanceMinutes: 0,
+        ),
+      );
+
+      final periodSummary = PeriodSummary.fromInputs(
+        workMinutes: 480,
+        travelMinutes: 60,
+        paidLeaveMinutes: 0,
+        targetMinutes: 0,
+        startBalanceMinutes: 0,
+        manualAdjustmentMinutes: 0,
+      );
+
+      final sections = ExportService.prepareReportExportData(
+        summary: reportSummary,
+        periodSummary: periodSummary,
+        rangeStart: rangeStart,
+        rangeEnd: rangeEnd,
+        t: labels,
+      );
+
+      final reportRows = sections[0].rows;
+      final localizedBaseTotalsRows = reportRows
+          .where((row) => row[_colType].toString() == labels.export_total)
+          .toList();
+      final trackedTotalsRows = reportRows
+          .where((row) =>
+              row[_colType].toString() == labels.exportSummary_totalTrackedOnly)
+          .toList();
+
+      expect(labels.export_total, 'TOTALT');
+      expect(
+        localizedBaseTotalsRows,
+        isEmpty,
+        reason:
+            'Localized base totals row must be filtered out before report rows are formatted',
+      );
+      expect(
+        trackedTotalsRows,
+        hasLength(1),
+        reason: 'Exactly one tracked totals row should be appended',
       );
     });
 

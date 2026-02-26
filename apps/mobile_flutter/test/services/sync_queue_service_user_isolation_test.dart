@@ -77,5 +77,28 @@ void main() {
       expect(service.pendingCountForUser('user_b'), 0);
       expect(service.pendingCount, 2);
     });
+
+    test('max-retry failures stay queued instead of being dropped', () async {
+      await service.queueCreate(
+        createEntry(userId: 'user_a', id: 'a1'),
+        'user_a',
+      );
+
+      for (var i = 0; i < SyncQueueService.maxRetries + 2; i++) {
+        await service.processQueue(
+          (operation) async {
+            throw Exception('400 forced failure');
+          },
+          userId: 'user_a',
+        );
+      }
+
+      expect(service.pendingCountForUser('user_a'), 1);
+      final operation = service.pendingOperations.firstWhere(
+        (op) => op.userId == 'user_a' && op.entryId == 'a1',
+      );
+      expect(operation.retryCount, SyncQueueService.maxRetries);
+      expect(operation.lastError, isNotNull);
+    });
   });
 }

@@ -560,30 +560,18 @@ class TimeProvider extends ChangeNotifier {
 
   /// Get ISO week number for a date
   int _getISOWeekNumber(DateTime date) {
-    // ISO 8601 week: Week 1 is the week with the year's first Thursday
-    final jan4 = DateTime(date.year, 1, 4);
-    final jan4Weekday = jan4.weekday; // 1 = Monday, 7 = Sunday
-    final daysToThursday = (4 - jan4Weekday + 7) % 7;
-    final firstThursday = jan4.add(Duration(days: daysToThursday));
-    final week1Start =
-        firstThursday.subtract(const Duration(days: 3)); // Monday of week 1
+    return isoWeekNumberForDate(date);
+  }
 
-    if (date.isBefore(week1Start)) {
-      // Date is in the last week of previous year
-      final prevYear = date.year - 1;
-      final prevJan4 = DateTime(prevYear, 1, 4);
-      final prevJan4Weekday = prevJan4.weekday;
-      final prevDaysToThursday = (4 - prevJan4Weekday + 7) % 7;
-      final prevFirstThursday =
-          prevJan4.add(Duration(days: prevDaysToThursday));
-      final prevWeek1Start =
-          prevFirstThursday.subtract(const Duration(days: 3));
-      final daysSincePrevWeek1 = date.difference(prevWeek1Start).inDays;
-      return (daysSincePrevWeek1 ~/ 7) + 1;
-    }
-
-    final daysSinceWeek1 = date.difference(week1Start).inDays;
-    return (daysSinceWeek1 ~/ 7) + 1;
+  /// DST-safe ISO week calculation (date-only UTC arithmetic).
+  @visibleForTesting
+  static int isoWeekNumberForDate(DateTime date) {
+    final normalizedDate = DateTime.utc(date.year, date.month, date.day);
+    // ISO 8601: week/year are anchored to Thursday.
+    final thursday = normalizedDate.add(Duration(days: 4 - normalizedDate.weekday));
+    final firstDayOfIsoYear = DateTime.utc(thursday.year, 1, 1);
+    final daysSinceYearStart = thursday.difference(firstDayOfIsoYear).inDays;
+    return (daysSinceYearStart ~/ 7) + 1;
   }
 
   /// Calculate total logged hours from a list of entries.

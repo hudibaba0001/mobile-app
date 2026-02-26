@@ -150,6 +150,14 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
     }
   }
 
+  int _selectedDaySpanInclusive() {
+    if (_startDate == null || _endDate == null) return 0;
+    final startUtc =
+        DateTime.utc(_startDate!.year, _startDate!.month, _startDate!.day);
+    final endUtc = DateTime.utc(_endDate!.year, _endDate!.month, _endDate!.day);
+    return endUtc.difference(startUtc).inDays + 1;
+  }
+
   void _setQuickDateRange(QuickDateRange range) {
     final now = DateTime.now();
     DateTime start;
@@ -254,7 +262,7 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
                         const SizedBox(height: AppSpacing.xs / 2),
                         Text(
                           t.common_days(
-                            _endDate!.difference(_startDate!).inDays + 1,
+                            _selectedDaySpanInclusive(),
                           ),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(

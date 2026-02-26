@@ -232,6 +232,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
         bool allSuccess = true;
         for (final entry in entries) {
           await entryProvider.addEntry(entry);
+          if (!mounted) return;
         }
         success = allSuccess;
       } else {
@@ -239,6 +240,7 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
         bool allSuccess = true;
         for (final entry in entries) {
           await entryProvider.addEntry(entry);
+          if (!mounted) return;
         }
         success = allSuccess;
       }

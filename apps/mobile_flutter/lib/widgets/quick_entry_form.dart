@@ -102,6 +102,7 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 30)),
     );
+    if (!mounted) return;
 
     if (picked != null) {
       setState(() {
@@ -174,28 +175,19 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
       } else {
         await entryProvider.addEntry(entry);
       }
+      if (!mounted) return;
 
-      if (mounted) {
-        _clearForm();
-        widget.onSuccess?.call();
+      _clearForm();
+      widget.onSuccess?.call();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.initialEntry != null
-                ? 'Travel entry updated!'
-                : 'Travel entry added!'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Failed to ${widget.initialEntry != null ? 'update' : 'save'} entry'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(widget.initialEntry != null
+              ? 'Travel entry updated!'
+              : 'Travel entry added!'),
+          backgroundColor: AppColors.success,
+        ),
+      );
     } catch (error) {
       if (mounted) {
         final t = AppLocalizations.of(context);

@@ -202,9 +202,26 @@ class ExportService {
     return row.every((cell) => cell.toString().isEmpty);
   }
 
-  static bool _isEntryExportTotalsRow(List<dynamic> row) {
-    return row.length > _colType &&
-        row[_colType].toString().trim().toUpperCase() == 'TOTAL';
+  static bool _isEntryExportTotalsRow(
+    List<dynamic> row, {
+    required String totalsLabel,
+  }) {
+    if (row.length <= _colType) {
+      return false;
+    }
+
+    final rowType = row[_colType].toString().trim();
+    if (rowType.isEmpty) {
+      return false;
+    }
+
+    // Locale-aware match (same label used when writing totals rows).
+    if (rowType == totalsLabel.trim()) {
+      return true;
+    }
+
+    // Backward compatibility for legacy exports.
+    return rowType.toUpperCase() == 'TOTAL';
   }
 
   static String _leaveTypeForExport(AbsenceType type, AppLocalizations t) {
@@ -345,10 +362,14 @@ class ExportService {
         prepareExportData(summary.filteredEntries, summary: summary, t: t);
     final rows = <List<dynamic>>[];
     var trackedTravelDistanceKm = 0.0;
+    var hasTrackedTotalsRow = false;
 
     for (final sourceRow in base.rows) {
       final row = List<dynamic>.from(sourceRow);
-      if (_isEntryExportTotalsRow(row)) {
+      if (_isEntryExportTotalsRow(
+        row,
+        totalsLabel: t.export_total,
+      )) {
         final value = row[_colTravelDistanceKm];
         if (value is num) {
           trackedTravelDistanceKm = value.toDouble();
@@ -358,6 +379,13 @@ class ExportService {
         continue;
       }
       if (_isEntryExportBlankRow(row)) {
+        continue;
+      }
+      final rowType =
+          row.length > _colType ? row[_colType].toString().trim() : '';
+      if (rowType == t.exportSummary_totalTrackedOnly.trim()) {
+        hasTrackedTotalsRow = true;
+        rows.add(_normalizeEntryExportRow(row, t));
         continue;
       }
       row[_colType] = _formatEntryTypeForReport(
@@ -384,19 +412,21 @@ class ExportService {
       rows.add(_normalizeEntryExportRow(row, t));
     }
 
-    if (rows.isNotEmpty) {
+    if (rows.isNotEmpty && !hasTrackedTotalsRow) {
       rows.add(List<dynamic>.filled(_entryExportHeaders(t).length, ''));
     }
 
-    final totalsRow = List<dynamic>.filled(_entryExportHeaders(t).length, '');
-    totalsRow[_colType] = t.exportSummary_totalTrackedOnly;
-    totalsRow[_colTravelMinutes] = summary.travelMinutes;
-    totalsRow[_colTravelDistanceKm] =
-        double.parse(trackedTravelDistanceKm.toStringAsFixed(2));
-    totalsRow[_colWorkedMinutes] = summary.workMinutes;
-    totalsRow[_colWorkedHours] = _formatUnsignedHours(summary.workMinutes);
-    totalsRow[_colEntryNotes] = t.exportSummary_totalTrackedOnly;
-    rows.add(_normalizeEntryExportRow(totalsRow, t));
+    if (!hasTrackedTotalsRow) {
+      final totalsRow = List<dynamic>.filled(_entryExportHeaders(t).length, '');
+      totalsRow[_colType] = t.exportSummary_totalTrackedOnly;
+      totalsRow[_colTravelMinutes] = summary.travelMinutes;
+      totalsRow[_colTravelDistanceKm] =
+          double.parse(trackedTravelDistanceKm.toStringAsFixed(2));
+      totalsRow[_colWorkedMinutes] = summary.workMinutes;
+      totalsRow[_colWorkedHours] = _formatUnsignedHours(summary.workMinutes);
+      totalsRow[_colEntryNotes] = t.exportSummary_totalTrackedOnly;
+      rows.add(_normalizeEntryExportRow(totalsRow, t));
+    }
 
     return ExportData(
       sheetName: sheetName,

@@ -140,13 +140,12 @@ class _LocationSelectorState extends State<LocationSelector> {
     try {
       final suggestions =
           await MapService.getAddressSuggestions(query, limit: 5);
-      if (mounted) {
-        setState(() {
-          _mapboxSuggestions = suggestions;
-          _isLoadingMapboxSuggestions = false;
-        });
-        _overlayEntry?.markNeedsBuild();
-      }
+      if (!mounted) return;
+      setState(() {
+        _mapboxSuggestions = suggestions;
+        _isLoadingMapboxSuggestions = false;
+      });
+      _overlayEntry?.markNeedsBuild();
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -558,6 +557,7 @@ class _LocationSelectorState extends State<LocationSelector> {
 
     // Show dialog to get location name
     final name = await _showSaveLocationDialog(address);
+    if (!mounted) return;
     if (name != null && name.isNotEmpty) {
       final newLocation = Location(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -567,16 +567,15 @@ class _LocationSelectorState extends State<LocationSelector> {
       );
 
       await locationProvider.addLocation(newLocation);
-      if (mounted) {
-        final t = AppLocalizations.of(context);
-        _selectLocation(newLocation);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(t.location_saved(name)),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
+      if (!mounted) return;
+      final t = AppLocalizations.of(context);
+      _selectLocation(newLocation);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(t.location_saved(name)),
+          backgroundColor: AppColors.success,
+        ),
+      );
     }
   }
 

@@ -104,13 +104,25 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       final absenceProvider = context.read<AbsenceProvider>();
 
       // Always trigger entry load. EntryProvider deduplicates in-flight calls.
-      entryProvider.loadEntries();
+      unawaited(entryProvider.loadEntries().catchError((Object error) {
+        debugPrint('UnifiedHomeScreen: loadEntries failed: $error');
+      }));
 
       // Load absences in parallel; this should not block recent entries rendering.
-      absenceProvider.loadAbsences(year: DateTime.now().year);
+      unawaited(
+          absenceProvider.loadAbsences(year: DateTime.now().year).catchError(
+        (Object error) {
+          debugPrint('UnifiedHomeScreen: loadAbsences failed: $error');
+        },
+      ));
 
       // Do not block home rendering on tracking start initialization.
-      _ensureTrackingStartDateInitialized();
+      unawaited(_ensureTrackingStartDateInitialized().catchError(
+        (Object error) {
+          debugPrint(
+              'UnifiedHomeScreen: tracking start initialization failed: $error');
+        },
+      ));
       _loadRecentEntries();
     });
   }
@@ -1580,7 +1592,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     ensureAndOpen();
   }
 
-  void _editEntry(_EntryData entry) {
+  Future<void> _editEntry(_EntryData entry) async {
     final entryProvider = context.read<EntryProvider>();
     Entry? existing;
     try {
@@ -1591,17 +1603,21 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
 
     if (existing == null) {
       // Attempt a reload then re-find
-      entryProvider.loadEntries().then((_) {
-        Entry? refreshed;
-        try {
-          refreshed = entryProvider.entries.firstWhere((e) => e.id == entry.id);
-        } catch (_) {
-          refreshed = null;
-        }
-        if (refreshed != null && mounted) {
-          _openEditBottomSheet(refreshed);
-        }
-      });
+      try {
+        await entryProvider.loadEntries();
+      } catch (e) {
+        debugPrint('UnifiedHomeScreen: Failed to reload entries for edit: $e');
+      }
+
+      Entry? refreshed;
+      try {
+        refreshed = entryProvider.entries.firstWhere((e) => e.id == entry.id);
+      } catch (_) {
+        refreshed = null;
+      }
+      if (refreshed != null && mounted) {
+        _openEditBottomSheet(refreshed);
+      }
     } else {
       _openEditBottomSheet(existing);
     }
@@ -1700,16 +1716,19 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     _showQuickEntryDialog('work');
   }
 
-  void _startAbsenceEntry() {
-    showAbsenceEntryDialog(
-      context,
-      year: DateTime.now().year,
-    ).then((saved) {
+  Future<void> _startAbsenceEntry() async {
+    try {
+      final saved = await showAbsenceEntryDialog(
+        context,
+        year: DateTime.now().year,
+      );
       if (!mounted) return;
       if (saved == true) {
         _loadRecentEntries();
       }
-    });
+    } catch (e) {
+      debugPrint('UnifiedHomeScreen: Failed to open/save absence dialog: $e');
+    }
   }
 
   void _showQuickEntryDialog(String type) {

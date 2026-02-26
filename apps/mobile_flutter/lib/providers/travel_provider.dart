@@ -62,19 +62,22 @@ class TravelProvider extends ChangeNotifier {
     try {
       // Load from EntryProvider instead of legacy repositories
       final entryProvider = _getEntryProvider();
-      if (entryProvider != null) {
-        // Ensure entries are loaded
-        if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
-          await entryProvider.loadEntries();
-        }
-
-        // Filter to travel entries only
-        _entries = entryProvider.entries
-            .where((e) => e.type == EntryType.travel)
-            .toList();
-      } else {
-        _entries = [];
+      if (entryProvider == null) {
+        // Preserve last-known data instead of wiping UI state when context is
+        // temporarily unavailable.
+        _handleError('Entry provider unavailable');
+        return;
       }
+
+      // Ensure entries are loaded
+      if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
+        await entryProvider.loadEntries();
+      }
+
+      // Filter to travel entries only
+      _entries = entryProvider.entries
+          .where((e) => e.type == EntryType.travel)
+          .toList();
       _applyFilters();
       _clearError();
     } catch (error) {
