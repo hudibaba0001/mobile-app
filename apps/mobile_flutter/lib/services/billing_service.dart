@@ -7,6 +7,8 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../config/app_config.dart';
 import '../config/supabase_config.dart';
+import 'auth_http_client.dart';
+import 'supabase_auth_service.dart';
 
 class BillingService extends ChangeNotifier {
   static const String defaultProductId = 'kviktime_susbcription';
@@ -14,6 +16,7 @@ class BillingService extends ChangeNotifier {
   final InAppPurchase _inAppPurchase;
   final String productId;
   final _supabase = SupabaseConfig.client;
+  final AuthHttpClient _authHttpClient;
 
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
   ProductDetails? _productDetails;
@@ -27,7 +30,15 @@ class BillingService extends ChangeNotifier {
   BillingService({
     InAppPurchase? inAppPurchase,
     this.productId = defaultProductId,
-  }) : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance;
+    SupabaseAuthService? authService,
+    http.Client? httpClient,
+    AuthHttpClient? authHttpClient,
+  })  : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance,
+        _authHttpClient = authHttpClient ??
+            AuthHttpClient(
+              authService: authService,
+              client: httpClient,
+            );
 
   bool get storeAvailable => _storeAvailable;
   bool get isLoadingProducts => _isLoadingProducts;
@@ -45,9 +56,8 @@ class BillingService extends ChangeNotifier {
   Future<void> initialize({VoidCallback? onEntitlementUpdated}) async {
     _onEntitlementUpdated = onEntitlementUpdated;
 
-    _purchaseSubscription ??=
-        _inAppPurchase.purchaseStream.listen(_handlePurchaseUpdates,
-            onError: (Object error) {
+    _purchaseSubscription ??= _inAppPurchase.purchaseStream
+        .listen(_handlePurchaseUpdates, onError: (Object error) {
       _errorMessage = 'Purchase stream error: $error';
       _isProcessingPurchase = false;
       notifyListeners();
@@ -194,10 +204,9 @@ class BillingService extends ChangeNotifier {
     }
 
     final uri = Uri.parse('$_apiBase/api/billing/google/verify');
-    final response = await http.post(
+    final response = await _authHttpClient.post(
       uri,
       headers: {
-        'Authorization': 'Bearer ${session.accessToken}',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({

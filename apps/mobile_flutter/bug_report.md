@@ -231,3 +231,91 @@ When the user subsequently fetches this entry, `DateTime.parse()` reads it as `1
 **Description:** The method `_saveCopyToDownloads` attempts to invoke the native platform channel `se.kviktime.app/file_export`. While the Dart side catches `PlatformException`, the actual Android implementation (`MainActivity.kt`) utilizes `MediaStore.Downloads` but completely lacks runtime permission requests for `WRITE_EXTERNAL_STORAGE` on devices running Android 10-12 (API 29-32) before attempting to write to the public Downloads folder. 
 **Impact:** Medium data-availability issue. On many device configurations running older Android operating systems, triggering the "Export" feature will silently fail to place the file in the public Downloads folder due to a `SecurityException` thrown on the native side. The user is told the export succeeded (because the internal app storage write succeeded), but they cannot locate the file in their external Downloads app.
 **Fix:** Implement a robust permission check using the `permission_handler` package before invoking the MethodChannel. If the OS version is below Android Q (API 29), explicitly request and await the `Permission.storage` grant before proceeding.
+
+### Bug 25: Silent Loss of Minutes During Negative String Formatting
+**Location:** `formatMinutes` (in `reporting/time_format.dart`)
+
+**Description:** The helper function `formatMinutes` formats integer minutes into a localized string like "-0h 30m" for negative values. It defines `final hours = absoluteMinutes ~/ 60;` and `final mins = absoluteMinutes % 60;`, and then dynamically constructs `final base = ... '${hours}h ${minuteText}m';`. However, Dart's `~/` (integer division) rounds toward zero. If the original `minutes` parameter is `-30`, `absoluteMinutes` is `30`. `30 ~/ 60` is `0`. The format block prints `-0h 30m` correctly down to the signed format check. 
+However, there is an implicit assumption across the UI that negative times are printed effectively. Because `formatMinutes` relies strictly on appending the `-` sign *after* calculating positive bases, it prevents complex mathematical edge-cases but can lead to unhandled formatting anomalies if calling methods attempt to parse these outputs strings back into digits, or if `showPlusForZero` is toggled in unexpected zero-bound states (`0h 0m` vs `-0h 0m`).
+**Impact:** Minor mathematical parsing vulnerability. If any script ever attempts to reverse-parse `-0h 30m` back to minutes via regex (e.g., in `ExportService`), the `0h` extraction may ignore the minus sign entirely or cause unexpected regex failure compared to purely numeric formats.
+**Fix:** Ensure string output formats are strictly decoupled from internal value retention. For formatting, strip the sign completely from the math block, construct the absolute value string, and then prepend the sign logic securely at the very end.
+
+### Bug 26: Sync Queue Silently Deletes Unfinished Retry Operations
+**Location:** `processQueue` (in `services/sync_queue_service.dart`)
+
+**Description:** The `processQueue` method loops over `operations`. If an operation fails, it executes `operation.retryCount++; operation.lastError = e.toString();`. However, the loop logic exclusively targets successful operations for removal (`toRemove.add(operation);`). 
+At the end of the loop, the `toRemove` pointer attempts to match the ID. Because `SyncOperation` instances are objects parsed structurally from `jsonDecode(queueJson)`, any local modification to `_queue[existingIndex] = operation;` during concurrent enqueue events while `processQueue` is yielding await on network I/O can cause the exact reference pointers to break synchronization. Further, if the app minimizes or is killed precisely between the `await RetryHelper.executeWithRetry` and the append to `toRemove`, the `_queue` preserves the successful item (since `_persist()` hasn't run), leading to a duplicate insert upon app restart.
+**Impact:** High. Edge-condition duplicate inserts for offline-created items that succeed right before the system aggressively reclaims app memory on older devices, violating idempotency.
+**Fix:** Enforce transaction isolation by ensuring network-created UUIDs or unique constraints are respected on the backend. Also, immediately purge items from `_queue` *before* awaiting the execution, storing them in an in-memory "active transaction" bin, and only pushing them *back* to the `_queue` if execution fails, ensuring that abrupt process death never leaves succeeded items in the queue pool.
+
+### Bug 27: Unbounded Bidirectional N+1 Sync Loop for Locations
+**Location:** `loadFromCloud` and `_syncAllToCloud` (in `providers/location_provider.dart`)
+
+**Description:** On application startup, `LocationProvider.loadFromCloud()` executes `getAllLocations` which blindly queries the entire `locations` table without pagination or a hard `.limit()` safety bounds. Immediately after fetching and merging this entire network response into the local Hive state, the method unconditionally invokes `_syncAllToCloud()`. This helper pulls the entire local Hive locations list and executes `syncAllLocations` (a massive JSON bulk upsert query back to Supabase). 
+Basically, every single app load triggers a download of 100% of locations immediately followed by an upload of 100% of locations.
+**Impact:** Severe scalability and bandwidth risk. For a user with hundreds of tracked locations over years of usage, this guarantees heavy startup data tax, unnecessary backend RPC writes on unmodified rows, and eventual UI or memory thrashing during launch phases.
+**Fix:** Decouple push from pull. Implement a trailing `updated_at` delta timestamp. When downloading from the cloud, only request rows modified since the last check. When modifying local rows, only push mutated deltas rather than blindly upserting the entire local caching table back to the cloud.
+
+### Bug 28: Hive Deserialization Enum Out-of-Bounds Crash
+**Location:** `read` (in `models/absence_entry_adapter.dart` and `models/user_red_day_adapter.dart`)
+
+**Description:** When deserializing `AbsenceType`, `RedDayKind`, `HalfDay`, and `RedDaySource`, the custom Hive TypeAdapters read an integer index from the BinaryReader and unsafely lookup the value using `Enum.values[index]` (e.g. `AbsenceType.values[typeIndex]`). If an older locally cached database contains an index that is out of bounds in the current enum definition (e.g., due to a code refactor removing an enum type), Dart will throw a fatal `RangeError`. 
+Because this occurs within the synchronous `read` loop during `Hive.openBox()`, a single corrupted or outdated integer index in the cache will permanently crash the app at startup until the user clears all application data.
+**Impact:** High. Fatal startup crash vulnerability. A classic Hive schema migration failure point.
+**Fix:** Add explicit bounds checking to all Enum index lookups during Hive reads. Replace `AbsenceType.values[index]` with a safe lookup: `if (index < 0 || index >= AbsenceType.values.length) return AbsenceType.unknown; else return AbsenceType.values[index];`
+
+### Bug 29: Daily Reminder DST Drift Vulnerability
+**Location:** `scheduleDailyReminder` (in `services/reminder_service.dart`)
+
+**Description:** When calculating the next scheduled notification time if the desired hour has passed, the service adds exactly 24 hours via `Duration(days: 1)` on a `TZDateTime` object. Adding `Duration` uses literal duration arithmetic (exactly 86400 seconds) rather than calendar arithmetic. Across a Daylight Saving Time boundary, adding exactly 24 hours will cause the notification to fire an hour early or an hour late because the timezone offset changed during that 24 hour span.
+**Impact:** Minor/Moderate. Notifications drift by +/- 1 hour once a year after DST transition until rescheduled manually.
+**Fix:** Do not use `Duration` arithmetic for calendar-based dates. Instead, increment the calendar day: `tz.TZDateTime(tz.local, now.year, now.month, now.day + 1, hour, minute);`.
+
+### Bug 30: Crash Reporting Infinite Recursion
+**Location:** `PlatformDispatcher.instance.onError` (in `services/crash_reporting_service.dart`)
+
+**Description:** The global platform dispatcher catches all errors and calls `FirebaseCrashlytics.instance.recordError(error, stackTrace, fatal: true)`. If the Crashlytics library itself throws an error while attempting to record the error (e.g. disk full, native bridge uninitialized), this will trigger the dispatcher again, leading to an infinite recursive loop that freezes the app and overflows the stack rather than gracefully failing.
+**Impact:** Rare but Severe. Can completely lock the device's main thread on initialization edge cases instead of quietly crashing.
+**Fix:** Wrap the `FirebaseCrashlytics` invocation in a `try-catch` block inside the dispatcher, or implement a recursion guard (e.g., `if (_isHandlingError) return true; _isHandlingError = true; ...`).
+
+### Bug 31: Unbounded Concurrent RPC Spam on Contract Save
+**Location:** `_saveSettings` (in `screens/contract_settings_screen.dart`)
+
+**Description:** The "Save" button lacks an `_isSaving` boolean guard. Furthermore, `_saveSettings` sequentially calls 4 distinct RPC methods on `ContractProvider` (`updateContractSettings`, `setTrackingStartDate`, `setOpeningFlexMinutes`, `setEmployerMode`), each awaiting a network roundtrip to Supabase. If the user impatient-taps the Save button 3 times, it fires 12 concurrent, overlapping RPC writes to the same row in the database.
+**Impact:** Moderate. Leads to race conditions on row updates, dirty cached Hive states (since local caching runs independently per setter), and potential rate limits.
+**Fix:** Implement a local `_isSaving` state boolean to disable the Save button while the network operations are pending. Combine the 4 RPC method calls into a single Supabase `update()` call within the `ContractProvider` to ensure network atomicity.
+
+### Bug 32: Unbounded Multi-Year Fetch Spans on Initial Load
+**Location:** `loadEntries()` (in `providers/entry_provider.dart`) -> `getAllEntries` (in `services/supabase_entry_service.dart`)
+
+**Description:** While `SupabaseEntryService.getAllEntries` technically supports `limit` and `offset` for pagination, `EntryProvider` calls it without any pagination arguments. This means it queries all historical entry rows from the dawn of the user's account and loads them into memory globally every single time the app starts or a hard refresh occurs. 
+**Impact:** Moderate/High over time. Causes substantial memory pressure, slow sync times, and increased database read costs for veteran users with thousands of entries over multiple years.
+**Fix:** Implement lazy-loaded, time-boxed pagination (e.g., fetch current year, then load previous years dynamically as the user scrolls down on the History view).
+
+### Bug 33: Subpar UX/Accessibility Due to Missing AutofillHints
+**Location:** `GlassTextFormField` usage in `login_screen.dart`, `signup_screen.dart`
+
+**Description:** The custom `GlassTextFormField` widget wraps a Flutter `TextFormField` but does not expose or pass the `autofillHints` property. Consequently, password managers and OS-level keyboard integrations cannot suggest stored emails or passwords during the authentication flow.
+**Impact:** Minor usability flaw. Hurts user acquisition/retention due to friction during login.
+**Fix:** Add `Iterable<String>? autofillHints` to the constructor of `GlassTextFormField` and pipe it directly to the underlying `TextFormField`. In `login_screen.dart`, provide `[AutofillHints.email]` and `[AutofillHints.password]`.
+
+### Bug 34: Accessibility Scaling Broken on RichText Widgets
+**Location:** `FlexsaldoCard` (in `widgets/flexsaldo_card.dart` lines 390 and 473)
+
+**Description:** Two `RichText` widgets are used to format the "Accounted time" strings (e.g. `160h / 168h`). `RichText` in Flutter does not automatically inherit ambient text scaling settings unless explicitly told. If a user sets their OS font size to Maximum, these `RichText` strings will remain at 1x scale, breaking UI accessibility.
+**Impact:** Minor accessibility flaw. Fails WCAG compliance for text resizing.
+**Fix:** Provide `textScaler: MediaQuery.textScalerOf(context)` inside both `RichText` constructors. Alternatively, use `Text.rich(TextSpan(...))` instead of `RichText(...)` since `Text.rich` inherently automatically applies the ambient `MediaQuery` text scaler.
+
+### Bug 35: Non-Atomic Journey Saves Leading to Partial State
+**Location:** `_submitJourney` inside `widgets/multi_segment_form.dart`
+
+**Description:** When saving a journey with multiple segments, the form iterates over the segments and calls `await entryProvider.addEntry(entry)` for each segment individually. If a network interruption or validation error occurs on the 3rd out of 5 segments, the function aborts mid-way, leaving a partially saved Journey in Supabase that the user cannot cleanly re-submit or resume without duplication.
+**Impact:** Moderate workflow bug. Can corrupt a user's travel history with orphaned or incomplete journeys.
+**Fix:** Use `EntryProvider.addEntriesBatch` (or equivalent method for atomic array inserts in Supabase) to guarantee that either the *entire* journey saves or none of it does.
+
+### Bug 36: Missing Accumulation of `totalDays` in LeaveTypeSummary
+**Location:** `_buildLeavesSummary` inside `reports/report_aggregator.dart`
+
+**Description:** When compiling the `LeavesSummary`, the `ReportAggregator` iterates through `projectedAbsences` and updates the `LeaveTypeSummary` for each type. However, it copies `totalDays: current.totalDays` without actually calculating or adding the day fraction for that specific absence. As a result, the `totalDays` for individual absence types (e.g. Vacation) permanently stays at 0.0.
+**Impact:** Minor UI logic bug. Reports and exports will show 0 days for specific leave types despite having minutes logged.
+**Fix:** Calculate the `dayFraction` for the current absence (e.g., `absence.minutes / scheduledMinutesForDate` or 1.0 if full day) and add it into `totalDays: current.totalDays + dayFraction` when building the updated `LeaveTypeSummary`.

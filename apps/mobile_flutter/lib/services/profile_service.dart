@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../config/supabase_config.dart';
 import '../models/user_profile.dart';
+import 'auth_http_client.dart';
+import 'supabase_auth_service.dart';
 
 class LegalVersions {
   const LegalVersions({
@@ -20,7 +22,18 @@ class LegalVersions {
 /// Service for fetching and updating user profile from Supabase
 class ProfileService {
   final _supabase = SupabaseConfig.client;
+  final AuthHttpClient _authHttpClient;
   static const String _setupCompletedKeyPrefix = 'setupCompleted_';
+
+  ProfileService({
+    SupabaseAuthService? authService,
+    http.Client? httpClient,
+    AuthHttpClient? authHttpClient,
+  }) : _authHttpClient = authHttpClient ??
+            AuthHttpClient(
+              authService: authService,
+              client: httpClient,
+            );
 
   String get _apiBase {
     final configured = AppConfig.apiBase.trim();
@@ -70,10 +83,9 @@ class ProfileService {
 
     try {
       final uri = Uri.parse('$_apiBase/api/mobile/legal/accept');
-      final response = await http.post(
+      final response = await _authHttpClient.post(
         uri,
         headers: {
-          'Authorization': 'Bearer ${session.accessToken}',
           'Content-Type': 'application/json',
         },
         body: jsonEncode(const {}),
@@ -92,6 +104,8 @@ class ProfileService {
       final profileData = Map<String, dynamic>.from(profile);
       profileData['email'] ??= _supabase.auth.currentUser?.email;
       return UserProfile.fromMap(profileData);
+    } on AuthExpiredException {
+      rethrow;
     } catch (e) {
       debugPrint('ProfileService: Error accepting legal: $e');
       rethrow;
@@ -105,11 +119,8 @@ class ProfileService {
 
     try {
       final uri = Uri.parse('$_apiBase/api/mobile/legal/current');
-      final response = await http.get(
+      final response = await _authHttpClient.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer ${session.accessToken}',
-        },
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -130,6 +141,8 @@ class ProfileService {
         termsVersion: termsVersion,
         privacyVersion: privacyVersion,
       );
+    } on AuthExpiredException {
+      rethrow;
     } catch (e) {
       debugPrint('ProfileService: Error fetching legal versions: $e');
       rethrow;

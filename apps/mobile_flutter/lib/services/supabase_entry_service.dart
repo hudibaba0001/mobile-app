@@ -12,7 +12,7 @@ class SupabaseEntryService {
   final SupabaseClient _supabase;
   static const String _tableName = 'entries';
   static const String _travelSegmentsTable = 'travel_segments';
-  
+
   SupabaseEntryService({SupabaseClient? supabase})
       : _supabase = supabase ?? SupabaseConfig.client;
   static const String _workShiftsTable = 'work_shifts';
@@ -128,8 +128,7 @@ class SupabaseEntryService {
         } catch (e) {
           debugPrint(
               'SupabaseEntryService: Error parsing entry from Supabase: $e');
-          debugPrint(
-              'SupabaseEntryService: Entry parse failed');
+          debugPrint('SupabaseEntryService: Entry parse failed');
         }
       }
 
@@ -361,8 +360,8 @@ class SupabaseEntryService {
           // Add travel data to response for Entry.fromJson
           entryResponse['from_location'] = entry.travelLegs!.first.fromText;
           entryResponse['to_location'] = entry.travelLegs!.last.toText;
-          entryResponse['travel_minutes'] = entry.travelLegs!
-              .fold<int>(0, (sum, leg) => sum + leg.minutes);
+          entryResponse['travel_minutes'] =
+              entry.travelLegs!.fold<int>(0, (sum, leg) => sum + leg.minutes);
         } else if (entry.from != null && entry.to != null) {
           // Legacy single-segment travel
           final segmentData = {
@@ -519,84 +518,127 @@ class SupabaseEntryService {
 
       // Update type-specific data
       if (entry.type == EntryType.travel) {
+        final previousSegments = await _fetchTravelSegmentsSnapshot(entry.id);
+
         // Delete existing segments and insert new ones
         await _supabase
             .from(_travelSegmentsTable)
             .delete()
             .eq('entry_id', entry.id);
 
-        if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
-          // New multi-leg travel format
-          final totalLegs = entry.travelLegs!.length;
-          for (var i = 0; i < totalLegs; i++) {
-            final leg = entry.travelLegs![i];
+        try {
+          if (entry.travelLegs != null && entry.travelLegs!.isNotEmpty) {
+            // New multi-leg travel format
+            final totalLegs = entry.travelLegs!.length;
+            for (var i = 0; i < totalLegs; i++) {
+              final leg = entry.travelLegs![i];
+              final segmentData = {
+                'id': _uuid.v4(),
+                'entry_id': entry.id,
+                'from_location': leg.fromText,
+                'to_location': leg.toText,
+                'travel_minutes': leg.minutes,
+                'segment_order': i + 1,
+                'total_segments': totalLegs,
+                'created_at': entry.createdAt.toIso8601String(),
+                'updated_at': DateTime.now().toIso8601String(),
+              };
+              await _supabase.from(_travelSegmentsTable).insert(segmentData);
+            }
+          } else if (entry.from != null && entry.to != null) {
+            // Legacy single-segment travel
             final segmentData = {
               'id': _uuid.v4(),
               'entry_id': entry.id,
-              'from_location': leg.fromText,
-              'to_location': leg.toText,
-              'travel_minutes': leg.minutes,
-              'segment_order': i + 1,
-              'total_segments': totalLegs,
+              'from_location': entry.from,
+              'to_location': entry.to,
+              'travel_minutes': entry.travelMinutes ?? 0,
+              'segment_order': entry.segmentOrder ?? 1,
+              'total_segments': entry.totalSegments ?? 1,
               'created_at': entry.createdAt.toIso8601String(),
               'updated_at': DateTime.now().toIso8601String(),
             };
+
             await _supabase.from(_travelSegmentsTable).insert(segmentData);
           }
-        } else if (entry.from != null && entry.to != null) {
-          // Legacy single-segment travel
-          final segmentData = {
-            'id': _uuid.v4(),
-            'entry_id': entry.id,
-            'from_location': entry.from,
-            'to_location': entry.to,
-            'travel_minutes': entry.travelMinutes ?? 0,
-            'segment_order': entry.segmentOrder ?? 1,
-            'total_segments': entry.totalSegments ?? 1,
-            'created_at': entry.createdAt.toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
-          };
-
-          await _supabase.from(_travelSegmentsTable).insert(segmentData);
+        } catch (insertError) {
+          debugPrint(
+              'SupabaseEntryService: Travel child insert failed during update for ${entry.id}: $insertError');
+          await _supabase
+              .from(_travelSegmentsTable)
+              .delete()
+              .eq('entry_id', entry.id);
+          final rollbackFailures = await _restoreRows(
+            table: _travelSegmentsTable,
+            rows: previousSegments,
+            entryId: entry.id,
+          );
+          if (rollbackFailures > 0) {
+            throw Exception(
+                'Update failed; attempted rollback, but rollback failed for $rollbackFailures row(s).');
+          }
+          throw Exception('Update failed; attempted rollback.');
         }
       } else if (entry.type == EntryType.work) {
+        final previousShifts = await _fetchWorkShiftsSnapshot(entry.id);
+
         // Delete existing shifts and insert new ones
         await _supabase
             .from(_workShiftsTable)
             .delete()
             .eq('entry_id', entry.id);
 
-        if (entry.shifts != null && entry.shifts!.isNotEmpty) {
-          // Map Shift model to DB columns (no description column)
-          final shiftsData = entry.shifts!.map((shift) {
-            final dbNotes = shift.notes ?? shift.description;
+        try {
+          if (entry.shifts != null && entry.shifts!.isNotEmpty) {
+            // Map Shift model to DB columns (no description column)
+            final shiftsData = entry.shifts!.map((shift) {
+              final dbNotes = shift.notes ?? shift.description;
 
-            // Convert local DateTime to UTC before storing in DB
-            final startLocal =
-                shift.start.isUtc ? shift.start.toLocal() : shift.start;
-            final endLocal = shift.end.isUtc ? shift.end.toLocal() : shift.end;
-            final startUtc = startLocal.toUtc();
-            final endUtc = endLocal.toUtc();
+              // Convert local DateTime to UTC before storing in DB
+              final startLocal =
+                  shift.start.isUtc ? shift.start.toLocal() : shift.start;
+              final endLocal =
+                  shift.end.isUtc ? shift.end.toLocal() : shift.end;
+              final startUtc = startLocal.toUtc();
+              final endUtc = endLocal.toUtc();
 
-            debugPrint(
-                'SupabaseEntryService: Update shift timezone conversion - '
-                'start local: ${startLocal.toIso8601String()}, UTC: ${startUtc.toIso8601String()}, '
-                'break: ${shift.unpaidBreakMinutes}, notes: $dbNotes');
+              debugPrint(
+                  'SupabaseEntryService: Update shift timezone conversion - '
+                  'start local: ${startLocal.toIso8601String()}, UTC: ${startUtc.toIso8601String()}, '
+                  'break: ${shift.unpaidBreakMinutes}, notes: $dbNotes');
 
-            return {
-              'id': _uuid.v4(),
-              'entry_id': entry.id,
-              'start_time': startUtc.toIso8601String(), // Store as UTC
-              'end_time': endUtc.toIso8601String(), // Store as UTC
-              'location': shift.location,
-              'unpaid_break_minutes': shift.unpaidBreakMinutes,
-              'notes': dbNotes,
-              'created_at': entry.createdAt.toIso8601String(),
-              'updated_at': DateTime.now().toIso8601String(),
-            };
-          }).toList();
+              return {
+                'id': _uuid.v4(),
+                'entry_id': entry.id,
+                'start_time': startUtc.toIso8601String(), // Store as UTC
+                'end_time': endUtc.toIso8601String(), // Store as UTC
+                'location': shift.location,
+                'unpaid_break_minutes': shift.unpaidBreakMinutes,
+                'notes': dbNotes,
+                'created_at': entry.createdAt.toIso8601String(),
+                'updated_at': DateTime.now().toIso8601String(),
+              };
+            }).toList();
 
-          await _supabase.from(_workShiftsTable).insert(shiftsData);
+            await _supabase.from(_workShiftsTable).insert(shiftsData);
+          }
+        } catch (insertError) {
+          debugPrint(
+              'SupabaseEntryService: Work child insert failed during update for ${entry.id}: $insertError');
+          await _supabase
+              .from(_workShiftsTable)
+              .delete()
+              .eq('entry_id', entry.id);
+          final rollbackFailures = await _restoreRows(
+            table: _workShiftsTable,
+            rows: previousShifts,
+            entryId: entry.id,
+          );
+          if (rollbackFailures > 0) {
+            throw Exception(
+                'Update failed; attempted rollback, but rollback failed for $rollbackFailures row(s).');
+          }
+          throw Exception('Update failed; attempted rollback.');
         }
       }
 
@@ -612,6 +654,9 @@ class SupabaseEntryService {
   /// Also deletes related travel_segments or work_shifts (CASCADE should handle this, but we do it explicitly)
   Future<void> deleteEntry(String entryId, String userId) async {
     try {
+      final previousSegments = await _fetchTravelSegmentsSnapshot(entryId);
+      final previousShifts = await _fetchWorkShiftsSnapshot(entryId);
+
       // Delete related data first (in case CASCADE isn't set up)
       await _supabase
           .from(_travelSegmentsTable)
@@ -620,12 +665,34 @@ class SupabaseEntryService {
 
       await _supabase.from(_workShiftsTable).delete().eq('entry_id', entryId);
 
-      // Delete the entry
-      await _supabase
-          .from(_tableName)
-          .delete()
-          .eq('id', entryId)
-          .eq('user_id', userId);
+      try {
+        // Delete the entry
+        await _supabase
+            .from(_tableName)
+            .delete()
+            .eq('id', entryId)
+            .eq('user_id', userId);
+      } catch (parentDeleteError) {
+        debugPrint(
+            'SupabaseEntryService: Parent delete failed for $entryId. Attempting child rollback: $parentDeleteError');
+        final travelRollbackFailures = await _restoreRows(
+          table: _travelSegmentsTable,
+          rows: previousSegments,
+          entryId: entryId,
+        );
+        final shiftRollbackFailures = await _restoreRows(
+          table: _workShiftsTable,
+          rows: previousShifts,
+          entryId: entryId,
+        );
+        final rollbackFailures = travelRollbackFailures + shiftRollbackFailures;
+
+        if (rollbackFailures > 0) {
+          throw Exception(
+              'Delete failed; attempted rollback, but rollback failed for $rollbackFailures row(s).');
+        }
+        throw Exception('Delete failed; attempted rollback.');
+      }
 
       debugPrint(
           'SupabaseEntryService: ✅ Deleted entry $entryId and related data');
@@ -634,6 +701,52 @@ class SupabaseEntryService {
           'SupabaseEntryService: ❌ Error deleting entry from Supabase: $e');
       rethrow;
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchTravelSegmentsSnapshot(
+      String entryId) async {
+    final response = await _supabase
+        .from(_travelSegmentsTable)
+        .select()
+        .eq('entry_id', entryId)
+        .order('segment_order', ascending: true);
+    return response
+        .map<Map<String, dynamic>>(
+            (row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchWorkShiftsSnapshot(
+      String entryId) async {
+    final response = await _supabase
+        .from(_workShiftsTable)
+        .select()
+        .eq('entry_id', entryId)
+        .order('start_time', ascending: true);
+    return response
+        .map<Map<String, dynamic>>(
+            (row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
+  Future<int> _restoreRows({
+    required String table,
+    required List<Map<String, dynamic>> rows,
+    required String entryId,
+  }) async {
+    var rollbackFailures = 0;
+    for (final rawRow in rows) {
+      final restoreRow = Map<String, dynamic>.from(rawRow)
+        ..['entry_id'] = entryId;
+      try {
+        await _supabase.from(table).insert(restoreRow);
+      } catch (rollbackError) {
+        rollbackFailures++;
+        debugPrint(
+            'SupabaseEntryService: Rollback restore failed for table $table entry $entryId: $rollbackError');
+      }
+    }
+    return rollbackFailures;
   }
 
   /// Get a single entry by ID with related data

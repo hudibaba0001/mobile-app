@@ -181,8 +181,12 @@ class _MultiSegmentFormState extends State<MultiSegmentForm> {
   }
 
   Future<void> _submitJourney() async {
-    // Add the current segment if it's valid
-    if (_hasCurrentSegmentData() && _validateCurrentSegment()) {
+    // If user has entered data in the active segment, it must validate.
+    // Otherwise halt submission to avoid silently dropping current input.
+    if (_hasCurrentSegmentData()) {
+      if (!_validateCurrentSegment()) {
+        return;
+      }
       _addSegment();
     }
 

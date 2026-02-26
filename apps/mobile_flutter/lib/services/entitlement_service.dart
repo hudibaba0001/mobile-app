@@ -6,9 +6,22 @@ import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
 import '../config/supabase_config.dart';
 import '../models/user_entitlement.dart';
+import 'auth_http_client.dart';
+import 'supabase_auth_service.dart';
 
 class EntitlementService {
   final _supabase = SupabaseConfig.client;
+  final AuthHttpClient _authHttpClient;
+
+  EntitlementService({
+    SupabaseAuthService? authService,
+    http.Client? httpClient,
+    AuthHttpClient? authHttpClient,
+  }) : _authHttpClient = authHttpClient ??
+            AuthHttpClient(
+              authService: authService,
+              client: httpClient,
+            );
 
   String get _apiBase {
     final configured = AppConfig.apiBase.trim();
@@ -48,10 +61,9 @@ class EntitlementService {
       payload['lastName'] = lastName.trim();
     }
 
-    final response = await http.post(
+    final response = await _authHttpClient.post(
       uri,
       headers: {
-        'Authorization': 'Bearer ${session.accessToken}',
         'Content-Type': 'application/json',
       },
       body: jsonEncode(payload),

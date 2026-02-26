@@ -99,7 +99,7 @@ class AppRouter {
 
       // Allow access to auth-related screens without authentication
       if (isForgotPassword || isSigningUp) {
-        return null;
+        return isAuthenticated ? homePath : null;
       }
 
       // Protect analytics route - require authentication AND admin privileges

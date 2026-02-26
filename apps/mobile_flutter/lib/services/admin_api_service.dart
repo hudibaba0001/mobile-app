@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/admin_user.dart';
 import '../config/api_config.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'auth_http_client.dart';
+import 'supabase_auth_service.dart';
 
 class DashboardData {
   final double totalHoursLoggedThisWeek;
@@ -108,20 +109,28 @@ class AvailableUser {
 
 class AdminApiService {
   final String baseUrl;
-  final http.Client _client;
+  final AuthHttpClient _authHttpClient;
 
-  AdminApiService({String? baseUrl, http.Client? client})
-      : baseUrl = baseUrl ?? ApiConfig.functionBaseUrl,
-        _client = client ?? http.Client();
+  AdminApiService({
+    String? baseUrl,
+    http.Client? client,
+    SupabaseAuthService? authService,
+    AuthHttpClient? authHttpClient,
+  })  : baseUrl = baseUrl ?? ApiConfig.functionBaseUrl,
+        _authHttpClient = authHttpClient ??
+            AuthHttpClient(
+              authService: authService,
+              client: client,
+            );
 
   /// Fetches all users from the backend
   /// Throws an [ApiException] if the request fails
   Future<List<AdminUser>> fetchUsers() async {
     try {
-      final response = await _client.get(
+      final response = await _authHttpClient.get(
         Uri.parse('$baseUrl/users'),
-        headers: await _getAuthHeaders(),
-      ).timeout(const Duration(seconds: 15));
+        headers: const {'Content-Type': 'application/json'},
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
@@ -133,6 +142,8 @@ class AdminApiService {
         code: response.statusCode,
         message: _parseErrorMessage(response.body),
       );
+    } on AuthExpiredException catch (e) {
+      throw ApiException(code: 401, message: e.message);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -165,10 +176,10 @@ class AdminApiService {
       final uri = Uri.parse('$baseUrl/analytics/dashboard')
           .replace(queryParameters: queryParams);
 
-      final response = await _client.get(
+      final response = await _authHttpClient.get(
         uri,
-        headers: await _getAuthHeaders(),
-      ).timeout(const Duration(seconds: 15));
+        headers: const {'Content-Type': 'application/json'},
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
@@ -179,6 +190,8 @@ class AdminApiService {
         code: response.statusCode,
         message: _parseErrorMessage(response.body),
       );
+    } on AuthExpiredException catch (e) {
+      throw ApiException(code: 401, message: e.message);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -189,29 +202,14 @@ class AdminApiService {
     }
   }
 
-  /// Gets the authorization headers for API requests
-  Future<Map<String, String>> _getAuthHeaders() async {
-    try {
-      final session = Supabase.instance.client.auth.currentSession;
-      final token = session?.accessToken;
-
-      return {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      };
-    } catch (e) {
-      throw Exception('Failed to get authentication token: $e');
-    }
-  }
-
   /// Disables a user account
   /// Throws an [ApiException] if the request fails
   Future<void> disableUser(String uid) async {
     try {
-      final response = await _client.post(
+      final response = await _authHttpClient.post(
         Uri.parse('$baseUrl/users/$uid/disable'),
-        headers: await _getAuthHeaders(),
-      ).timeout(const Duration(seconds: 15));
+        headers: const {'Content-Type': 'application/json'},
+      );
 
       if (response.statusCode != 200) {
         throw ApiException(
@@ -219,6 +217,8 @@ class AdminApiService {
           message: _parseErrorMessage(response.body),
         );
       }
+    } on AuthExpiredException catch (e) {
+      throw ApiException(code: 401, message: e.message);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -233,10 +233,10 @@ class AdminApiService {
   /// Throws an [ApiException] if the request fails
   Future<void> enableUser(String uid) async {
     try {
-      final response = await _client.post(
+      final response = await _authHttpClient.post(
         Uri.parse('$baseUrl/users/$uid/enable'),
-        headers: await _getAuthHeaders(),
-      ).timeout(const Duration(seconds: 15));
+        headers: const {'Content-Type': 'application/json'},
+      );
 
       if (response.statusCode != 200) {
         throw ApiException(
@@ -244,6 +244,8 @@ class AdminApiService {
           message: _parseErrorMessage(response.body),
         );
       }
+    } on AuthExpiredException catch (e) {
+      throw ApiException(code: 401, message: e.message);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -258,10 +260,10 @@ class AdminApiService {
   /// Throws an [ApiException] if the request fails
   Future<void> deleteUser(String uid) async {
     try {
-      final response = await _client.delete(
+      final response = await _authHttpClient.delete(
         Uri.parse('$baseUrl/users/$uid'),
-        headers: await _getAuthHeaders(),
-      ).timeout(const Duration(seconds: 15));
+        headers: const {'Content-Type': 'application/json'},
+      );
 
       if (response.statusCode != 200) {
         throw ApiException(
@@ -269,6 +271,8 @@ class AdminApiService {
           message: _parseErrorMessage(response.body),
         );
       }
+    } on AuthExpiredException catch (e) {
+      throw ApiException(code: 401, message: e.message);
     } on ApiException {
       rethrow;
     } catch (e) {
