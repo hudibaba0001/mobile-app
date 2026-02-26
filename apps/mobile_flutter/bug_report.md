@@ -319,3 +319,24 @@ Because this occurs within the synchronous `read` loop during `Hive.openBox()`, 
 **Description:** When compiling the `LeavesSummary`, the `ReportAggregator` iterates through `projectedAbsences` and updates the `LeaveTypeSummary` for each type. However, it copies `totalDays: current.totalDays` without actually calculating or adding the day fraction for that specific absence. As a result, the `totalDays` for individual absence types (e.g. Vacation) permanently stays at 0.0.
 **Impact:** Minor UI logic bug. Reports and exports will show 0 days for specific leave types despite having minutes logged.
 **Fix:** Calculate the `dayFraction` for the current absence (e.g., `absence.minutes / scheduledMinutesForDate` or 1.0 if full day) and add it into `totalDays: current.totalDays + dayFraction` when building the updated `LeaveTypeSummary`.
+
+### Bug 37: Hive Deserialization Enum Out-of-Bounds Crash
+**Location:** `read()` inside `models/user_red_day_adapter.dart`
+
+**Description:** Similar to Bug 28, the `UserRedDayAdapter` directly indexes into enum arrays based on cached integer values `RedDayKind.values[kindIndex]`, `HalfDay.values[halfIndex]`, and `RedDaySource.values[sourceIndex]` without any bounds validation. If enums are reordered or removed in future updates, opening the app with an outdated Hive cache will instantly result in a fatal `RangeError` exception. 
+**Impact:** Critical crash vulnerability during app initialization.
+**Fix:** Implement safe mapping for enum indices, providing a default fallback (e.g., `unknown`) or graceful omission when an out-of-bounds index is encountered.
+
+### Bug 38: Timezone Volatility in Normalized Date Construction
+**Location:** `tryParseDateOnly` inside `utils/date_parser.dart`
+
+**Description:** The custom parser extracts explicit YYYY, MM, DD integer groups from an ISO string, but then builds a `DateTime` locally using `DateTime(year, month, day)`. Because Dart constructs this in the device's local timezone (at 00:00:00), any later conversion to UTC or timestamp comparison with remote servers will inadvertently capture the offset of the local device, which shifts date-only semantics depending on daylight savings or location boundaries.
+**Impact:** Moderate logic bug. Causes off-by-one errors when filtering ranges near midnight if the payload undergoes UTC conversion during network transit.
+**Fix:** Specifically create UTC variants via `DateTime.utc(year, month, day)` to guarantee absolute stability of the date-only tuple regardless of device timezone.
+
+### Bug 39: Architectural Model Fragmentation and Duplication
+**Location:** `models/leave_entry.dart` vs `models/absence.dart`
+
+**Description:** The codebase maintains two completely separate overlapping models covering the exact same domain entity: `LeaveEntry` and `AbsenceEntry`. Both define mirroring enums (`LeaveType` vs `AbsenceType`) encompassing identical categories (sick, vacation, unpaid, vab, unknown). `LeaveEntry` inherits from `HiveObject` while `AbsenceEntry` maps to Supabase, indicating disparate state silos.
+**Impact:** High architectural tech debt. Dual-maintenance models lead to out-of-sync extensions, duplicate mapping logic, and integration bugs when providers pass one model but a screen expects the other.
+**Fix:** Deprecate `LeaveEntry` and consolidate both definitions into a single, unified `AbsenceEntry` model that handles both Hive serialization (via an adapter) and Supabase mappings.
