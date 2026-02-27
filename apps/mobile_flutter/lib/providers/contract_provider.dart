@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/supabase_config.dart';
 import '../services/profile_service.dart';
 import '../services/sync_queue_service.dart';
-import '../utils/error_message_mapper.dart';
 
 /// Provider for managing contract settings and work hour calculations
 ///
@@ -18,10 +17,23 @@ import '../utils/error_message_mapper.dart';
 /// - trackingStartDate: Date from which balances are calculated
 /// - openingFlexMinutes: Opening flex/time bank balance as of start date
 class ContractProvider extends ChangeNotifier {
+  static const _defaultContractPercent = 100;
+  static const _defaultFullTimeHours = 40;
+  static const _defaultOpeningFlexMinutes = 0;
+  static const _defaultEmployerMode = 'standard';
+
   // Service for Supabase persistence
-  final ProfileService _profileService;
+  ProfileService? _profileService;
   final SyncQueueService _syncQueue;
   final Future<bool> Function()? _offlineCheck;
+  final String? Function()? _currentUserIdProvider;
+  final Future<bool> Function({
+    required int contractPercent,
+    required int fullTimeHours,
+    DateTime? trackingStartDate,
+    required int openingFlexMinutes,
+    required String employerMode,
+  })? _remoteSaveContract;
   String? _activeUserId;
 
   // Private fields
@@ -53,11 +65,24 @@ class ContractProvider extends ChangeNotifier {
     ProfileService? profileService,
     SyncQueueService? syncQueue,
     Future<bool> Function()? offlineCheck,
-  })  : _profileService = profileService ?? ProfileService(),
+    String? Function()? currentUserIdProvider,
+    Future<bool> Function({
+      required int contractPercent,
+      required int fullTimeHours,
+      DateTime? trackingStartDate,
+      required int openingFlexMinutes,
+      required String employerMode,
+    })? remoteSaveContract,
+  })  : _profileService = profileService,
         _syncQueue = syncQueue ?? SyncQueueService(),
-        _offlineCheck = offlineCheck {
+        _offlineCheck = offlineCheck,
+        _currentUserIdProvider = currentUserIdProvider,
+        _remoteSaveContract = remoteSaveContract {
     _syncQueueReady = _syncQueue.init();
   }
+
+  ProfileService get _profileServiceOrDefault =>
+      _profileService ??= ProfileService();
 
   // Getters
 
@@ -162,6 +187,17 @@ class ContractProvider extends ChangeNotifier {
     }
   }
 
+  String? _currentUserId() {
+    if (_currentUserIdProvider != null) {
+      return _currentUserIdProvider!();
+    }
+    try {
+      return SupabaseConfig.client.auth.currentUser?.id;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Map<String, dynamic> _contractSyncPayload() {
     return {
       'contractPercent': _contractPercent,
@@ -170,6 +206,57 @@ class ContractProvider extends ChangeNotifier {
       'openingFlexMinutes': _openingFlexMinutes,
       'employerMode': _employerMode,
     };
+  }
+
+  Future<bool> _performRemoteSave({
+    required int contractPercent,
+    required int fullTimeHours,
+    required DateTime? trackingStartDate,
+    required int openingFlexMinutes,
+    required String employerMode,
+  }) async {
+    if (_remoteSaveContract != null) {
+      return _remoteSaveContract!(
+        contractPercent: contractPercent,
+        fullTimeHours: fullTimeHours,
+        trackingStartDate: trackingStartDate,
+        openingFlexMinutes: openingFlexMinutes,
+        employerMode: employerMode,
+      );
+    }
+
+    final result = await _profileServiceOrDefault.updateContractSettings(
+      contractPercent: contractPercent,
+      fullTimeHours: fullTimeHours,
+      trackingStartDate: trackingStartDate,
+      openingFlexMinutes: openingFlexMinutes,
+      employerMode: employerMode,
+    );
+    return result != null;
+  }
+
+  Future<void> _processQueuedContractOperation(SyncOperation operation) async {
+    final data = operation.entryData ?? const <String, dynamic>{};
+    final trackingStartDateRaw = data['trackingStartDate'] as String?;
+    final trackingStartDate =
+        trackingStartDateRaw == null || trackingStartDateRaw.isEmpty
+            ? null
+            : DateTime.tryParse(trackingStartDateRaw);
+
+    final synced = await _performRemoteSave(
+      contractPercent:
+          (data['contractPercent'] as num?)?.toInt() ?? _defaultContractPercent,
+      fullTimeHours:
+          (data['fullTimeHours'] as num?)?.toInt() ?? _defaultFullTimeHours,
+      trackingStartDate: trackingStartDate,
+      openingFlexMinutes: (data['openingFlexMinutes'] as num?)?.toInt() ??
+          _defaultOpeningFlexMinutes,
+      employerMode: (data['employerMode'] as String?) ?? _defaultEmployerMode,
+    );
+
+    if (!synced) {
+      throw StateError('Contract sync did not return a saved profile');
+    }
   }
 
   void _refreshPendingContractSync(String userId) {
@@ -185,7 +272,7 @@ class ContractProvider extends ChangeNotifier {
   /// Initialize the provider by loading settings from local cache
   /// Call loadFromSupabase() after user is authenticated to sync cloud settings
   Future<void> init() async {
-    _activeUserId = SupabaseConfig.client.auth.currentUser?.id;
+    _activeUserId = _currentUserId();
     await _ensureSyncQueueReady();
     if (_activeUserId != null) {
       _refreshPendingContractSync(_activeUserId!);
@@ -227,7 +314,7 @@ class ContractProvider extends ChangeNotifier {
   /// This will overwrite local settings with cloud settings if available
   Future<void> loadFromSupabase() async {
     try {
-      final profile = await _profileService.fetchProfile();
+      final profile = await _profileServiceOrDefault.fetchProfile();
       if (profile == null) {
         debugPrint(
             'ContractProvider: No profile found in Supabase, using local/default settings');
@@ -253,6 +340,11 @@ class ContractProvider extends ChangeNotifier {
 
       // Update local cache to match
       await _saveAllToLocalCache();
+      final userId = _activeUserId ?? _currentUserId();
+      if (userId != null) {
+        await _ensureSyncQueueReady();
+        _refreshPendingContractSync(userId);
+      }
 
       notifyListeners();
     } catch (e) {
@@ -266,7 +358,7 @@ class ContractProvider extends ChangeNotifier {
     _lastWriteQueuedOffline = false;
     _lastSaveSynced = false;
 
-    final userId = SupabaseConfig.client.auth.currentUser?.id;
+    final userId = _currentUserId();
     if (userId == null) {
       debugPrint(
           'ContractProvider: Cannot sync contract settings, user not authenticated');
@@ -292,7 +384,7 @@ class ContractProvider extends ChangeNotifier {
     }
 
     try {
-      final result = await _profileService.updateContractSettings(
+      final synced = await _performRemoteSave(
         contractPercent: _contractPercent,
         fullTimeHours: _fullTimeHours,
         trackingStartDate: _trackingStartDate,
@@ -300,7 +392,7 @@ class ContractProvider extends ChangeNotifier {
         employerMode: _employerMode,
       );
 
-      if (result != null) {
+      if (synced) {
         debugPrint('ContractProvider: Contract settings synced');
         _lastSaveSynced = true;
         _refreshPendingContractSync(userId);
@@ -310,23 +402,24 @@ class ContractProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('ContractProvider: Error saving to Supabase: $e');
-      if (ErrorMessageMapper.isOfflineError(e)) {
-        await queueOffline();
-      }
+      await queueOffline();
     }
 
     notifyListeners();
   }
 
   Future<SyncResult> processPendingSync() async {
-    final userId = _activeUserId ?? SupabaseConfig.client.auth.currentUser?.id;
+    final userId = _activeUserId ?? _currentUserId();
     if (userId == null) {
       return SyncResult(processed: 0, succeeded: 0, failed: 0);
     }
 
     await _ensureSyncQueueReady();
     final result = await _syncQueue.processQueue(
-      null,
+      (operation) async {
+        if (operation.type != SyncOperationType.contractUpdate) return;
+        await _processQueuedContractOperation(operation);
+      },
       userId: userId,
       operationTypes: SyncQueueService.contractOperationTypes,
     );
@@ -742,4 +835,3 @@ class ContractProvider extends ChangeNotifier {
     debugPrint('=========================================');
   }
 }
-

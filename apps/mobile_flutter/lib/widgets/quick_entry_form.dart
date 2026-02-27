@@ -193,8 +193,9 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
               : widget.initialEntry != null
                   ? 'Travel entry updated!'
                   : 'Travel entry added!'),
-          backgroundColor:
-              queuedOffline ? Theme.of(context).colorScheme.tertiaryContainer : AppColors.success,
+          backgroundColor: queuedOffline
+              ? Theme.of(context).colorScheme.tertiaryContainer
+              : AppColors.success,
         ),
       );
     } catch (error) {
@@ -202,8 +203,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
         final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text(t.quickEntry_error(ErrorMessageMapper.userMessage(error, t))),
+            content: Text(
+                t.quickEntry_error(ErrorMessageMapper.userMessage(error, t))),
             backgroundColor: AppColors.error,
           ),
         );

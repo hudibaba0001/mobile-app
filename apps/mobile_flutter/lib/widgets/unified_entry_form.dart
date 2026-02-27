@@ -2201,8 +2201,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
                               : t.common_saved,
                         ),
             ),
-            backgroundColor:
-                queuedOffline ? Theme.of(context).colorScheme.tertiaryContainer : AppColors.success,
+            backgroundColor: queuedOffline
+                ? Theme.of(context).colorScheme.tertiaryContainer
+                : AppColors.success,
           ),
         );
         widget.onSaved?.call();

@@ -164,7 +164,8 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
 
     try {
       // Update provider (saves local cache and queues/syncs cloud)
-      await contractProvider.updateContractSettings(contractPercent, fullTimeHours);
+      await contractProvider.updateContractSettings(
+          contractPercent, fullTimeHours);
       await contractProvider.setTrackingStartDate(_trackingStartDate);
       await contractProvider.setOpeningFlexMinutes(signedMinutes);
       await contractProvider.setEmployerMode(_employerMode);

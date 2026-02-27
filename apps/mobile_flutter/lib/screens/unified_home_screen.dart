@@ -43,6 +43,13 @@ extension StringExtension on String {
   }
 }
 
+String _savedOfflineMessage(AppLocalizations t) {
+  if (t.localeName.toLowerCase().startsWith('sv')) {
+    return 'Sparad offline - synkas nar du ar ansluten.';
+  }
+  return 'Saved offline - will sync when connected.';
+}
+
 /// Unified Home screen with navigation integration.
 /// Main entry point combining travel and work time tracking.
 /// Features: Navigation tabs, today's total, action cards, stats, recent entries.
@@ -1266,9 +1273,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     if (fallbackRecentEntries.isEmpty) {
       final isOffline =
           context.watch<NetworkStatusProvider?>()?.isOffline ?? false;
-      final emptyMessage = isOffline
-          ? _offlineRecentEntriesMessage(t)
-          : t.home_noEntriesYet;
+      final emptyMessage =
+          isOffline ? _offlineRecentEntriesMessage(t) : t.home_noEntriesYet;
       return SliverToBoxAdapter(
         child: Container(
           width: double.infinity,

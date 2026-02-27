@@ -691,269 +691,270 @@ class SettingsScreen extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           children: [
-          // User Info Section
-          if (user != null) ...[
-            AppCard(
-              margin: EdgeInsets.zero,
-              color: theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.3),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.account_circle,
-                    size: AppIconSize.xl,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.userMetadata?['full_name'] ??
-                              user.email?.split('@').first ??
-                              t.common_user,
-                          style: AppTypography.cardTitle(
-                            theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          user.email ?? t.common_unknown,
-                          style: AppTypography.body(
-                            theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+            // User Info Section
+            if (user != null) ...[
+              AppCard(
+                margin: EdgeInsets.zero,
+                color: theme.colorScheme.surfaceContainerHighest
+                    .withValues(alpha: 0.3),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.account_circle,
+                      size: AppIconSize.xl,
+                      color: theme.colorScheme.primary,
                     ),
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.userMetadata?['full_name'] ??
+                                user.email?.split('@').first ??
+                                t.common_user,
+                            style: AppTypography.cardTitle(
+                              theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            user.email ?? t.common_unknown,
+                            style: AppTypography.body(
+                              theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right),
+                      onPressed: () => AppRouter.goToProfile(context),
+                      tooltip: t.profile_title,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+
+            // Language Settings
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: Text(t.settings_language),
+              subtitle: Text(_languageLabel(t, settingsProvider.locale)),
+              trailing: DropdownButton<Locale?>(
+                value: settingsProvider.locale,
+                underline: const SizedBox(),
+                items: [
+                  DropdownMenuItem<Locale?>(
+                    value: null,
+                    child: Text(t.settings_languageSystem),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed: () => AppRouter.goToProfile(context),
-                    tooltip: t.profile_title,
+                  DropdownMenuItem<Locale>(
+                    value: const Locale('en'),
+                    child: Text(
+                        AppLocalizations.of(context).settings_languageEnglish),
+                  ),
+                  DropdownMenuItem<Locale>(
+                    value: const Locale('sv'),
+                    child: Text(
+                        AppLocalizations.of(context).settings_languageSwedish),
                   ),
                 ],
+                onChanged: (Locale? locale) {
+                  settingsProvider.setLocale(locale);
+                },
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-          ],
 
-          // Language Settings
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: Text(t.settings_language),
-            subtitle: Text(_languageLabel(t, settingsProvider.locale)),
-            trailing: DropdownButton<Locale?>(
-              value: settingsProvider.locale,
-              underline: const SizedBox(),
-              items: [
-                DropdownMenuItem<Locale?>(
-                  value: null,
-                  child: Text(t.settings_languageSystem),
-                ),
-                DropdownMenuItem<Locale>(
-                  value: const Locale('en'),
-                  child: Text(
-                      AppLocalizations.of(context).settings_languageEnglish),
-                ),
-                DropdownMenuItem<Locale>(
-                  value: const Locale('sv'),
-                  child: Text(
-                      AppLocalizations.of(context).settings_languageSwedish),
-                ),
-              ],
-              onChanged: (Locale? locale) {
-                settingsProvider.setLocale(locale);
-              },
-            ),
-          ),
-
-          const Divider(),
-
-          // Holiday Settings Section
-          AppSectionHeader(title: t.settings_publicHolidays, padding: EdgeInsets.zero),
-
-          // Auto-mark holidays toggle
-          ListTile(
-            leading: const Icon(Icons.event_available),
-            title: Text(t.settings_autoMarkHolidays),
-            subtitle: Text(t.redDay_publicHoliday),
-            trailing: Switch(
-              value: holidayService.autoMarkHolidays,
-              onChanged: (value) => holidayService.setAutoMarkHolidays(value),
-            ),
-          ),
-
-          // Holiday region info
-          ListTile(
-            leading: const Icon(Icons.flag_outlined),
-            title: Text(t.settings_region),
-            subtitle: Text(t.settings_holidayRegion),
-            trailing: const Icon(Icons.info_outline),
-            onTap: () => _showHolidayInfoDialog(context),
-          ),
-
-          // Personal red days
-          ListTile(
-            leading: const Icon(Icons.event_note_outlined),
-            title: Text(t.redDay_addPersonal),
-            subtitle: Text(t.redDay_personalNotice),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _openPersonalRedDayManagerDialog(context),
-          ),
-
-          const Divider(),
-
-          // First Launch Setting
-          ListTile(
-            leading: const Icon(Icons.new_releases),
-            title: Text(t.settings_welcomeScreen),
-            subtitle: Text(t.settings_welcomeScreenDesc),
-            trailing: Switch(
-              value: settingsProvider.isFirstLaunch,
-              onChanged: settingsProvider.setFirstLaunch,
-            ),
-          ),
-
-          // Travel Logging Setting
-          ListTile(
-            leading: const Icon(Icons.directions_car_outlined),
-            title: Text(t.settings_travelLogging),
-            subtitle: Text(t.settings_travelLoggingDesc),
-            trailing: Switch(
-              value: settingsProvider.isTravelLoggingEnabled,
-              onChanged: settingsProvider.setTravelLoggingEnabled,
-            ),
-          ),
-
-          // Time Balance Tracking Setting
-          ListTile(
-            leading: const Icon(Icons.timer_outlined),
-            title: Text(t.settings_timeBalanceTracking),
-            subtitle: Text(
-              t.settings_timeBalanceTrackingDesc,
-            ),
-            trailing: Switch(
-              value: settingsProvider.isTimeBalanceEnabled,
-              onChanged: settingsProvider.setTimeBalanceEnabled,
-            ),
-          ),
-
-          // Daily reminder (user-defined time and custom text)
-          ListTile(
-            leading: const Icon(Icons.notifications_active_outlined),
-            title: Text(t.settings_dailyReminder),
-            subtitle: Text(t.settings_dailyReminderDesc),
-            trailing: Switch(
-              value: settingsProvider.isDailyReminderEnabled,
-              onChanged: (value) async {
-                await settingsProvider.setDailyReminderEnabled(value);
-                if (context.mounted) {
-                  await _syncReminderSchedule(context);
-                }
-              },
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.schedule_outlined),
-            title: Text(t.settings_dailyReminderTime),
-            subtitle: Text(_formatReminderTime(context, settingsProvider)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _pickReminderTime(context, settingsProvider),
-          ),
-          ListTile(
-            leading: const Icon(Icons.edit_outlined),
-            title: Text(t.settings_dailyReminderText),
-            subtitle: Text(
-              settingsProvider.dailyReminderText.trim().isEmpty
-                  ? t.settings_dailyReminderDefaultText
-                  : settingsProvider.dailyReminderText.trim(),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _editReminderText(context, settingsProvider),
-          ),
-
-          const Divider(),
-
-          // Manage Locations
-          ListTile(
-            leading: const Icon(Icons.location_on_outlined),
-            title: Text(t.settings_manageLocations),
-            subtitle: Text(t.settings_manageLocationsDesc),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => AppRouter.goToManageLocations(context),
-          ),
-
-          // Contract Settings
-          ListTile(
-            leading: const Icon(Icons.assignment_outlined),
-            title: Text(t.settings_contractSettings),
-            subtitle: Text(t.settings_contractDescription),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => AppRouter.goToContractSettings(context),
-          ),
-
-          // Absence Management
-          ListTile(
-            leading: const Icon(Icons.event_busy),
-            title: Text(t.settings_absences),
-            subtitle: Text(t.settings_absencesDesc),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.go(AppRouter.absenceManagementPath),
-          ),
-
-          if (showCrashlyticsTestActions) ...[
             const Divider(),
+
+            // Holiday Settings Section
+            AppSectionHeader(
+                title: t.settings_publicHolidays, padding: EdgeInsets.zero),
+
+            // Auto-mark holidays toggle
             ListTile(
-              leading: const Icon(Icons.bug_report_outlined),
-              title: Text(t.settings_crashlyticsTestNonFatalTitle),
-              subtitle: Text(t.settings_crashlyticsTestNonFatalSubtitle),
-              onTap: () async {
-                if (!CrashReportingService.isEnabled) {
+              leading: const Icon(Icons.event_available),
+              title: Text(t.settings_autoMarkHolidays),
+              subtitle: Text(t.redDay_publicHoliday),
+              trailing: Switch(
+                value: holidayService.autoMarkHolidays,
+                onChanged: (value) => holidayService.setAutoMarkHolidays(value),
+              ),
+            ),
+
+            // Holiday region info
+            ListTile(
+              leading: const Icon(Icons.flag_outlined),
+              title: Text(t.settings_region),
+              subtitle: Text(t.settings_holidayRegion),
+              trailing: const Icon(Icons.info_outline),
+              onTap: () => _showHolidayInfoDialog(context),
+            ),
+
+            // Personal red days
+            ListTile(
+              leading: const Icon(Icons.event_note_outlined),
+              title: Text(t.redDay_addPersonal),
+              subtitle: Text(t.redDay_personalNotice),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _openPersonalRedDayManagerDialog(context),
+            ),
+
+            const Divider(),
+
+            // First Launch Setting
+            ListTile(
+              leading: const Icon(Icons.new_releases),
+              title: Text(t.settings_welcomeScreen),
+              subtitle: Text(t.settings_welcomeScreenDesc),
+              trailing: Switch(
+                value: settingsProvider.isFirstLaunch,
+                onChanged: settingsProvider.setFirstLaunch,
+              ),
+            ),
+
+            // Travel Logging Setting
+            ListTile(
+              leading: const Icon(Icons.directions_car_outlined),
+              title: Text(t.settings_travelLogging),
+              subtitle: Text(t.settings_travelLoggingDesc),
+              trailing: Switch(
+                value: settingsProvider.isTravelLoggingEnabled,
+                onChanged: settingsProvider.setTravelLoggingEnabled,
+              ),
+            ),
+
+            // Time Balance Tracking Setting
+            ListTile(
+              leading: const Icon(Icons.timer_outlined),
+              title: Text(t.settings_timeBalanceTracking),
+              subtitle: Text(
+                t.settings_timeBalanceTrackingDesc,
+              ),
+              trailing: Switch(
+                value: settingsProvider.isTimeBalanceEnabled,
+                onChanged: settingsProvider.setTimeBalanceEnabled,
+              ),
+            ),
+
+            // Daily reminder (user-defined time and custom text)
+            ListTile(
+              leading: const Icon(Icons.notifications_active_outlined),
+              title: Text(t.settings_dailyReminder),
+              subtitle: Text(t.settings_dailyReminderDesc),
+              trailing: Switch(
+                value: settingsProvider.isDailyReminderEnabled,
+                onChanged: (value) async {
+                  await settingsProvider.setDailyReminderEnabled(value);
                   if (context.mounted) {
+                    await _syncReminderSchedule(context);
+                  }
+                },
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.schedule_outlined),
+              title: Text(t.settings_dailyReminderTime),
+              subtitle: Text(_formatReminderTime(context, settingsProvider)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _pickReminderTime(context, settingsProvider),
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(t.settings_dailyReminderText),
+              subtitle: Text(
+                settingsProvider.dailyReminderText.trim().isEmpty
+                    ? t.settings_dailyReminderDefaultText
+                    : settingsProvider.dailyReminderText.trim(),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _editReminderText(context, settingsProvider),
+            ),
+
+            const Divider(),
+
+            // Manage Locations
+            ListTile(
+              leading: const Icon(Icons.location_on_outlined),
+              title: Text(t.settings_manageLocations),
+              subtitle: Text(t.settings_manageLocationsDesc),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => AppRouter.goToManageLocations(context),
+            ),
+
+            // Contract Settings
+            ListTile(
+              leading: const Icon(Icons.assignment_outlined),
+              title: Text(t.settings_contractSettings),
+              subtitle: Text(t.settings_contractDescription),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => AppRouter.goToContractSettings(context),
+            ),
+
+            // Absence Management
+            ListTile(
+              leading: const Icon(Icons.event_busy),
+              title: Text(t.settings_absences),
+              subtitle: Text(t.settings_absencesDesc),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go(AppRouter.absenceManagementPath),
+            ),
+
+            if (showCrashlyticsTestActions) ...[
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.bug_report_outlined),
+                title: Text(t.settings_crashlyticsTestNonFatalTitle),
+                subtitle: Text(t.settings_crashlyticsTestNonFatalSubtitle),
+                onTap: () async {
+                  if (!CrashReportingService.isEnabled) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(t.settings_crashlyticsDisabled),
+                        ),
+                      );
+                    }
+                    return;
+                  }
+
+                  await CrashReportingService.sendTestNonFatal();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(t.settings_crashlyticsNonFatalSent),
+                      ),
+                    );
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.warning_amber_outlined),
+                title: Text(t.settings_crashlyticsTestFatalTitle),
+                subtitle: Text(t.settings_crashlyticsTestFatalSubtitle),
+                onTap: () {
+                  if (!CrashReportingService.isEnabled) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(t.settings_crashlyticsDisabled),
                       ),
                     );
+                    return;
                   }
-                  return;
-                }
+                  CrashReportingService.crashForTest();
+                },
+              ),
+            ],
 
-                await CrashReportingService.sendTestNonFatal();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(t.settings_crashlyticsNonFatalSent),
-                    ),
-                  );
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.warning_amber_outlined),
-              title: Text(t.settings_crashlyticsTestFatalTitle),
-              subtitle: Text(t.settings_crashlyticsTestFatalSubtitle),
-              onTap: () {
-                if (!CrashReportingService.isEnabled) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(t.settings_crashlyticsDisabled),
-                    ),
-                  );
-                  return;
-                }
-                CrashReportingService.crashForTest();
-              },
-            ),
+            const SizedBox(height: AppSpacing.xxl),
           ],
-
-          const SizedBox(height: AppSpacing.xxl),
-        ],
+        ),
       ),
-    ),
     );
   }
 }

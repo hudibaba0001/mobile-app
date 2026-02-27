@@ -962,6 +962,7 @@ class EntryProvider extends ChangeNotifier {
           case SyncOperationType.adjustmentCreate:
           case SyncOperationType.adjustmentUpdate:
           case SyncOperationType.adjustmentDelete:
+          case SyncOperationType.contractUpdate:
             return;
         }
       }, userId: userId, operationTypes: SyncQueueService.entryOperationTypes);

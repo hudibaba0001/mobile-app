@@ -374,7 +374,8 @@ class SyncQueueService extends ChangeNotifier {
     Map<String, dynamic> payload,
   ) async {
     _queue.removeWhere(
-      (op) => op.userId == userId && op.type == SyncOperationType.contractUpdate,
+      (op) =>
+          op.userId == userId && op.type == SyncOperationType.contractUpdate,
     );
     await enqueue(SyncOperation(
       id: 'contract_update_${userId}_${DateTime.now().millisecondsSinceEpoch}',

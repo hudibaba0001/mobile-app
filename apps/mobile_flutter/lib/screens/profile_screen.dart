@@ -398,8 +398,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content:
-                          Text(t.profile_nameUpdateFailed(_friendlyError(context, e))),
+                      content: Text(t.profile_nameUpdateFailed(
+                          _friendlyError(context, e))),
                       backgroundColor: theme.colorScheme.error,
                       behavior: SnackBarBehavior.floating,
                     ),
