@@ -6,6 +6,7 @@ import '../config/app_router.dart';
 import '../design/app_theme.dart';
 import '../providers/absence_provider.dart';
 import '../providers/balance_adjustment_provider.dart';
+import '../providers/contract_provider.dart';
 import '../providers/entry_provider.dart';
 import '../providers/network_status_provider.dart';
 import '../services/supabase_auth_service.dart';
@@ -204,14 +205,15 @@ class _ConnectivityBanner extends StatelessWidget {
 
     return SafeArea(
       bottom: false,
-      child: Consumer4<NetworkStatusProvider, EntryProvider, AbsenceProvider,
-          BalanceAdjustmentProvider>(
+      child: Consumer5<NetworkStatusProvider, EntryProvider, AbsenceProvider,
+          BalanceAdjustmentProvider, ContractProvider>(
         builder: (context, networkStatus, entryProvider, absenceProvider,
-            adjustmentProvider, _) {
+            adjustmentProvider, contractProvider, _) {
           final isOffline = networkStatus.isOffline;
           final pendingCount = entryProvider.pendingSyncCount +
               absenceProvider.pendingSyncCount +
-              adjustmentProvider.pendingSyncCount;
+              adjustmentProvider.pendingSyncCount +
+              contractProvider.pendingSyncCount;
           final showBanner = isOffline;
 
           return IgnorePointer(

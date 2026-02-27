@@ -10,6 +10,7 @@ import '../services/supabase_auth_service.dart';
 import '../config/app_router.dart';
 import '../config/external_links.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../utils/error_message_mapper.dart';
 import '../widgets/legal_document_dialog.dart';
 import '../widgets/standard_app_bar.dart';
 
@@ -24,12 +25,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _error;
   final _nameController = TextEditingController();
 
-  String _friendlyError(Object error) {
-    final raw = error.toString();
-    if (raw.startsWith('Exception: ')) {
-      return raw.substring('Exception: '.length);
+  bool _isUnauthorizedError(Object error) {
+    final raw = error.toString().toLowerCase();
+    return raw.contains('401') ||
+        raw.contains('unauthorized') ||
+        raw.contains('auth expired') ||
+        raw.contains('jwt');
+  }
+
+  Future<void> _handleSessionExpired() async {
+    final authService = context.read<SupabaseAuthService>();
+    try {
+      await authService.signOut();
+    } catch (_) {}
+    if (!mounted) return;
+    context.go(AppRouter.loginPath);
+  }
+
+  String _friendlyError(BuildContext context, Object error) {
+    if (_isUnauthorizedError(error)) {
+      final t = AppLocalizations.of(context);
+      return t.session_expiredBody;
     }
-    return raw;
+    return ErrorMessageMapper.userMessage(error, AppLocalizations.of(context));
   }
 
   @override
@@ -130,9 +148,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
               } catch (e) {
                 if (context.mounted) {
+                  if (_isUnauthorizedError(e)) {
+                    await _handleSessionExpired();
+                    return;
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${t.common_error}: $e'),
+                      content: Text(_friendlyError(context, e)),
                       backgroundColor: theme.colorScheme.error,
                     ),
                   );
@@ -319,8 +341,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
+        if (_isUnauthorizedError(e)) {
+          await _handleSessionExpired();
+          return;
+        }
         setState(() {
-          _error = 'Failed to sign out: ${e.toString()}';
+          _error = _friendlyError(context, e);
         });
       }
     }
@@ -366,9 +392,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
               } catch (e) {
                 if (mounted) {
+                  if (_isUnauthorizedError(e)) {
+                    await _handleSessionExpired();
+                    return;
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(t.profile_nameUpdateFailed(e.toString())),
+                      content:
+                          Text(t.profile_nameUpdateFailed(_friendlyError(context, e))),
                       backgroundColor: theme.colorScheme.error,
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -447,11 +478,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Navigator.of(context).pop(true);
                       } catch (e) {
                         if (!context.mounted) return;
+                        if (_isUnauthorizedError(e)) {
+                          await _handleSessionExpired();
+                          return;
+                        }
                         setState(() => isDeleting = false);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(t.settings_deleteAccountError(
-                                _friendlyError(e))),
+                                _friendlyError(context, e))),
                             backgroundColor: theme.colorScheme.error,
                           ),
                         );

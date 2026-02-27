@@ -1,9 +1,12 @@
 // ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/supabase_config.dart';
 import '../services/profile_service.dart';
+import '../services/sync_queue_service.dart';
+import '../utils/error_message_mapper.dart';
 
 /// Provider for managing contract settings and work hour calculations
 ///
@@ -16,7 +19,9 @@ import '../services/profile_service.dart';
 /// - openingFlexMinutes: Opening flex/time bank balance as of start date
 class ContractProvider extends ChangeNotifier {
   // Service for Supabase persistence
-  final ProfileService _profileService = ProfileService();
+  final ProfileService _profileService;
+  final SyncQueueService _syncQueue;
+  final Future<bool> Function()? _offlineCheck;
   String? _activeUserId;
 
   // Private fields
@@ -32,12 +37,27 @@ class ContractProvider extends ChangeNotifier {
   // Employer mode (V1: affects validation strictness, not calculations yet)
   String _employerMode = 'standard'; // 'standard', 'strict', 'flexible'
 
+  bool _lastWriteQueuedOffline = false;
+  bool _lastSaveSynced = true;
+  bool _hasPendingSync = false;
+  late final Future<void> _syncQueueReady;
+
   // SharedPreferences keys (local cache)
   static const String _contractPercentKey = 'contract_percent';
   static const String _fullTimeHoursKey = 'full_time_hours';
   static const String _trackingStartDateKey = 'tracking_start_date';
   static const String _openingFlexMinutesKey = 'opening_flex_minutes';
   static const String _employerModeKey = 'employer_mode';
+
+  ContractProvider({
+    ProfileService? profileService,
+    SyncQueueService? syncQueue,
+    Future<bool> Function()? offlineCheck,
+  })  : _profileService = profileService ?? ProfileService(),
+        _syncQueue = syncQueue ?? SyncQueueService(),
+        _offlineCheck = offlineCheck {
+    _syncQueueReady = _syncQueue.init();
+  }
 
   // Getters
 
@@ -121,12 +141,57 @@ class ContractProvider extends ChangeNotifier {
   /// Employer mode setting
   String get employerMode => _employerMode;
 
+  bool get lastWriteQueuedOffline => _lastWriteQueuedOffline;
+  bool get lastSaveSynced => _lastSaveSynced;
+  bool get hasPendingSync => _hasPendingSync;
+  int get pendingSyncCount => _hasPendingSync ? 1 : 0;
+
+  Future<void> _ensureSyncQueueReady() async {
+    await _syncQueueReady;
+  }
+
+  Future<bool> _isOfflineNow() async {
+    if (_offlineCheck != null) {
+      return _offlineCheck!();
+    }
+    try {
+      final results = await Connectivity().checkConnectivity();
+      return !results.any((result) => result != ConnectivityResult.none);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Map<String, dynamic> _contractSyncPayload() {
+    return {
+      'contractPercent': _contractPercent,
+      'fullTimeHours': _fullTimeHours,
+      'trackingStartDate': _trackingStartDate?.toIso8601String(),
+      'openingFlexMinutes': _openingFlexMinutes,
+      'employerMode': _employerMode,
+    };
+  }
+
+  void _refreshPendingContractSync(String userId) {
+    final pendingIds = _syncQueue.pendingEntityIdsForUser(
+      userId,
+      operationTypes: SyncQueueService.contractOperationTypes,
+    );
+    _hasPendingSync = pendingIds.isNotEmpty;
+  }
+
   // Initialization methods
 
   /// Initialize the provider by loading settings from local cache
   /// Call loadFromSupabase() after user is authenticated to sync cloud settings
   Future<void> init() async {
     _activeUserId = SupabaseConfig.client.auth.currentUser?.id;
+    await _ensureSyncQueueReady();
+    if (_activeUserId != null) {
+      _refreshPendingContractSync(_activeUserId!);
+    } else {
+      _hasPendingSync = false;
+    }
     await _loadFromLocalCache();
   }
 
@@ -146,9 +211,14 @@ class ContractProvider extends ChangeNotifier {
     _activeUserId = userId;
 
     _resetInMemoryToDefaults();
+    _lastWriteQueuedOffline = false;
+    _lastSaveSynced = true;
+    _hasPendingSync = false;
     notifyListeners();
 
     if (userId != null) {
+      await _ensureSyncQueueReady();
+      _refreshPendingContractSync(userId);
       await loadFromSupabase();
     }
   }
@@ -193,6 +263,34 @@ class ContractProvider extends ChangeNotifier {
 
   /// Save all current settings to Supabase
   Future<void> saveToSupabase() async {
+    _lastWriteQueuedOffline = false;
+    _lastSaveSynced = false;
+
+    final userId = SupabaseConfig.client.auth.currentUser?.id;
+    if (userId == null) {
+      debugPrint(
+          'ContractProvider: Cannot sync contract settings, user not authenticated');
+      _hasPendingSync = false;
+      notifyListeners();
+      return;
+    }
+
+    await _ensureSyncQueueReady();
+    final payload = _contractSyncPayload();
+
+    Future<void> queueOffline() async {
+      await _syncQueue.queueContractUpdate(userId, payload);
+      _refreshPendingContractSync(userId);
+      _lastWriteQueuedOffline = true;
+      _lastSaveSynced = false;
+    }
+
+    if (await _isOfflineNow()) {
+      await queueOffline();
+      notifyListeners();
+      return;
+    }
+
     try {
       final result = await _profileService.updateContractSettings(
         contractPercent: _contractPercent,
@@ -203,16 +301,39 @@ class ContractProvider extends ChangeNotifier {
       );
 
       if (result != null) {
-        debugPrint('ContractProvider: ✅ All settings saved to Supabase');
+        debugPrint('ContractProvider: Contract settings synced');
+        _lastSaveSynced = true;
+        _refreshPendingContractSync(userId);
       } else {
-        debugPrint(
-            'ContractProvider: ⚠️ Failed to save to Supabase (user may not be authenticated)');
+        debugPrint('ContractProvider: Contract settings not synced, queueing');
+        await queueOffline();
       }
     } catch (e) {
       debugPrint('ContractProvider: Error saving to Supabase: $e');
+      if (ErrorMessageMapper.isOfflineError(e)) {
+        await queueOffline();
+      }
     }
+
+    notifyListeners();
   }
 
+  Future<SyncResult> processPendingSync() async {
+    final userId = _activeUserId ?? SupabaseConfig.client.auth.currentUser?.id;
+    if (userId == null) {
+      return SyncResult(processed: 0, succeeded: 0, failed: 0);
+    }
+
+    await _ensureSyncQueueReady();
+    final result = await _syncQueue.processQueue(
+      null,
+      userId: userId,
+      operationTypes: SyncQueueService.contractOperationTypes,
+    );
+    _refreshPendingContractSync(userId);
+    notifyListeners();
+    return result;
+  }
   // Setters with validation and persistence
 
   /// Set the contract percentage and persist
@@ -621,3 +742,4 @@ class ContractProvider extends ChangeNotifier {
     debugPrint('=========================================');
   }
 }
+

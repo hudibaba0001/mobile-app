@@ -155,7 +155,9 @@ class _BootstrapAppState extends State<BootstrapApp> {
       }
 
       // Initialize independent providers
-      final contractProvider = ContractProvider();
+      final syncQueueService = SyncQueueService();
+      await syncQueueService.init();
+      final contractProvider = ContractProvider(syncQueue: syncQueueService);
       final settingsProvider = SettingsProvider();
 
       // We can run these in parallel
@@ -183,6 +185,7 @@ class _BootstrapAppState extends State<BootstrapApp> {
         reminderService: reminderService,
         locationRepository: locationRepository,
         supabaseLocationRepo: supabaseLocationRepo,
+        syncQueueService: syncQueueService,
         absenceBox: absenceBox,
         adjustmentBox: adjustmentBox,
         redDayBox: redDayBox,
@@ -258,6 +261,7 @@ class MyApp extends StatelessWidget {
   final ReminderService reminderService;
   final LocationRepository locationRepository;
   final SupabaseLocationRepository supabaseLocationRepo;
+  final SyncQueueService syncQueueService;
   final Box<AbsenceEntry> absenceBox;
   final Box<BalanceAdjustment> adjustmentBox;
   final Box<UserRedDay> redDayBox;
@@ -270,6 +274,7 @@ class MyApp extends StatelessWidget {
     required this.reminderService,
     required this.locationRepository,
     required this.supabaseLocationRepo,
+    required this.syncQueueService,
     required this.absenceBox,
     required this.adjustmentBox,
     required this.redDayBox,
@@ -286,7 +291,7 @@ class MyApp extends StatelessWidget {
         Provider<ReminderService>.value(value: reminderService),
         // Network status provider (for offline/online detection)
         ChangeNotifierProvider(create: (_) => NetworkStatusProvider()),
-        ChangeNotifierProvider(create: (_) => SyncQueueService()),
+        ChangeNotifierProvider<SyncQueueService>.value(value: syncQueueService),
         // Existing providers
         ChangeNotifierProvider(create: (_) => AppStateProvider()),
         ChangeNotifierProvider<ContractProvider>.value(
@@ -486,6 +491,7 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
     final entryProvider = context.read<EntryProvider>();
     final absenceProvider = context.read<AbsenceProvider>();
     final adjustmentProvider = context.read<BalanceAdjustmentProvider>();
+    final contractProvider = context.read<ContractProvider>();
 
     // Register callback to sync pending operations when connectivity is restored
     networkProvider.addOnConnectivityRestoredCallback(() async {
@@ -493,10 +499,12 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
       final entryResult = await entryProvider.processPendingSync();
       final absenceResult = await absenceProvider.processPendingSync();
       final adjustmentResult = await adjustmentProvider.processPendingSync();
+      final contractResult = await contractProvider.processPendingSync();
 
       final succeeded = entryResult.succeeded +
           absenceResult.succeeded +
-          adjustmentResult.succeeded;
+          adjustmentResult.succeeded +
+          contractResult.succeeded;
       if (succeeded > 0) {
         debugPrint('main: Auto-synced $succeeded pending operations');
       }

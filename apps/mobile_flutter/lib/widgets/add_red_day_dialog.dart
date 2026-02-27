@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../design/app_theme.dart';
 import '../design/components/components.dart';
 import '../models/user_red_day.dart';
+import '../providers/network_status_provider.dart';
 import '../services/holiday_service.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../utils/error_message_mapper.dart';
 
 /// Dialog for adding/editing a personal red day
 class AddRedDayDialog extends StatefulWidget {
@@ -52,6 +55,18 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
 
   Future<void> _save() async {
     final t = AppLocalizations.of(context);
+    final isOffline =
+        context.read<NetworkStatusProvider?>()?.isOffline ?? false;
+    if (isOffline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_offlineEditBlockedMessage(t)),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -86,7 +101,10 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
         final colorScheme = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(t.redDay_errorSaving(e.toString())),
+            content: Text(t.redDay_errorSaving(ErrorMessageMapper.userMessage(
+              e,
+              t,
+            ))),
             backgroundColor: colorScheme.error,
           ),
         );
@@ -100,6 +118,18 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
 
   Future<void> _delete() async {
     final t = AppLocalizations.of(context);
+    final isOffline =
+        context.read<NetworkStatusProvider?>()?.isOffline ?? false;
+    if (isOffline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_offlineEditBlockedMessage(t)),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -147,7 +177,9 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
         final colorScheme = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(t.redDay_errorRemoving(e.toString())),
+            content: Text(t.redDay_errorRemoving(
+              ErrorMessageMapper.userMessage(e, t),
+            )),
             backgroundColor: colorScheme.error,
           ),
         );
@@ -157,6 +189,13 @@ class _AddRedDayDialogState extends State<AddRedDayDialog> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  String _offlineEditBlockedMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Du ar offline. Anslut till internet for att redigera roda dagar.';
+    }
+    return "You're offline. Connect to edit red days.";
   }
 
   @override

@@ -5,6 +5,7 @@ import '../design/app_theme.dart';
 import '../models/entry.dart';
 import '../providers/local_entry_provider.dart';
 import '../services/supabase_auth_service.dart';
+import '../utils/error_message_mapper.dart';
 
 /// Simple entry form for both travel and work entries
 class SimpleEntryForm extends StatefulWidget {
@@ -454,7 +455,9 @@ class _SimpleEntryFormState extends State<SimpleEntryForm> {
         final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(t.edit_errorSaving(e.toString())),
+            content: Text(
+              t.edit_errorSaving(ErrorMessageMapper.userMessage(e, t)),
+            ),
             backgroundColor: AppColors.error,
           ),
         );

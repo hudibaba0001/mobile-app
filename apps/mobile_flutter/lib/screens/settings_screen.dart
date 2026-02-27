@@ -6,11 +6,13 @@ import '../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/settings_provider.dart';
+import '../providers/network_status_provider.dart';
 import '../services/holiday_service.dart';
 import '../config/app_router.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/reminder_service.dart';
 import '../services/crash_reporting_service.dart';
+import '../utils/error_message_mapper.dart';
 import '../widgets/add_red_day_dialog.dart';
 import '../models/user_red_day.dart';
 import '../widgets/onboarding/onboarding_scaffold.dart';
@@ -32,6 +34,13 @@ class SettingsScreen extends StatelessWidget {
       default:
         return t.settings_languageSystem;
     }
+  }
+
+  String _offlineRedDayBlockedMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Du ar offline. Anslut till internet for att redigera roda dagar.';
+    }
+    return "You're offline. Connect to edit red days.";
   }
 
   void _showHolidayInfoDialog(BuildContext context) {
@@ -166,6 +175,15 @@ class SettingsScreen extends StatelessWidget {
       return;
     }
 
+    final isOffline =
+        context.read<NetworkStatusProvider?>()?.isOffline ?? false;
+    if (isOffline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_offlineRedDayBlockedMessage(t))),
+      );
+      return;
+    }
+
     final today = DateTime.now();
     final targetInitialDate = initialDate ?? today;
     final picked = await showDatePicker(
@@ -202,6 +220,15 @@ class SettingsScreen extends StatelessWidget {
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(t.error_signInRequired)),
+      );
+      return;
+    }
+
+    final isOffline =
+        context.read<NetworkStatusProvider?>()?.isOffline ?? false;
+    if (isOffline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_offlineRedDayBlockedMessage(t))),
       );
       return;
     }
@@ -278,6 +305,15 @@ class SettingsScreen extends StatelessWidget {
 
           if (confirmed != true || !dialogContext.mounted) return;
 
+          final isOffline =
+              context.read<NetworkStatusProvider?>()?.isOffline ?? false;
+          if (isOffline) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(_offlineRedDayBlockedMessage(t))),
+            );
+            return;
+          }
+
           setDialogState(() => isBusy = true);
           try {
             await holidayService.deletePersonalRedDay(redDay.date);
@@ -294,7 +330,9 @@ class SettingsScreen extends StatelessWidget {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(t.redDay_errorRemoving(e.toString())),
+                  content: Text(t.redDay_errorRemoving(
+                    ErrorMessageMapper.userMessage(e, t),
+                  )),
                   backgroundColor: AppColors.error,
                 ),
               );

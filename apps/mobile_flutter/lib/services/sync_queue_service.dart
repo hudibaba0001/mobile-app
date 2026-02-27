@@ -7,6 +7,7 @@ import '../models/absence.dart';
 import '../models/balance_adjustment.dart';
 import '../models/entry.dart';
 import '../repositories/balance_adjustment_repository.dart';
+import '../services/profile_service.dart';
 import '../services/supabase_absence_service.dart';
 import '../services/supabase_entry_service.dart';
 import '../utils/retry_helper.dart';
@@ -22,6 +23,7 @@ enum SyncOperationType {
   adjustmentCreate,
   adjustmentUpdate,
   adjustmentDelete,
+  contractUpdate,
 }
 
 /// Represents a pending sync operation
@@ -95,6 +97,9 @@ class SyncQueueService extends ChangeNotifier {
     SyncOperationType.adjustmentUpdate,
     SyncOperationType.adjustmentDelete,
   };
+  static const Set<SyncOperationType> contractOperationTypes = {
+    SyncOperationType.contractUpdate,
+  };
 
   final List<SyncOperation> _queue = [];
   bool _isProcessing = false;
@@ -102,14 +107,17 @@ class SyncQueueService extends ChangeNotifier {
   SupabaseEntryService? _entryService;
   SupabaseAbsenceService? _absenceService;
   BalanceAdjustmentRepository? _adjustmentRepository;
+  ProfileService? _profileService;
 
   SyncQueueService({
     SupabaseEntryService? entryService,
     SupabaseAbsenceService? absenceService,
     BalanceAdjustmentRepository? adjustmentRepository,
+    ProfileService? profileService,
   })  : _entryService = entryService,
         _absenceService = absenceService,
-        _adjustmentRepository = adjustmentRepository;
+        _adjustmentRepository = adjustmentRepository,
+        _profileService = profileService;
 
   List<SyncOperation> get pendingOperations => List.unmodifiable(_queue);
   int get pendingCount => _queue.length;
@@ -361,6 +369,23 @@ class SyncQueueService extends ChangeNotifier {
     ));
   }
 
+  Future<void> queueContractUpdate(
+    String userId,
+    Map<String, dynamic> payload,
+  ) async {
+    _queue.removeWhere(
+      (op) => op.userId == userId && op.type == SyncOperationType.contractUpdate,
+    );
+    await enqueue(SyncOperation(
+      id: 'contract_update_${userId}_${DateTime.now().millisecondsSinceEpoch}',
+      type: SyncOperationType.contractUpdate,
+      entryId: userId,
+      userId: userId,
+      entryData: payload,
+      createdAt: DateTime.now(),
+    ));
+  }
+
   /// Process all pending operations
   /// [executor] is a function that executes the actual sync operation
   Future<SyncResult> processQueue(
@@ -531,6 +556,23 @@ class SyncQueueService extends ChangeNotifier {
             .deleteAdjustment(
           id: operation.entryId,
           userId: operation.userId,
+        );
+        return;
+      case SyncOperationType.contractUpdate:
+        final data = operation.entryData ?? const <String, dynamic>{};
+        final trackingStartDateRaw = data['trackingStartDate'] as String?;
+        DateTime? trackingStartDate;
+        if (trackingStartDateRaw != null && trackingStartDateRaw.isNotEmpty) {
+          trackingStartDate = DateTime.tryParse(trackingStartDateRaw);
+        }
+
+        await (_profileService ??= ProfileService()).updateContractSettings(
+          contractPercent: (data['contractPercent'] as num?)?.toInt() ?? 100,
+          fullTimeHours: (data['fullTimeHours'] as num?)?.toInt() ?? 40,
+          trackingStartDate: trackingStartDate,
+          openingFlexMinutes:
+              (data['openingFlexMinutes'] as num?)?.toInt() ?? 0,
+          employerMode: (data['employerMode'] as String?) ?? 'standard',
         );
         return;
     }

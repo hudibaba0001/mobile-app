@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/entry.dart';
 import '../providers/entry_provider.dart';
+import '../providers/network_status_provider.dart';
 import '../widgets/location_selector.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/map_service.dart';
@@ -13,6 +14,7 @@ import '../widgets/keyboard_aware_form_container.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../design/app_theme.dart';
 import '../design/design.dart';
+import '../utils/error_message_mapper.dart';
 
 /// Unified entry form for both travel and work entries
 /// Provides appropriate fields based on entry type
@@ -2173,6 +2175,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
 
       if (mounted) {
         Navigator.of(context).pop();
+        final isOffline =
+            context.read<NetworkStatusProvider?>()?.isOffline ?? false;
+        final queuedOffline = isOffline || entryProvider.hasPendingSync;
 
         // Determine how many entries were saved
         final entryCount = widget.entryType == EntryType.work
@@ -2183,18 +2188,21 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              entryCount > 1
-                  ? '$entryCount ${widget.entryType == EntryType.travel ? t.entry_travel : t.entry_work} ${t.common_saved.toLowerCase()}'
-                  : t.simpleEntry_entrySaved(
-                      widget.entryType == EntryType.travel
-                          ? t.entry_travel
-                          : t.entry_work,
-                      widget.existingEntry != null
-                          ? t.common_updated
-                          : t.common_saved,
-                    ),
+              queuedOffline
+                  ? _savedOfflineMessage(t)
+                  : entryCount > 1
+                      ? '$entryCount ${widget.entryType == EntryType.travel ? t.entry_travel : t.entry_work} ${t.common_saved.toLowerCase()}'
+                      : t.simpleEntry_entrySaved(
+                          widget.entryType == EntryType.travel
+                              ? t.entry_travel
+                              : t.entry_work,
+                          widget.existingEntry != null
+                              ? t.common_updated
+                              : t.common_saved,
+                        ),
             ),
-            backgroundColor: AppColors.success,
+            backgroundColor:
+                queuedOffline ? Theme.of(context).colorScheme.tertiaryContainer : AppColors.success,
           ),
         );
         widget.onSaved?.call();
@@ -2203,7 +2211,9 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(t.error_savingEntry(e.toString())),
+            content: Text(t.error_savingEntry(
+              ErrorMessageMapper.userMessage(e, t),
+            )),
             backgroundColor: AppColors.error,
           ),
         );
@@ -2225,5 +2235,12 @@ class _UnifiedEntryFormState extends State<UnifiedEntryForm> {
     } else {
       return '${mins}m';
     }
+  }
+
+  String _savedOfflineMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Sparad offline - synkas nar du ar ansluten.';
+    }
+    return 'Saved offline - will sync when connected.';
   }
 }

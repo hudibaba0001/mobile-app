@@ -32,6 +32,7 @@ import '../providers/contract_provider.dart';
 import '../providers/time_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../utils/error_message_mapper.dart';
 import '../widgets/app_message_banner.dart';
 import '../widgets/standard_app_bar.dart';
 
@@ -357,6 +358,20 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       case AbsenceType.unknown:
         return Icons.event_busy;
     }
+  }
+
+  String _offlineRecentEntriesMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Du ar offline. Kan inte ladda poster just nu.';
+    }
+    return "You're offline. Can't load entries.";
+  }
+
+  String _savedOfflineMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Sparad offline - synkas nar du ar ansluten.';
+    }
+    return 'Saved offline - will sync when connected.';
   }
 
   String _formatTimeOfDay(TimeOfDay tod) {
@@ -1249,6 +1264,11 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
     }
 
     if (fallbackRecentEntries.isEmpty) {
+      final isOffline =
+          context.watch<NetworkStatusProvider?>()?.isOffline ?? false;
+      final emptyMessage = isOffline
+          ? _offlineRecentEntriesMessage(t)
+          : t.home_noEntriesYet;
       return SliverToBoxAdapter(
         child: Container(
           width: double.infinity,
@@ -1280,7 +1300,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                t.home_noEntriesYet,
+                emptyMessage,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
@@ -1694,7 +1714,9 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(t.error_deleteFailed(e.toString())),
+              content: Text(t.error_deleteFailed(
+                ErrorMessageMapper.userMessage(e, t),
+              )),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -2709,6 +2731,12 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                           _UnifiedHomeScreenState>();
                                   parent?._loadRecentEntries();
                                 }
+                                final isOffline = context
+                                        .read<NetworkStatusProvider?>()
+                                        ?.isOffline ??
+                                    false;
+                                final queuedOffline =
+                                    isOffline || entryProvider.hasPendingSync;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Row(
@@ -2719,10 +2747,16 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                           size: 20,
                                         ),
                                         const SizedBox(width: AppSpacing.sm),
-                                        Text(t.home_travelEntryLoggedSuccess),
+                                        Text(queuedOffline
+                                            ? _savedOfflineMessage(t)
+                                            : t.home_travelEntryLoggedSuccess),
                                       ],
                                     ),
-                                    backgroundColor: AppColors.success,
+                                    backgroundColor: queuedOffline
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .tertiaryContainer
+                                        : AppColors.success,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
                                       borderRadius:
@@ -2731,6 +2765,8 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                   ),
                                 );
                               } catch (e) {
+                                final message =
+                                    ErrorMessageMapper.userMessage(e, t);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Row(
@@ -2741,7 +2777,7 @@ class _TravelEntryDialogState extends State<_TravelEntryDialog> {
                                           size: 20,
                                         ),
                                         const SizedBox(width: AppSpacing.sm),
-                                        Text(t.edit_errorSaving(e.toString())),
+                                        Text(t.edit_errorSaving(message)),
                                       ],
                                     ),
                                     backgroundColor: AppColors.error,
@@ -3792,6 +3828,12 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                           _UnifiedHomeScreenState>();
                                   parent?._loadRecentEntries();
                                 }
+                                final isOffline = context
+                                        .read<NetworkStatusProvider?>()
+                                        ?.isOffline ??
+                                    false;
+                                final queuedOffline =
+                                    isOffline || entryProvider.hasPendingSync;
                                 final successText = entries.length > 1
                                     ? t.home_workEntriesLoggedSuccess
                                     : t.home_workEntryLoggedSuccess;
@@ -3805,10 +3847,16 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                           size: 20,
                                         ),
                                         const SizedBox(width: AppSpacing.sm),
-                                        Text(successText),
+                                        Text(queuedOffline
+                                            ? _savedOfflineMessage(t)
+                                            : successText),
                                       ],
                                     ),
-                                    backgroundColor: AppColors.success,
+                                    backgroundColor: queuedOffline
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .tertiaryContainer
+                                        : AppColors.success,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
                                       borderRadius:
@@ -3817,6 +3865,8 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                   ),
                                 );
                               } catch (e) {
+                                final message =
+                                    ErrorMessageMapper.userMessage(e, t);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Row(
@@ -3827,7 +3877,7 @@ class _WorkEntryDialogState extends State<_WorkEntryDialog> {
                                           size: 20,
                                         ),
                                         const SizedBox(width: AppSpacing.sm),
-                                        Text(t.edit_errorSaving(e.toString())),
+                                        Text(t.edit_errorSaving(message)),
                                       ],
                                     ),
                                     backgroundColor: AppColors.error,

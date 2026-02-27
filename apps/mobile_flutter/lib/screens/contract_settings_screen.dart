@@ -7,6 +7,7 @@ import '../config/app_router.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../design/app_theme.dart';
 import '../widgets/standard_app_bar.dart';
+import '../utils/error_message_mapper.dart';
 
 /// Contract Settings screen with full ContractProvider integration
 /// Features: Contract percentage input, full-time hours input, live preview, validation
@@ -144,38 +145,74 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
 
   Future<void> _saveSettings() async {
     final t = AppLocalizations.of(context);
-    if (_isFormValid) {
-      final contractProvider = context.read<ContractProvider>();
+    if (!_isFormValid) return;
 
-      // Parse values
-      final contractPercent = int.tryParse(_contractPercentController.text.trim()) ?? 100;
-      final fullTimeHours = int.tryParse(_fullTimeHoursController.text.trim()) ?? 40;
+    final contractProvider = context.read<ContractProvider>();
 
-      final hoursText = _openingHoursController.text.trim();
-      final minutesText = _openingMinutesController.text.trim();
-      final hours = int.tryParse(hoursText.isEmpty ? '0' : hoursText) ?? 0;
-      final minutes =
-          int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
-      final totalMinutes = (hours * 60) + minutes;
-      final signedMinutes = _isDeficit ? -totalMinutes : totalMinutes;
+    // Parse values
+    final contractPercent =
+        int.tryParse(_contractPercentController.text.trim()) ?? 100;
+    final fullTimeHours =
+        int.tryParse(_fullTimeHoursController.text.trim()) ?? 40;
 
-      // Update provider (saves to both local cache and Supabase)
-      await contractProvider.updateContractSettings(
-          contractPercent, fullTimeHours);
+    final hoursText = _openingHoursController.text.trim();
+    final minutesText = _openingMinutesController.text.trim();
+    final hours = int.tryParse(hoursText.isEmpty ? '0' : hoursText) ?? 0;
+    final minutes = int.tryParse(minutesText.isEmpty ? '0' : minutesText) ?? 0;
+    final totalMinutes = (hours * 60) + minutes;
+    final signedMinutes = _isDeficit ? -totalMinutes : totalMinutes;
+
+    try {
+      // Update provider (saves local cache and queues/syncs cloud)
+      await contractProvider.updateContractSettings(contractPercent, fullTimeHours);
       await contractProvider.setTrackingStartDate(_trackingStartDate);
       await contractProvider.setOpeningFlexMinutes(signedMinutes);
       await contractProvider.setEmployerMode(_employerMode);
 
       if (!mounted) return;
 
+      final messenger = ScaffoldMessenger.of(context);
+      if (contractProvider.lastWriteQueuedOffline) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(_savedOfflineMessage(t)),
+            backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
+          ),
+        );
+      } else if (contractProvider.lastSaveSynced) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(t.contract_savedSuccess),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(ErrorMessageMapper.userMessage(
+                Exception('contract_save_failed'), t)),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+      AppRouter.goBackOrHome(context);
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(t.contract_savedSuccess),
-          backgroundColor: AppColors.success,
+          content: Text(ErrorMessageMapper.userMessage(e, t)),
+          backgroundColor: AppColors.error,
         ),
       );
-      AppRouter.goBackOrHome(context);
     }
+  }
+
+  String _savedOfflineMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Sparad offline - synkas nar du ar ansluten.';
+    }
+    return 'Saved offline - will sync when connected.';
   }
 
   void _resetToDefaults() {

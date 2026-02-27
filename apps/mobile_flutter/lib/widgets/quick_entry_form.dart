@@ -5,10 +5,12 @@ import '../design/app_theme.dart';
 import '../models/entry.dart';
 import '../models/location.dart';
 import '../providers/entry_provider.dart';
+import '../providers/network_status_provider.dart';
 import '../services/supabase_auth_service.dart';
 import '../utils/constants.dart';
 import '../utils/validators.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../utils/error_message_mapper.dart';
 
 import 'multi_segment_form.dart';
 
@@ -179,13 +181,20 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
 
       _clearForm();
       widget.onSuccess?.call();
+      final t = AppLocalizations.of(context);
+      final isOffline =
+          context.read<NetworkStatusProvider?>()?.isOffline ?? false;
+      final queuedOffline = isOffline || entryProvider.hasPendingSync;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(widget.initialEntry != null
-              ? 'Travel entry updated!'
-              : 'Travel entry added!'),
-          backgroundColor: AppColors.success,
+          content: Text(queuedOffline
+              ? _savedOfflineMessage(t)
+              : widget.initialEntry != null
+                  ? 'Travel entry updated!'
+                  : 'Travel entry added!'),
+          backgroundColor:
+              queuedOffline ? Theme.of(context).colorScheme.tertiaryContainer : AppColors.success,
         ),
       );
     } catch (error) {
@@ -193,7 +202,8 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
         final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(t.quickEntry_error(error.toString())),
+            content:
+                Text(t.quickEntry_error(ErrorMessageMapper.userMessage(error, t))),
             backgroundColor: AppColors.error,
           ),
         );
@@ -216,6 +226,13 @@ class _QuickEntryFormState extends State<QuickEntryForm> {
     _selectedDepartureLocation = null;
     _selectedArrivalLocation = null;
     _selectedDate = DateTime.now();
+  }
+
+  String _savedOfflineMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Sparad offline - synkas nar du ar ansluten.';
+    }
+    return 'Saved offline - will sync when connected.';
   }
 
   void _showMultiSegmentForm() {
