@@ -47,5 +47,20 @@ void main() {
     test('formatMinutes unsigned treats negative as absolute value', () {
       expect(formatMinutes(-120, padMinutes: true), '2h 00m');
     });
+
+    test('formatSignedMinutes allows negative under-one-hour output', () {
+      expect(formatSignedMinutes(-30), '-0h 30m');
+    });
+
+    test('formatSignedMinutes nonzero negatives never become -0h 0m', () {
+      const samples = <int>[-1, -30, -59, -60, -121];
+      for (final minutes in samples) {
+        expect(
+          formatSignedMinutes(minutes),
+          isNot('-0h 0m'),
+          reason: 'nonzero value $minutes formatted as -0h 0m',
+        );
+      }
+    });
   });
 }

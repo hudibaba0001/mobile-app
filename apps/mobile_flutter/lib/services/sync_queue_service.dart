@@ -522,18 +522,51 @@ class SyncQueueService extends ChangeNotifier {
   }
 
   bool _isCreateLikeOperation(SyncOperationType type) {
+    // Duplicate-as-success is restricted to true create operations only.
     return type == SyncOperationType.create ||
         type == SyncOperationType.absenceCreate ||
-        type == SyncOperationType.adjustmentCreate ||
-        type == SyncOperationType.contractUpdate;
+        type == SyncOperationType.adjustmentCreate;
   }
 
   bool _isDuplicateInsertError(Object error) {
+    final structuredCode = _extractStructuredErrorCode(error);
+    if (structuredCode != null) {
+      // If structured code is available, trust it and do not fall back to text.
+      return structuredCode == '23505';
+    }
+
+    // Last-resort textual fallback for wrapped/untyped errors.
     final lower = error.toString().toLowerCase();
     return lower.contains('duplicate key') ||
         lower.contains('already exists') ||
         lower.contains('unique constraint') ||
-        lower.contains('23505');
+        RegExp(r'(^|[^0-9])23505([^0-9]|$)').hasMatch(lower);
+  }
+
+  String? _extractStructuredErrorCode(Object error) {
+    if (error is PostgrestException) {
+      return error.code?.trim();
+    }
+
+    if (error is Map) {
+      final dynamic code = error['code'];
+      if (code != null) {
+        return code.toString().trim();
+      }
+    }
+
+    // Handle typed errors that expose a `code` getter (e.g. wrapped platform/api errors).
+    try {
+      final dynamic dynamicError = error;
+      final dynamic code = dynamicError.code;
+      if (code != null) {
+        return code.toString().trim();
+      }
+    } catch (_) {
+      // No structured code available.
+    }
+
+    return null;
   }
 
   Future<void> _executeQueuedOperation(SyncOperation operation) async {

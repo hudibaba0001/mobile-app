@@ -7,6 +7,16 @@ import 'package:myapp/models/balance_adjustment.dart';
 import 'package:myapp/models/entry.dart';
 import 'package:myapp/services/sync_queue_service.dart';
 
+class _FakeErrorWithCode implements Exception {
+  final String code;
+  final String message;
+
+  const _FakeErrorWithCode(this.code, this.message);
+
+  @override
+  String toString() => message;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -147,7 +157,7 @@ void main() {
       await processingFuture;
     });
 
-    test('duplicate key errors for create operations are treated as success',
+    test('duplicate 23505 errors for create operations are treated as success',
         () async {
       await service.queueCreate(
         createEntry(userId: 'user_a', id: 'entry_a1'),
@@ -172,21 +182,43 @@ void main() {
         ),
         'user_a',
       );
-      await service.queueContractUpdate('user_a', {
-        'contractPercent': 75,
-        'fullTimeHours': 40,
-        'openingFlexMinutes': 0,
-      });
 
       final result = await service.processQueue((operation) async {
-        throw Exception(
-            'duplicate key value violates unique constraint (code 23505)');
+        throw const _FakeErrorWithCode(
+          '23505',
+          'already exists',
+        );
       }, userId: 'user_a');
 
-      expect(result.processed, 4);
-      expect(result.succeeded, 4);
+      expect(result.processed, 3);
+      expect(result.succeeded, 3);
       expect(result.failed, 0);
       expect(service.pendingCountForUser('user_a'), 0);
+    });
+
+    test(
+        'structured non-23505 code is not treated as success even if message says already exists',
+        () async {
+      await service.queueCreate(
+        createEntry(userId: 'user_a', id: 'entry_a1'),
+        'user_a',
+      );
+
+      final result = await service.processQueue((operation) async {
+        throw const _FakeErrorWithCode(
+          '42501',
+          'already exists',
+        );
+      }, userId: 'user_a');
+
+      expect(result.processed, 1);
+      expect(result.succeeded, 0);
+      expect(result.failed, 1);
+      expect(service.pendingCountForUser('user_a'), 1);
+      final queued = service.pendingOperations.firstWhere(
+        (op) => op.entryId == 'entry_a1' && op.userId == 'user_a',
+      );
+      expect(queued.retryCount, 1);
     });
   });
 }

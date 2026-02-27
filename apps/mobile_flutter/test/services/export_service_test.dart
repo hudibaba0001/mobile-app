@@ -901,6 +901,20 @@ void main() {
 
       expect(fileName, 'time_tracker_export');
     });
+
+    test('downloads permission gate requires storage permission on SDK 28', () {
+      expect(
+        ExportService.requiresLegacyStoragePermissionForDownloads(28),
+        isTrue,
+      );
+    });
+
+    test('downloads permission gate skips storage permission on SDK 33', () {
+      expect(
+        ExportService.requiresLegacyStoragePermissionForDownloads(33),
+        isFalse,
+      );
+    });
   });
 
   group('Travel minimal export', () {

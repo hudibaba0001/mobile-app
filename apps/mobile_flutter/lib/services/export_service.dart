@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:excel/excel.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../models/absence.dart';
 import '../models/entry.dart';
 import '../models/export_data.dart';
@@ -11,6 +14,7 @@ import '../reporting/leave_minutes.dart';
 import '../reporting/period_summary.dart';
 import '../reporting/time_format.dart';
 import '../reports/report_aggregator.dart';
+import '../config/app_router.dart';
 import 'csv_exporter.dart';
 import 'xlsx_exporter.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -26,6 +30,11 @@ class ExportService {
   static const String _fileNamePrefix = 'time_tracker_export';
   static const String _csvFileExtension = '.csv';
   static const String _excelFileExtension = '.xlsx';
+  static const int _legacyStoragePermissionMaxSdk = 28;
+  static const String _downloadsPermissionRequiredMessage =
+      'Permission required to save to Downloads';
+  static const String _downloadsSaveFailedMessage =
+      "Couldn't save to Downloads. Export is still available in app storage.";
   static const MethodChannel _downloadsChannel =
       MethodChannel('se.kviktime.app/file_export');
 
@@ -1642,15 +1651,61 @@ class ExportService {
   }) async {
     if (kIsWeb || !Platform.isAndroid) return;
 
+    final sdkInt = await _loadAndroidSdkInt() ?? 33;
+    if (requiresLegacyStoragePermissionForDownloads(sdkInt)) {
+      final permission = await Permission.storage.request();
+      if (!permission.isGranted) {
+        _showDownloadsWarning(_downloadsPermissionRequiredMessage);
+        return;
+      }
+    }
+
     try {
       await _downloadsChannel.invokeMethod('saveToDownloads', {
         'fileName': fileName,
         'mimeType': mimeType,
         'bytes': bytes,
       });
+    } on PlatformException catch (e) {
+      _showDownloadsWarning(_downloadsMessageForPlatformError(e));
+      debugPrint(
+          'ExportService: Failed to save copy to Downloads (code=${e.code}): ${e.message}');
     } catch (e) {
-      // Non-blocking: export should still succeed even if Downloads copy fails.
+      _showDownloadsWarning(_downloadsSaveFailedMessage);
       debugPrint('ExportService: Failed to save copy to Downloads: $e');
     }
+  }
+
+  @visibleForTesting
+  static bool requiresLegacyStoragePermissionForDownloads(int sdkInt) {
+    return sdkInt <= _legacyStoragePermissionMaxSdk;
+  }
+
+  static Future<int?> _loadAndroidSdkInt() async {
+    try {
+      final info = await DeviceInfoPlugin().androidInfo;
+      return info.version.sdkInt;
+    } catch (e) {
+      debugPrint('ExportService: Failed to read Android SDK level: $e');
+      return null;
+    }
+  }
+
+  static String _downloadsMessageForPlatformError(PlatformException e) {
+    if (e.code == 'SECURITY') {
+      return _downloadsPermissionRequiredMessage;
+    }
+    return _downloadsSaveFailedMessage;
+  }
+
+  static void _showDownloadsWarning(String message) {
+    debugPrint('ExportService: $message');
+    final context = AppRouter.navigatorKey.currentContext;
+    if (context == null) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+    messenger.showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 }

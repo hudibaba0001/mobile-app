@@ -44,8 +44,18 @@ class MainActivity : FlutterFragmentActivity() {
                 saveToAppExternalDownloads(fileName, bytes)
             }
             result.success(location)
+        } catch (e: SecurityException) {
+            result.error(
+                "SECURITY",
+                e.message ?: "Permission denied while saving to Downloads",
+                null
+            )
         } catch (e: Exception) {
-            result.error("SAVE_FAILED", e.message, null)
+            result.error(
+                "EXPORT_FAILED",
+                e.message ?: "Failed to save file to Downloads",
+                null
+            )
         }
     }
 

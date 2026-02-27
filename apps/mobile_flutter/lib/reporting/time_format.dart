@@ -5,6 +5,8 @@ String formatMinutes(
   bool showPlusForZero = false,
   bool padMinutes = false,
 }) {
+  // Display-only formatter. Keep all calculations as integer minutes and do not
+  // reverse-parse formatted strings for reporting math.
   final normalizedLocale = (localeCode ?? '').toLowerCase();
   final isSwedish = normalizedLocale.startsWith('sv');
   final absoluteMinutes = minutes.abs();
