@@ -31,81 +31,93 @@ class EntryDetailSheet extends StatelessWidget {
           top: 16,
           bottom: MediaQuery.of(context).viewInsets.bottom + 20,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md - 2),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Icon(
-                    entry.type == EntryType.travel
-                        ? Icons.directions_car_rounded
-                        : Icons.work_rounded,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Text(
-                    _titleFor(context, entry),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Text(
-                  entry.formattedDuration,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
-            const SizedBox(height: AppSpacing.sm),
-            ..._detailWidgets(context, entry),
-            const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
-            Builder(builder: (context) {
-              final t = AppLocalizations.of(context);
-              return Row(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        onEdit();
-                      },
-                      icon: const Icon(Icons.edit_outlined),
-                      label: Text(t.common_edit),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md - 2),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Icon(
+                      entry.type == EntryType.travel
+                          ? Icons.directions_car_rounded
+                          : Icons.work_rounded,
+                      color: colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        onDelete();
-                      },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: colorScheme.error,
-                        foregroundColor: colorScheme.onError,
+                    child: Text(
+                      _titleFor(context, entry),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      icon: const Icon(Icons.delete_outline),
-                      label: Text(t.common_delete),
+                    ),
+                  ),
+                  Text(
+                    entry.formattedDuration,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
-              );
-            }),
-          ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
+              const SizedBox(height: AppSpacing.sm),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _detailWidgets(context, entry),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
+              Builder(builder: (context) {
+                final t = AppLocalizations.of(context);
+                return Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          onEdit();
+                        },
+                        icon: const Icon(Icons.edit_outlined),
+                        label: Text(t.common_edit),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          onDelete();
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colorScheme.error,
+                          foregroundColor: colorScheme.onError,
+                        ),
+                        icon: const Icon(Icons.delete_outline),
+                        label: Text(t.common_delete),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );
