@@ -1,15 +1,22 @@
 // ignore_for_file: avoid_print
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 import '../models/absence.dart';
 import '../models/absence_entry_adapter.dart';
 import '../services/supabase_absence_service.dart';
 import '../services/supabase_auth_service.dart';
+import '../services/sync_queue_service.dart';
+import '../utils/error_message_mapper.dart';
 
 /// Provider for managing absence entries (vacation, sick leave, VAB, etc.)
 class AbsenceProvider extends ChangeNotifier {
+  static const _uuid = Uuid();
   final SupabaseAuthService _authService;
   final SupabaseAbsenceService _absenceService;
+  final SyncQueueService _syncQueue;
+  final Future<bool> Function()? _offlineCheck;
   String? _activeUserId;
 
   // In-memory storage: year -> list of absences
@@ -24,13 +31,54 @@ class AbsenceProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _error;
+  bool _lastWriteQueuedOffline = false;
+  final Set<String> _pendingAbsenceIds = {};
+  late final Future<void> _syncQueueReady;
 
-  AbsenceProvider(this._authService, this._absenceService) {
+  AbsenceProvider(
+    this._authService,
+    this._absenceService, {
+    SyncQueueService? syncQueue,
+    Future<bool> Function()? offlineCheck,
+  })  : _syncQueue = syncQueue ?? SyncQueueService(),
+        _offlineCheck = offlineCheck {
     _activeUserId = _authService.currentUser?.id;
+    _syncQueueReady = _syncQueue.init();
   }
 
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get lastWriteQueuedOffline => _lastWriteQueuedOffline;
+  int get pendingSyncCount => _pendingAbsenceIds.length;
+  bool isAbsencePendingSync(String? absenceId) {
+    if (absenceId == null || absenceId.isEmpty) return false;
+    return _pendingAbsenceIds.contains(absenceId);
+  }
+
+  Future<void> _ensureSyncQueueReady() async {
+    await _syncQueueReady;
+  }
+
+  Future<bool> _isOfflineNow() async {
+    if (_offlineCheck != null) {
+      return _offlineCheck!();
+    }
+    try {
+      final results = await Connectivity().checkConnectivity();
+      return !results.any((result) => result != ConnectivityResult.none);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _refreshPendingAbsenceIds(String userId) {
+    _pendingAbsenceIds
+      ..clear()
+      ..addAll(_syncQueue.pendingEntityIdsForUser(
+        userId,
+        operationTypes: SyncQueueService.absenceOperationTypes,
+      ));
+  }
 
   /// Initialize Hive box for local caching
   Future<void> initHive(Box<AbsenceEntry> box) async {
@@ -38,6 +86,11 @@ class AbsenceProvider extends ChangeNotifier {
     _absencesByYear.clear();
     _absencesByDate.clear();
     _loadFromHive();
+    await _ensureSyncQueueReady();
+    final userId = _activeUserId ?? _authService.currentUser?.id;
+    if (userId != null) {
+      _refreshPendingAbsenceIds(userId);
+    }
   }
 
   String _cacheKey(String userId, String absenceId) => '$userId:$absenceId';
@@ -132,6 +185,8 @@ class AbsenceProvider extends ChangeNotifier {
 
     _absencesByYear.clear();
     _absencesByDate.clear();
+    _pendingAbsenceIds.clear();
+    _lastWriteQueuedOffline = false;
     _error = null;
     _isLoading = false;
 
@@ -140,6 +195,8 @@ class AbsenceProvider extends ChangeNotifier {
       return;
     }
 
+    await _ensureSyncQueueReady();
+    _refreshPendingAbsenceIds(currentUserId);
     _loadFromHive();
     notifyListeners();
     await loadAbsences(year: DateTime.now().year, forceRefresh: true);
@@ -164,11 +221,14 @@ class AbsenceProvider extends ChangeNotifier {
         _setLoading(false);
         return;
       }
+      await _ensureSyncQueueReady();
+      _refreshPendingAbsenceIds(userId);
 
       final absences = await _absenceService.fetchAbsencesForYear(userId, year);
       _absencesByYear[year] = absences;
       _rebuildDateIndex(year);
       _saveToHive(year);
+      _refreshPendingAbsenceIds(userId);
 
       debugPrint(
           'AbsenceProvider: Loaded ${absences.length} absences for year $year');
@@ -176,10 +236,14 @@ class AbsenceProvider extends ChangeNotifier {
     } catch (e) {
       _error = 'Failed to load absences: $e';
       debugPrint('AbsenceProvider: Error loading absences: $_error');
-      // Fall back to Hive cache (already loaded in _loadFromHive)
+      // Keep cached data in memory if available; do not wipe on offline errors.
       if (_absencesByYear.containsKey(year)) {
         debugPrint('AbsenceProvider: Using cached data for year $year');
-        _error = null;
+      }
+      final userId = _authService.currentUser?.id;
+      if (userId != null) {
+        await _ensureSyncQueueReady();
+        _refreshPendingAbsenceIds(userId);
       }
       notifyListeners();
     } finally {
@@ -227,17 +291,95 @@ class AbsenceProvider extends ChangeNotifier {
     );
   }
 
+  AbsenceEntry _normalizeAbsenceForLocal(AbsenceEntry absence) {
+    final id = absence.id ?? _uuid.v4();
+    return AbsenceEntry(
+      id: id,
+      date: DateTime(absence.date.year, absence.date.month, absence.date.day),
+      minutes: absence.minutes,
+      type: absence.type,
+      rawType: absence.rawType,
+    );
+  }
+
+  void _upsertLocalAbsence(AbsenceEntry absence) {
+    final year = absence.date.year;
+    final yearAbsences = _absencesByYear.putIfAbsent(year, () => []);
+    final index = yearAbsences.indexWhere((a) => a.id == absence.id);
+    if (index == -1) {
+      yearAbsences.add(absence);
+    } else {
+      yearAbsences[index] = absence;
+    }
+    _rebuildDateIndex(year);
+    _saveToHive(year);
+  }
+
+  void _deleteLocalAbsence(String absenceId, int year) {
+    final yearAbsences = _absencesByYear[year];
+    if (yearAbsences == null) {
+      _saveToHive(year);
+      return;
+    }
+    yearAbsences.removeWhere((absence) => absence.id == absenceId);
+    _rebuildDateIndex(year);
+    _saveToHive(year);
+  }
+
+  Future<SyncResult> processPendingSync() async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) {
+      return SyncResult(processed: 0, succeeded: 0, failed: 0);
+    }
+
+    await _ensureSyncQueueReady();
+    final result = await _syncQueue.processQueue(
+      null,
+      userId: userId,
+      operationTypes: SyncQueueService.absenceOperationTypes,
+    );
+    _refreshPendingAbsenceIds(userId);
+    notifyListeners();
+    return result;
+  }
+
   /// Add an absence entry
   Future<void> addAbsence(AbsenceEntry absence) async {
+    _lastWriteQueuedOffline = false;
     try {
       final userId = _authService.currentUser?.id;
       if (userId == null) {
         throw Exception('User not authenticated');
       }
 
-      await _absenceService.addAbsence(userId, absence);
-      await loadAbsences(year: absence.date.year, forceRefresh: true);
+      final localAbsence = _normalizeAbsenceForLocal(absence);
+      await _ensureSyncQueueReady();
+
+      if (await _isOfflineNow()) {
+        _upsertLocalAbsence(localAbsence);
+        await _syncQueue.queueAbsenceCreate(localAbsence, userId);
+        _refreshPendingAbsenceIds(userId);
+        _error = null;
+        _lastWriteQueuedOffline = true;
+        notifyListeners();
+        return;
+      }
+
+      await _absenceService.addAbsence(userId, localAbsence);
+      await loadAbsences(year: localAbsence.date.year, forceRefresh: true);
     } catch (e) {
+      final userId = _authService.currentUser?.id;
+      if (userId != null && ErrorMessageMapper.isOfflineError(e)) {
+        final localAbsence = _normalizeAbsenceForLocal(absence);
+        await _ensureSyncQueueReady();
+        _upsertLocalAbsence(localAbsence);
+        await _syncQueue.queueAbsenceCreate(localAbsence, userId);
+        _refreshPendingAbsenceIds(userId);
+        _error = null;
+        _lastWriteQueuedOffline = true;
+        notifyListeners();
+        return;
+      }
       _error = 'Failed to add absence: $e';
       debugPrint('AbsenceProvider: Error: $_error');
       notifyListeners();
@@ -247,15 +389,54 @@ class AbsenceProvider extends ChangeNotifier {
 
   /// Update an absence entry
   Future<void> updateAbsence(String absenceId, AbsenceEntry absence) async {
+    _lastWriteQueuedOffline = false;
     try {
       final userId = _authService.currentUser?.id;
       if (userId == null) {
         throw Exception('User not authenticated');
       }
 
-      await _absenceService.updateAbsence(userId, absenceId, absence);
-      await loadAbsences(year: absence.date.year, forceRefresh: true);
+      final localAbsence = AbsenceEntry(
+        id: absenceId,
+        date: DateTime(absence.date.year, absence.date.month, absence.date.day),
+        minutes: absence.minutes,
+        type: absence.type,
+        rawType: absence.rawType,
+      );
+      await _ensureSyncQueueReady();
+
+      if (await _isOfflineNow()) {
+        _upsertLocalAbsence(localAbsence);
+        await _syncQueue.queueAbsenceUpdate(absenceId, localAbsence, userId);
+        _refreshPendingAbsenceIds(userId);
+        _error = null;
+        _lastWriteQueuedOffline = true;
+        notifyListeners();
+        return;
+      }
+
+      await _absenceService.updateAbsence(userId, absenceId, localAbsence);
+      await loadAbsences(year: localAbsence.date.year, forceRefresh: true);
     } catch (e) {
+      final userId = _authService.currentUser?.id;
+      if (userId != null && ErrorMessageMapper.isOfflineError(e)) {
+        final localAbsence = AbsenceEntry(
+          id: absenceId,
+          date:
+              DateTime(absence.date.year, absence.date.month, absence.date.day),
+          minutes: absence.minutes,
+          type: absence.type,
+          rawType: absence.rawType,
+        );
+        await _ensureSyncQueueReady();
+        _upsertLocalAbsence(localAbsence);
+        await _syncQueue.queueAbsenceUpdate(absenceId, localAbsence, userId);
+        _refreshPendingAbsenceIds(userId);
+        _error = null;
+        _lastWriteQueuedOffline = true;
+        notifyListeners();
+        return;
+      }
       _error = 'Failed to update absence: $e';
       debugPrint('AbsenceProvider: Error: $_error');
       notifyListeners();
@@ -265,15 +446,38 @@ class AbsenceProvider extends ChangeNotifier {
 
   /// Delete an absence entry
   Future<void> deleteAbsence(String absenceId, int year) async {
+    _lastWriteQueuedOffline = false;
     try {
       final userId = _authService.currentUser?.id;
       if (userId == null) {
         throw Exception('User not authenticated');
       }
 
+      await _ensureSyncQueueReady();
+      if (await _isOfflineNow()) {
+        _deleteLocalAbsence(absenceId, year);
+        await _syncQueue.queueAbsenceDelete(absenceId, userId);
+        _refreshPendingAbsenceIds(userId);
+        _error = null;
+        _lastWriteQueuedOffline = true;
+        notifyListeners();
+        return;
+      }
+
       await _absenceService.deleteAbsence(userId, absenceId);
       await loadAbsences(year: year, forceRefresh: true);
     } catch (e) {
+      final userId = _authService.currentUser?.id;
+      if (userId != null && ErrorMessageMapper.isOfflineError(e)) {
+        await _ensureSyncQueueReady();
+        _deleteLocalAbsence(absenceId, year);
+        await _syncQueue.queueAbsenceDelete(absenceId, userId);
+        _refreshPendingAbsenceIds(userId);
+        _error = null;
+        _lastWriteQueuedOffline = true;
+        notifyListeners();
+        return;
+      }
       _error = 'Failed to delete absence: $e';
       debugPrint('AbsenceProvider: Error: $_error');
       notifyListeners();

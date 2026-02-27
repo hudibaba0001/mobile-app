@@ -4,9 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../design/app_theme.dart';
 import '../design/components/components.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../models/balance_adjustment.dart';
 import '../providers/balance_adjustment_provider.dart';
-import '../l10n/generated/app_localizations.dart';
+import '../providers/network_status_provider.dart';
+import '../utils/error_message_mapper.dart';
 
 /// Dialog for adding or editing a balance adjustment
 class AddAdjustmentDialog extends StatefulWidget {
@@ -125,11 +127,21 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
       }
 
       if (mounted) {
+        final queuedOffline = provider.lastWriteQueuedOffline;
+        final messenger = ScaffoldMessenger.of(context);
         Navigator.of(context).pop(true); // Return true to indicate success
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              queuedOffline ? _savedOfflineMessage(t) : t.common_saved,
+            ),
+          ),
+        );
       }
     } catch (e) {
+      final message = ErrorMessageMapper.userMessage(e, t);
       setState(() {
-        _error = t.adjustment_failedToSave(e.toString());
+        _error = t.adjustment_failedToSave(message);
         _isSaving = false;
       });
     }
@@ -169,11 +181,19 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
         );
 
         if (mounted) {
+          final queuedOffline = provider.lastWriteQueuedOffline;
+          final messenger = ScaffoldMessenger.of(context);
           Navigator.of(context).pop(true);
+          if (queuedOffline) {
+            messenger.showSnackBar(
+              SnackBar(content: Text(_savedOfflineMessage(t))),
+            );
+          }
         }
       } catch (e) {
+        final message = ErrorMessageMapper.userMessage(e, t);
         setState(() {
-          _error = t.adjustment_failedToDelete(e.toString());
+          _error = t.adjustment_failedToDelete(message);
           _isSaving = false;
         });
       }
@@ -186,6 +206,8 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final dateFormat = DateFormat('MMMM d, yyyy');
+    final isOffline =
+        context.watch<NetworkStatusProvider?>()?.isOffline ?? false;
 
     return AlertDialog(
       title: Row(
@@ -354,6 +376,15 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
                 ),
               ),
             ],
+            if (isOffline) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                _offlineWillSyncMessage(t),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -381,5 +412,18 @@ class _AddAdjustmentDialogState extends State<AddAdjustmentDialog> {
       ],
     );
   }
-}
 
+  String _offlineWillSyncMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Offline: synkas nar du ar ansluten.';
+    }
+    return 'Offline: will sync when connected.';
+  }
+
+  String _savedOfflineMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Sparad offline - synkas nar du ar ansluten.';
+    }
+    return 'Saved offline - will sync when connected.';
+  }
+}

@@ -19,6 +19,7 @@ import '../../reporting/time_range.dart';
 import '../../services/export_service.dart';
 import '../../services/supabase_auth_service.dart';
 import '../../providers/settings_provider.dart';
+import '../../utils/error_message_mapper.dart';
 import '../../widgets/export_share_dialog.dart';
 import '../../l10n/generated/app_localizations.dart';
 
@@ -42,6 +43,7 @@ class OverviewTab extends StatefulWidget {
 
 class _OverviewTabState extends State<OverviewTab> {
   late Future<ReportSummary> _summaryFuture;
+  ReportSummary? _lastSuccessfulSummary;
   final ScrollController _scrollController = ScrollController();
   final SwedenHolidayCalendar _holidays = SwedenHolidayCalendar();
 
@@ -155,12 +157,53 @@ class _OverviewTabState extends State<OverviewTab> {
               }
 
               if (snapshot.hasError) {
+                final t = AppLocalizations.of(context);
+                final error = snapshot.error!;
+                final isOffline = ErrorMessageMapper.isOfflineError(error);
+                final fallbackSummary = _lastSuccessfulSummary;
+
+                if (isOffline && fallbackSummary != null) {
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        child: _buildOfflineCachedDataBanner(context),
+                      ),
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            setState(() {
+                              _summaryFuture = _loadSummary();
+                            });
+                            await _summaryFuture;
+                          },
+                          child: _buildSummaryContent(context, fallbackSummary),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Text(
-                      snapshot.error.toString(),
-                      textAlign: TextAlign.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          ErrorMessageMapper.userMessage(error, t),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        FilledButton(
+                          onPressed: () {
+                            setState(() {
+                              _summaryFuture = _loadSummary();
+                            });
+                          },
+                          child: Text(t.common_retry),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -170,6 +213,7 @@ class _OverviewTabState extends State<OverviewTab> {
               if (summary == null) {
                 return const SizedBox.shrink();
               }
+              _lastSuccessfulSummary = summary;
 
               return RefreshIndicator(
                 onRefresh: () async {
@@ -185,6 +229,38 @@ class _OverviewTabState extends State<OverviewTab> {
         ),
       ],
     );
+  }
+
+  Widget _buildOfflineCachedDataBanner(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      color: colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            Icon(Icons.wifi_off, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                _offlineShowingSavedDataMessage(t),
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _offlineShowingSavedDataMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Du ar offline. Visar senast sparade data.';
+    }
+    return "You're offline. Showing last saved data.";
   }
 
   Widget _buildSegmentControl(BuildContext context) {

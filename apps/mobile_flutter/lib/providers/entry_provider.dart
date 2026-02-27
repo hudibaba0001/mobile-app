@@ -956,8 +956,15 @@ class EntryProvider extends ChangeNotifier {
             await _supabaseService.deleteEntry(
                 operation.entryId, operation.userId);
             break;
+          case SyncOperationType.absenceCreate:
+          case SyncOperationType.absenceUpdate:
+          case SyncOperationType.absenceDelete:
+          case SyncOperationType.adjustmentCreate:
+          case SyncOperationType.adjustmentUpdate:
+          case SyncOperationType.adjustmentDelete:
+            return;
         }
-      }, userId: userId);
+      }, userId: userId, operationTypes: SyncQueueService.entryOperationTypes);
 
       _pendingOfflineOperations = _syncQueue.pendingCountForUser(userId);
       if (result.succeeded > 0) {

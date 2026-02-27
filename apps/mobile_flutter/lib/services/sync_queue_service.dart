@@ -2,7 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/absence.dart';
+import '../models/balance_adjustment.dart';
 import '../models/entry.dart';
+import '../repositories/balance_adjustment_repository.dart';
+import '../services/supabase_absence_service.dart';
+import '../services/supabase_entry_service.dart';
 import '../utils/retry_helper.dart';
 
 /// Types of sync operations that can be queued
@@ -10,6 +16,12 @@ enum SyncOperationType {
   create,
   update,
   delete,
+  absenceCreate,
+  absenceUpdate,
+  absenceDelete,
+  adjustmentCreate,
+  adjustmentUpdate,
+  adjustmentDelete,
 }
 
 /// Represents a pending sync operation
@@ -68,10 +80,36 @@ class SyncQueueService extends ChangeNotifier {
   static const String _queueKey = 'sync_queue';
   static const int maxRetries = 5;
   static const Duration retryDelay = Duration(seconds: 2);
+  static const Set<SyncOperationType> entryOperationTypes = {
+    SyncOperationType.create,
+    SyncOperationType.update,
+    SyncOperationType.delete,
+  };
+  static const Set<SyncOperationType> absenceOperationTypes = {
+    SyncOperationType.absenceCreate,
+    SyncOperationType.absenceUpdate,
+    SyncOperationType.absenceDelete,
+  };
+  static const Set<SyncOperationType> adjustmentOperationTypes = {
+    SyncOperationType.adjustmentCreate,
+    SyncOperationType.adjustmentUpdate,
+    SyncOperationType.adjustmentDelete,
+  };
 
   final List<SyncOperation> _queue = [];
   bool _isProcessing = false;
   bool _initialized = false;
+  SupabaseEntryService? _entryService;
+  SupabaseAbsenceService? _absenceService;
+  BalanceAdjustmentRepository? _adjustmentRepository;
+
+  SyncQueueService({
+    SupabaseEntryService? entryService,
+    SupabaseAbsenceService? absenceService,
+    BalanceAdjustmentRepository? adjustmentRepository,
+  })  : _entryService = entryService,
+        _absenceService = absenceService,
+        _adjustmentRepository = adjustmentRepository;
 
   List<SyncOperation> get pendingOperations => List.unmodifiable(_queue);
   int get pendingCount => _queue.length;
@@ -81,6 +119,18 @@ class SyncQueueService extends ChangeNotifier {
   /// Number of pending operations for a specific user.
   int pendingCountForUser(String userId) {
     return _queue.where((op) => op.userId == userId).length;
+  }
+
+  Set<String> pendingEntityIdsForUser(
+    String userId, {
+    required Set<SyncOperationType> operationTypes,
+  }) {
+    return _queue
+        .where(
+          (op) => op.userId == userId && operationTypes.contains(op.type),
+        )
+        .map((op) => op.entryId)
+        .toSet();
   }
 
   /// Initialize the service and load any persisted queue
@@ -214,20 +264,122 @@ class SyncQueueService extends ChangeNotifier {
     ));
   }
 
+  Future<void> queueAbsenceCreate(AbsenceEntry absence, String userId) async {
+    final absenceId = absence.id;
+    if (absenceId == null || absenceId.isEmpty) {
+      throw ArgumentError('Absence create queue requires a non-empty id');
+    }
+
+    await enqueue(SyncOperation(
+      id: 'absence_create_${absenceId}_${DateTime.now().millisecondsSinceEpoch}',
+      type: SyncOperationType.absenceCreate,
+      entryId: absenceId,
+      userId: userId,
+      entryData: absence.toMap(),
+      createdAt: DateTime.now(),
+    ));
+  }
+
+  Future<void> queueAbsenceUpdate(
+    String absenceId,
+    AbsenceEntry absence,
+    String userId,
+  ) async {
+    await enqueue(SyncOperation(
+      id: 'absence_update_${absenceId}_${DateTime.now().millisecondsSinceEpoch}',
+      type: SyncOperationType.absenceUpdate,
+      entryId: absenceId,
+      userId: userId,
+      entryData: absence.toMap(),
+      createdAt: DateTime.now(),
+    ));
+  }
+
+  Future<void> queueAbsenceDelete(String absenceId, String userId) async {
+    _queue.removeWhere(
+      (op) =>
+          op.entryId == absenceId &&
+          (op.type == SyncOperationType.absenceCreate ||
+              op.type == SyncOperationType.absenceUpdate),
+    );
+    await enqueue(SyncOperation(
+      id: 'absence_delete_${absenceId}_${DateTime.now().millisecondsSinceEpoch}',
+      type: SyncOperationType.absenceDelete,
+      entryId: absenceId,
+      userId: userId,
+      createdAt: DateTime.now(),
+    ));
+  }
+
+  Future<void> queueAdjustmentCreate(
+    BalanceAdjustment adjustment,
+    String userId,
+  ) async {
+    final adjustmentId = adjustment.id;
+    if (adjustmentId == null || adjustmentId.isEmpty) {
+      throw ArgumentError('Adjustment create queue requires a non-empty id');
+    }
+
+    await enqueue(SyncOperation(
+      id: 'adjustment_create_${adjustmentId}_${DateTime.now().millisecondsSinceEpoch}',
+      type: SyncOperationType.adjustmentCreate,
+      entryId: adjustmentId,
+      userId: userId,
+      entryData: adjustment.toMap(),
+      createdAt: DateTime.now(),
+    ));
+  }
+
+  Future<void> queueAdjustmentUpdate(
+    String adjustmentId,
+    BalanceAdjustment adjustment,
+    String userId,
+  ) async {
+    await enqueue(SyncOperation(
+      id: 'adjustment_update_${adjustmentId}_${DateTime.now().millisecondsSinceEpoch}',
+      type: SyncOperationType.adjustmentUpdate,
+      entryId: adjustmentId,
+      userId: userId,
+      entryData: adjustment.toMap(),
+      createdAt: DateTime.now(),
+    ));
+  }
+
+  Future<void> queueAdjustmentDelete(String adjustmentId, String userId) async {
+    _queue.removeWhere(
+      (op) =>
+          op.entryId == adjustmentId &&
+          (op.type == SyncOperationType.adjustmentCreate ||
+              op.type == SyncOperationType.adjustmentUpdate),
+    );
+    await enqueue(SyncOperation(
+      id: 'adjustment_delete_${adjustmentId}_${DateTime.now().millisecondsSinceEpoch}',
+      type: SyncOperationType.adjustmentDelete,
+      entryId: adjustmentId,
+      userId: userId,
+      createdAt: DateTime.now(),
+    ));
+  }
+
   /// Process all pending operations
   /// [executor] is a function that executes the actual sync operation
   Future<SyncResult> processQueue(
-    Future<void> Function(SyncOperation) executor, {
+    Future<void> Function(SyncOperation)? executor, {
     String? userId,
+    Set<SyncOperationType>? operationTypes,
   }) async {
     if (_isProcessing) {
       debugPrint('SyncQueueService: Already processing queue');
       return SyncResult(processed: 0, succeeded: 0, failed: 0);
     }
 
-    final operations = userId == null
-        ? List<SyncOperation>.from(_queue)
-        : _queue.where((op) => op.userId == userId).toList();
+    final operations = _queue.where((op) {
+      if (userId != null && op.userId != userId) return false;
+      if (operationTypes != null && !operationTypes.contains(op.type)) {
+        return false;
+      }
+      return true;
+    }).toList();
 
     if (operations.isEmpty) {
       debugPrint('SyncQueueService: No pending operations');
@@ -261,7 +413,13 @@ class SyncQueueService extends ChangeNotifier {
 
       try {
         await RetryHelper.executeWithRetry(
-          () => executor(operation),
+          () async {
+            if (executor != null) {
+              await executor(operation);
+              return;
+            }
+            await _executeQueuedOperation(operation);
+          },
           maxRetries: 2,
           initialDelay: retryDelay,
           shouldRetry: RetryHelper.shouldRetryNetworkError,
@@ -299,6 +457,83 @@ class SyncQueueService extends ChangeNotifier {
         'SyncQueueService: Queue processing complete - Processed: $processed, Succeeded: $succeeded, Failed: $failed');
     return SyncResult(
         processed: processed, succeeded: succeeded, failed: failed);
+  }
+
+  Future<void> _executeQueuedOperation(SyncOperation operation) async {
+    switch (operation.type) {
+      case SyncOperationType.create:
+        if (operation.entryData == null) return;
+        final entry = Entry.fromJson(operation.entryData!);
+        await (_entryService ??= SupabaseEntryService()).addEntry(entry);
+        return;
+      case SyncOperationType.update:
+        if (operation.entryData == null) return;
+        final entry = Entry.fromJson(operation.entryData!);
+        await (_entryService ??= SupabaseEntryService()).updateEntry(entry);
+        return;
+      case SyncOperationType.delete:
+        await (_entryService ??= SupabaseEntryService())
+            .deleteEntry(operation.entryId, operation.userId);
+        return;
+      case SyncOperationType.absenceCreate:
+        if (operation.entryData == null) return;
+        final absence = AbsenceEntry.fromMap(operation.entryData!);
+        await (_absenceService ??= SupabaseAbsenceService())
+            .addAbsence(operation.userId, absence);
+        return;
+      case SyncOperationType.absenceUpdate:
+        if (operation.entryData == null) return;
+        final absence = AbsenceEntry.fromMap(operation.entryData!);
+        await (_absenceService ??= SupabaseAbsenceService())
+            .updateAbsence(operation.userId, operation.entryId, absence);
+        return;
+      case SyncOperationType.absenceDelete:
+        await (_absenceService ??= SupabaseAbsenceService())
+            .deleteAbsence(operation.userId, operation.entryId);
+        return;
+      case SyncOperationType.adjustmentCreate:
+        if (operation.entryData == null) return;
+        final adjustment = BalanceAdjustment.fromMap({
+          ...operation.entryData!,
+          'id': operation.entryId,
+          'user_id': operation.userId,
+        });
+        await (_adjustmentRepository ??=
+                BalanceAdjustmentRepository(Supabase.instance.client))
+            .createAdjustment(
+          id: operation.entryId,
+          userId: operation.userId,
+          effectiveDate: adjustment.effectiveDate,
+          deltaMinutes: adjustment.deltaMinutes,
+          note: adjustment.note,
+        );
+        return;
+      case SyncOperationType.adjustmentUpdate:
+        if (operation.entryData == null) return;
+        final adjustment = BalanceAdjustment.fromMap({
+          ...operation.entryData!,
+          'id': operation.entryId,
+          'user_id': operation.userId,
+        });
+        await (_adjustmentRepository ??=
+                BalanceAdjustmentRepository(Supabase.instance.client))
+            .updateAdjustment(
+          id: operation.entryId,
+          userId: operation.userId,
+          effectiveDate: adjustment.effectiveDate,
+          deltaMinutes: adjustment.deltaMinutes,
+          note: adjustment.note,
+        );
+        return;
+      case SyncOperationType.adjustmentDelete:
+        await (_adjustmentRepository ??=
+                BalanceAdjustmentRepository(Supabase.instance.client))
+            .deleteAdjustment(
+          id: operation.entryId,
+          userId: operation.userId,
+        );
+        return;
+    }
   }
 
   /// Remove a specific operation from the queue

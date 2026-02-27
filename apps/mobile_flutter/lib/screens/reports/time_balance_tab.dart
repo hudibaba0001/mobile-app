@@ -150,8 +150,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
             adjustmentProvider.allAdjustments.take(5).toList();
 
         // Compute balance today for headline (same formula as Home)
-        final yearAccountedMinutes =
-            currentYearMinutes + yearlyCreditMinutes;
+        final yearAccountedMinutes = currentYearMinutes + yearlyCreditMinutes;
         final yearChangeMinutes =
             yearAccountedMinutes - yearlyTargetToDateMinutes;
         final balanceTodayMinutes =
@@ -204,6 +203,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                 context,
                 recentAdjustments,
                 yearlyAdjustmentMinutes,
+                adjustmentProvider,
               ),
             ],
           ),
@@ -278,6 +278,7 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
     BuildContext context,
     List<dynamic> recentAdjustments,
     int totalAdjustmentMinutes,
+    BalanceAdjustmentProvider adjustmentProvider,
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -378,10 +379,13 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
               ),
               const SizedBox(height: AppSpacing.md),
               ...recentAdjustments.map((adjustment) {
+                final isPending =
+                    adjustmentProvider.isAdjustmentPendingSync(adjustment.id);
                 return _buildAdjustmentItem(
                   context,
                   adjustment,
                   dateFormat,
+                  isPending: isPending,
                 );
               }),
             ],
@@ -394,8 +398,9 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
   Widget _buildAdjustmentItem(
     BuildContext context,
     dynamic adjustment,
-    DateFormat dateFormat,
-  ) {
+    DateFormat dateFormat, {
+    bool isPending = false,
+  }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isPositive = adjustment.deltaMinutes >= 0;
@@ -441,6 +446,14 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
+                  if (isPending)
+                    Text(
+                      _pendingSyncLabel(context),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.secondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -493,5 +506,13 @@ class _TimeBalanceTabState extends State<TimeBalanceTab> {
       localeCode: localeCode,
       showPlusForZero: showPlusForZero,
     );
+  }
+
+  String _pendingSyncLabel(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Vantar synk';
+    }
+    return 'Pending sync';
   }
 }

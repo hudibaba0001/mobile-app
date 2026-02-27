@@ -78,6 +78,7 @@ class BalanceAdjustmentRepository {
 
   /// Create a new adjustment
   Future<BalanceAdjustment> createAdjustment({
+    String? id,
     required String userId,
     required DateTime effectiveDate,
     required int deltaMinutes,
@@ -85,6 +86,7 @@ class BalanceAdjustmentRepository {
   }) async {
     try {
       final adjustment = BalanceAdjustment(
+        id: id,
         userId: userId,
         effectiveDate: effectiveDate,
         deltaMinutes: deltaMinutes,

@@ -32,6 +32,7 @@ import 'services/reminder_service.dart';
 import 'services/travel_cache_service.dart';
 import 'services/legacy_hive_migration_service.dart';
 import 'services/crash_reporting_service.dart';
+import 'services/sync_queue_service.dart';
 import 'viewmodels/analytics_view_model.dart';
 import 'repositories/location_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -285,6 +286,7 @@ class MyApp extends StatelessWidget {
         Provider<ReminderService>.value(value: reminderService),
         // Network status provider (for offline/online detection)
         ChangeNotifierProvider(create: (_) => NetworkStatusProvider()),
+        ChangeNotifierProvider(create: (_) => SyncQueueService()),
         // Existing providers
         ChangeNotifierProvider(create: (_) => AppStateProvider()),
         ChangeNotifierProvider<ContractProvider>.value(
@@ -323,41 +325,61 @@ class MyApp extends StatelessWidget {
           }
           return provider;
         }),
-        ChangeNotifierProxyProvider<SupabaseAuthService, EntryProvider>(
-          create: (context) =>
-              EntryProvider(context.read<SupabaseAuthService>()),
-          update: (context, authService, previous) =>
-              previous ?? EntryProvider(authService),
+        ChangeNotifierProxyProvider2<SupabaseAuthService, SyncQueueService,
+            EntryProvider>(
+          create: (context) => EntryProvider(
+            context.read<SupabaseAuthService>(),
+            syncQueue: context.read<SyncQueueService>(),
+          ),
+          update: (context, authService, syncQueue, previous) =>
+              previous ?? EntryProvider(authService, syncQueue: syncQueue),
         ),
         // AbsenceProvider depends on SupabaseAuthService
-        ChangeNotifierProxyProvider<SupabaseAuthService, AbsenceProvider>(
+        ChangeNotifierProxyProvider2<SupabaseAuthService, SyncQueueService,
+            AbsenceProvider>(
           create: (context) {
             final authService = context.read<SupabaseAuthService>();
             final absenceService = SupabaseAbsenceService();
-            final provider = AbsenceProvider(authService, absenceService);
+            final provider = AbsenceProvider(
+              authService,
+              absenceService,
+              syncQueue: context.read<SyncQueueService>(),
+            );
             provider.initHive(absenceBox);
             return provider;
           },
-          update: (context, authService, previous) =>
+          update: (context, authService, syncQueue, previous) =>
               previous ??
-              AbsenceProvider(authService, SupabaseAbsenceService()),
+              AbsenceProvider(
+                authService,
+                SupabaseAbsenceService(),
+                syncQueue: syncQueue,
+              ),
         ),
         // BalanceAdjustmentProvider depends on SupabaseAuthService
-        ChangeNotifierProxyProvider<SupabaseAuthService,
+        ChangeNotifierProxyProvider2<SupabaseAuthService, SyncQueueService,
             BalanceAdjustmentProvider>(
           create: (context) {
             final authService = context.read<SupabaseAuthService>();
             final supabase = SupabaseConfig.client;
             final repository = BalanceAdjustmentRepository(supabase);
-            final provider = BalanceAdjustmentProvider(authService, repository);
+            final provider = BalanceAdjustmentProvider(
+              authService,
+              repository,
+              syncQueue: context.read<SyncQueueService>(),
+            );
             provider.initHive(adjustmentBox);
             return provider;
           },
-          update: (context, authService, previous) {
+          update: (context, authService, syncQueue, previous) {
             if (previous != null) return previous;
             final supabase = SupabaseConfig.client;
             final repository = BalanceAdjustmentRepository(supabase);
-            return BalanceAdjustmentProvider(authService, repository);
+            return BalanceAdjustmentProvider(
+              authService,
+              repository,
+              syncQueue: syncQueue,
+            );
           },
         ),
         // TimeProvider depends on EntryProvider, ContractProvider, AbsenceProvider, BalanceAdjustmentProvider, and HolidayService
@@ -462,13 +484,21 @@ class _NetworkSyncSetupState extends State<_NetworkSyncSetup> {
   void _setupConnectivityCallback() {
     final networkProvider = context.read<NetworkStatusProvider>();
     final entryProvider = context.read<EntryProvider>();
+    final absenceProvider = context.read<AbsenceProvider>();
+    final adjustmentProvider = context.read<BalanceAdjustmentProvider>();
 
     // Register callback to sync pending operations when connectivity is restored
     networkProvider.addOnConnectivityRestoredCallback(() async {
       debugPrint('main: Connectivity restored, processing pending sync...');
-      final result = await entryProvider.processPendingSync();
-      if (result.succeeded > 0) {
-        debugPrint('main: Auto-synced ${result.succeeded} pending operations');
+      final entryResult = await entryProvider.processPendingSync();
+      final absenceResult = await absenceProvider.processPendingSync();
+      final adjustmentResult = await adjustmentProvider.processPendingSync();
+
+      final succeeded = entryResult.succeeded +
+          absenceResult.succeeded +
+          adjustmentResult.succeeded;
+      if (succeeded > 0) {
+        debugPrint('main: Auto-synced $succeeded pending operations');
       }
     });
 

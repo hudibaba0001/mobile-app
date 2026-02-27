@@ -340,3 +340,24 @@ Because this occurs within the synchronous `read` loop during `Hive.openBox()`, 
 **Description:** The codebase maintains two completely separate overlapping models covering the exact same domain entity: `LeaveEntry` and `AbsenceEntry`. Both define mirroring enums (`LeaveType` vs `AbsenceType`) encompassing identical categories (sick, vacation, unpaid, vab, unknown). `LeaveEntry` inherits from `HiveObject` while `AbsenceEntry` maps to Supabase, indicating disparate state silos.
 **Impact:** High architectural tech debt. Dual-maintenance models lead to out-of-sync extensions, duplicate mapping logic, and integration bugs when providers pass one model but a screen expects the other.
 **Fix:** Deprecate `LeaveEntry` and consolidate both definitions into a single, unified `AbsenceEntry` model that handles both Hive serialization (via an adapter) and Supabase mappings.
+
+### Bug 40: High Memory Footprint on Large CSV Exports
+**Location:** `buildCsvString` inside `services/csv_exporter.dart` (invoked by `ExportService`)
+
+**Description:** The export service generates CSV payload strings by appending all rows to a single `StringBuffer` in memory before writing the final massive string to a file via `file.writeAsString(csvString)`. For a veteran user exporting 5+ years of entries (thousands of rows), allocating the entire CSV string contiguously in memory can cause out-of-memory (OOM) crashes on low-end Android devices.
+**Impact:** Performance and stability bug. Prevents multi-year reporting exports on low-end devices.
+**Fix:** Refactor `ExportService` to stream lines directly to the file via an `IOSink` (e.g., `file.openWrite()..write(line)..close()`), guaranteeing O(1) memory complexity during export.
+
+### Bug 41: DatePicker Timezone Pollution in Absence Entry Dialog
+**Location:** `_pickDate` inside `widgets/absence_entry_dialog.dart`
+
+**Description:** When picking a date for an absence, the code blindly assumes `picked` (a `DateTime` representing midnight local time) is stable. However, when serialized to Supabase, local midnights can shift to the previous day (e.g., 2024-05-15T00:00:00+02:00 -> 2024-05-14T22:00:00Z) if the user travels or accesses the data from a different timezone context.
+**Impact:** Data integrity bug. Absences saved near midnight can drift by a day when queried globally.
+**Fix:** Always force local dates from DatePickers into UTC format (e.g., `DateTime.utc(picked.year, picked.month, picked.day)`) immediately upon selection, ensuring absolute calendar stability regardless of device timezone at query time.
+
+### Bug 42: Silent Dropping of Active Segment in MultiSegmentForm
+**Location:** `_submitJourney` inside `widgets/multi_segment_form.dart`
+
+**Description:** When submitting a journey, if the user has active input in the *current* segment (e.g., they typed "Office" to "Home" but haven't pressed "Add Segment"), the `_submitJourney` logic attempts to implicitly add it via `_addSegment()`. However, if that implicitly added segment fails validation due to a minor typo (e.g., empty minutes), the submission silently aborts *without* persisting the already-added valid segments.
+**Impact:** UX workflow bug. Validated segments are locked in a transient un-submittable state if the final active segment is invalid.
+**Fix:** Separate submission of valid historical segments from active unvalidated inputs. If the active input is invalid, prompt the user "Clear active input to submit?" or simply ignore the empty active segment if historical segments exist.

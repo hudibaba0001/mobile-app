@@ -50,7 +50,7 @@ class SupabaseAbsenceService {
     try {
       final data = absence.toMap();
       data['user_id'] = userId;
-      data['id'] = _uuid.v4(); // Generate UUID
+      data['id'] = absence.id ?? _uuid.v4(); // Keep client ID when provided
 
       final response =
           await _supabase.from('absences').insert(data).select().maybeSingle();

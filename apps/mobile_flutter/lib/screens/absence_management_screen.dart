@@ -6,6 +6,7 @@ import '../l10n/generated/app_localizations.dart';
 import '../models/absence.dart';
 import '../providers/absence_provider.dart';
 import '../services/supabase_auth_service.dart';
+import '../utils/error_message_mapper.dart';
 import '../widgets/absence_entry_dialog.dart';
 import '../widgets/standard_app_bar.dart';
 
@@ -90,11 +91,21 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
       ),
       body: Consumer<AbsenceProvider>(
         builder: (context, absenceProvider, child) {
-          if (absenceProvider.isLoading) {
+          final absences = absenceProvider.absencesForYear(_selectedYear);
+          final hasCachedAbsences = absences.isNotEmpty;
+          final hasError = absenceProvider.error != null;
+          final isOfflineError = hasError
+              ? ErrorMessageMapper.isOfflineError(absenceProvider.error!)
+              : false;
+
+          if (absenceProvider.isLoading && !hasCachedAbsences) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (absenceProvider.error != null) {
+          if (hasError && !hasCachedAbsences) {
+            final message = isOfflineError
+                ? _offlineAbsenceLoadMessage(t)
+                : ErrorMessageMapper.userMessage(absenceProvider.error!, t);
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -111,7 +122,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    absenceProvider.error!,
+                    message,
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -124,8 +135,6 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
               ),
             );
           }
-
-          final absences = absenceProvider.absencesForYear(_selectedYear);
 
           if (absences.isEmpty) {
             return Center(
@@ -166,7 +175,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
             absencesByMonth.putIfAbsent(month, () => []).add(absence);
           }
 
-          return ListView.builder(
+          final listView = ListView.builder(
             padding: AppSpacing.pagePadding,
             itemCount: absencesByMonth.length,
             itemBuilder: (context, index) {
@@ -198,6 +207,46 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
               );
             },
           );
+
+          if (!hasError) {
+            return listView;
+          }
+
+          final warningMessage = isOfflineError
+              ? _offlineAbsenceLoadMessage(t)
+              : ErrorMessageMapper.userMessage(absenceProvider.error!, t);
+          return Column(
+            children: [
+              Padding(
+                padding: AppSpacing.pagePadding,
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.wifi_off,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            warningMessage,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _loadAbsences,
+                          child: Text(t.common_retry),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(child: listView),
+            ],
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -223,6 +272,7 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     final hours = absence.minutes == 0
         ? t.absence_fullDay
         : '${(absence.minutes / 60.0).toStringAsFixed(1)} h';
+    final isPending = absenceProvider.isAbsencePendingSync(absence.id);
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -236,7 +286,31 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(dateStr),
-            Text('${t.entry_duration}: $hours'),
+            Row(
+              children: [
+                Expanded(child: Text('${t.entry_duration}: $hours')),
+                if (isPending) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs / 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .secondaryContainer
+                          .withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
+                    child: Text(
+                      _pendingSyncLabel(t),
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
         trailing: Row(
@@ -348,14 +422,29 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
     } catch (e) {
       if (context.mounted) {
         final colorScheme = Theme.of(context).colorScheme;
+        final message = ErrorMessageMapper.userMessage(e, t);
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${t.absence_deleteFailed}: $e'),
+            content: Text('${t.absence_deleteFailed}: $message'),
             backgroundColor: colorScheme.error,
           ),
         );
       }
     }
+  }
+
+  String _offlineAbsenceLoadMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Du ar offline. Franvaro kan inte laddas just nu.';
+    }
+    return "You're offline. Absences can't be loaded right now.";
+  }
+
+  String _pendingSyncLabel(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Vantar synk';
+    }
+    return 'Pending sync';
   }
 }

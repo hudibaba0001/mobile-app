@@ -6,6 +6,8 @@ import '../design/design.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/absence.dart';
 import '../providers/absence_provider.dart';
+import '../providers/network_status_provider.dart';
+import '../utils/error_message_mapper.dart';
 
 Future<bool?> showAbsenceEntryDialog(
   BuildContext context, {
@@ -60,6 +62,8 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final isOffline =
+        context.watch<NetworkStatusProvider?>()?.isOffline ?? false;
 
     return SafeArea(
       top: false,
@@ -196,6 +200,14 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
                 ),
               ],
             ),
+            if (isOffline) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                _offlineWillSyncMessage(t),
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
         ),
       ),
@@ -297,9 +309,9 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
 
   Future<void> _saveAbsence() async {
     if (_isSaving) return;
+    final t = AppLocalizations.of(context);
     setState(() => _isSaving = true);
 
-    final t = AppLocalizations.of(context);
     final absenceProvider = context.read<AbsenceProvider>();
     final entry = AbsenceEntry(
       id: widget.absence?.id,
@@ -319,17 +331,23 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
         await absenceProvider.addAbsenceEntry(entry);
       }
       if (!mounted) return;
+      final queuedOffline = absenceProvider.lastWriteQueuedOffline;
       final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context, true);
       messenger.showSnackBar(
-        SnackBar(content: Text(t.absence_savedSuccess)),
+        SnackBar(
+          content: Text(
+            queuedOffline ? _savedOfflineMessage(t) : t.absence_savedSuccess,
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
       final colorScheme = Theme.of(context).colorScheme;
+      final message = ErrorMessageMapper.userMessage(e, t);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${t.absence_saveFailed}: $e'),
+          content: Text('${t.absence_saveFailed}: $message'),
           backgroundColor: colorScheme.error,
         ),
       );
@@ -338,5 +356,19 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
         setState(() => _isSaving = false);
       }
     }
+  }
+
+  String _offlineWillSyncMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Offline: synkas nar du ar ansluten.';
+    }
+    return 'Offline: will sync when connected.';
+  }
+
+  String _savedOfflineMessage(AppLocalizations t) {
+    if (t.localeName.toLowerCase().startsWith('sv')) {
+      return 'Sparad offline - synkas nar du ar ansluten.';
+    }
+    return 'Saved offline - will sync when connected.';
   }
 }
