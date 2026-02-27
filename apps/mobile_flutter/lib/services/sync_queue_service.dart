@@ -103,6 +103,7 @@ class SyncQueueService extends ChangeNotifier {
 
   final List<SyncOperation> _queue = [];
   bool _isProcessing = false;
+  Future<SyncResult>? _activeProcessFuture;
   bool _initialized = false;
   SupabaseEntryService? _entryService;
   SupabaseAbsenceService? _absenceService;
@@ -394,6 +395,32 @@ class SyncQueueService extends ChangeNotifier {
     String? userId,
     Set<SyncOperationType>? operationTypes,
   }) async {
+    final activeFuture = _activeProcessFuture;
+    if (activeFuture != null) {
+      debugPrint('SyncQueueService: Queue processing already in progress');
+      return activeFuture;
+    }
+
+    final future = _processQueueInternal(
+      executor,
+      userId: userId,
+      operationTypes: operationTypes,
+    );
+    _activeProcessFuture = future;
+    try {
+      return await future;
+    } finally {
+      if (identical(_activeProcessFuture, future)) {
+        _activeProcessFuture = null;
+      }
+    }
+  }
+
+  Future<SyncResult> _processQueueInternal(
+    Future<void> Function(SyncOperation)? executor, {
+    String? userId,
+    Set<SyncOperationType>? operationTypes,
+  }) async {
     if (_isProcessing) {
       debugPrint('SyncQueueService: Already processing queue');
       return SyncResult(processed: 0, succeeded: 0, failed: 0);
@@ -418,7 +445,7 @@ class SyncQueueService extends ChangeNotifier {
     int processed = 0;
     int succeeded = 0;
     int failed = 0;
-    final List<SyncOperation> toRemove = [];
+    bool needsFinalPersist = false;
 
     if (userId == null) {
       debugPrint(
@@ -451,13 +478,25 @@ class SyncQueueService extends ChangeNotifier {
           shouldRetry: RetryHelper.shouldRetryNetworkError,
         );
 
-        toRemove.add(operation);
+        _queue.removeWhere((op) => op.id == operation.id);
+        await _persist();
         succeeded++;
         debugPrint(
             'SyncQueueService: Successfully processed ${operation.type.name} for ${operation.entryId}');
       } catch (e) {
+        if (_isCreateLikeOperation(operation.type) &&
+            _isDuplicateInsertError(e)) {
+          _queue.removeWhere((op) => op.id == operation.id);
+          await _persist();
+          succeeded++;
+          debugPrint(
+              'SyncQueueService: Duplicate create detected for ${operation.type.name} ${operation.entryId}; treated as success');
+          continue;
+        }
+
         operation.retryCount++;
         operation.lastError = e.toString();
+        needsFinalPersist = true;
         failed++;
 
         if (operation.retryCount >= maxRetries) {
@@ -470,12 +509,9 @@ class SyncQueueService extends ChangeNotifier {
       }
     }
 
-    // Remove processed operations
-    for (final op in toRemove) {
-      _queue.removeWhere((o) => o.id == op.id);
+    if (needsFinalPersist) {
+      await _persist();
     }
-
-    await _persist();
     _isProcessing = false;
     notifyListeners();
 
@@ -485,11 +521,30 @@ class SyncQueueService extends ChangeNotifier {
         processed: processed, succeeded: succeeded, failed: failed);
   }
 
+  bool _isCreateLikeOperation(SyncOperationType type) {
+    return type == SyncOperationType.create ||
+        type == SyncOperationType.absenceCreate ||
+        type == SyncOperationType.adjustmentCreate ||
+        type == SyncOperationType.contractUpdate;
+  }
+
+  bool _isDuplicateInsertError(Object error) {
+    final lower = error.toString().toLowerCase();
+    return lower.contains('duplicate key') ||
+        lower.contains('already exists') ||
+        lower.contains('unique constraint') ||
+        lower.contains('23505');
+  }
+
   Future<void> _executeQueuedOperation(SyncOperation operation) async {
     switch (operation.type) {
       case SyncOperationType.create:
         if (operation.entryData == null) return;
-        final entry = Entry.fromJson(operation.entryData!);
+        final entry = Entry.fromJson({
+          ...operation.entryData!,
+          'id': operation.entryId,
+          'user_id': operation.userId,
+        });
         await (_entryService ??= SupabaseEntryService()).addEntry(entry);
         return;
       case SyncOperationType.update:
@@ -503,7 +558,10 @@ class SyncQueueService extends ChangeNotifier {
         return;
       case SyncOperationType.absenceCreate:
         if (operation.entryData == null) return;
-        final absence = AbsenceEntry.fromMap(operation.entryData!);
+        final absence = AbsenceEntry.fromMap({
+          ...operation.entryData!,
+          'id': operation.entryId,
+        });
         await (_absenceService ??= SupabaseAbsenceService())
             .addAbsence(operation.userId, absence);
         return;

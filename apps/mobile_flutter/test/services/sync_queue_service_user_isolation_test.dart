@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:myapp/models/absence.dart';
+import 'package:myapp/models/balance_adjustment.dart';
 import 'package:myapp/models/entry.dart';
 import 'package:myapp/services/sync_queue_service.dart';
 
@@ -99,6 +103,90 @@ void main() {
       );
       expect(operation.retryCount, SyncQueueService.maxRetries);
       expect(operation.lastError, isNotNull);
+    });
+
+    test(
+        'processQueue persists each successful op immediately so completed ops survive mid-run interruption',
+        () async {
+      await service.queueCreate(
+        createEntry(userId: 'user_a', id: 'a1'),
+        'user_a',
+      );
+      await service.queueCreate(
+        createEntry(userId: 'user_a', id: 'a2'),
+        'user_a',
+      );
+
+      final secondStarted = Completer<void>();
+      final releaseSecond = Completer<void>();
+
+      final processingFuture = service.processQueue(
+        (operation) async {
+          if (operation.entryId == 'a2') {
+            if (!secondStarted.isCompleted) {
+              secondStarted.complete();
+            }
+            await releaseSecond.future;
+          }
+        },
+        userId: 'user_a',
+      );
+
+      await secondStarted.future;
+
+      final reloaded = SyncQueueService();
+      await reloaded.init();
+
+      // First op (a1) should already be removed/persisted while a2 is in-flight.
+      expect(
+          reloaded.pendingOperations.any((op) => op.entryId == 'a1'), isFalse);
+      expect(
+          reloaded.pendingOperations.any((op) => op.entryId == 'a2'), isTrue);
+
+      releaseSecond.complete();
+      await processingFuture;
+    });
+
+    test('duplicate key errors for create operations are treated as success',
+        () async {
+      await service.queueCreate(
+        createEntry(userId: 'user_a', id: 'entry_a1'),
+        'user_a',
+      );
+      await service.queueAbsenceCreate(
+        AbsenceEntry(
+          id: 'absence_a1',
+          date: DateTime(2026, 2, 3),
+          minutes: 0,
+          type: AbsenceType.vacationPaid,
+        ),
+        'user_a',
+      );
+      await service.queueAdjustmentCreate(
+        BalanceAdjustment(
+          id: 'adjustment_a1',
+          userId: 'user_a',
+          effectiveDate: DateTime(2026, 2, 3),
+          deltaMinutes: 30,
+          note: 'duplicate tolerance',
+        ),
+        'user_a',
+      );
+      await service.queueContractUpdate('user_a', {
+        'contractPercent': 75,
+        'fullTimeHours': 40,
+        'openingFlexMinutes': 0,
+      });
+
+      final result = await service.processQueue((operation) async {
+        throw Exception(
+            'duplicate key value violates unique constraint (code 23505)');
+      }, userId: 'user_a');
+
+      expect(result.processed, 4);
+      expect(result.succeeded, 4);
+      expect(result.failed, 0);
+      expect(service.pendingCountForUser('user_a'), 0);
     });
   });
 }
