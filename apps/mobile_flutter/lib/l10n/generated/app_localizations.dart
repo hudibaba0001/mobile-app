@@ -1227,6 +1227,12 @@ abstract class AppLocalizations {
   /// **'VAB (Child Care)'**
   String get leave_vab;
 
+  /// No description provided for @leave_parentalLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Parental leave'**
+  String get leave_parentalLeave;
+
   /// No description provided for @leave_unpaid.
   ///
   /// In en, this message translates to:
@@ -6472,6 +6478,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leave (Paid Vacation)'**
   String get export_leavePaidVacation;
+
+  /// No description provided for @export_leaveParental.
+  ///
+  /// In en, this message translates to:
+  /// **'Parental leave'**
+  String get export_leaveParental;
 
   /// No description provided for @export_leaveUnpaid.
   ///

@@ -85,6 +85,7 @@ void main() {
   Future<TimeProvider> _buildProviderForWeeklyTarget({
     required int weeklyTargetMinutes,
     required DateTime leaveDate,
+    AbsenceType leaveType = AbsenceType.vacationPaid,
   }) async {
     final contractPercent =
         ((weeklyTargetMinutes / fullTimeWeeklyMinutes) * 100).round();
@@ -105,7 +106,7 @@ void main() {
           id: 'leave-${leaveDate.year}-${leaveDate.month}-${leaveDate.day}',
           date: leaveDate,
           minutes: 0, // full-day leave
-          type: AbsenceType.vacationPaid,
+          type: leaveType,
         ),
       ],
     });
@@ -198,6 +199,34 @@ void main() {
           ((feb['variance'] as num).toDouble() * 60).round();
 
       expect(plannedMinutes, 480);
+      expect(overUnderMinutes, 0);
+    });
+
+    test('C) parentalLeave full-day credits planned minutes on 75% contract',
+        () async {
+      final provider = await _buildProviderForWeeklyTarget(
+        weeklyTargetMinutes: case75WeeklyMinutes,
+        leaveDate: _weekdayNoRedDay,
+        leaveType: AbsenceType.parentalLeave,
+      );
+
+      final creditedMinutes =
+          (provider.monthlyCreditHours(year: 2026, month: 2) * 60).round();
+
+      expect(
+        creditedMinutes,
+        360,
+        reason:
+            'Parental leave must be credited like other paid leave on part-time contracts.',
+      );
+
+      final feb = _monthVarianceRow(provider, _weekdayNoRedDay);
+      final plannedMinutes =
+          ((feb['targetHours'] as num).toDouble() * 60).round();
+      final overUnderMinutes =
+          ((feb['variance'] as num).toDouble() * 60).round();
+
+      expect(plannedMinutes, 360);
       expect(overUnderMinutes, 0);
     });
   });

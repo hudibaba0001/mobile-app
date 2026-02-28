@@ -275,6 +275,17 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
               ),
               ListTile(
                 leading: const Icon(
+                  Icons.family_restroom,
+                  color: AbsenceColors.sickLeave,
+                ),
+                title: Text(t.leave_parentalLeave),
+                onTap: () {
+                  setState(() => _selectedType = AbsenceType.parentalLeave);
+                  Navigator.pop(ctx);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
                   Icons.event_busy,
                   color: AbsenceColors.unpaid,
                 ),
@@ -300,6 +311,8 @@ class _AbsenceEntryDialogState extends State<_AbsenceEntryDialog> {
         return t.leave_sickLeave;
       case AbsenceType.vabPaid:
         return t.leave_vab;
+      case AbsenceType.parentalLeave:
+        return t.leave_parentalLeave;
       case AbsenceType.unpaid:
         return t.leave_unpaid;
       case AbsenceType.unknown:

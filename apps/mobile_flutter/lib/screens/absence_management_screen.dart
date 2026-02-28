@@ -350,6 +350,12 @@ class _AbsenceManagementScreenState extends State<AbsenceManagementScreen> {
         );
       case AbsenceType.vabPaid:
         return (t.leave_vab, Icons.child_care, AbsenceColors.vab);
+      case AbsenceType.parentalLeave:
+        return (
+          t.leave_parentalLeave,
+          Icons.family_restroom,
+          AbsenceColors.sickLeave,
+        );
       case AbsenceType.unpaid:
         return (t.leave_unpaid, Icons.event_busy, AbsenceColors.unpaid);
       case AbsenceType.unknown:

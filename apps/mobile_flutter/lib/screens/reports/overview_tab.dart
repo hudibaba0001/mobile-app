@@ -1183,6 +1183,8 @@ class _OverviewTabState extends State<OverviewTab> {
         return t.leave_sickLeave;
       case AbsenceType.vabPaid:
         return t.leave_vab;
+      case AbsenceType.parentalLeave:
+        return t.leave_parentalLeave;
       case AbsenceType.unpaid:
         return t.leave_unpaid;
       case AbsenceType.unknown:

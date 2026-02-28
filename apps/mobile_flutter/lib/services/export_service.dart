@@ -241,6 +241,8 @@ class ExportService {
         return t.export_leaveVab;
       case AbsenceType.vacationPaid:
         return t.export_leavePaidVacation;
+      case AbsenceType.parentalLeave:
+        return t.export_leaveParental;
       case AbsenceType.unpaid:
         return t.export_leaveUnpaid;
       case AbsenceType.unknown:

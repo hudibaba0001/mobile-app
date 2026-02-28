@@ -668,6 +668,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leave_vab => 'VAB (Child Care)';
 
   @override
+  String get leave_parentalLeave => 'Parental leave';
+
+  @override
   String get leave_unpaid => 'Unpaid Leave';
 
   @override
@@ -3580,6 +3583,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get export_leavePaidVacation => 'Leave (Paid Vacation)';
+
+  @override
+  String get export_leaveParental => 'Parental leave';
 
   @override
   String get export_leaveUnpaid => 'Unpaid Leave';

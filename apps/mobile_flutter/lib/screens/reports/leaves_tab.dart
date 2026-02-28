@@ -188,6 +188,15 @@ class _LeavesTabState extends State<LeavesTab> {
             _buildSummaryRow(
               theme,
               colorScheme,
+              icon: Icons.family_restroom,
+              iconColor: AppColors.error,
+              label: t.leave_parentalLeave,
+              value: summary[AbsenceType.parentalLeave]!,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _buildSummaryRow(
+              theme,
+              colorScheme,
               icon: Icons.event_busy,
               iconColor: AppColors.mutedForeground(theme.brightness),
               label: t.leave_unpaid,
@@ -441,6 +450,12 @@ class _LeavesTabState extends State<LeavesTab> {
           icon: Icons.child_care,
           color: AppColors.accent,
           label: t.leave_vab,
+        );
+      case AbsenceType.parentalLeave:
+        return _TypeInfo(
+          icon: Icons.family_restroom,
+          color: AppColors.error,
+          label: t.leave_parentalLeave,
         );
       case AbsenceType.unpaid:
       case AbsenceType.unknown:

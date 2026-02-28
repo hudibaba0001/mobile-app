@@ -8,6 +8,7 @@ enum AbsenceType {
   vabPaid,
   unpaid,
   unknown,
+  parentalLeave,
 }
 
 /// Model representing an absence entry
@@ -80,6 +81,9 @@ class AbsenceEntry {
         break;
       case 'unpaid':
         type = AbsenceType.unpaid;
+        break;
+      case 'parentalLeave':
+        type = AbsenceType.parentalLeave;
         break;
       default:
         // Safely map unknown types without throwing, preserve raw value

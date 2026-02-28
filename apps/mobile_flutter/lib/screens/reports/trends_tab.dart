@@ -286,6 +286,8 @@ class _TrendsTabState extends State<TrendsTab> {
       var sickLeaveMinutes = 0;
       var vabCount = 0;
       var vabMinutes = 0;
+      var parentalLeaveCount = 0;
+      var parentalLeaveMinutes = 0;
       var unpaidCount = 0;
       var unpaidMinutes = 0;
       final byDate = <DateTime, List<AbsenceEntry>>{};
@@ -304,6 +306,9 @@ class _TrendsTabState extends State<TrendsTab> {
             break;
           case AbsenceType.vabPaid:
             vabCount += 1;
+            break;
+          case AbsenceType.parentalLeave:
+            parentalLeaveCount += 1;
             break;
           case AbsenceType.unpaid:
             unpaidCount += 1;
@@ -330,6 +335,7 @@ class _TrendsTabState extends State<TrendsTab> {
         paidVacationMinutes += paidAllocations[AbsenceType.vacationPaid] ?? 0;
         sickLeaveMinutes += paidAllocations[AbsenceType.sickPaid] ?? 0;
         vabMinutes += paidAllocations[AbsenceType.vabPaid] ?? 0;
+        parentalLeaveMinutes += paidAllocations[AbsenceType.parentalLeave] ?? 0;
 
         unpaidMinutes += _unpaidMinutesForDate(dayAbsences, scheduled);
       }
@@ -341,6 +347,8 @@ class _TrendsTabState extends State<TrendsTab> {
         sickLeaveMinutes: sickLeaveMinutes,
         vabCount: vabCount,
         vabMinutes: vabMinutes,
+        parentalLeaveCount: parentalLeaveCount,
+        parentalLeaveMinutes: parentalLeaveMinutes,
         unpaidCount: unpaidCount,
         unpaidMinutes: unpaidMinutes,
       );
@@ -381,6 +389,7 @@ class _TrendsTabState extends State<TrendsTab> {
       AbsenceType.vacationPaid: 0,
       AbsenceType.sickPaid: 0,
       AbsenceType.vabPaid: 0,
+      AbsenceType.parentalLeave: 0,
     };
     if (creditedMinutes <= 0) {
       return allocations;
@@ -598,6 +607,11 @@ class _TrendsTabState extends State<TrendsTab> {
                   _buildLeaveLabel(
                     theme,
                     '${_formatTrackedMinutes(context, leaves.vabMinutes)} ${t.leave_vab}',
+                  ),
+                if (leaves.parentalLeaveCount > 0)
+                  _buildLeaveLabel(
+                    theme,
+                    '${_formatTrackedMinutes(context, leaves.parentalLeaveMinutes)} ${t.leave_parentalLeave}',
                   ),
                 if (leaves.unpaidCount > 0)
                   _buildLeaveLabel(
@@ -913,6 +927,8 @@ class _MonthlyLeaveSummary {
   final int sickLeaveMinutes;
   final int vabCount;
   final int vabMinutes;
+  final int parentalLeaveCount;
+  final int parentalLeaveMinutes;
   final int unpaidCount;
   final int unpaidMinutes;
 
@@ -923,6 +939,8 @@ class _MonthlyLeaveSummary {
     required this.sickLeaveMinutes,
     required this.vabCount,
     required this.vabMinutes,
+    required this.parentalLeaveCount,
+    required this.parentalLeaveMinutes,
     required this.unpaidCount,
     required this.unpaidMinutes,
   });
@@ -934,16 +952,22 @@ class _MonthlyLeaveSummary {
     sickLeaveMinutes: 0,
     vabCount: 0,
     vabMinutes: 0,
+    parentalLeaveCount: 0,
+    parentalLeaveMinutes: 0,
     unpaidCount: 0,
     unpaidMinutes: 0,
   );
 
   int get creditedMinutes =>
-      paidVacationMinutes + sickLeaveMinutes + vabMinutes;
+      paidVacationMinutes +
+      sickLeaveMinutes +
+      vabMinutes +
+      parentalLeaveMinutes;
 
   bool get hasAny =>
       paidVacationCount > 0 ||
       sickLeaveCount > 0 ||
       vabCount > 0 ||
+      parentalLeaveCount > 0 ||
       unpaidCount > 0;
 }

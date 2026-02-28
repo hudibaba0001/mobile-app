@@ -346,6 +346,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         return t.home_sickLeave;
       case AbsenceType.vabPaid:
         return t.home_vab;
+      case AbsenceType.parentalLeave:
+        return t.leave_parentalLeave;
       case AbsenceType.unpaid:
         return t.home_unpaidLeave;
       case AbsenceType.unknown:
@@ -361,6 +363,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         return Icons.local_hospital;
       case AbsenceType.vabPaid:
         return Icons.child_care;
+      case AbsenceType.parentalLeave:
+        return Icons.family_restroom;
       case AbsenceType.unpaid:
       case AbsenceType.unknown:
         return Icons.event_busy;

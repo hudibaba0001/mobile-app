@@ -550,6 +550,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return (t.leave_sickLeave, Icons.healing, AppColors.error);
       case AbsenceType.vabPaid:
         return (t.leave_vab, Icons.child_care, AppColors.warning);
+      case AbsenceType.parentalLeave:
+        return (t.leave_parentalLeave, Icons.family_restroom, AppColors.error);
       case AbsenceType.unpaid:
         return (t.leave_unpaid, Icons.money_off, colorScheme.onSurfaceVariant);
       case AbsenceType.unknown:
