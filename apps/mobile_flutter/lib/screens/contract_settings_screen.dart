@@ -34,6 +34,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
   String _employerMode = 'standard'; // 'standard', 'strict', 'flexible'
 
   bool _isFormValid = false;
+  bool _isSaving = false;
   String? _contractPercentError;
   String? _fullTimeHoursError;
   String? _openingBalanceError;
@@ -145,7 +146,7 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
 
   Future<void> _saveSettings() async {
     final t = AppLocalizations.of(context);
-    if (!_isFormValid) return;
+    if (!_isFormValid || _isSaving) return;
 
     final contractProvider = context.read<ContractProvider>();
 
@@ -162,14 +163,17 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
     final totalMinutes = (hours * 60) + minutes;
     final signedMinutes = _isDeficit ? -totalMinutes : totalMinutes;
 
-    try {
-      // Update provider (saves local cache and queues/syncs cloud)
-      await contractProvider.updateContractSettings(
-          contractPercent, fullTimeHours);
-      await contractProvider.setTrackingStartDate(_trackingStartDate);
-      await contractProvider.setOpeningFlexMinutes(signedMinutes);
-      await contractProvider.setEmployerMode(_employerMode);
+    setState(() => _isSaving = true);
 
+    try {
+      // Single local+remote write to avoid overlapping RPC bursts.
+      await contractProvider.updateAllSettings(
+        percent: contractPercent,
+        hours: fullTimeHours,
+        trackingStartDate: _trackingStartDate,
+        openingFlexMinutes: signedMinutes,
+        employerMode: _employerMode,
+      );
       if (!mounted) return;
 
       final messenger = ScaffoldMessenger.of(context);
@@ -206,6 +210,10 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
           backgroundColor: AppColors.error,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -277,11 +285,11 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
         onBack: () => AppRouter.goBackOrHome(context),
         actions: [
           TextButton(
-            onPressed: _isFormValid ? _saveSettings : null,
+            onPressed: (_isFormValid && !_isSaving) ? _saveSettings : null,
             child: Text(
               t.common_save,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: _isFormValid
+                    color: (_isFormValid && !_isSaving)
                         ? colorScheme.primary
                         : colorScheme.onSurface.withValues(alpha: 0.5),
                     fontWeight: FontWeight.w600,
@@ -584,8 +592,18 @@ class _ContractSettingsScreenState extends State<ContractSettingsScreen> {
                       const SizedBox(width: AppSpacing.lg),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: _isFormValid ? _saveSettings : null,
-                          icon: const Icon(Icons.save),
+                          onPressed: (_isFormValid && !_isSaving)
+                              ? _saveSettings
+                              : null,
+                          icon: _isSaving
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.save),
                           label: Text(t.contract_saveSettings),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colorScheme.primary,

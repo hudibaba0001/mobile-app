@@ -5,6 +5,7 @@ import '../models/entry.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/supabase_entry_service.dart';
 import '../services/sync_queue_service.dart';
+import '../services/profile_service.dart';
 import '../utils/entry_filter.dart' as entry_filter_utils;
 import '../utils/entry_filter_spec.dart';
 import '../utils/retry_helper.dart';
@@ -16,10 +17,18 @@ enum ConflictStrategy {
   newerWins, // Use whichever has a more recent updatedAt timestamp
 }
 
+enum _EntryFetchMode {
+  currentYear,
+  latest,
+}
+
+typedef TrackingStartDateFetcher = Future<DateTime?> Function(String userId);
+
 class EntryProvider extends ChangeNotifier {
   final SupabaseAuthService _authService;
   final SupabaseEntryService _supabaseService;
   final SyncQueueService _syncQueue;
+  final TrackingStartDateFetcher? _trackingStartDateFetcher;
   String? _activeUserId;
 
   List<Entry> _entries = [];
@@ -38,6 +47,7 @@ class EntryProvider extends ChangeNotifier {
 
   // Hive box for local cache (Entry objects directly)
   static const String _entriesBoxName = 'entries_cache';
+  static const int _historyCloudFetchLimit = 500;
   Box<Entry>? _entriesBox;
   Future<void>? _activeLoadEntriesFuture;
 
@@ -47,8 +57,10 @@ class EntryProvider extends ChangeNotifier {
     this._authService, {
     SupabaseEntryService? supabaseService,
     SyncQueueService? syncQueue,
+    TrackingStartDateFetcher? trackingStartDateFetcher,
   })  : _supabaseService = supabaseService ?? SupabaseEntryService(),
-        _syncQueue = syncQueue ?? SyncQueueService() {
+        _syncQueue = syncQueue ?? SyncQueueService(),
+        _trackingStartDateFetcher = trackingStartDateFetcher {
     _activeUserId = _authService.currentUser?.id;
     _syncQueueReady = _syncQueue.init();
   }
@@ -148,14 +160,87 @@ class EntryProvider extends ChangeNotifier {
       return inFlight;
     }
 
-    final future = _loadEntriesInternal();
+    final future = _loadEntriesInternal(fetchMode: _EntryFetchMode.currentYear);
     _activeLoadEntriesFuture = future.whenComplete(() {
       _activeLoadEntriesFuture = null;
     });
     return _activeLoadEntriesFuture!;
   }
 
-  Future<void> _loadEntriesInternal() async {
+  Future<void> loadLatestEntries({int limit = _historyCloudFetchLimit}) {
+    final inFlight = _activeLoadEntriesFuture;
+    if (inFlight != null) {
+      return inFlight;
+    }
+
+    final future = _loadEntriesInternal(
+      fetchMode: _EntryFetchMode.latest,
+      latestLimit: limit,
+    );
+    _activeLoadEntriesFuture = future.whenComplete(() {
+      _activeLoadEntriesFuture = null;
+    });
+    return _activeLoadEntriesFuture!;
+  }
+
+  DateTime _dateOnly(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  Future<DateTime?> _resolveTrackingStartDate(String userId) async {
+    final injectedFetcher = _trackingStartDateFetcher;
+    if (injectedFetcher != null) {
+      try {
+        final injected = await injectedFetcher(userId);
+        return injected == null ? null : _dateOnly(injected);
+      } catch (e) {
+        debugPrint(
+            'EntryProvider: Failed to resolve tracking start (injected): $e');
+        return null;
+      }
+    }
+
+    try {
+      final profile = await ProfileService().fetchProfile();
+      final trackingStart = profile?.trackingStartDate;
+      if (trackingStart == null) {
+        return null;
+      }
+      return _dateOnly(trackingStart);
+    } catch (e) {
+      debugPrint('EntryProvider: Failed to resolve tracking start date: $e');
+      return null;
+    }
+  }
+
+  Future<List<Entry>> _fetchCurrentYearEntries(String userId) async {
+    final now = DateTime.now();
+    final yearStart = DateTime(now.year, 1, 1);
+    final yearEnd = DateTime(now.year, 12, 31, 23, 59, 59);
+    final trackingStartDate = await _resolveTrackingStartDate(userId);
+
+    final rangeStart =
+        trackingStartDate != null && trackingStartDate.isAfter(yearStart)
+            ? trackingStartDate
+            : yearStart;
+
+    if (rangeStart.isAfter(yearEnd)) {
+      return <Entry>[];
+    }
+
+    return _supabaseService.getEntriesInRange(userId, rangeStart, yearEnd);
+  }
+
+  Future<List<Entry>> _fetchLatestEntries(
+    String userId, {
+    required int limit,
+  }) {
+    return _supabaseService.getAllEntries(userId, limit: limit);
+  }
+
+  Future<void> _loadEntriesInternal({
+    required _EntryFetchMode fetchMode,
+    int latestLimit = _historyCloudFetchLimit,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
@@ -183,8 +268,18 @@ class EntryProvider extends ChangeNotifier {
       // PRIMARY: Load from Supabase (cloud storage)
       List<Entry> supabaseEntries = [];
       try {
-        debugPrint('EntryProvider: Loading entries from Supabase...');
-        supabaseEntries = await _supabaseService.getAllEntries(userId);
+        if (fetchMode == _EntryFetchMode.currentYear) {
+          debugPrint(
+              'EntryProvider: Loading current-year entries from Supabase...');
+          supabaseEntries = await _fetchCurrentYearEntries(userId);
+        } else {
+          debugPrint(
+              'EntryProvider: Loading latest entries from Supabase (limit: $latestLimit)...');
+          supabaseEntries = await _fetchLatestEntries(
+            userId,
+            limit: latestLimit,
+          );
+        }
         debugPrint(
             'EntryProvider: Loaded ${supabaseEntries.length} entries from Supabase');
 
@@ -225,7 +320,14 @@ class EntryProvider extends ChangeNotifier {
             if (syncedCount > 0) {
               debugPrint(
                   'EntryProvider: Reloading entries from Supabase after sync...');
-              supabaseEntries = await _supabaseService.getAllEntries(userId);
+              if (fetchMode == _EntryFetchMode.currentYear) {
+                supabaseEntries = await _fetchCurrentYearEntries(userId);
+              } else {
+                supabaseEntries = await _fetchLatestEntries(
+                  userId,
+                  limit: latestLimit,
+                );
+              }
               debugPrint(
                   'EntryProvider: Reloaded ${supabaseEntries.length} entries from Supabase after sync');
             } else {
@@ -236,33 +338,14 @@ class EntryProvider extends ChangeNotifier {
           } else {
             debugPrint('EntryProvider: Local cache is also empty');
           }
-        } else {
-          // Supabase has entries, but check if local has more (should not happen)
-          if (localEntries.length > supabaseEntries.length) {
-            debugPrint(
-                'EntryProvider: Local cache has more entries than Supabase, syncing...');
-            final supabaseIds = supabaseEntries.map((e) => e.id).toSet();
-            final entriesToSync =
-                localEntries.where((e) => !supabaseIds.contains(e.id)).toList();
-
-            for (final entry in entriesToSync) {
-              try {
-                await _supabaseService.addEntry(entry);
-                debugPrint(
-                    'EntryProvider: Synced missing entry ${entry.id} to Supabase');
-              } catch (e) {
-                debugPrint(
-                    'EntryProvider: Failed to sync entry ${entry.id}: $e');
-              }
-            }
-
-            // Reload from Supabase
-            supabaseEntries = await _supabaseService.getAllEntries(userId);
-          }
         }
 
         // Sync to local Hive cache
-        await _syncToLocalCache(supabaseEntries, userId);
+        await _syncToLocalCache(
+          supabaseEntries,
+          userId,
+          isCompleteSnapshot: false,
+        );
       } catch (e) {
         debugPrint('EntryProvider: Error loading from Supabase: $e');
         if (localEntries.isEmpty) {
@@ -715,7 +798,11 @@ class EntryProvider extends ChangeNotifier {
   /// Sync entries from Supabase to local Hive cache
   /// Stores Entry objects directly in Hive (no legacy model conversion)
   /// Also removes stale entries that no longer exist on the server
-  Future<void> _syncToLocalCache(List<Entry> entries, String userId) async {
+  Future<void> _syncToLocalCache(
+    List<Entry> entries,
+    String userId, {
+    bool isCompleteSnapshot = true,
+  }) async {
     try {
       await _initEntriesBox();
       if (_entriesBox == null) {
@@ -737,6 +824,14 @@ class EntryProvider extends ChangeNotifier {
       if (hasPendingQueueOps) {
         debugPrint(
             'EntryProvider: Pending sync operations detected, skipping stale cache deletions to avoid offline data loss');
+        debugPrint(
+            'EntryProvider: Synced ${entries.length} entries to local cache');
+        return;
+      }
+
+      if (!isCompleteSnapshot) {
+        debugPrint(
+            'EntryProvider: Partial cloud snapshot detected, skipping stale cache deletions');
         debugPrint(
             'EntryProvider: Synced ${entries.length} entries to local cache');
         return;

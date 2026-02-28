@@ -42,7 +42,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final entryProvider = context.read<EntryProvider>();
       if (entryProvider.entries.isEmpty && !entryProvider.isLoading) {
-        entryProvider.loadEntries();
+        entryProvider.loadLatestEntries();
       }
       _loadAbsencesForVisibleRange();
     });
@@ -72,10 +72,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
 
     try {
-      // EntryProvider already loads all entries, so pagination is handled client-side
-      // If needed in future, implement pagination in EntryProvider
+      // Keep history on bounded "latest entries" fetches for performance.
       final entryProvider = context.read<EntryProvider>();
-      await entryProvider.loadEntries();
+      await entryProvider.loadLatestEntries();
       await _loadAbsencesForVisibleRange();
     } finally {
       setState(() {
@@ -602,7 +601,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: UnifiedEntryForm(
           entryType: entry.type,
           existingEntry: entry,
-          onSaved: () => context.read<EntryProvider>().loadEntries(),
+          onSaved: () => context.read<EntryProvider>().loadLatestEntries(),
         ),
       ),
     );

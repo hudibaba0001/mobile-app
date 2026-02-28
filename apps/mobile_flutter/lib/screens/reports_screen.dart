@@ -110,6 +110,12 @@ class _ReportsScreenState extends State<ReportsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final entryProvider = context.read<EntryProvider>();
+      entryProvider.loadEntries().catchError((Object error) {
+        debugPrint('ReportsScreen: loadEntries failed: $error');
+      });
+    });
   }
 
   @override

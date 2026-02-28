@@ -7,6 +7,7 @@ import '../firebase_options.dart';
 class CrashReportingService {
   static bool _initialized = false;
   static bool _enabled = false;
+  static bool _isHandlingPlatformError = false;
 
   static bool get isEnabled => _enabled;
 
@@ -40,13 +41,26 @@ class CrashReportingService {
     };
 
     PlatformDispatcher.instance.onError = (error, stackTrace) {
-      if (_enabled) {
-        FirebaseCrashlytics.instance.recordError(
-          error,
-          stackTrace,
-          fatal: true,
-          reason: 'platform_dispatcher_uncaught',
-        );
+      if (_isHandlingPlatformError) {
+        return true;
+      }
+
+      _isHandlingPlatformError = true;
+      try {
+        if (_enabled) {
+          FirebaseCrashlytics.instance.recordError(
+            error,
+            stackTrace,
+            fatal: true,
+            reason: 'platform_dispatcher_uncaught',
+          );
+        }
+      } catch (crashlyticsError, crashlyticsStack) {
+        debugPrint(
+            'CrashReportingService: Failed recording platform error: $crashlyticsError');
+        debugPrint('$crashlyticsStack');
+      } finally {
+        _isHandlingPlatformError = false;
       }
       return true;
     };

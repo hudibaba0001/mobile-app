@@ -66,4 +66,40 @@ void main() {
     expect(syncedProvider.pendingSyncCount, 0);
     expect(remoteSaveCalls, greaterThanOrEqualTo(1));
   });
+
+  test('updateAllSettings performs one remote save for bundled contract write',
+      () async {
+    SharedPreferences.setMockInitialValues({});
+
+    int remoteSaveCalls = 0;
+    final provider = ContractProvider(
+      offlineCheck: () async => false,
+      currentUserIdProvider: () => 'user_a',
+      remoteSaveContract: ({
+        required int contractPercent,
+        required int fullTimeHours,
+        DateTime? trackingStartDate,
+        required int openingFlexMinutes,
+        required String employerMode,
+      }) async {
+        remoteSaveCalls++;
+        return true;
+      },
+    );
+
+    await provider.init();
+    await provider.updateAllSettings(
+      percent: 75,
+      hours: 40,
+      trackingStartDate: DateTime(2026, 3, 2),
+      openingFlexMinutes: -120,
+      employerMode: 'strict',
+    );
+
+    expect(remoteSaveCalls, 1);
+    expect(provider.contractPercent, 75);
+    expect(provider.fullTimeHours, 40);
+    expect(provider.openingFlexMinutes, -120);
+    expect(provider.employerMode, 'strict');
+  });
 }

@@ -577,6 +577,47 @@ class ContractProvider extends ChangeNotifier {
     }
   }
 
+  /// Validate and update all contract settings with a single remote write.
+  Future<void> updateAllSettings({
+    required int percent,
+    required int hours,
+    required DateTime trackingStartDate,
+    required int openingFlexMinutes,
+    required String employerMode,
+  }) async {
+    if (percent < 0 || percent > 100) {
+      throw ArgumentError('Contract percentage must be between 0 and 100');
+    }
+    if (hours <= 0) {
+      throw ArgumentError('Full-time hours must be positive');
+    }
+
+    final normalizedStart = _dateOnly(trackingStartDate);
+    final maxDate = DateTime.now().add(const Duration(days: 365));
+    if (normalizedStart.isAfter(maxDate)) {
+      throw ArgumentError(
+          'Start date cannot be more than 1 year in the future');
+    }
+
+    final changed = _contractPercent != percent ||
+        _fullTimeHours != hours ||
+        _trackingStartDate != normalizedStart ||
+        _openingFlexMinutes != openingFlexMinutes ||
+        _employerMode != employerMode;
+
+    if (!changed) return;
+
+    _contractPercent = percent;
+    _fullTimeHours = hours;
+    _trackingStartDate = normalizedStart;
+    _openingFlexMinutes = openingFlexMinutes;
+    _employerMode = employerMode;
+
+    await _saveAllToLocalCache();
+    await saveToSupabase();
+    notifyListeners();
+  }
+
   /// Validate and update all contract settings at once
   Future<void> updateContractSettings(int percent, int hours) async {
     debugPrint(

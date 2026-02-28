@@ -28,6 +28,35 @@ class ReminderService {
   static const String _typeTokenCrashHint =
       'TypeToken must be created with a type argument';
 
+  @visibleForTesting
+  static tz.TZDateTime nextDailyScheduleTime({
+    required tz.TZDateTime now,
+    required int hour,
+    required int minute,
+  }) {
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
+    if (!scheduled.isAfter(now)) {
+      // Use calendar-day construction instead of Duration(days: 1) so DST
+      // transitions do not drift reminders by +/-1 hour.
+      scheduled = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day + 1,
+        hour,
+        minute,
+      );
+    }
+    return scheduled;
+  }
+
   Future<void> initialize() async {
     if (_initialized || !_supportsNotifications) return;
 
@@ -182,17 +211,11 @@ class ReminderService {
     await _cancelDailyReminderInternal();
 
     final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
+    final scheduled = nextDailyScheduleTime(
+      now: now,
+      hour: hour,
+      minute: minute,
     );
-    if (!scheduled.isAfter(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
-    }
 
     const androidDetails = AndroidNotificationDetails(
       _channelId,

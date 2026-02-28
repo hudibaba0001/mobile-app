@@ -40,10 +40,8 @@ class _TimeBalanceScreenState extends State<TimeBalanceScreen> {
     debugPrint(
         'TimeBalanceScreen: Contract settings loaded - %: ${contractProvider.contractPercent}%, Full-time: ${contractProvider.fullTimeHours}h, Allowed: ${contractProvider.allowedHours}h');
 
-    // Make sure entries are loaded first
-    if (entryProvider.entries.isEmpty) {
-      await entryProvider.loadEntries();
-    }
+    // Always refresh to the default current-year dataset before balance math.
+    await entryProvider.loadEntries();
 
     // Calculate balances (will use contract settings automatically)
     await timeProvider.calculateBalances();
