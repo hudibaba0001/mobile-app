@@ -3,6 +3,11 @@ import 'package:hive/hive.dart';
 import 'absence.dart';
 import '../utils/date_parser.dart';
 
+T safeEnum<T>(List<T> values, int index, T fallback) {
+  if (index < 0 || index >= values.length) return fallback;
+  return values[index];
+}
+
 /// Hive adapter for AbsenceEntry (typeId: 10)
 class AbsenceEntryAdapter extends TypeAdapter<AbsenceEntry> {
   @override
@@ -35,7 +40,7 @@ class AbsenceEntryAdapter extends TypeAdapter<AbsenceEntry> {
       id: id.isEmpty ? null : id,
       date: date,
       minutes: minutes,
-      type: AbsenceType.values[typeIndex],
+      type: safeEnum(AbsenceType.values, typeIndex, AbsenceType.unknown),
     );
   }
 

@@ -3,6 +3,16 @@ import 'package:hive/hive.dart';
 import 'user_red_day.dart';
 import '../utils/date_parser.dart';
 
+T safeEnum<T>(List<T> values, int index, T fallback) {
+  if (index < 0 || index >= values.length) return fallback;
+  return values[index];
+}
+
+T? safeNullableEnum<T>(List<T> values, int index) {
+  if (index < 0 || index >= values.length) return null;
+  return values[index];
+}
+
 /// Hive adapter for UserRedDay (typeId: 12)
 class UserRedDayAdapter extends TypeAdapter<UserRedDay> {
   @override
@@ -29,10 +39,10 @@ class UserRedDayAdapter extends TypeAdapter<UserRedDay> {
         id: corruptedSentinelId,
         userId: userId,
         date: DateTime(1970),
-        kind: RedDayKind.values[kindIndex],
-        half: halfIndex >= 0 ? HalfDay.values[halfIndex] : null,
+        kind: safeEnum(RedDayKind.values, kindIndex, RedDayKind.full),
+        half: safeNullableEnum(HalfDay.values, halfIndex),
         reason: 'CORRUPTED: invalid date $dateStr',
-        source: RedDaySource.values[sourceIndex],
+        source: safeEnum(RedDaySource.values, sourceIndex, RedDaySource.manual),
       );
     }
 
@@ -40,10 +50,10 @@ class UserRedDayAdapter extends TypeAdapter<UserRedDay> {
       id: id.isEmpty ? null : id,
       userId: userId,
       date: date,
-      kind: RedDayKind.values[kindIndex],
-      half: halfIndex >= 0 ? HalfDay.values[halfIndex] : null,
+      kind: safeEnum(RedDayKind.values, kindIndex, RedDayKind.full),
+      half: safeNullableEnum(HalfDay.values, halfIndex),
       reason: reason.isEmpty ? null : reason,
-      source: RedDaySource.values[sourceIndex],
+      source: safeEnum(RedDaySource.values, sourceIndex, RedDaySource.manual),
     );
   }
 
