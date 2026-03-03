@@ -314,18 +314,31 @@ class MyApp extends StatelessWidget {
             BalanceAdjustmentProvider,
             HolidayService,
             TimeProvider>(
-          create: (context) => TimeProvider(
+          create: (context) => TimeProvider.withDependencies(
             context.read<EntryProvider>(),
             context.read<ContractProvider>(),
-            context.read<AbsenceProvider>(),
-            context.read<BalanceAdjustmentProvider>(),
-            context.read<HolidayService>(),
+            absenceProvider: context.read<AbsenceProvider>(),
+            adjustmentProvider: context.read<BalanceAdjustmentProvider>(),
+            holidayService: context.read<HolidayService>(),
+            travelEnabledProvider: () =>
+                context.read<SettingsProvider>().isTravelLoggingEnabled,
+            currentUserIdProvider: () =>
+                context.read<SupabaseAuthService>().currentUser?.id,
           ),
           update: (context, entryProvider, contractProvider, absenceProvider,
                   adjustmentProvider, holidayService, previous) =>
               previous ??
-              TimeProvider(entryProvider, contractProvider, absenceProvider,
-                  adjustmentProvider, holidayService),
+              TimeProvider.withDependencies(
+                entryProvider,
+                contractProvider,
+                absenceProvider: absenceProvider,
+                adjustmentProvider: adjustmentProvider,
+                holidayService: holidayService,
+                travelEnabledProvider: () =>
+                    context.read<SettingsProvider>().isTravelLoggingEnabled,
+                currentUserIdProvider: () =>
+                    context.read<SupabaseAuthService>().currentUser?.id,
+              ),
         ),
         // Services
         Provider(create: (_) => TravelCacheService()..init()),

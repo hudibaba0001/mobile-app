@@ -9,6 +9,7 @@ import '../providers/settings_provider.dart';
 import '../providers/network_status_provider.dart';
 import '../services/holiday_service.dart';
 import '../config/app_router.dart';
+import '../config/feature_flag_resolver.dart';
 import '../services/supabase_auth_service.dart';
 import '../services/reminder_service.dart';
 import '../services/crash_reporting_service.dart';
@@ -16,6 +17,7 @@ import '../utils/error_message_mapper.dart';
 import '../widgets/add_red_day_dialog.dart';
 import '../models/user_red_day.dart';
 import '../widgets/onboarding/onboarding_scaffold.dart';
+import '../providers/time_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -24,6 +26,7 @@ class SettingsScreen extends StatelessWidget {
     'ENABLE_CRASHLYTICS_TEST_ACTIONS',
     defaultValue: false,
   );
+  static const Set<String> _aggregateRpcAllowlist = <String>{};
 
   String _languageLabel(AppLocalizations t, Locale? locale) {
     switch (locale?.languageCode) {
@@ -680,6 +683,9 @@ class SettingsScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final showCrashlyticsTestActions =
         !kReleaseMode || _enableCrashlyticsTestActions;
+    final email = user?.email?.toLowerCase().trim();
+    final showFeatureFlagDebug =
+        kDebugMode || (email != null && _aggregateRpcAllowlist.contains(email));
 
     return OnboardingScaffold(
       title: t.settings_title,
@@ -905,6 +911,12 @@ class SettingsScreen extends StatelessWidget {
               onTap: () => context.go(AppRouter.absenceManagementPath),
             ),
 
+            if (showFeatureFlagDebug) ...[
+              const Divider(),
+              const AppSectionHeader(title: 'Debug', padding: EdgeInsets.zero),
+              const _AggregateRpcDebugTile(),
+            ],
+
             if (showCrashlyticsTestActions) ...[
               const Divider(),
               ListTile(
@@ -954,6 +966,95 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.xxl),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AggregateRpcDebugTile extends StatefulWidget {
+  const _AggregateRpcDebugTile();
+
+  @override
+  State<_AggregateRpcDebugTile> createState() => _AggregateRpcDebugTileState();
+}
+
+class _AggregateRpcDebugTileState extends State<_AggregateRpcDebugTile> {
+  final FeatureFlagResolver _resolver = FeatureFlagResolver();
+  bool _isLoading = true;
+  bool _isSaving = false;
+  bool? _localOverride;
+  bool _effective = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _reload();
+  }
+
+  Future<void> _reload() async {
+    final local = await _resolver.getLocalAggregateRpcOverride();
+    final effective = await _resolver.resolveUseTimeBalanceAggregateRpc();
+    if (!mounted) return;
+    setState(() {
+      _localOverride = local;
+      _effective = effective;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _setOverride(bool? value) async {
+    setState(() => _isSaving = true);
+    try {
+      await _resolver.setLocalAggregateRpcOverride(value);
+      if (!mounted) return;
+      await context.read<TimeProvider>().refreshAggregateRpcFeatureFlag();
+      if (!mounted) return;
+      await _reload();
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  String _localLabel(bool? value) {
+    if (value == null) return 'Default (null)';
+    return value ? 'On' : 'Off';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const ListTile(
+        leading: Icon(Icons.science_outlined),
+        title: Text('Time Balance Aggregate RPC'),
+        subtitle: Text('Loading debug override...'),
+      );
+    }
+
+    final switchValue = _localOverride ?? _effective;
+    return ListTile(
+      leading: const Icon(Icons.science_outlined),
+      title: const Text('Time Balance Aggregate RPC'),
+      subtitle: Text(
+        'Local override: ${_localLabel(_localOverride)}\n'
+        'Effective: ${_effective ? 'On' : 'Off'}',
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'Clear local override',
+            onPressed: _isSaving || _localOverride == null
+                ? null
+                : () => _setOverride(null),
+            icon: const Icon(Icons.restart_alt),
+          ),
+          Switch(
+            value: switchValue,
+            onChanged: _isSaving ? null : (value) => _setOverride(value),
+          ),
+        ],
       ),
     );
   }

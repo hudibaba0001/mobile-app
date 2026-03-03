@@ -116,6 +116,20 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         debugPrint('UnifiedHomeScreen: loadEntries failed: $error');
       }));
 
+      final timeProvider = context.read<TimeProvider>();
+      unawaited(() async {
+        try {
+          await timeProvider.refreshAggregateRpcFeatureFlag(
+            triggerRecalculate: false,
+          );
+          if (!timeProvider.isAggregateRpcFeatureEnabled) return;
+          await timeProvider.calculateBalances();
+        } catch (error) {
+          debugPrint(
+              'UnifiedHomeScreen: calculateBalances (aggregate) failed: $error');
+        }
+      }());
+
       // Load absences in parallel; this should not block recent entries rendering.
       unawaited(
           absenceProvider.loadAbsences(year: DateTime.now().year).catchError(

@@ -1,6 +1,8 @@
 // ignore_for_file: avoid_print
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../config/feature_flags.dart';
+import '../config/feature_flag_resolver.dart';
 import '../models/monthly_summary.dart';
 import '../models/weekly_summary.dart';
 import '../utils/time_balance_calculator.dart';
@@ -8,6 +10,7 @@ import '../utils/target_hours_calculator.dart';
 import '../models/entry.dart';
 import '../calendar/sweden_holidays.dart';
 import '../services/holiday_service.dart';
+import '../services/time_balance_aggregate_service.dart';
 import 'entry_provider.dart';
 import 'contract_provider.dart';
 import 'absence_provider.dart';
@@ -28,6 +31,10 @@ import 'balance_adjustment_provider.dart';
 class TimeProvider extends ChangeNotifier {
   final EntryProvider _entryProvider;
   final ContractProvider _contractProvider;
+  final TimeBalanceAggregateService _aggregateService;
+  final FeatureFlagResolver _featureFlagResolver;
+  final bool Function()? _travelEnabledProvider;
+  final String? Function()? _currentUserIdProvider;
   final AbsenceProvider?
       _absenceProvider; // Optional for backward compatibility
   final BalanceAdjustmentProvider?
@@ -61,15 +68,47 @@ class TimeProvider extends ChangeNotifier {
   // Store monthly adjustment minutes for UI display
   final Map<String, int> _monthlyAdjustmentMinutes = {}; // Key: "year-month"
 
+  // Optional aggregate RPC cache (current-year, to-date)
+  final Map<DateTime, DailyAggregateRow> _aggregateDailyRows = {};
+  DailyAggregateRow? _aggregateTotalsRow;
+  int? _aggregateYear;
+  bool _useTimeBalanceAggregateRpc = FeatureFlags.useTimeBalanceAggregateRpc;
+
   TimeProvider(
     this._entryProvider,
     this._contractProvider, [
     this._absenceProvider,
     this._adjustmentProvider,
     this._holidayService,
-  ]) {
+  ])  : _aggregateService = TimeBalanceAggregateService(),
+        _featureFlagResolver = FeatureFlagResolver(),
+        _travelEnabledProvider = null,
+        _currentUserIdProvider = null {
     // Auto-refresh: Listen to EntryProvider changes
     _setupListeners();
+    unawaited(refreshAggregateRpcFeatureFlag(triggerRecalculate: false));
+  }
+
+  TimeProvider.withDependencies(
+    this._entryProvider,
+    this._contractProvider, {
+    AbsenceProvider? absenceProvider,
+    BalanceAdjustmentProvider? adjustmentProvider,
+    HolidayService? holidayService,
+    TimeBalanceAggregateService? aggregateService,
+    FeatureFlagResolver? featureFlagResolver,
+    bool Function()? travelEnabledProvider,
+    String? Function()? currentUserIdProvider,
+  })  : _absenceProvider = absenceProvider,
+        _adjustmentProvider = adjustmentProvider,
+        _holidayService = holidayService,
+        _aggregateService = aggregateService ?? TimeBalanceAggregateService(),
+        _featureFlagResolver = featureFlagResolver ?? FeatureFlagResolver(),
+        _travelEnabledProvider = travelEnabledProvider,
+        _currentUserIdProvider = currentUserIdProvider {
+    // Auto-refresh: Listen to EntryProvider changes
+    _setupListeners();
+    unawaited(refreshAggregateRpcFeatureFlag(triggerRecalculate: false));
   }
 
   /// Setup listeners for auto-refresh when entries change
@@ -201,6 +240,263 @@ class TimeProvider extends ChangeNotifier {
   /// Helper: Get date-only (strip time component)
   DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
+  bool get _isAggregateRpcEnabled => _useTimeBalanceAggregateRpc;
+  bool get isAggregateRpcFeatureEnabled => _useTimeBalanceAggregateRpc;
+
+  Future<void> refreshAggregateRpcFeatureFlag({
+    bool triggerRecalculate = true,
+  }) async {
+    final resolved =
+        await _featureFlagResolver.resolveUseTimeBalanceAggregateRpc();
+    final changed = _useTimeBalanceAggregateRpc != resolved;
+    _useTimeBalanceAggregateRpc = resolved;
+
+    if (changed) {
+      _clearAggregateCache();
+      if (triggerRecalculate) {
+        await calculateBalances();
+        return;
+      }
+    }
+
+    notifyListeners();
+  }
+
+  String? _currentUserId() => _currentUserIdProvider?.call();
+
+  bool _travelEnabled() => _travelEnabledProvider?.call() ?? true;
+
+  bool _hasAggregateCacheForYear(int year) {
+    return _aggregateTotalsRow != null && _aggregateYear == year;
+  }
+
+  void _clearAggregateCache() {
+    _aggregateDailyRows.clear();
+    _aggregateTotalsRow = null;
+    _aggregateYear = null;
+  }
+
+  Future<bool> _loadAggregateCacheForYear(int year) async {
+    if (!_isAggregateRpcEnabled) return false;
+    final userId = _currentUserId();
+    if (userId == null || userId.isEmpty) return false;
+
+    final startDate = DateTime(year, 1, 1);
+    final endDate = _dateOnly(DateTime.now());
+    final trackingStartDate = _dateOnly(_contractProvider.trackingStartDate);
+    final travelEnabled = _travelEnabled();
+
+    final result = await _aggregateService.fetchAggregates(
+      userId: userId,
+      startDate: startDate,
+      endDate: endDate,
+      trackingStartDate: trackingStartDate,
+      travelEnabled: travelEnabled,
+    );
+
+    _aggregateDailyRows
+      ..clear()
+      ..addEntries(
+        result.daily.where((row) => row.day != null).map(
+              (row) => MapEntry(_dateOnly(row.day!), row),
+            ),
+      );
+    _aggregateTotalsRow = result.totals;
+    _aggregateYear = year;
+    return true;
+  }
+
+  int _sumAggregateRange({
+    required DateTime startInclusive,
+    required DateTime endInclusive,
+    required int Function(DailyAggregateRow row) selector,
+  }) {
+    var total = 0;
+    for (final row in _aggregateDailyRows.values) {
+      final day = row.day;
+      if (day == null) continue;
+      if (!day.isBefore(startInclusive) && !day.isAfter(endInclusive)) {
+        total += selector(row);
+      }
+    }
+    return total;
+  }
+
+  int _sumAggregateMonthToDate(
+    int year,
+    int month,
+    int Function(DailyAggregateRow row) selector,
+  ) {
+    final periodStart = DateTime(year, month, 1);
+    final lastDayOfMonth = DateTime(year, month + 1, 0);
+    final today = _dateOnly(DateTime.now());
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+    final effectiveEnd =
+        today.isBefore(lastDayOfMonth) ? today : lastDayOfMonth;
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
+    }
+    return _sumAggregateRange(
+      startInclusive: effectiveStart,
+      endInclusive: effectiveEnd,
+      selector: selector,
+    );
+  }
+
+  int _sumAggregateYearToDate(
+    int year,
+    int Function(DailyAggregateRow row) selector,
+  ) {
+    final periodStart = DateTime(year, 1, 1);
+    final endOfYear = DateTime(year, 12, 31);
+    final today = _dateOnly(DateTime.now());
+    final effectiveStart = periodStart.isBefore(_trackingDateOnly)
+        ? _trackingDateOnly
+        : periodStart;
+    final effectiveEnd = today.isBefore(endOfYear) ? today : endOfYear;
+    if (effectiveEnd.isBefore(effectiveStart)) {
+      return 0;
+    }
+    return _sumAggregateRange(
+      startInclusive: effectiveStart,
+      endInclusive: effectiveEnd,
+      selector: selector,
+    );
+  }
+
+  void _applyAggregateSnapshot({
+    required int targetYear,
+    required int weeklyTargetMinutes,
+    required int openingFlexMinutes,
+  }) {
+    _monthlySummaries = [];
+    _weeklySummaries = [];
+    _monthlyCreditMinutes.clear();
+    _monthlyAdjustmentMinutes.clear();
+
+    var totalYearActualMinutes = 0;
+    var totalYearScheduledMinutes = 0;
+    var totalYearCreditMinutes = 0;
+    var totalYearAdjustmentMinutes = 0;
+    var totalYearlyVarianceMinutes = 0;
+
+    for (int month = 1; month <= 12; month++) {
+      final monthActualMinutes = _sumAggregateMonthToDate(
+        targetYear,
+        month,
+        (row) => row.actualMinutes,
+      );
+      final monthScheduledMinutes = _sumAggregateMonthToDate(
+        targetYear,
+        month,
+        (row) => row.plannedMinutes,
+      );
+      final monthCreditMinutes = _sumAggregateMonthToDate(
+        targetYear,
+        month,
+        (row) => row.creditedLeaveMinutes,
+      );
+      final monthAdjustmentMinutes = _sumAggregateMonthToDate(
+        targetYear,
+        month,
+        (row) => row.adjustmentMinutes,
+      );
+      final monthVarianceMinutes =
+          monthActualMinutes + monthCreditMinutes - monthScheduledMinutes;
+
+      totalYearlyVarianceMinutes += monthVarianceMinutes;
+      totalYearActualMinutes += monthActualMinutes;
+      totalYearScheduledMinutes += monthScheduledMinutes;
+      totalYearCreditMinutes += monthCreditMinutes;
+      totalYearAdjustmentMinutes += monthAdjustmentMinutes;
+
+      _monthlySummaries.add(
+        MonthlySummary(
+          year: targetYear,
+          month: month,
+          actualWorkedHours: monthActualMinutes / 60.0,
+        ),
+      );
+
+      _monthlyCreditMinutes['$targetYear-$month'] = monthCreditMinutes;
+      _monthlyAdjustmentMinutes['$targetYear-$month'] = monthAdjustmentMinutes;
+    }
+
+    final totalVarianceWithOpening = totalYearlyVarianceMinutes +
+        openingFlexMinutes +
+        totalYearAdjustmentMinutes;
+    _yearlyRunningBalance = totalVarianceWithOpening / 60.0;
+    _currentYearTotalHours = totalYearActualMinutes / 60.0;
+    _currentYearlyVariance = (totalYearActualMinutes +
+            totalYearCreditMinutes -
+            totalYearScheduledMinutes +
+            openingFlexMinutes +
+            totalYearAdjustmentMinutes) /
+        60.0;
+
+    final currentMonth = DateTime.now().month;
+    _currentMonthlyVariance = (_sumAggregateMonthToDate(
+              targetYear,
+              currentMonth,
+              (row) => row.actualMinutes,
+            ) +
+            _sumAggregateMonthToDate(
+              targetYear,
+              currentMonth,
+              (row) => row.creditedLeaveMinutes,
+            ) -
+            _sumAggregateMonthToDate(
+              targetYear,
+              currentMonth,
+              (row) => row.plannedMinutes,
+            )) /
+        60.0;
+
+    final weeklyMinutes = <_WeekKey, int>{};
+    for (final row in _aggregateDailyRows.values) {
+      final day = row.day;
+      if (day == null || day.year != targetYear) continue;
+      final week = _getWeekForDate(day);
+      final key =
+          _WeekKey(weekNumber: week.weekNumber, weekStart: week.weekStart);
+      weeklyMinutes[key] = (weeklyMinutes[key] ?? 0) + row.actualMinutes;
+    }
+
+    _weeklySummaries = weeklyMinutes.entries
+        .map(
+          (entry) => WeeklySummary(
+            year: targetYear,
+            weekNumber: entry.key.weekNumber,
+            weekStart: entry.key.weekStart,
+            actualWorkedHours: entry.value / 60.0,
+          ),
+        )
+        .toList();
+
+    _yearlyRunningBalanceFromWeeks =
+        TimeBalanceCalculator.calculateYearlyBalanceFromWeeks(
+      _weeklySummaries,
+      targetHours: weeklyTargetMinutes / 60.0,
+    );
+
+    final currentWeek = _getWeekForDate(DateTime.now());
+    final currentWeekSummary = _weeklySummaries.firstWhere(
+      (s) => s.weekNumber == currentWeek.weekNumber && s.year == targetYear,
+      orElse: () => WeeklySummary(
+        year: targetYear,
+        weekNumber: currentWeek.weekNumber,
+        weekStart: currentWeek.weekStart,
+        actualWorkedHours: 0.0,
+      ),
+    );
+    _currentWeeklyVariance = TimeBalanceCalculator.calculateWeeklyVariance(
+      currentWeekSummary.actualWorkedHours,
+      targetHours: weeklyTargetMinutes / 60.0,
+    );
+  }
+
   /// Helper: Get tracking start date as date-only
   DateTime get _trackingDateOnly =>
       _dateOnly(_contractProvider.trackingStartDate);
@@ -277,6 +573,28 @@ class TimeProvider extends ChangeNotifier {
           'TimeProvider: Weekly target: $weeklyTargetMinutes minutes (${weeklyTargetMinutes / 60.0} hours)');
       debugPrint(
           'TimeProvider: Tracking start date: $startDate, Opening balance: ${openingFlexMinutes / 60.0}h');
+
+      // Optional aggregate RPC path for current-year to-date totals.
+      if (_isAggregateRpcEnabled && targetYear == DateTime.now().year) {
+        try {
+          final loaded = await _loadAggregateCacheForYear(targetYear);
+          if (loaded) {
+            _applyAggregateSnapshot(
+              targetYear: targetYear,
+              weeklyTargetMinutes: weeklyTargetMinutes,
+              openingFlexMinutes: openingFlexMinutes,
+            );
+            notifyListeners();
+            return;
+          }
+        } catch (e) {
+          debugPrint(
+              'TimeProvider: Aggregate RPC failed, falling back to legacy path: $e');
+          _clearAggregateCache();
+        }
+      } else {
+        _clearAggregateCache();
+      }
 
       // Get entries from EntryProvider
       final allEntries = _entryProvider.entries;
@@ -568,7 +886,8 @@ class TimeProvider extends ChangeNotifier {
   static int isoWeekNumberForDate(DateTime date) {
     final normalizedDate = DateTime.utc(date.year, date.month, date.day);
     // ISO 8601: week/year are anchored to Thursday.
-    final thursday = normalizedDate.add(Duration(days: 4 - normalizedDate.weekday));
+    final thursday =
+        normalizedDate.add(Duration(days: 4 - normalizedDate.weekday));
     final firstDayOfIsoYear = DateTime.utc(thursday.year, 1, 1);
     final daysSinceYearStart = thursday.difference(firstDayOfIsoYear).inDays;
     return (daysSinceYearStart ~/ 7) + 1;
@@ -772,6 +1091,10 @@ class TimeProvider extends ChangeNotifier {
   /// Get total adjustment minutes for a specific year up to today
   /// Respects trackingStartDate - only includes adjustments on/after tracking start
   int yearAdjustmentMinutesToDate(int year) {
+    if (_hasAggregateCacheForYear(year)) {
+      return _sumAggregateYearToDate(year, (row) => row.adjustmentMinutes);
+    }
+
     final provider = _adjustmentProvider;
     if (provider == null) return 0;
 
@@ -798,6 +1121,14 @@ class TimeProvider extends ChangeNotifier {
   /// Get month adjustment minutes up to today
   /// Respects trackingStartDate - only includes adjustments on/after tracking start
   int monthAdjustmentMinutesToDate(int year, int month) {
+    if (_hasAggregateCacheForYear(year)) {
+      return _sumAggregateMonthToDate(
+        year,
+        month,
+        (row) => row.adjustmentMinutes,
+      );
+    }
+
     final provider = _adjustmentProvider;
     if (provider == null) return 0;
 
@@ -854,6 +1185,10 @@ class TimeProvider extends ChangeNotifier {
   /// Returns scheduled minutes from max(1st of month, trackingStartDate) up to today (or end of month if today is later)
   /// Respects trackingStartDate and uses _getScheduledMinutesForDate for holiday/red day support
   int monthTargetMinutesToDate(int year, int month) {
+    if (_hasAggregateCacheForYear(year)) {
+      return _sumAggregateMonthToDate(year, month, (row) => row.plannedMinutes);
+    }
+
     final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
     final periodStart = DateTime(year, month, 1);
     final lastDayOfMonth = DateTime(year, month + 1, 0);
@@ -893,6 +1228,10 @@ class TimeProvider extends ChangeNotifier {
   /// Returns scheduled minutes from max(Jan 1, trackingStartDate) up to today (or Dec 31 if today is later)
   /// Respects trackingStartDate and uses _getScheduledMinutesForDate for holiday/red day support
   int yearTargetMinutesToDate(int year) {
+    if (_hasAggregateCacheForYear(year)) {
+      return _sumAggregateYearToDate(year, (row) => row.plannedMinutes);
+    }
+
     final weeklyTargetMinutes = _contractProvider.weeklyTargetMinutes;
     final periodStart = DateTime(year, 1, 1);
     final endOfYear = DateTime(year, 12, 31);
@@ -946,6 +1285,10 @@ class TimeProvider extends ChangeNotifier {
   /// [month] The month (1-12)
   /// Respects trackingStartDate - only includes entries on/after tracking start
   int monthActualMinutesToDate(int year, int month) {
+    if (_hasAggregateCacheForYear(year)) {
+      return _sumAggregateMonthToDate(year, month, (row) => row.actualMinutes);
+    }
+
     final periodStart = DateTime(year, month, 1);
     final lastDayOfMonth = DateTime(year, month + 1, 0);
     final today = _dateOnly(DateTime.now());
@@ -986,6 +1329,14 @@ class TimeProvider extends ChangeNotifier {
   /// [month] The month (1-12)
   /// Respects trackingStartDate - only includes credits on/after tracking start
   int monthCreditMinutesToDate(int year, int month) {
+    if (_hasAggregateCacheForYear(year)) {
+      return _sumAggregateMonthToDate(
+        year,
+        month,
+        (row) => row.creditedLeaveMinutes,
+      );
+    }
+
     final absenceProvider = _absenceProvider;
     if (absenceProvider == null) return 0;
 
@@ -1029,6 +1380,10 @@ class TimeProvider extends ChangeNotifier {
   /// [year] The year
   /// Respects trackingStartDate - only includes entries on/after tracking start
   int yearActualMinutesToDate(int year) {
+    if (_hasAggregateCacheForYear(year)) {
+      return _sumAggregateYearToDate(year, (row) => row.actualMinutes);
+    }
+
     final periodStart = DateTime(year, 1, 1);
     final endOfYear = DateTime(year, 12, 31);
     final today = _dateOnly(DateTime.now());
@@ -1066,6 +1421,10 @@ class TimeProvider extends ChangeNotifier {
   /// [year] The year
   /// Respects trackingStartDate - only includes credits on/after tracking start
   int yearCreditMinutesToDate(int year) {
+    if (_hasAggregateCacheForYear(year)) {
+      return _sumAggregateYearToDate(year, (row) => row.creditedLeaveMinutes);
+    }
+
     final absenceProvider = _absenceProvider;
     if (absenceProvider == null) return 0;
 
